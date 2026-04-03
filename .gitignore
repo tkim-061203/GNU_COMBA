@@ -1,6 +1,5 @@
 autom4te.cache
 .conda
-.build*
 ext-dataset
 .ignore*
 .ipynb_checkpoints
@@ -21,3 +20,12 @@ utils/Pyranet_no_logic.jsonl
 utils/found
 src/.cache_count_num_cell*
 **/*.env
+.build_sample_e0_t0/*/
+.build_sample_e0_t8/*/
+.build_sample_e1_t0/*/
+.build_sample_e1_t8/*/
+
+!.build_sample_e0_t0
+!.build_sample_e0_t8
+!.build_sample_e1_t0
+!.build_sample_e1_t8
