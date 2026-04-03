@@ -3,4 +3,4 @@
 	url = https://github.com/GATECH-EIC/mg-verilog.git
 [submodule "ext/verilog-eval"]
 	path = ext/verilog-eval
-	url = git@github.com:ngminhthanh12a3/verilog-eval.git
+	url = git@github.com:tkim-061203/verilog-eval.git

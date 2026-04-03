@@ -1,12 +1,114 @@
-# Project
+# GNU_COMBA: LLM-based Verilog Evaluation Framework
 
-Based on VerilogEval
+GNU_COMBA is a comprehensive framework designed for evaluating and benchmarking Large Language Models (LLMs) in the task of Verilog hardware description language generation. It builds upon `VerilogEval` and provides a structured environment for inference, assessment, and experimentation with various LLM providers.
 
-Set up:
+## Key Features
 
-`git submodule update --init --recursive`
+- **Multi-Provider Support**: Supports inference via `llamacpp`, `openai` (and compatible APIs like vLLM), and more.
+- **Automated Benchmarking**: Integrated with `VerilogEval` for standardized assessments.
+- **Customizable Inference**: Fine-tune parameters like temperature, max tokens, number of samples, and in-context learning (ICL) examples.
+- **Modular Flow System**: A flexible execution engine (`flow_src`) for complex processing pipelines.
+- **Local Model Serving**: Scripts and configurations for serving models using vLLM.
+- **Jupyter Integration**: Easy access to research and development notebooks.
 
-## 0.0.0
+## Project Structure
 
-- Base prompt for inform reference code to automatically provide XML-based descriptions.
-- Make jupyter lab
+- `src/`: Core Python source code for inference and processing.
+- `src/flow_src`: Experimental modular flow system.
+- `ext/`: External dependencies and submodules (e.g., `VerilogEval`).
+- `utils/`: Helper scripts and utilities.
+- `configure.ac` & `Makefile.in`: Autotools-based build system for managing experiments.
+- `environment.yaml`: Conda environment specification.
+
+## Setup
+
+### 1. Clone Submodules
+
+```bash
+git submodule update --init --recursive
+```
+
+### 2. Environment Setup
+
+It is recommended to use the provided Conda environment:
+
+```bash
+conda env create -f environment.yaml
+conda activate gnu_comba
+```
+
+### 3. Install Icarus Verilog
+
+Follow the instructions in the `ext/verilog-eval` repository to install Icarus Verilog, which is required for Verilog evaluation.
+
+## Usage Guide
+
+GNU_COMBA uses a `configure` and `make` system to manage different evaluation runs.
+
+### Basic Workflow
+
+1. **Create a build directory**:
+   ```bash
+   mkdir .build_experiment
+   cd .build_experiment
+   ```
+
+2. **Configure the experiment**:
+   ```bash
+   ../configure --with-provider=openai \
+                --with-model=your-model-name \
+                --with-temperature=0.8 \
+                --with-samples=20 \
+                --with-task=code-complete-iccad2023
+   ```
+
+3. **Run Inference**:
+   ```bash
+   make
+   ```
+
+4. **Evaluate Results**:
+   ```bash
+   make verilog-eval
+   make -j 20
+   ```
+Ex:
+e0_t0:
+../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+e0_t8:
+../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+e1_t0:
+../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+e1_t8:
+../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+### Common Configuration Options
+
+- `--with-provider`: LLM provider (`llamacpp`, `openai`, etc.).
+- `--with-model`: Name or path of the model.
+- `--with-max_token`: Maximum number of output tokens.
+- `--with-temperature`: Sampling temperature.
+- `--with-samples`: Number of samples per problem.
+- `--with-examples`: Number of ICL examples to include in the prompt.
+- `--with-task`: The benchmark task (e.g., `code-complete-iccad2023`).
+
+### Local Model Serving (vLLM)
+
+You can serve models locally using the provided vLLM utility:
+
+1. Configure `vllm.yaml` with your model path and settings.
+2. Run the server:
+   ```bash
+   ./vllm.sh
+   ```
+
+## Development
+
+To start a Jupyter Lab instance in the source directory:
+
+```bash
+make jupyterlab
+```
+
+---
+Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn)
+Version: 0.0.0
