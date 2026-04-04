@@ -5,6 +5,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 from dotenv import load_dotenv
 import glob, numpy as np, os, sys
+from concurrent.futures import ThreadPoolExecutor
 
 load_dotenv()
 
@@ -45,13 +46,14 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 				file_list = file.read().split(",")
 				return (logic_index, tuple(file_list))
 
-		my_range = range(len(all_num_cell_file))
-		pool = self.global_obj["pool"]
-
-		for i in tqdm(iterable=pool.imap_unordered(do_process, my_range), total=len(my_range)):
-			logic_index, file_list = i
-			all_cell_num_with_no_null[logic_index][0] = int(file_list[0])
-			all_cell_num_with_no_null[logic_index][1] = int(file_list[1]) if file_list[1].strip() != 'None' else None
+		my_range = list(range(len(all_num_cell_file)))
+		# Dung ThreadPoolExecutor (thread, khong can pickle) de doc file I/O song song
+		num_workers = min(os.cpu_count() or 4, max(1, len(my_range)))
+		with ThreadPoolExecutor(max_workers=num_workers) as executor:
+			for result in tqdm(executor.map(do_process, my_range), total=len(my_range)):
+				logic_index, file_list = result
+				all_cell_num_with_no_null[logic_index][0] = int(file_list[0])
+				all_cell_num_with_no_null[logic_index][1] = int(file_list[1]) if file_list[1].strip() != 'None' else None
 
 		# ── Chi giu cac entry da co ket qua synthesis (khong None) ─────────
 		all_cell_num_with_no_null = all_cell_num_with_no_null[:, 1]
