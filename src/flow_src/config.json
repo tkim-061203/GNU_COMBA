@@ -1,3 +1,7 @@
 {
-	"flow": ["PyranetFilterDataset"]
+	"flow": [
+		"PyranetSynthesis",
+		"PyranetExtractDataseByRangeOfLogicCell",
+		"PyranetFilterDataset"
+	]
 }

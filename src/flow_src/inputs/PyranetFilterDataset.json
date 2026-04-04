@@ -1,4 +1,4 @@
 {
-	"dataset_index": "/home/biglab/nvmt/GNU_COMBA/src/TrainDataset/train_index2_0_5.npy",
-	"dataset_index_output": "/home/biglab/nvmt/GNU_COMBA/src/TrainDataset/no_logic_index.npy"
+	"dataset_index": "./src/TrainDataset/train_index2_6_10.npy",
+	"dataset_index_output": "./src/TrainDataset/no_logic_index.npy"
 }

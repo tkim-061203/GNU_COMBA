@@ -1,7 +1,6 @@
 from datetime import datetime
 import os, sys, json, importlib, importlib.util
 from pathlib import Path
-from multiprocess.dummy import Pool
 run_dir_prefix = ".run"
 
 cur_main_path = Path(__file__).parent
@@ -68,14 +67,8 @@ def main():
 
 if __name__ == "__main__":
 
-	num_core = int(os.cpu_count() * 0.9)
-	with Pool(processes=num_core) as pool:
-		# pool = Pool(processes=num_core)
-		global_obj["pool"] = pool
-	
-	# from tqdm import tqdm
-	# def do_process(i):
-	# 	return i
-	# for i in tqdm(iterable=pool.imap_unordered(do_process, range(100000)), total=100000):
-	# 	pass
-		main()
+	# NOTE: Do NOT store the pool in global_obj — pool objects cannot be
+	# pickled by dill, which would break serialisation of inner functions
+	# in child scripts (PyranetSynthesis, etc.).  Each script creates its
+	# own pool internally; the top-level pool is no longer needed here.
+	main()
