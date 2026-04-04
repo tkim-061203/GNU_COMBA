@@ -22,7 +22,7 @@ class PyranetSynthesis(BaseProcessClass):
 			example_code = dataset['code'][i]
 			
 			total_num_cells = 0
-			with tempfile.TemporaryDirectory(prefix=temp_dir) as tmpdirname:
+			with tempfile.TemporaryDirectory(dir=temp_dir) as tmpdirname:
 				os.link(f'{self.trigger_path}/yosys_run/run4.sh', f'{tmpdirname}/run.sh')
 				with open(f'{tmpdirname}/top.v', 'w+') as file:
 					file.write(example_code)
