@@ -76,7 +76,10 @@ json.dump({ \
   'temp_dir':   '$(TEMP_DIR)', \
   'yosys_path': '$(YOSYS_PATH)', \
 }, open(f'{d}/PyranetSynthesis.json','w'), indent='\t'); \
-json.dump({}, open(f'{d}/PyranetExtractDataseByRangeOfLogicCell.json','w'), indent='\t'); \
+json.dump({ \
+  'cell_range_start': $(CELL_RANGE_START), \
+  'cell_range_stop':  $(CELL_RANGE_STOP), \
+}, open(f'{d}/PyranetExtractDataseByRangeOfLogicCell.json','w'), indent='\t'); \
 json.dump({ \
   'dataset_index':        '$(TRAIN_INDEX_NPY)', \
   'dataset_index_output': '$(NO_LOGIC_NPY)', \
