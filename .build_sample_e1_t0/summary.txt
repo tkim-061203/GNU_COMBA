@@ -92,7 +92,7 @@ Prob090_circuit1              [00/01](  0%)  0.00 R
 Prob091_2012_q2b              [01/01](100%)  0.00 .                       
 Prob092_gatesv100             [00/01](  0%)  0.00 S                       
 Prob093_ece241_2014_q3        [00/01](  0%)  0.00 R                       
-Prob094_gatesv                [00/01](  0%)  0.00 R                       
+Prob094_gatesv                [01/01](100%)  0.00 .                       
 Prob095_review2015_fsmshift   [00/01](  0%)  0.00 R                       
 Prob096_review2015_fsmseq     [00/01](  0%)  0.00 R                       
 Prob097_mux9to1v              [01/01](100%)  0.00 .                       
@@ -107,7 +107,7 @@ Prob105_rotate100             [01/01](100%)  0.00 .
 Prob106_always_nolatches      [01/01](100%)  0.00 .                       
 Prob107_fsm1s                 [01/01](100%)  0.00 .                       
 Prob108_rule90                [00/01](  0%)  0.00 R                       
-Prob109_fsm1                  [00/01](  0%)  0.00 R                       
+Prob109_fsm1                  [01/01](100%)  0.00 .                       
 Prob110_fsm2                  [01/01](100%)  0.00 .                       
 Prob111_fsm2s                 [01/01](100%)  0.00 .                       
 Prob112_always_case2          [01/01](100%)  0.00 .                       
@@ -138,7 +138,7 @@ Prob136_m2014_q6              [01/01](100%)  0.00 .
 Prob137_fsm_serial            [00/01](  0%)  0.00 R                       
 Prob138_2012_q2fsm            [01/01](100%)  0.00 .                       
 Prob139_2013_q2bfsm           [00/01](  0%)  0.00 R                       
-Prob140_fsm_hdlc              [00/01](  0%)  0.00 R                       
+Prob140_fsm_hdlc              [01/01](100%)  0.00 .                       
 Prob141_count_clock           [00/01](  0%)  0.00 T                       
 Prob142_lemmings2             [00/01](  0%)  0.00 R                       
 Prob143_fsm_onehot            [01/01](100%)  0.00 .                       
@@ -152,11 +152,11 @@ Prob150_review2015_fsmonehot  [00/01](  0%)  0.00 R
 Prob151_review2015_fsm        [00/01](  0%)  0.00 R                       
 Prob152_lemmings3             [00/01](  0%)  0.00 C                       
 Prob153_gshare                [00/01](  0%)  0.00 R                       
-Prob154_fsm_ps2data           [00/01](  0%)  0.00 R                       
+Prob154_fsm_ps2data           [00/01](  0%)  0.00 S                       
 Prob155_lemmings4             [00/01](  0%)  0.00 R                       
 Prob156_review2015_fancytimer [00/01](  0%)  0.00 S                       
 
-pass_rate             =      62.82
+pass_rate             =      64.74
 avg_gini_simpson_idx  =       0.00
 total_prompt_tokens   =          0
 total_resp_tokens     =          0

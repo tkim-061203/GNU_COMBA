@@ -618,6 +618,12 @@ PACKAGE_URL=''
 ac_unique_file="src/main.py"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+flow_steps
+cell_range_stop
+cell_range_start
+train_dataset_dir
+temp_dir
+yosys_path
 revision
 max_tb_trials
 max_sc_trials
@@ -684,6 +690,12 @@ with_task
 with_max_sc_trials
 with_max_tb_trials
 with_revision
+with_yosys_path
+with_temp_dir
+with_train_dataset_dir
+with_cell_range_start
+with_cell_range_stop
+with_flow_steps
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1318,6 +1330,14 @@ Optional Packages:
   --with-max-sc-trials    Max syntax correction cycles (default: 10)
   --with-max-tb-trials    Max testbench correction cycles (default: 5)
   --with-revision         Revision pf LLM
+  --with-yosys-path       Path to yosys binary for synthesis
+  --with-temp-dir         Temp directory prefix for Yosys synthesis jobs
+  --with-train-dataset-dir
+                          Output directory for training dataset index files
+  --with-cell-range-start Min logic cell count to extract (inclusive)
+  --with-cell-range-stop  Max logic cell count to extract (inclusive)
+  --with-flow-steps       Comma-separated list of flow steps to run
+                          (synthesis,extract,filter)
 
 Report bugs to <Vu-Minh-Thanh Nguyen nvmthanh@hcmus.edu.vn>.
 _ACEOF
@@ -1920,6 +1940,10 @@ fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using task: ${task}" >&5
 printf "%s\n" "$as_me: using task: ${task}" >&6;}
 
+#-------------------------------------------------------------------------
+# --with-max-sc-trials
+#-------------------------------------------------------------------------
+
 
 # Check whether --with-max-sc-trials was given.
 if test ${with_max_sc_trials+y}
@@ -1930,8 +1954,13 @@ else $as_nop
 fi
 
 
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-sc-trials: ${max_sc_trials}" >&5
 printf "%s\n" "$as_me: using max-sc-trials: ${max_sc_trials}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-max-tb-trials
+#-------------------------------------------------------------------------
 
 
 # Check whether --with-max-tb-trials was given.
@@ -1941,6 +1970,7 @@ then :
 else $as_nop
   max_tb_trials="5"
 fi
+
 
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-tb-trials: ${max_tb_trials}" >&5
@@ -1963,6 +1993,110 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using revision: ${revision}" >&5
 printf "%s\n" "$as_me: using revision: ${revision}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-yosys-path
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-yosys-path was given.
+if test ${with_yosys_path+y}
+then :
+  withval=$with_yosys_path; yosys_path="${with_yosys_path}"
+else $as_nop
+  yosys_path="/home/share/oss-cad-suite/bin/yosys"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using yosys path: ${yosys_path}" >&5
+printf "%s\n" "$as_me: using yosys path: ${yosys_path}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-temp-dir
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-temp-dir was given.
+if test ${with_temp_dir+y}
+then :
+  withval=$with_temp_dir; temp_dir="${with_temp_dir}"
+else $as_nop
+  temp_dir="/tmp"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using temp dir: ${temp_dir}" >&5
+printf "%s\n" "$as_me: using temp dir: ${temp_dir}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-train-dataset-dir
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-train-dataset-dir was given.
+if test ${with_train_dataset_dir+y}
+then :
+  withval=$with_train_dataset_dir; train_dataset_dir="${with_train_dataset_dir}"
+else $as_nop
+  train_dataset_dir="TrainDataset"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using train dataset dir: ${train_dataset_dir}" >&5
+printf "%s\n" "$as_me: using train dataset dir: ${train_dataset_dir}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-cell-range-start / --with-cell-range-stop
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-cell-range-start was given.
+if test ${with_cell_range_start+y}
+then :
+  withval=$with_cell_range_start; cell_range_start="${with_cell_range_start}"
+else $as_nop
+  cell_range_start="0"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using cell range start: ${cell_range_start}" >&5
+printf "%s\n" "$as_me: using cell range start: ${cell_range_start}" >&6;}
+
+
+# Check whether --with-cell-range-stop was given.
+if test ${with_cell_range_stop+y}
+then :
+  withval=$with_cell_range_stop; cell_range_stop="${with_cell_range_stop}"
+else $as_nop
+  cell_range_stop="5"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using cell range stop: ${cell_range_stop}" >&5
+printf "%s\n" "$as_me: using cell range stop: ${cell_range_stop}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-flow-steps
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-flow-steps was given.
+if test ${with_flow_steps+y}
+then :
+  withval=$with_flow_steps; flow_steps="${with_flow_steps}"
+else $as_nop
+  flow_steps="synthesis,extract,filter"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using flow steps: ${flow_steps}" >&5
+printf "%s\n" "$as_me: using flow steps: ${flow_steps}" >&6;}
 
 #-------------------------------------------------------------------------
 # Output
