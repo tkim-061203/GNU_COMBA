@@ -130,17 +130,27 @@ AC_ARG_WITH(task,
 AC_SUBST([task])
 AC_MSG_NOTICE([using task: ${task}])
 
+#-------------------------------------------------------------------------
+# --with-max-sc-trials
+#-------------------------------------------------------------------------
+
 AC_ARG_WITH(max-sc-trials,
   AS_HELP_STRING([--with-max-sc-trials],[Max syntax correction cycles (default: 10)]),
   [max_sc_trials="${with_max_sc_trials}"],
   [max_sc_trials="10"])
+
 AC_SUBST([max_sc_trials])
 AC_MSG_NOTICE([using max-sc-trials: ${max_sc_trials}])
+
+#-------------------------------------------------------------------------
+# --with-max-tb-trials
+#-------------------------------------------------------------------------
 
 AC_ARG_WITH(max-tb-trials,
   AS_HELP_STRING([--with-max-tb-trials],[Max testbench correction cycles (default: 5)]),
   [max_tb_trials="${with_max_tb_trials}"],
   [max_tb_trials="5"])
+
 AC_SUBST([max_tb_trials])
 AC_MSG_NOTICE([using max-tb-trials: ${max_tb_trials}])
 
@@ -155,6 +165,74 @@ AC_ARG_WITH(revision,
 
 AC_SUBST([revision])
 AC_MSG_NOTICE([using revision: ${revision}])
+
+#-------------------------------------------------------------------------
+# --with-yosys-path
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(yosys-path,
+  AS_HELP_STRING([--with-yosys-path],[Path to yosys binary for synthesis]),
+  [yosys_path="${with_yosys_path}"],
+  [yosys_path="/home/share/oss-cad-suite/bin/yosys"])
+
+AC_SUBST([yosys_path])
+AC_MSG_NOTICE([using yosys path: ${yosys_path}])
+
+#-------------------------------------------------------------------------
+# --with-temp-dir
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(temp-dir,
+  AS_HELP_STRING([--with-temp-dir],[Temp directory prefix for Yosys synthesis jobs]),
+  [temp_dir="${with_temp_dir}"],
+  [temp_dir="/tmp"])
+
+AC_SUBST([temp_dir])
+AC_MSG_NOTICE([using temp dir: ${temp_dir}])
+
+#-------------------------------------------------------------------------
+# --with-train-dataset-dir
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(train-dataset-dir,
+  AS_HELP_STRING([--with-train-dataset-dir],[Output directory for training dataset index files]),
+  [train_dataset_dir="${with_train_dataset_dir}"],
+  [train_dataset_dir="TrainDataset"])
+
+AC_SUBST([train_dataset_dir])
+AC_MSG_NOTICE([using train dataset dir: ${train_dataset_dir}])
+
+#-------------------------------------------------------------------------
+# --with-cell-range-start / --with-cell-range-stop
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(cell-range-start,
+  AS_HELP_STRING([--with-cell-range-start],[Min logic cell count to extract (inclusive)]),
+  [cell_range_start="${with_cell_range_start}"],
+  [cell_range_start="0"])
+
+AC_SUBST([cell_range_start])
+AC_MSG_NOTICE([using cell range start: ${cell_range_start}])
+
+AC_ARG_WITH(cell-range-stop,
+  AS_HELP_STRING([--with-cell-range-stop],[Max logic cell count to extract (inclusive)]),
+  [cell_range_stop="${with_cell_range_stop}"],
+  [cell_range_stop="5"])
+
+AC_SUBST([cell_range_stop])
+AC_MSG_NOTICE([using cell range stop: ${cell_range_stop}])
+
+#-------------------------------------------------------------------------
+# --with-flow-steps
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(flow-steps,
+  AS_HELP_STRING([--with-flow-steps],[Comma-separated list of flow steps to run (synthesis,extract,filter)]),
+  [flow_steps="${with_flow_steps}"],
+  [flow_steps="synthesis,extract,filter"])
+
+AC_SUBST([flow_steps])
+AC_MSG_NOTICE([using flow steps: ${flow_steps}])
 
 #-------------------------------------------------------------------------
 # Output
