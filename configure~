@@ -619,8 +619,6 @@ ac_unique_file="src/main.py"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 revision
-max_tb_trials
-max_sc_trials
 task
 model_submanual
 model_manual
@@ -681,8 +679,6 @@ with_examples
 with_model_manual
 with_model_submanual
 with_task
-with_max_sc_trials
-with_max_tb_trials
 with_revision
 '
       ac_precious_vars='build_alias
@@ -1315,8 +1311,6 @@ Optional Packages:
   --with-model-submanual  Submanual of model
   --with-task             Task to execute: spec-to-rtl or
                           code-complete-iccad2023
-  --with-max-sc-trials    Max syntax correction cycles (default: 10)
-  --with-max-tb-trials    Max testbench correction cycles (default: 5)
   --with-revision         Revision pf LLM
 
 Report bugs to <Vu-Minh-Thanh Nguyen nvmthanh@hcmus.edu.vn>.
@@ -1919,32 +1913,6 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using task: ${task}" >&5
 printf "%s\n" "$as_me: using task: ${task}" >&6;}
-
-
-# Check whether --with-max-sc-trials was given.
-if test ${with_max_sc_trials+y}
-then :
-  withval=$with_max_sc_trials; max_sc_trials="${with_max_sc_trials}"
-else $as_nop
-  max_sc_trials="10"
-fi
-
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-sc-trials: ${max_sc_trials}" >&5
-printf "%s\n" "$as_me: using max-sc-trials: ${max_sc_trials}" >&6;}
-
-
-# Check whether --with-max-tb-trials was given.
-if test ${with_max_tb_trials+y}
-then :
-  withval=$with_max_tb_trials; max_tb_trials="${with_max_tb_trials}"
-else $as_nop
-  max_tb_trials="5"
-fi
-
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-tb-trials: ${max_tb_trials}" >&5
-printf "%s\n" "$as_me: using max-tb-trials: ${max_tb_trials}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-revision

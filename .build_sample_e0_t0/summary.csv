@@ -30,7 +30,7 @@ Prob029_m2014_q4g,0,1,0.0,S
 Prob030_popcount255,1,1,1.0,.
 Prob031_dff,1,1,1.0,.
 Prob032_vector0,1,1,1.0,.
-Prob033_ece241_2014_q1c,0,1,0.0,R
+Prob033_ece241_2014_q1c,1,1,1.0,.
 Prob034_dff8,1,1,1.0,.
 Prob035_count1to10,1,1,1.0,.
 Prob036_ringer,1,1,1.0,.
@@ -140,7 +140,7 @@ Prob139_2013_q2bfsm,0,1,0.0,R
 Prob140_fsm_hdlc,1,1,1.0,.
 Prob141_count_clock,0,1,0.0,T
 Prob142_lemmings2,1,1,1.0,.
-Prob143_fsm_onehot,0,1,0.0,C
+Prob143_fsm_onehot,0,1,0.0,R
 Prob144_conwaylife,0,1,0.0,R
 Prob145_circuit8,0,1,0.0,S
 Prob146_fsm_serialdata,0,1,0.0,R

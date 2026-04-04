@@ -107,6 +107,18 @@ AC_SUBST([model_manual])
 AC_MSG_NOTICE([using model-manual: ${model_manual}])
 
 #-------------------------------------------------------------------------
+# --with-model-submanual 
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(model-submanual,
+  AS_HELP_STRING([--with-model-submanual],[Submanual of model]),
+  [model_submanual="${with_model_submanual}"],
+  [model_submanual=True])
+
+AC_SUBST([model_submanual])
+AC_MSG_NOTICE([using model-submanual: ${model_submanual}])
+
+#-------------------------------------------------------------------------
 # --with-task
 #-------------------------------------------------------------------------
 
@@ -117,6 +129,20 @@ AC_ARG_WITH(task,
 
 AC_SUBST([task])
 AC_MSG_NOTICE([using task: ${task}])
+
+AC_ARG_WITH(max-sc-trials,
+  AS_HELP_STRING([--with-max-sc-trials],[Max syntax correction cycles (default: 10)]),
+  [max_sc_trials="${with_max_sc_trials}"],
+  [max_sc_trials="10"])
+AC_SUBST([max_sc_trials])
+AC_MSG_NOTICE([using max-sc-trials: ${max_sc_trials}])
+
+AC_ARG_WITH(max-tb-trials,
+  AS_HELP_STRING([--with-max-tb-trials],[Max testbench correction cycles (default: 5)]),
+  [max_tb_trials="${with_max_tb_trials}"],
+  [max_tb_trials="5"])
+AC_SUBST([max_tb_trials])
+AC_MSG_NOTICE([using max-tb-trials: ${max_tb_trials}])
 
 #-------------------------------------------------------------------------
 # --with-revision

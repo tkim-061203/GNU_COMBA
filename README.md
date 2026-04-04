@@ -52,7 +52,11 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
    mkdir .build_experiment
    cd .build_experiment
    ```
-
+1.5. Clean up previous build directory:
+   ```bash
+   cd .build_sample_e....
+   rm -rf */ *
+   ```
 2. **Configure the experiment**:
    ```bash
    ../configure --with-provider=openai \
