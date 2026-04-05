@@ -20,10 +20,9 @@ utils/Pyranet_no_logic.jsonl
 utils/found
 src/.cache_count_num_cell*
 **/*.env
-VE_testbench/*/.build_*/
-!VE_testbench/*/.build_*/*
-VE_testbench/*/.build_*/*/
-VE_testbench/*/.build_*/*.vcd
+*/*/.build_*/*/
+*/*/.build_*/wave.vcd
+
 .run*
 .cache*
 .vscode
