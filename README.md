@@ -116,8 +116,14 @@ You can serve the base model and debugger model locally on a dual-GPU setup usin
 ./launch_dual_gpu.sh --status
 ```
 
-## Edit config.ac
-After changing code in config.ac, run `autoreconf -fi` to update the build system.
+## Edit configure.ac (Autoconfig)
+
+To add new configuration parameters (e.g., `--with-my-param`):
+1. Open `configure.ac`.
+2. Add a new `AC_ARG_WITH` block and `AC_SUBST([my_param])` for the parameter.
+3. Open `Makefile.in` and use `@my_param@` wherever you need the variable.
+4. Run `autoreconf -fi` in the root directory to regenerate the `configure` script.
+5. Re-run your `../configure ...` command to apply.
 
 ## Development
 
@@ -128,5 +134,5 @@ make jupyterlab
 ```
 
 ---
-Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn)
-Version: 0.0.0
+Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
+Version: 2.2.1
