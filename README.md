@@ -54,8 +54,8 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
    ```
 1.5. Clean up previous build directory:
    ```bash
-   cd .build_sample_e....
-   rm -rf */ *
+   cd <your_build_directory>  # e.g., VE_testbench/langgraph/.build_sample_e0_t0
+   rm -rf *
    ```
 2. **Configure the experiment**:
    ```bash
@@ -80,18 +80,35 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
 4. **Evaluate Results**:
    ```bash
    make verilog-eval
-   make -j 20
-   ```
-Ex:
-e0_t0:
-../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
-e0_t8:
-../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
-e1_t0:
-../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
-e1_t8:
-../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
-### Common Configuration Options
+### Configuration Reference
+
+**1. Standard Inference (Pipeline 2 - Using `make`)**
+Common setup configurations use the `eX_tY` naming convention (e: examples, t: temperature). This is the default execution flow for a single model:
+
+- **`e0_t0`**: Zero-shot without examples + Greedy Search (1 sample).
+  ```bash
+  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ```
+- **`e0_t8`**: Zero-shot without examples + Temperature 0.8 (generates 20 samples).
+  ```bash
+  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ```
+- **`e1_t0`**: One-shot with 1 example + Greedy Search.
+  ```bash
+  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ```
+- **`e1_t8`**: One-shot with 1 example + Temperature 0.8 (generates 20 samples).
+  ```bash
+  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ```
+
+**2. Multi-Agent Inference with LangGraph (Pipeline 3 - Using `make langgraph`)**
+In this Multi-Agent setup, both generator and debugger models are used simultaneously. You must explicitly declare the Debugger URL (`--with-model-submanual`) to route tasks correctly between the two GPUs.
+
+- **`e0_t0` (Dual GPU LangGraph)**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
+  ```bash
+  ../../../configure --with-provider=openai --with-model=genarater --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023
+  ```
 
 - `--with-provider`: LLM provider (`llamacpp`, `openai`, etc.).
 - `--with-model`: Name or path of the model.
@@ -100,6 +117,8 @@ e1_t8:
 - `--with-samples`: Number of samples per problem.
 - `--with-examples`: Number of ICL examples to include in the prompt.
 - `--with-task`: The benchmark task (e.g., `code-complete-iccad2023`).
+- `--with-model-manual`: URL for the primary generator LLM override (e.g., `http://localhost:8000/v1`).
+- `--with-model-submanual`: URL for the secondary debugging LLM (e.g., `http://localhost:8001/v1`) used in Dual GPU setups.
 
 ### Local Model Serving (Dual GPU)
 

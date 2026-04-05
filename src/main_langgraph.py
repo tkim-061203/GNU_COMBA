@@ -4,15 +4,15 @@ import os, glob, sys, json
 from tqdm import tqdm
 import argparse
 from multiprocess import Pool
-from langchain_openai import ChatOpenAI
+
 
 srcDir = os.path.abspath(os.path.dirname(__file__))
 
-# Import COMBA-LLM langgraph modules
-LANGGRAPH_DIR = "/home/nntkim/nntkim_old/COMBA-LLM"
-sys.path.insert(0, os.path.join(LANGGRAPH_DIR, "langgraph_core"))
+# Import COMBA-LLM langgraph modules locally
+sys.path.insert(0, os.path.join(srcDir, "langgraph_core"))
 
 from pipeline_runner import run_pipeline_sync
+from llm_interface import COMBALlm
 
 def parse_cmdline():
     p = argparse.ArgumentParser()
@@ -21,6 +21,7 @@ def parse_cmdline():
     p.add_argument("-m", "--model", type=str, default="gpt-3.5-turbo")
     p.add_argument("-t", "--temperature", type=float, default=0.0)
     p.add_argument("--model-manual", type=str, default="http://localhost:8000/v1")
+    p.add_argument("--model-submanual", type=str, default="http://localhost:8001/v1")
     p.add_argument("-p", "--provider", type=str, default="openai")
     p.add_argument("-n", "--max-tokens", type=int, default=2048)
     p.add_argument("-P", "--top-p", type=float, default=0.95)
@@ -57,11 +58,19 @@ def do_process(problemSet):
         if not api_base or api_base == "True": # If accidentally set to string "True" in configure.ac
             api_base = "http://localhost:8000/v1"
 
-        llm = ChatOpenAI(
-            base_url=api_base, 
-            model=opts.model, 
+        api_debugger = opts.model_submanual
+        if not api_debugger or api_debugger == "True":
+            api_debugger = "http://localhost:8001/v1"
+
+        # Explicitly configure COMBALlm for dual-GPU setup so LangGraph nodes route correctly
+        llm = COMBALlm(
+            server_mode="dual",
+            base_url=api_base,
+            debugger_url=api_debugger,
+            api_key="manual",
+            model_base=opts.model,
+            model_debugger="debugger",
             temperature=opts.temperature,
-            api_key="manual", 
             max_tokens=opts.max_tokens
         )
     

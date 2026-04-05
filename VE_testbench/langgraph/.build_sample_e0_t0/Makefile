@@ -1,280 +1,143 @@
-#=========================================================================
-# Makefile
-#=========================================================================
-#
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: MIT
-# Author : Christopher Batten, NVIDIA and Nathaniel Pinckney, NVIDIA
-#
-
-#-------------------------------------------------------------------------
-# Basic setup
-#-------------------------------------------------------------------------
-
-# Remove all default implicit rules since they can cause subtle bugs
-# and they just make things run slower
-.SUFFIXES:
-% : %,v
-% : RCS/%,v
-% : RCS/%
-% : s.%
-% : SCCS/s.%
-
-# Default is to build the prereqs of the all target (defined at bottom)
-default : all
-.PHONY : default
-
-src_dir      := ../ext/verilog-eval
-scripts_dir  := $(src_dir)/scripts
-
-#-------------------------------------------------------------------------
-# Programs
-#-------------------------------------------------------------------------
-
-GENERATE_VERILOG=$(scripts_dir)/sv-generate
-GENERATE_FLAGS = "--model=qwen-base"
-
-examples=0
-ifeq ($(examples),yes)
-  GENERATE_FLAGS += "--examples=4"
-else
-  GENERATE_FLAGS += "--examples=0"
-endif
-
-rules=no
-ifeq ($(rules),yes)
-  GENERATE_FLAGS += "--rules"
-endif
-
-GENERATE_FLAGS += "--task=code-complete-iccad2023"
-
-GENERATE_FLAGS += "--temperature=0.85"
-GENERATE_FLAGS += "--top-p=0.95"
-
-base_url=None
-ifneq ($(base_url),None)
-  GENERATE_FLAGS += "--base-url=None"
-endif
-
-model_manual=http://localhost:8000/v1
-ifneq ($(model_manual),False)
-  GENERATE_FLAGS += "--model-manual=http://localhost:8000/v1"
-endif
-
-IVERILOG_COMPILE=iverilog -Wall -Winfloop -Wno-timescale -g2012 -s tb
-
-#-------------------------------------------------------------------------
-# Dataset
-#-------------------------------------------------------------------------
-
-dataset_dir = ../ext/verilog-eval/dataset_code-complete-iccad2023
-VPATH = ${dataset_dir}
-include problems.mk
-include samples.mk
-
-# Define prompt files
-
-problem_prompts := $(patsubst %, %_prompt.txt, $(problems))
-
-#-------------------------------------------------------------------------
-# Progress indicator
-#-------------------------------------------------------------------------
-# Here is some neat code that enables a more compact output with a
-# progress indication:
-#
-#  https://stackoverflow.com/questions/451413
-#
-
-REDIRECT_LOG= &>
-REDIRECT_APPEND_LOG= &>>
-VERBOSE:=1
+JUPYTER_ARGS='--ip 0.0.0.0 --no-browser'
 QUIET=@
-ifeq ($(VERBOSE),1)
-  QUIET=
-  REDIRECT_LOG= 2>&1 | tee
-  REDIRECT_APPEND_LOG= 2>&1 | tee -a
-endif
+src_dir           := ../../..
+scripts_dir       := $(src_dir)/src
+flow_src_dir      := $(scripts_dir)/flow_src
+flow_inputs_dir   := $(flow_src_dir)/inputs
 
-ifndef ECHO
+# ── Pipeline 2: LLM inference ──────────────────────────────────────────────
+GENERATE_FLAGS = --samples=1 --examples=0 --provider=openai \
+                 --max-tokens=4096 --temperature=0 \
+                 --model=genarater --revision=None
 
-# Do a dry run of make with with given targets and count number of
-# times we see HIT_MARK which shows up for every instance of ECHO
+# ── Pipeline 1: Data-flow parameters ──────────────────────────────────────
+YOSYS_PATH        := /home/share/oss-cad-suite/bin/yosys
+TEMP_DIR          := /tmp
+TRAIN_DATASET_DIR := TrainDataset
+CELL_RANGE_START  := 0
+CELL_RANGE_STOP   := 5
+FLOW_STEPS        := synthesis,extract,filter
 
-HIT_TOTAL != $(MAKE) $(MAKECMDGOALS) --dry-run ECHO="HIT_MARK" | grep -c "HIT_MARK"
+# Derived index paths (relative to src_dir so they survive cd)
+TRAIN_INDEX_NPY   := $(src_dir)/$(TRAIN_DATASET_DIR)/train_index2_$(CELL_RANGE_START)_$(CELL_RANGE_STOP).npy
+NO_LOGIC_NPY      := $(src_dir)/$(TRAIN_DATASET_DIR)/no_logic_index.npy
 
-# Create a counter which will increment every instance of ECHO
+# ── Targets ────────────────────────────────────────────────────────────────
 
-HIT_COUNT = $(eval HIT_N != expr $(HIT_N) + 1)$(HIT_N)
+.PHONY: default jupyterlab verilog-eval \
+        data-flow gen-flow-configs \
+        synthesis extract filter \
+        langgraph \
+        clean-flow help
 
-# Create the output counter
+default:
+	echo $(scripts_dir)/main.py ${GENERATE_FLAGS}
+	$(QUIET) $(scripts_dir)/main.py ${GENERATE_FLAGS}
 
-ECHO = $(scripts_dir)/echo-progress \
-         --nsteps=$(HIT_TOTAL) --stepno=$(HIT_COUNT) --verbose=$(VERBOSE)
+jupyterlab:
+	$(QUIET) (cd $(src_dir) && jupyter lab $(JUPYTER_ARGS))
 
-endif
+verilog-eval:
+	cp config.log config.log.old
+	$(src_dir)/ext/verilog-eval/configure \
+		--with-model=genarater --with-task=code-complete-iccad2023 \
+		--with-samples=1 --with-examples=0 \
+		--with-model-manual=http://localhost:8000/v1
 
-#-------------------------------------------------------------------------
-# Template for per-problem rules
-#-------------------------------------------------------------------------
-# The template is instantiated for each of the problems.
-#
-# Arguments:
-#  $(1) : real problem name (ie with underscores, no dashes)
-#
+langgraph:
+	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
+	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 --jobs 20
 
-define problem_template
+# ── Pipeline 1: full data-flow ─────────────────────────────────────────────
+## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
+## Each step updates flow_src/config.json before delegating to flow_src/main.py.
+data-flow: gen-flow-configs
+	@echo "=== Running Pipeline 1 — steps: $(FLOW_STEPS) ==="
+	@mkdir -p $(src_dir)/$(TRAIN_DATASET_DIR)
+	@# Build config.json dynamically from FLOW_STEPS
+	@python3 -c "\
+import json, sys; \
+steps_map = { \
+  'synthesis': 'PyranetSynthesis', \
+  'extract':   'PyranetExtractDataseByRangeOfLogicCell', \
+  'filter':    'PyranetFilterDataset', \
+}; \
+keys = [s.strip() for s in '$(FLOW_STEPS)'.split(',')]; \
+flow = [steps_map[k] for k in keys if k in steps_map]; \
+json.dump({'flow': flow}, open('$(flow_src_dir)/config.json','w'), indent='\t'); \
+print('config.json →', flow)"
+	cd $(src_dir) && python3 $(flow_src_dir)/main.py
+	@echo "=== Pipeline 1 complete ==="
 
-# Figure out number of samples for this problem
+## Generate / refresh the input JSON configs from configure values
+gen-flow-configs:
+	@echo "--- Generating flow input configs ---"
+	@mkdir -p $(src_dir)/$(TRAIN_DATASET_DIR)
+	@python3 -c "\
+import json, os; \
+d='$(flow_inputs_dir)'; \
+os.makedirs(d, exist_ok=True); \
+json.dump({ \
+  'temp_dir':   '$(TEMP_DIR)', \
+  'yosys_path': '$(YOSYS_PATH)', \
+}, open(f'{d}/PyranetSynthesis.json','w'), indent='\t'); \
+json.dump({ \
+  'cell_range_start': $(CELL_RANGE_START), \
+  'cell_range_stop':  $(CELL_RANGE_STOP), \
+}, open(f'{d}/PyranetExtractDataseByRangeOfLogicCell.json','w'), indent='\t'); \
+json.dump({ \
+  'dataset_index':        '$(TRAIN_INDEX_NPY)', \
+  'dataset_index_output': '$(NO_LOGIC_NPY)', \
+}, open(f'{d}/PyranetFilterDataset.json','w'), indent='\t'); \
+print('Flow input configs written to $(flow_inputs_dir)')"
 
-sample_num_strs != seq --format "%02g" 1 $$($(1)_num_samples)
+# ── Individual step shortcuts ──────────────────────────────────────────────
+synthesis: gen-flow-configs
+	@echo "--- Step: synthesis only ---"
+	@python3 -c "\
+import json; json.dump({'flow':['PyranetSynthesis']}, \
+  open('$(flow_src_dir)/config.json','w'), indent='\t')"
+	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 
-# Generate verilog samples
+extract: gen-flow-configs
+	@echo "--- Step: extract only ---"
+	@python3 -c "\
+import json; json.dump({'flow':['PyranetExtractDataseByRangeOfLogicCell']}, \
+  open('$(flow_src_dir)/config.json','w'), indent='\t')"
+	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 
-$(1)_sv_samples       := $$(patsubst %, $(1)/$(1)_sample%.sv, $$(sample_num_strs))
-$(1)_sv_generate_logs := $$(patsubst %, $(1)/$(1)_sample%-sv-generate.log, $$(sample_num_strs))
+filter: gen-flow-configs
+	@echo "--- Step: filter only ---"
+	@python3 -c "\
+import json; json.dump({'flow':['PyranetFilterDataset']}, \
+  open('$(flow_src_dir)/config.json','w'), indent='\t')"
+	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 
-$$($(1)_sv_samples) : %.sv : $(1)_prompt.txt
-	@$$(ECHO) Generating $$(notdir $$@) verilog
-	$$(QUIET) mkdir -p $(1)
-	$$(QUIET) $$(GENERATE_VERILOG) $$(GENERATE_FLAGS) --verbose \
-              --output $$@ $$< \
-              $(REDIRECT_LOG) $$*-sv-generate.log
+# ── Cleanup ────────────────────────────────────────────────────────────────
+clean-flow:
+	@echo "Removing .run_* directories and cached cell counts..."
+	rm -rf $(src_dir)/.run_* $(src_dir)/.cache_count_num_cell_2
 
-$(1)-sv-generate : $$($(1)_sv_samples)
-
-pregen_files += $$($(1)_sv_samples)
-pregen_files += $$($(1)_sv_generate_logs)
-
-sv_generate_targets += $$($(1)_sv_samples)
-
-$(1)-sv-generate-clean :
-	rm -rf $$($(1)_sv_samples)
-	rm -rf $$($(1)_sv_generate_logs)
-
-# Test verilog samples
-
-$(1)_sv_iv_test_bins = \
-  $$(patsubst %.sv, %, $$($(1)_sv_samples))
-
-$(1)_sv_iv_test_logs = \
-  $$(patsubst %.sv, %-sv-iv-test.log, $$($(1)_sv_samples))
-
-$$($(1)_sv_iv_test_logs) : %-sv-iv-test.log : %.sv $(1)_test.sv $(1)_ref.sv
-	@$$(ECHO)  Testing $$(notdir $$*) with iverilog
-	-$$(QUIET) $(IVERILOG_COMPILE) -o $$* $$^ \
-               $(REDIRECT_LOG) $$*-sv-iv-test.log
-	-$$(QUIET) timeout 30 ./$$* $(REDIRECT_APPEND_LOG) $$@; \
-             if [[ $$$${PIPESTATUS[0]} == 124 ]]; then    \
-               echo "TIMEOUT" $(REDIRECT_APPEND_LOG) $$@; \
-             fi
-
-$(1)-sv-iv-test : $$($(1)_sv_iv_test_logs)
-
-sv_iv_test_targets += $$($(1)_sv_iv_test_logs)
-
-$(1)-sv-iv-test-clean :
-	rm -rf $$($(1)_sv_iv_test_bins)
-	rm -rf $$($(1)_sv_iv_test_logs)
-
-sv_iv_test_clean_targets += $(1)-sv-iv-test-clean
-
-# Problem-level clean
-
-$(1)-clean :
-	rm -rf $(1)
-
-# Add top-level to junk
-
-junk += $(1)
-
-# Phony targets
-
-.PHONY : $(1)-sv-generate
-.PHONY : $(1)-sv-iv-test
-.PHONY : $(1)-sv-iv-test-clean
-
-endef
-
-$(foreach problem, $(problems), \
-   $(eval $(call problem_template,$(problem))))
-
-#-------------------------------------------------------------------------
-# Top level targets
-#-------------------------------------------------------------------------
-
-sv-generate       : $(sv_generate_targets)
-sv-generate-clean : $(sv_generate_clean_targets)
-sv-iv-test        : $(sv_iv_test_targets)
-sv-iv-test-clean  : $(sv_iv_test_clean_targets)
-
-sv-iv-analyze : $(sv_iv_test_targets)
-	@$(ECHO) Analyzing verilog/iverilog results 
-	$(QUIET) $(scripts_dir)/sv-iv-analyze --csv=summary.csv $(problems) | tee summary.txt
-
-junk += summary.txt summary.csv
-
-#-------------------------------------------------------------------------
-# pregen
-#-------------------------------------------------------------------------
-# Save the generated code and logs so that we can rerun experiments
-# without having to regenerate all of the generated code with an LLM.
-# We use the special $(file make function because the number of files
-# can be so large that it might exceed the command line limit.
-
-pregen_dir := ../../pymtl-eval-pregen
-
-extra_pregen_files = \
-  problems.mk \
-  samples.mk \
-  summary.txt \
-  summary.csv \
-
-ifneq ($(pregen_dir),NOT_ENABLED)
-pregen: $(sv_samples)
-	$(file >  files-to-copy.txt, $(pregen_files))
-	$(file >> files-to-copy.txt, $(extra_pregen_files))
-	sed -i.bak -e 's/ \+/\n/g' files-to-copy.txt
-	rsync --files-from=files-to-copy.txt . \
-    $(pregen_dir)/$(shell date '+%Y-%m-%d-%H-%M')
-	rm files-to-copy.txt files-to-copy.txt.bak
-else
-pregen:
-	@echo "ERROR: pregen directory was not set with configure"
-endif
-
-#-------------------------------------------------------------------------
-# configure information
-#-------------------------------------------------------------------------
-
-dist_junk += \
-  config.status Makefile config.log \
-
-#-------------------------------------------------------------------------
-# Default
-#-------------------------------------------------------------------------
-
-all : sv-iv-analyze
-.PHONY : all
-
-#-------------------------------------------------------------------------
-# Makefile debugging
-#-------------------------------------------------------------------------
-# This handy rule will display the contents of any make variable by
-# using the target debug-<varname>. So for example, make debug-junk will
-# display the contents of the junk variable.
-
-debug-% :
-	@echo $* = $($*)
-
-#-------------------------------------------------------------------------
-# Clean up junk
-#-------------------------------------------------------------------------
-
-clean :
-	rm -rf *~ \#* wave.vcd $(junk)
-
-distclean :
-	rm -rf *~ \#* wave.vcd $(junk) $(dist_junk)
-
-.PHONY : clean
-
+# ── Help ───────────────────────────────────────────────────────────────────
+help:
+	@echo ""
+	@echo "Available targets:"
+	@echo "  default        Run LLM inference (Pipeline 2)"
+	@echo "  jupyterlab     Start Jupyter Lab"
+	@echo "  verilog-eval   Configure verilog-eval benchmark"
+	@echo ""
+	@echo "  data-flow      Run full Pipeline 1 (steps: $(FLOW_STEPS))"
+	@echo "  synthesis      Run synthesis step only"
+	@echo "  extract        Run extract step only"
+	@echo "  filter         Run filter step only"
+	@echo "  gen-flow-configs  Regenerate flow input JSON configs"
+	@echo "  clean-flow     Remove .run_* dirs and synthesis cache"
+	@echo ""
+	@echo "Configure options for Pipeline 1:"
+	@echo "  --with-yosys-path=PATH      (default: $(YOSYS_PATH))"
+	@echo "  --with-temp-dir=DIR         (default: $(TEMP_DIR))"
+	@echo "  --with-train-dataset-dir=D  (default: $(TRAIN_DATASET_DIR))"
+	@echo "  --with-cell-range-start=N   (default: $(CELL_RANGE_START))"
+	@echo "  --with-cell-range-stop=N    (default: $(CELL_RANGE_STOP))"
+	@echo "  --with-flow-steps=LIST      (default: $(FLOW_STEPS))"
+	@echo ""
