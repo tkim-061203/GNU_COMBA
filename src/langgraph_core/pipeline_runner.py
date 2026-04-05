@@ -100,11 +100,19 @@ def _prepare_state(
     nl_input: str,
     module_name: Optional[str] = None,
     xml_description: Optional[str] = None,
+    dataset_dir: Optional[str] = None,
+    benchmark_id: Optional[str] = None,
 ) -> dict:
     """Build initial COMBAState, optionally injecting XML."""
     from comba_pipeline import make_initial_state
-
-    state = make_initial_state(nl_input=nl_input, module_name=module_name or "")
+    
+    state = make_initial_state(
+        nl_input=nl_input, 
+        module_name=module_name or "",
+        benchmark_id=benchmark_id or ""
+    )
+    if dataset_dir:
+        state["dataset_dir"] = dataset_dir
 
     # If XML provided or input looks like XML, inject it
     if xml_description:
@@ -127,6 +135,8 @@ def run_pipeline_sync(
     module_name: Optional[str] = None,
     xml_description: Optional[str] = None,
     llm=None,
+    dataset_dir: Optional[str] = None,
+    benchmark_id: Optional[str] = None,
 ) -> dict:
     """
     Run full COMBA pipeline synchronously.
@@ -141,7 +151,7 @@ def run_pipeline_sync(
         Final COMBAState dict.
     """
     _, graph = get_pipeline(llm)
-    state = _prepare_state(nl_input, module_name, xml_description)
+    state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id)
     config = {"recursion_limit": 100}
     return graph.invoke(state, config)
 
@@ -151,6 +161,8 @@ def run_pipeline_streaming(
     module_name: Optional[str] = None,
     xml_description: Optional[str] = None,
     llm=None,
+    dataset_dir: Optional[str] = None,
+    benchmark_id: Optional[str] = None,
 ) -> Iterator[Tuple[str, dict]]:
     """
     Run COMBA pipeline, yielding (node_name, state_update) per step.
@@ -165,7 +177,7 @@ def run_pipeline_streaming(
         (node_name, state_update) tuples for each pipeline step.
     """
     _, graph = get_pipeline(llm)
-    state = _prepare_state(nl_input, module_name, xml_description)
+    state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id)
     config = {"recursion_limit": 100}
 
     for event in graph.stream(state, config):

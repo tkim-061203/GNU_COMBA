@@ -43,10 +43,10 @@ from stub_llm import (
 
 
 # ──────────────────────────────────────────────────────────────
-# Helpers: Mock Verilator subprocess calls
+# Helpers: Mock iverilog subprocess calls
 # ──────────────────────────────────────────────────────────────
 
-def make_verilator_result(returncode=0, stderr="", stdout=""):
+def make_iverilog_result(returncode=0, stderr="", stdout=""):
     """Create a mock subprocess.CompletedProcess."""
     result = MagicMock(spec=subprocess.CompletedProcess)
     result.returncode = returncode
@@ -55,30 +55,24 @@ def make_verilator_result(returncode=0, stderr="", stdout=""):
     return result
 
 
-CLEAN_SC_RESULT = make_verilator_result(returncode=0, stderr="", stdout="")
-SC_ERROR_RESULT = make_verilator_result(
-    returncode=1,
+CLEAN_SC_RESULT = make_iverilog_result(returncode=0, stderr="", stdout="")
+SC_ERROR_RESULT = make_iverilog_result(
+    returncode=2,
+    stderr="adder_8bit.sv:8: error: Signal 'result' not found\n",
+)
+SC_MULTI_ERROR_RESULT = make_iverilog_result(
+    returncode=2,
     stderr=(
-        "%Error: adder_8bit.v:8: Signal 'result' not found\n"
-        "%Error: Exiting due to 1 error(s)\n"
+        "adder_8bit.sv:8: error: Signal 'result' not found\n"
+        "adder_8bit.sv:9: syntax error\n"
+        "adder_8bit.sv:10: error: another error\n"
     ),
 )
-SC_MULTI_ERROR_RESULT = make_verilator_result(
-    returncode=1,
-    stderr=(
-        "%Error: adder_8bit.v:8: Signal 'result' not found\n"
-        "%Error: adder_8bit.v:9: Signal 'unknown_signal' not found\n"
-        "%Error: adder_8bit.v:10: Signal 'another_undeclared' not found\n"
-        "%Error: Exiting due to 3 error(s)\n"
-    ),
-)
-TB_PASS_RESULT = make_verilator_result(returncode=0, stdout="All tests passed\n")
-TB_FAIL_RESULT = make_verilator_result(
+TB_PASS_RESULT = make_iverilog_result(returncode=0, stdout="All tests passed\n")
+TB_FAIL_RESULT = make_iverilog_result(
     returncode=1,
     stdout=(
-        "# TODO 3 Failed at simtime 42\n"
-        "# TODO 3 INPUT TRACE: in->a = 0xff, in->b = 0x01, in->cin = 0x0\n"
-        "# TODO 3 OUTPUT TRACE: tx->cout = 0x0, tx->sum = 0x00\n"
+        "TODO 3 Failed at simtime 42\n"
     ),
 )
 
@@ -93,79 +87,118 @@ class TestRoutingFunctions:
     # ── Sanitizer routing (v3) ──
     def test_route_after_sanitizer_no_retry(self):
         """Sanitizer succeeded → go to SC."""
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sanitize_result"] = {"needs_retry": False, "code": "module test..."}
         assert route_after_sanitizer(state) == "node_syntax_check"
 
     def test_route_after_sanitizer_retry_from_generator(self):
         """Sanitizer needs retry, source was generator → back to generator."""
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sanitize_result"] = {"needs_retry": True}
         state["_last_llm_source"] = "generator"
         assert route_after_sanitizer(state) == "node_generator"
 
     def test_route_after_sanitizer_retry_from_debugger(self):
         """Sanitizer needs retry, source was debugger → back to debugger."""
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sanitize_result"] = {"needs_retry": True}
         state["_last_llm_source"] = "debugger"
         assert route_after_sanitizer(state) == "node_debugger"
 
     def test_route_after_sanitizer_default_no_result(self):
         """No sanitize_result → default to SC (no retry)."""
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         assert route_after_sanitizer(state) == "node_syntax_check"
 
     # ── SC routing (unchanged) ──
     def test_route_after_sc_has_errors(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sc_exception_count"] = 2
         assert route_after_sc(state) == "node_ted_syntax"
 
     def test_route_after_sc_clean(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sc_exception_count"] = 0
         assert route_after_sc(state) == "node_tb_sim"
 
     # ── TS routing (unchanged) ──
     def test_route_after_ts_has_failure(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["tb_failure"] = "TODO 3 Failed"
         assert route_after_ts(state) == "node_ted_tb"
 
     def test_route_after_ts_pass(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["tb_failure"] = None
         assert route_after_ts(state) == "end_pass"
 
     # ── TED SC routing (enhanced with MultiAttempt) ──
     def test_route_after_ted_syntax_under_limit(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sc_trial"] = 3
-        state["sc_exception"] = "%Error: some error"
+        state["sc_exception"] = "adder_8bit.sv:8: error: some error"
         assert route_after_ted_syntax(state) == "node_debugger"
 
     def test_route_after_ted_syntax_at_limit(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sc_trial"] = MAX_SC_TRIALS
-        state["sc_exception"] = "%Error: some error"
+        state["sc_exception"] = "adder_8bit.sv:8: error: some error"
         assert route_after_ted_syntax(state) == "end_fail_sc"
 
     def test_route_after_ted_syntax_no_exception(self):
         """When TED finds no parseable error, route to TB instead of debugger."""
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sc_exception"] = None
         state["sc_trial"] = 3
         assert route_after_ted_syntax(state) == "node_tb_sim"
 
     # ── TED TB routing (enhanced with MultiAttempt) ──
     def test_route_after_ted_tb_under_limit(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["ts_trial"] = 2
         assert route_after_ted_tb(state) == "node_debugger"
 
     def test_route_after_ted_tb_at_limit(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["ts_trial"] = MAX_TS_TRIALS
         assert route_after_ted_tb(state) == "end_fail_ts"
 
@@ -189,7 +222,10 @@ class TestNodes:
     def test_node_converter_skip_when_xml_present(self):
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["xml_description"] = GOOD_XML
         result = nodes.node_converter(state)
         assert result == {}
@@ -198,7 +234,10 @@ class TestNodes:
         """v3: Generator outputs _raw_llm_output, not gvd directly."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["xml_description"] = GOOD_XML
         state["module_name"] = "adder_8bit"
         result = nodes.node_generator(state)
@@ -211,7 +250,10 @@ class TestNodes:
         """Sanitizer succeeds with valid Verilog."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["_raw_llm_output"] = GOOD_VERILOG
         state["module_name"] = "adder_8bit"
         state["_last_llm_source"] = "generator"
@@ -225,7 +267,10 @@ class TestNodes:
         """Sanitizer extracts code from ```verilog``` fences."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["module_name"] = "adder_8bit"
         state["_last_llm_source"] = "generator"
         state["_raw_llm_output"] = (
@@ -243,7 +288,10 @@ class TestNodes:
         """Sanitizer requests retry for empty output (up to max 2)."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["module_name"] = "test"
         state["_last_llm_source"] = "generator"
         state["_raw_llm_output"] = ""
@@ -256,7 +304,10 @@ class TestNodes:
         """Sanitizer passes through after max retries, even on empty."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["module_name"] = "test"
         state["_last_llm_source"] = "generator"
         state["_raw_llm_output"] = ""
@@ -270,7 +321,10 @@ class TestNodes:
         """Sanitizer auto-appends endmodule for truncated output."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["module_name"] = "test"
         state["_last_llm_source"] = "debugger"
         state["_raw_llm_output"] = "module test(input a, output b);\n    assign b = a;\n"
@@ -281,7 +335,10 @@ class TestNodes:
     def test_node_syntax_check_clean(self):
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["gvd"] = GOOD_VERILOG
         state["module_name"] = "adder_8bit"
         state["sc_trial"] = 0
@@ -296,7 +353,10 @@ class TestNodes:
     def test_node_syntax_check_with_errors(self):
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["gvd"] = BUGGY_VERILOG
         state["module_name"] = "adder_8bit"
         state["sc_trial"] = 0
@@ -311,11 +371,13 @@ class TestNodes:
     def test_node_ted_syntax_extracts_topmost(self):
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["sc_log"] = (
-            "%Error: adder_8bit.v:8: Signal 'result' not found\n"
-            "%Error: adder_8bit.v:9: Another error\n"
-            "%Error: Exiting due to 2 error(s)\n"
+            "adder_8bit.sv:8: error: Signal 'result' not found\n"
+            "adder_8bit.sv:9: error: Another error\n"
         )
         result = nodes.node_ted_syntax(state)
         assert result["sc_exception"] is not None
@@ -325,8 +387,11 @@ class TestNodes:
     def test_node_ted_syntax_edtm_tracking(self):
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
-        state["sc_log"] = "%Error: adder_8bit.v:8: Signal 'result' not found\n"
+        state["dataset_dir"] = "/tmp"
+        state["sc_log"] = "adder_8bit.sv:8: error: Signal 'result' not found\n"
         state["edtm"] = {}
 
         # First time
@@ -347,15 +412,18 @@ class TestNodes:
         """v3: Debugger outputs _raw_llm_output via MultiAttemptManager."""
         llm = create_buggy_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["gvd"] = BUGGY_VERILOG
         state["sc_exception_count"] = 1
         state["sc_trial"] = 1
         state["phase"] = "sc"
         state["module_name"] = "adder_8bit"
-        state["sc_exception"] = "%Error: Signal 'result' not found"
-        state["edp"] = "Topmost Verilator error:\n%Error: Signal 'result' not found"
-        state["sc_log"] = "%Error: adder_8bit.v:8: Signal 'result' not found\n"
+        state["sc_exception"] = "adder_8bit.sv:8: error: Signal 'result' not found"
+        state["edp"] = "Topmost iverilog error:\nadder_8bit.sv:8: error: Signal 'result' not found"
+        state["sc_log"] = "adder_8bit.sv:8: error: Signal 'result' not found\n"
         state["nl_input"] = "Design an 8-bit adder"
 
         result = nodes.node_debugger(state)
@@ -367,10 +435,12 @@ class TestNodes:
     def test_node_ted_tb_extracts_todo_failure(self):
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["tb_log"] = (
-            "# TODO 3 Failed at simtime 42\n"
-            "# TODO 3 INPUT TRACE: in->a = 0xff\n"
+            "TODO 3 Failed at simtime 42\n"
         )
         state["tb_failure"] = "TODO 3 Failed"
 
@@ -386,7 +456,7 @@ class TestNodes:
 class TestE2EGraph:
     """End-to-end tests running the full compiled graph."""
 
-    def _run_graph(self, llm, sc_results, tb_results=None):
+    def _run_graph(self, llm, sc_results, tb_results=None, dataset_dir=None):
         """
         Helper: build graph, run with mocked subprocess.
 
@@ -394,22 +464,23 @@ class TestE2EGraph:
             llm: StubLLM instance
             sc_results: list of mock results for successive SC calls
             tb_results: list of mock results for successive TB calls
+            dataset_dir: mock dataset directory
         """
         graph = build_comba_graph(llm)
         state = make_initial_state(nl_input="Design an 8-bit adder")
+        if dataset_dir:
+            state["dataset_dir"] = dataset_dir
 
         sc_iter = iter(sc_results)
         tb_iter = iter(tb_results or [])
 
         def mock_subprocess_run(cmd, **kwargs):
             cmd_str = " ".join(cmd) if isinstance(cmd, list) else str(cmd)
-            if "--lint-only" in cmd_str:
+            if "-tnull" in cmd_str:
                 return next(sc_iter, CLEAN_SC_RESULT)
-            elif "make" in cmd_str.lower() or cmd_str.endswith((".exe", "Vadder_8bit")):
+            elif "vvp" in cmd_str.lower() or "iverilog" in cmd_str.lower():
                 return next(tb_iter, TB_PASS_RESULT)
-            elif "verilator" in cmd_str.lower():
-                return next(tb_iter, make_verilator_result(0))
-            return make_verilator_result(0)
+            return make_iverilog_result(0)
 
         with patch("comba_pipeline.subprocess.run", side_effect=mock_subprocess_run):
             with patch("comba_pipeline.shutil.copy2"):
@@ -424,10 +495,10 @@ class TestE2EGraph:
             llm,
             sc_results=[CLEAN_SC_RESULT],
             tb_results=[
-                make_verilator_result(0),  # verilate
-                make_verilator_result(0),  # make
+                make_iverilog_result(0),  # compile
                 TB_PASS_RESULT,            # run
             ],
+            dataset_dir="/tmp",
         )
         assert result["final_status"] == "pass"
         assert result["sc_trial"] == 1
@@ -443,10 +514,10 @@ class TestE2EGraph:
                 CLEAN_SC_RESULT,    # second SC after fix: passes
             ],
             tb_results=[
-                make_verilator_result(0),
-                make_verilator_result(0),
+                make_iverilog_result(0),
                 TB_PASS_RESULT,
             ],
+            dataset_dir="/tmp",
         )
         assert result["final_status"] == "pass"
         assert result["sc_trial"] == 2
@@ -513,10 +584,13 @@ class TestEDTM:
         nodes = COMBANodes(llm)
 
         edtm = {}
-        sc_log = "%Error: adder_8bit.v:8: Signal 'result' not found\n"
+        sc_log = "adder_8bit.sv:8: error: Signal 'result' not found\n"
 
         for i in range(5):
+            # In the real pipeline, this is passed from run_pipeline_sync
+            # For tests, we mock it.
             state = make_initial_state()
+            state["dataset_dir"] = "/tmp"
             state["sc_log"] = sc_log
             state["edtm"] = edtm
             result = nodes.node_ted_syntax(state)
@@ -529,10 +603,13 @@ class TestEDTM:
         nodes = COMBANodes(llm)
 
         edtm = {}
-        sc_log = "%Error: adder_8bit.v:8: Signal 'result' not found\n"
+        sc_log = "adder_8bit.sv:8: error: Signal 'result' not found\n"
 
         for i in range(EDTM_MAX_RETRIES + 1):
+            # In the real pipeline, this is passed from run_pipeline_sync
+            # For tests, we mock it.
             state = make_initial_state()
+            state["dataset_dir"] = "/tmp"
             state["sc_log"] = sc_log
             state["edtm"] = edtm
             result = nodes.node_ted_syntax(state)
@@ -549,7 +626,10 @@ class TestState:
     """Test state creation and defaults."""
 
     def test_initial_state_defaults(self):
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         assert state["nl_input"] == ""
         assert state["gvd"] is None
         assert state["sc_trial"] == 0
@@ -584,7 +664,10 @@ class TestSanitizer:
         """Name mismatch produces warning but still passes (never blocks)."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["module_name"] = "correct_name"
         state["_last_llm_source"] = "debugger"
         state["_raw_llm_output"] = (
@@ -603,7 +686,10 @@ class TestSanitizer:
         """No module keyword triggers retry (not pass-through on first try)."""
         llm = create_stub_llm()
         nodes = COMBANodes(llm)
+        # In the real pipeline, this is passed from run_pipeline_sync
+        # For tests, we mock it.
         state = make_initial_state()
+        state["dataset_dir"] = "/tmp"
         state["module_name"] = "test"
         state["_last_llm_source"] = "generator"
         state["_raw_llm_output"] = "I cannot generate Verilog code for this."

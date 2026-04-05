@@ -7,8 +7,8 @@ flow_inputs_dir   := $(flow_src_dir)/inputs
 
 # ── Pipeline 2: LLM inference ──────────────────────────────────────────────
 GENERATE_FLAGS = --samples=1 --examples=0 --provider=openai \
-                 --max-tokens=4096 --temperature=0 \
-                 --model=genarater --revision=None
+                 --max-tokens=2048 --temperature=0 \
+                 --model=generator --revision=None
 
 # ── Pipeline 1: Data-flow parameters ──────────────────────────────────────
 YOSYS_PATH        := /home/share/oss-cad-suite/bin/yosys
@@ -40,7 +40,7 @@ jupyterlab:
 verilog-eval:
 	cp config.log config.log.old
 	$(src_dir)/ext/verilog-eval/configure \
-		--with-model=genarater --with-task=code-complete-iccad2023 \
+		--with-model=generator --with-task=code-complete-iccad2023 \
 		--with-samples=1 --with-examples=0 \
 		--with-model-manual=http://localhost:8000/v1
 

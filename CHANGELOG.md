@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-04-05
+### Added
+- **Icarus Verilog Integration**: Migrated the simulation engine from Verilator to `iverilog` and `vvp`, ensuring full compatibility with the VerilogEval benchmark standard.
+- **Benchmark Identity Tracking**: Added `benchmark_id` to the `COMBAState` to decouple the benchmark problem ID from LLM-generated module names, ensuring reliable testbench file mapping.
+
+### Changed
+- **Robust Module Renaming**: Implemented automatic regex-based renaming of generated modules to `TopModule` during the simulation phase to satisfy testbench requirements.
+- **Local Model Configuration**: Standardized default LLM model names to `generator` (port 8000) and `debugger` (port 8001) for the dual-GPU setup, resolving 404 errors.
+
+### Fixed
+- **Pass Rate Reporting**: Fixed the final simulation logic in `main_langgraph.py` to correctly generate success logs for `sv-iv-analyze`, restoring accurate pass rate tracking.
+- **Internal Logic & Imports**: Resolved `NameError` (missing `re` import) and `AttributeError` (incorrect `opts.dataset` usage) in the LangGraph runner.
+
 ## [1.2.1] - 2026-04-05
 ### Added
 - **LangGraph Integration**: Implemented a new parallelization wrapper (`src/main_langgraph.py`) to run LangGraph evaluation dynamically within the legacy Verilog-Eval datasets.

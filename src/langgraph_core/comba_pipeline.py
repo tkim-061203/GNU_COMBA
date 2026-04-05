@@ -67,6 +67,7 @@ class COMBAState(TypedDict):
     nl_input: str                              # Natural language description
     xml_description: Optional[str]             # COMBA XML output
     module_name: Optional[str]                 # Extracted module name
+    benchmark_id: Optional[str]                # Original benchmark problem ID (for file lookups)
 
     # ── Generated Verilog ──
     gvd: Optional[str]                         # Generated Verilog Description (current)
@@ -108,10 +109,11 @@ class COMBAState(TypedDict):
     # ── Result ──
     final_status: Optional[str]                # "pass", "fail_sc", "fail_ts", "max_iter"
     error: Optional[str]                       # Runtime error message
+    dataset_dir: Optional[str]                 # Dataset directory for testbenches
     work_dir: Optional[str]                    # Working directory for Verilator
 
 
-def make_initial_state(nl_input: str = "", module_name: str = "") -> COMBAState:
+def make_initial_state(nl_input: str = "", module_name: str = "", benchmark_id: str = "") -> COMBAState:
     """Create a fresh initial state with all fields zeroed."""
     return COMBAState(
         nl_input=nl_input,
@@ -142,7 +144,9 @@ def make_initial_state(nl_input: str = "", module_name: str = "") -> COMBAState:
         _last_llm_source=None,
         final_status=None,
         error=None,
+        dataset_dir=None,
         work_dir=None,
+        benchmark_id=benchmark_id or module_name or None,
     )
 
 
@@ -314,19 +318,12 @@ class COMBANodes:
         with open(verilog_path, "w", encoding="utf-8") as f:
             f.write(gvd)
 
-        # Build verilator command
-        wno_flags = [f"-Wno-{w}" for w in VERILATOR_WNO]
-        werror_flags = [f"-Werror-{w}" for w in VERILATOR_WERROR]
+        # Build iverilog command for linting
         cmd = [
-            "verilator",
-            "--lint-only",
+            "iverilog",
+            "-tnull",
             "-Wall",
-            "-Wno-fatal",
-            "--x-assign", "0",
-            "--x-initial", "0",
-            *wno_flags,
-            *werror_flags,
-            "-cc",
+            "-g2012",
             f"{module_name}.v",
         ]
 
@@ -340,15 +337,15 @@ class COMBANodes:
             )
             sc_log = result.stderr + result.stdout
         except FileNotFoundError:
-            sc_log = "%Error: verilator not found in PATH"
+            sc_log = "error: iverilog not found in PATH"
         except subprocess.TimeoutExpired:
-            sc_log = "%Error: verilator timed out after 30s"
+            sc_log = "error: iverilog timed out after 30s"
 
-        # Count errors (lines starting with %Error)
+        # Count errors (iverilog typically prefixes or contains ": error:")
         error_lines = [
             line for line in sc_log.splitlines()
-            if line.strip().startswith("%Error")
-            and "Exiting due to" not in line
+            if (": error:" in line.lower() or ": syntax error" in line.lower() or "error:" in line.lower())
+            and "Exiting due to" not in line  # just in case
         ]
         exception_count = len(error_lines)
 
@@ -378,12 +375,12 @@ class COMBANodes:
         sc_log = state["sc_log"] or ""
         edtm = dict(state.get("edtm", {}))   # shallow copy
 
-        # Extract topmost %Error line (first non-"Exiting" error)
+        # Extract topmost error line
         topmost_error = None
         for line in sc_log.splitlines():
-            stripped = line.strip()
-            if stripped.startswith("%Error") and "Exiting due to" not in stripped:
-                topmost_error = stripped
+            lowered = line.lower()
+            if (": error:" in lowered or ": syntax error" in lowered or "error:" in lowered) and "exiting due to" not in lowered:
+                topmost_error = line.strip()
                 break
 
         if not topmost_error:
@@ -408,10 +405,10 @@ class COMBANodes:
             edp = (
                 f"[EDTM WARNING: This error has been seen {edtm[sig]} times. "
                 f"Previous fixes did not resolve it. Try a fundamentally different approach.]\n"
-                f"Topmost Verilator error:\n{topmost_error}"
+                f"Topmost iverilog error:\n{topmost_error}"
             )
         else:
-            edp = f"Topmost Verilator error:\n{topmost_error}"
+            edp = f"Topmost iverilog error:\n{topmost_error}"
 
         print(f"  📋 EDP: {topmost_error[:80]}...")
         print(f"  📊 EDTM count for this sig: {edtm[sig]}")
@@ -598,7 +595,7 @@ class COMBANodes:
     # Node 6: Testbench Simulation — Verilator full build+run
     # ──────────────────────────────────────────────────────────
     def node_tb_sim(self, state: COMBAState) -> dict:
-        """Run full Verilator build + testbench simulation."""
+        """Run Icarus Verilog simulation using benchmark testbenches."""
         print("\n" + "=" * 60)
         print(f"🧪 NODE: TB Simulation (TS trial #{state['ts_trial'] + 1})")
         print("=" * 60)
@@ -606,108 +603,137 @@ class COMBANodes:
         module_name = state["module_name"]
         work_dir = state["work_dir"]
         gvd = state["gvd"]
+        dataset_dir = state.get("dataset_dir")
 
         # Write current GVD to work dir
-        verilog_path = os.path.join(work_dir, f"{module_name}.v")
+        verilog_path = os.path.join(work_dir, f"{module_name}.sv")
         with open(verilog_path, "w", encoding="utf-8") as f:
             f.write(gvd)
 
-        # Copy testbench if not already there
-        # Look for tb.cpp in the modules directory
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        tb_src = os.path.join(project_root, "modules", module_name, "tb.cpp")
-        tb_dst = os.path.join(work_dir, "tb.cpp")
-        if os.path.isfile(tb_src) and not os.path.isfile(tb_dst):
-            shutil.copy2(tb_src, tb_dst)
+        # ── Link Test/Ref files ──
+        if not dataset_dir:
+            return {
+                "tb_log": "error: dataset_dir not found in state",
+                "tb_failure": "Infrastructure error: dataset_dir missing",
+                "ts_trial": state["ts_trial"] + 1,
+                "total_iter": state["total_iter"] + 1,
+                "phase": "ts",
+            }
 
-        wno_flags = [f"-Wno-{w}" for w in VERILATOR_WNO]
-        werror_flags = [f"-Werror-{w}" for w in VERILATOR_WERROR]
+        # Use benchmark_id for file identity in the dataset
+        bid = state.get("benchmark_id", module_name)
+        test_sv_src = os.path.join(dataset_dir, f"{bid}_test.sv")
+        ref_sv_src = os.path.join(dataset_dir, f"{bid}_ref.sv")
+        test_sv_dst = os.path.join(work_dir, f"{bid}_test.sv")
+        ref_sv_dst = os.path.join(work_dir, f"{bid}_ref.sv")
 
-        # Step 1: Verilator compile
-        verilate_cmd = [
-            "verilator",
-            "-Wall", "-Wno-fatal",
-            "--trace",
-            "--x-assign", "0", "--x-initial", "0",
-            "-cc", "--top-module", module_name,
-            f"{module_name}.v",
-            "--exe", "tb.cpp",
-            *wno_flags,
-            *werror_flags,
+        try:
+            if os.path.isfile(test_sv_src) and not os.path.isfile(test_sv_dst):
+                shutil.copy2(test_sv_src, test_sv_dst)
+            if os.path.isfile(ref_sv_src) and not os.path.isfile(ref_sv_dst):
+                shutil.copy2(ref_sv_src, ref_sv_dst)
+        except Exception as e:
+            return {
+                "tb_log": f"error: failed to copy test/ref files: {e}",
+                "tb_failure": "Infrastructure error: testbench copy failed",
+                "ts_trial": state["ts_trial"] + 1,
+                "total_iter": state["total_iter"] + 1,
+                "phase": "ts",
+            }
+
+        # ── Refactor: Rename module to TopModule for the testbench ──
+        # VerilogEval testbenches expect the DUT to be named "TopModule"
+        gvd = state.get("gvd", "")
+        if not gvd:
+             return {
+                "tb_log": "error: no generated Verilog code found",
+                "tb_failure": "Infrastructure error: missing GVD",
+                "ts_trial": state["ts_trial"] + 1,
+                "total_iter": state["total_iter"] + 1,
+                "phase": "ts",
+            }
+
+        # Regex replacement: module <any_name> ... -> module TopModule ...
+        # Using a generic regex to match the first module definition found
+        top_module_code = re.sub(
+            r'module\s+[a-zA-Z0-9_]+',
+            'module TopModule',
+            gvd,
+            count=1,
+            flags=re.MULTILINE
+        )
+        
+        top_module_dst = os.path.join(work_dir, "TopModule.sv")
+        with open(top_module_dst, "w", encoding="utf-8") as f:
+            f.write(top_module_code)
+
+        # ── Build iverilog command ──
+        binary_out = f"{module_name}.vvp"
+        comp_cmd = [
+            "iverilog",
+            "-Wall",
+            "-Winfloop",
+            "-Wno-timescale",
+            "-g2012",
+            "-s", "tb",
+            "-o", binary_out,
+            "TopModule.sv",  # Use the renamed module
+            f"{bid}_test.sv",
+            f"{bid}_ref.sv"
         ]
 
         tb_log_parts = []
         try:
-            # Verilate
+            # Compile
             r1 = subprocess.run(
-                verilate_cmd, cwd=work_dir,
+                comp_cmd, cwd=work_dir,
                 capture_output=True, text=True, timeout=60,
             )
-            tb_log_parts.append(f"[VERILATE]\n{r1.stderr}{r1.stdout}")
+            tb_log_parts.append(f"[COMPILE]\n{r1.stderr}{r1.stdout}")
 
             if r1.returncode != 0:
-                tb_log_parts.append("[VERILATE FAILED]")
+                tb_log_parts.append("[COMPILE FAILED]")
+                # Include iverilog error in simulation failure for TED to pick up
+                failure_reason = "iverilog compilation failed"
+                if r1.stderr:
+                    # Clean up common noise to keep failure string short
+                    first_err = r1.stderr.splitlines()[0] if r1.stderr.splitlines() else r1.stderr
+                    failure_reason = f"iverilog compilation failed: {first_err[:80]}"
+                
                 return {
                     "tb_log": "\n".join(tb_log_parts),
-                    "tb_failure": "Verilator compilation failed during TB build",
+                    "tb_failure": failure_reason,
                     "ts_trial": state["ts_trial"] + 1,
                     "total_iter": state["total_iter"] + 1,
                     "phase": "ts",
                 }
 
-            # Step 2: make binary
-            obj_dir = os.path.join(work_dir, "obj_dir")
-            make_cmd = ["make", "-C", obj_dir, "-f", f"V{module_name}.mk", f"V{module_name}"]
+            # Run (vvp)
             r2 = subprocess.run(
-                make_cmd, cwd=work_dir,
+                ["vvp", binary_out], cwd=work_dir,
                 capture_output=True, text=True, timeout=120,
             )
-            tb_log_parts.append(f"[MAKE]\n{r2.stderr}{r2.stdout}")
+            tb_log_parts.append(f"[RUN]\n{r2.stderr}{r2.stdout}")
 
             if r2.returncode != 0:
-                tb_log_parts.append("[MAKE FAILED]")
-                return {
-                    "tb_log": "\n".join(tb_log_parts),
-                    "tb_failure": "Make failed during TB binary build",
-                    "ts_trial": state["ts_trial"] + 1,
-                    "total_iter": state["total_iter"] + 1,
-                    "phase": "ts",
-                }
-
-            # Step 3: run testbench binary
-            binary = os.path.join(obj_dir, f"V{module_name}")
-            if os.name == "nt":
-                binary += ".exe"
-
-            r3 = subprocess.run(
-                [binary], cwd=work_dir,
-                capture_output=True, text=True, timeout=60,
-            )
-            tb_log_parts.append(f"[RUN]\n{r3.stderr}{r3.stdout}")
-
-            if r3.returncode != 0:
-                tb_log_parts.append(f"[RUN FAILED] exit code {r3.returncode}")
+                tb_log_parts.append(f"[RUN FAILED] exit code {r2.returncode}")
 
         except FileNotFoundError as e:
-            tb_log_parts.append(f"%Error: command not found: {e}")
+            tb_log_parts.append(f"error: command not found: {e}")
         except subprocess.TimeoutExpired:
-            tb_log_parts.append("%Error: TB simulation timed out")
+            tb_log_parts.append("error: TB simulation timed out")
 
         tb_log = "\n".join(tb_log_parts)
 
-        # Detect failures: assertion errors, TODO Failed messages
+        # Detect failures: "Failed" in logs
         failure = None
         for line in tb_log.splitlines():
-            stripped = line.strip()
-            if "Failed" in stripped or "failed" in stripped:
-                failure = stripped
-                break
-            if "Assertion" in stripped and "failed" in stripped.lower():
-                failure = stripped
+            if "Failed" in line:
+                failure = line.strip()
                 break
 
         if not failure and "[RUN FAILED]" in tb_log:
-            failure = "Testbench exited with non-zero code"
+            failure = "Simulation exited with non-zero code"
 
         status_msg = "PASS ✅" if not failure else f"FAIL: {failure[:60]}"
         print(f"  TB result: {status_msg}")

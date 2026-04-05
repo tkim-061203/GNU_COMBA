@@ -11,11 +11,12 @@
 #   ./launch_dual_gpu.sh --stop         # stop
 #   ./launch_dual_gpu.sh --status       # check
 #   ./launch_dual_gpu.sh --restart      # restart
+#   ./launch_dual_gpu.sh --logs         # show logs
 
 set -euo pipefail
 
 # ── Config ──
-GENARATED_MODEL="${GENARATED_MODEL:-/home/nntkim/Downloads/model}"
+GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model}"
 MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger}"
 PORT_GEN=8000
 PORT_DBG=8001
@@ -29,13 +30,14 @@ LOG_DIR="./logs"
 ACTION="start"
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --base-model)    GENARATED_MODEL="$2"; shift 2 ;;
+        --base-model)    GENERATED_MODEL="$2"; shift 2 ;;
         --merged-model)  MERGED_MODEL="$2"; shift 2 ;;
         --stop)          ACTION="stop"; shift ;;
         --status)        ACTION="status"; shift ;;
         --restart)       ACTION="restart"; shift ;;
+        --logs)          ACTION="logs"; shift ;;
         -h|--help)
-            echo "Usage: $0 [--base-model PATH] [--merged-model PATH] [--stop] [--status] [--restart]"
+            echo "Usage: $0 [--base-model PATH] [--merged-model PATH] [--stop] [--status] [--restart] [--logs]"
             exit 0 ;;
         *) echo "Unknown: $1"; exit 1 ;;
     esac
@@ -93,6 +95,13 @@ check_status() {
     nvidia-smi --query-gpu=index,memory.used,memory.free,utilization.gpu --format=csv,noheader 2>/dev/null || true
 }
 
+tail_logs() {
+    echo "📋 Tailing logs (Ctrl+C to stop)..."
+    mkdir -p $LOG_DIR
+    touch $LOG_DIR/vllm_gpu0_generator.log $LOG_DIR/vllm_gpu1_debugger.log
+    tail -f $LOG_DIR/vllm_gpu0_generator.log $LOG_DIR/vllm_gpu1_debugger.log
+}
+
 start_dual() {
     if [[ ! -d "$MERGED_MODEL" ]]; then
         echo "❌ Merged model not found: $MERGED_MODEL"
@@ -101,7 +110,7 @@ start_dual() {
     fi
 
     echo "📋 Configuration:"
-    echo "   GPU 0: $GENARATED_MODEL"
+    echo "   GPU 0: $GENERATED_MODEL"
     echo "   GPU 1: $MERGED_MODEL"
     echo ""
 
@@ -110,9 +119,9 @@ start_dual() {
     # ── GPU 0: Base Qwen ──
     echo "🔵 Starting Generator on GPU 0 (:$PORT_GEN)..."
     CUDA_VISIBLE_DEVICES=0 nohup python -m vllm.entrypoints.openai.api_server \
-        --model $GENARATED_MODEL \
+        --model $GENERATED_MODEL \
         --download-dir $CACHE_DIR \
-        --served-model-name genarater \
+        --served-model-name generator \
         --dtype $DTYPE \
         --max-model-len $MAX_MODEL_LEN \
         --gpu-memory-utilization $GPU_MEM \
@@ -138,22 +147,38 @@ start_dual() {
 
     # ── Wait ──
     echo ""
+    echo ""
     echo "⏳ Waiting for servers (~30-60s)..."
+    echo "📝 Streaming logs while waiting (will stop once ready):"
+    echo "--------------------------------------------------------"
+    
+    # Start tailing logs in the background
+    tail -n 0 -f $LOG_DIR/vllm_gpu0_generator.log $LOG_DIR/vllm_gpu1_debugger.log &
+    TAIL_PID=$!
+    
+    # Cleanup tail process on exit
+    trap "kill $TAIL_PID 2>/dev/null || true" EXIT
+
     for PORT in $PORT_GEN $PORT_DBG; do
         LABEL="Generator"; [[ $PORT == $PORT_DBG ]] && LABEL="Debugger"
         for i in $(seq 1 120); do
             if curl -s "http://localhost:$PORT/health" > /dev/null 2>&1; then
-                echo "   ✅ $LABEL (:$PORT) ready (${i}s)"
+                echo -e "\n   ✅ $LABEL (:$PORT) ready (${i}s)"
                 break
             fi
-            [[ $i -eq 120 ]] && echo "   ⚠️  $LABEL (:$PORT) timeout — check logs"
+            [[ $i -eq 120 ]] && echo -e "\n   ⚠️  $LABEL (:$PORT) timeout — check logs"
             sleep 1
         done
     done
 
+    # Kill background tail process
+    kill $TAIL_PID 2>/dev/null || true
+    trap - EXIT # Clear trap
+
+    echo "--------------------------------------------------------"
     echo ""
     echo "✅ Both servers running!"
-    echo "   Generator: http://localhost:$PORT_GEN/v1  model=\"genarater\""
+    echo "   Generator: http://localhost:$PORT_GEN/v1  model=\"generator\""
     echo "   Debugger:  http://localhost:$PORT_DBG/v1  model=\"debugger\""
     echo ""
     nvidia-smi --query-gpu=index,memory.used,memory.free --format=csv,noheader 2>/dev/null || true
@@ -165,4 +190,5 @@ case $ACTION in
     stop)    stop_servers ;;
     status)  check_status ;;
     restart) stop_servers; sleep 3; check_gpu; start_dual ;;
+    logs)    tail_logs ;;
 esac

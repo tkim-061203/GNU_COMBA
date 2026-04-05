@@ -39,7 +39,7 @@ conda activate gnu_comba
 
 ### 3. Install Icarus Verilog
 
-Follow the instructions in the `ext/verilog-eval` repository to install Icarus Verilog, which is required for Verilog evaluation.
+GNU_COMBA uses **Icarus Verilog (`iverilog`)** version 12 (stable) for both syntax checking and functional testbench simulation. Follow the instructions in the `ext/verilog-eval` repository to install it.
 
 ## Usage Guide
 
@@ -47,40 +47,64 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
 
 ### Basic Workflow
 
-1. **Create a build directory**:
+**Pipeline 2 (Standard Single-Model Inference)**
+
+1. **Create & enter build directory**:
    ```bash
-   mkdir .build_experiment
-   cd .build_experiment
-   ```
-1.5. Clean up previous build directory:
-   ```bash
-   cd <your_build_directory>  # e.g., VE_testbench/langgraph/.build_sample_e0_t0
-   rm -rf *
+   mkdir -p VE_testbench/generator/.build_sample_e0_t0
+   cd VE_testbench/generator/.build_sample_e0_t0
    ```
 2. **Configure the experiment**:
    ```bash
-   ../configure --with-provider=openai \
-                --with-model=your-model-name \
-                --with-temperature=0.8 \
-                --with-samples=20 \
-                --with-task=code-complete-iccad2023
+   ../../../configure --with-provider=openai --with-model=<model> \
+                      --with-temperature=0 --with-samples=1 --with-examples=0 \
+                      --with-model-manual=http://localhost:8000/v1 \
+                      --with-task=code-complete-iccad2023
    ```
-
-3. **Run Inference**:
+3. **Run inference**:
    ```bash
    make
    ```
+4. **Evaluate results**:
+   ```bash
+   make verilog-eval
+   make -j 20
+   ```
 
-3.5. **Run LangGraph Inference (COMBA v2)** *(Alternative inference method)*:
-   Instead of `make`, you can run the LangGraph pipeline which processes the problems with 20 parallel jobs:
+---
+
+**Pipeline 3 (LangGraph Dual-GPU Multi-Agent Inference)**
+
+1. **Create & enter build directory**:
+   ```bash
+   mkdir -p VE_testbench/langgraph/.build_sample_e0_t0
+   cd VE_testbench/langgraph/.build_sample_e0_t0
+   ```
+2. **Configure with dual-GPU endpoints**:
+   ```bash
+   ../../../configure --with-provider=openai --with-model=generator \
+                      --with-temperature=0 --with-samples=1 --with-examples=0 \
+                      --with-model-manual=http://localhost:8000/v1 \
+                      --with-model-submanual=http://localhost:8001/v1 \
+                      --with-task=code-complete-iccad2023
+   ```
+3. **Run LangGraph inference** (spawns 20 parallel workers):
    ```bash
    make langgraph
    ```
-
-4. **Evaluate Results**:
+4. **Evaluate results**:
    ```bash
    make verilog-eval
-### Configuration Reference
+   make -j 20
+   ```
+
+> **Note:** To clean a build directory before re-running:
+> ```bash
+> cd <your_build_directory>  # e.g., VE_testbench/langgraph/.build_sample_e0_t0
+> rm -rf *
+> ```
+
+
 
 **1. Standard Inference (Pipeline 2 - Using `make`)**
 Common setup configurations use the `eX_tY` naming convention (e: examples, t: temperature). This is the default execution flow for a single model:
@@ -103,11 +127,16 @@ Common setup configurations use the `eX_tY` naming convention (e: examples, t: t
   ```
 
 **2. Multi-Agent Inference with LangGraph (Pipeline 3 - Using `make langgraph`)**
-In this Multi-Agent setup, both generator and debugger models are used simultaneously. You must explicitly declare the Debugger URL (`--with-model-submanual`) to route tasks correctly between the two GPUs.
+In this Multi-Agent setup, both generator and debugger models are used simultaneously. The pipeline automatically performs iterative error correction using LLM-driven feedback.
+
+**Key features:**
+- **Automatic Renaming**: The pipeline automatically renames the generated module to `TopModule` in the simulation stage to satisfy `VerilogEval` testbench requirements.
+- **Iverilog Simulation**: Uses `iverilog` and `vvp` to provide precise functional feedback to the debugger agent.
+- **Dual GPU Routing**: Explicitly declare the Debugger URL (`--with-model-submanual`) to route tasks correctly between the two GPUs.
 
 - **`e0_t0` (Dual GPU LangGraph)**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
   ```bash
-  ../../../configure --with-provider=openai --with-model=genarater --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023
   ```
 
 - `--with-provider`: LLM provider (`llamacpp`, `openai`, etc.).

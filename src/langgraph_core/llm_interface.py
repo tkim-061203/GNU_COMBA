@@ -48,7 +48,7 @@ class COMBALlm(BaseChatModel):
     base_url: str = Field(default="http://localhost:8000/v1")
     debugger_url: str = Field(default="http://localhost:8001/v1")
     api_key: str = Field(default="not-needed")
-    model_base: str = Field(default="qwen-base")
+    model_base: str = Field(default="generator")
     model_debugger: str = Field(default="debugger")
     temperature: float = Field(default=0.1)
     max_tokens: int = Field(default=2048)
