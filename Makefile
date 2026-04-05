@@ -1,6 +1,6 @@
 JUPYTER_ARGS='--ip 0.0.0.0 --no-browser'
 QUIET=@
-src_dir           := .
+src_dir           := $(CURDIR)
 scripts_dir       := $(src_dir)/src
 flow_src_dir      := $(scripts_dir)/flow_src
 flow_inputs_dir   := $(flow_src_dir)/inputs
@@ -12,7 +12,7 @@ GENERATE_FLAGS = --samples=1 --examples=0 --provider=llamacpp \
 
 # ── Pipeline 1: Data-flow parameters ──────────────────────────────────────
 YOSYS_PATH        := /home/share/oss-cad-suite/bin/yosys
-TEMP_DIR          := /home/nntkim/temp
+TEMP_DIR          := /tmp
 TRAIN_DATASET_DIR := src/TrainDataset
 CELL_RANGE_START  := 6
 CELL_RANGE_STOP   := 10

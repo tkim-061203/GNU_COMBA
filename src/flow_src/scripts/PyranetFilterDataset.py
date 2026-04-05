@@ -4,11 +4,12 @@ from datasets import load_dataset
 import numpy as np
 from tqdm import tqdm
 import re, numpy as np, sys, os
+from multiprocess import Pool
 
 class PyranetFilterDataset(BaseProcessClass):
 	def run(self):
 		load_dotenv(dotenv_path=f"{self.trigger_path}/.env")
-		sys.path.append(str(self.trigger_path))
+		sys.path.append(os.path.join(self.trigger_path, "src"))
 		from module_extraction import module_extraction
 
 		if "dataset_index" in self.input_args:
@@ -72,14 +73,17 @@ class PyranetFilterDataset(BaseProcessClass):
 				return i
 			return None
 		
-		pool = self.global_obj["pool"]
-		# with Pool(processes=num_core) as pool:
-		my_range = range(len(dataset_no_logic))
-		for i in tqdm(iterable=pool.imap_unordered(do_process, my_range), total=len(my_range)):
-			if i != None:
-				no_logic_index.add(i)
+		num_core = int(os.cpu_count()/2)
+		with Pool(processes=num_core) as pool:
+			my_range = range(len(dataset_no_logic))
+			for i in tqdm(iterable=pool.imap_unordered(do_process, my_range), total=len(my_range)):
+				if i != None:
+					no_logic_index.add(i)
 		
-		print(f"Number of samples without logic keywords: {len(no_logic_index)}", no_logic_index[:10])
+		print(f"Number of samples without logic keywords: {len(no_logic_index)}", list(no_logic_index)[:10])
 		# dataset = dataset.filter(lambda example, idx: idx not in no_logic_index, with_indices=True)
 		
-		np.save(self.input_args.get("dataset_index_output"), np.array(no_logic_index))
+		out_path = self.input_args.get("dataset_index_output")
+		os.makedirs(os.path.dirname(out_path), exist_ok=True)
+		np.save(out_path, np.array(list(no_logic_index)))
+		print(f"Saved filtered index to: {out_path}")

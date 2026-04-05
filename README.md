@@ -105,6 +105,9 @@ You can serve models locally using the provided vLLM utility:
    ./vllm.sh
    ```
 
+## Edit config.ac
+After changing code in config.ac, run `autoreconf -fi` to update the build system.
+
 ## Development
 
 To start a Jupyter Lab instance in the source directory:

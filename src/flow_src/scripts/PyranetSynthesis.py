@@ -23,7 +23,7 @@ class PyranetSynthesis(BaseProcessClass):
 			
 			total_num_cells = 0
 			with tempfile.TemporaryDirectory(dir=temp_dir) as tmpdirname:
-				os.link(f'{self.trigger_path}/yosys_run/run4.sh', f'{tmpdirname}/run.sh')
+				os.link(f'{self.trigger_path}/src/yosys_run/run4.sh', f'{tmpdirname}/run.sh')
 				with open(f'{tmpdirname}/top.v', 'w+') as file:
 					file.write(example_code)
 				try:

@@ -31,6 +31,9 @@ src/.cache_count_num_cell*
 .run*
 .cache*
 .vscode
+config.status
+config.log
+Makefile
 
 !.build_sample_e0_t0
 !.build_sample_e0_t8

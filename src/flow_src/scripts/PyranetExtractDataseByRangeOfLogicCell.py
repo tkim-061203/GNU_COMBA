@@ -108,7 +108,8 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 		print(dataset)
 
 		# ── Luu index voi ten file phan anh dung range ────────────────────────
-		os.makedirs(f"{self.trigger_path}/TrainDataset", exist_ok=True)
-		out_path = f"{self.trigger_path}/TrainDataset/train_index2_{cell_range_start}_{cell_range_stop}.npy"
+		out_dir = os.path.join(self.trigger_path, "src", "TrainDataset")
+		os.makedirs(out_dir, exist_ok=True)
+		out_path = os.path.join(out_dir, f"train_index2_{cell_range_start}_{cell_range_stop}.npy")
 		np.save(out_path, segment_idxs)
 		print(f"Saved index to: {out_path}")
