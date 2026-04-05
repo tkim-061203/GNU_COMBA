@@ -71,6 +71,12 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
    make
    ```
 
+3.5. **Run LangGraph Inference (COMBA v2)** *(Alternative inference method)*:
+   Instead of `make`, you can run the LangGraph pipeline which processes the problems with 20 parallel jobs:
+   ```bash
+   make langgraph
+   ```
+
 4. **Evaluate Results**:
    ```bash
    make verilog-eval
@@ -95,15 +101,20 @@ e1_t8:
 - `--with-examples`: Number of ICL examples to include in the prompt.
 - `--with-task`: The benchmark task (e.g., `code-complete-iccad2023`).
 
-### Local Model Serving (vLLM)
+### Local Model Serving (Dual GPU)
 
-You can serve models locally using the provided vLLM utility:
+You can serve the base model and debugger model locally on a dual-GPU setup using the provided utility:
 
-1. Configure `vllm.yaml` with your model path and settings.
-2. Run the server:
-   ```bash
-   ./vllm.sh
-   ```
+```bash
+# Start the dual instances (Generator on 8000, Debugger on 8001)
+./launch_dual_gpu.sh
+
+# Stop the servers
+./launch_dual_gpu.sh --stop
+
+# Check status
+./launch_dual_gpu.sh --status
+```
 
 ## Edit config.ac
 After changing code in config.ac, run `autoreconf -fi` to update the build system.

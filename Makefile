@@ -22,12 +22,18 @@ FLOW_STEPS        := synthesis,extract,filter
 TRAIN_INDEX_NPY   := $(src_dir)/$(TRAIN_DATASET_DIR)/train_index2_$(CELL_RANGE_START)_$(CELL_RANGE_STOP).npy
 NO_LOGIC_NPY      := $(src_dir)/$(TRAIN_DATASET_DIR)/no_logic_index.npy
 
+# ── Pipeline 3: LangGraph parameters ──────────────────────────────────────
+LANGGRAPH_DIR     := /home/nntkim/nntkim_old/COMBA-LLM
+LANGGRAPH_MODULES := VE_code_completion/*
+LANGGRAPH_DESC    := txt
+LANGGRAPH_SAMPLES := 1
+
 # ── Targets ────────────────────────────────────────────────────────────────
 
 .PHONY: default jupyterlab verilog-eval \
         data-flow gen-flow-configs \
         synthesis extract filter \
-        clean-flow help
+        langgraph-flow langgraph clean-flow help
 
 default:
 	echo $(scripts_dir)/main.py ${GENERATE_FLAGS}
@@ -42,6 +48,10 @@ verilog-eval:
 		--with-model=manual_Mistral_7B --with-task=code-complete-iccad2023 \
 		--with-samples=1 --with-examples=0 \
 		--with-model-manual=True
+
+langgraph:
+	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
+	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=True --jobs 20
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -108,6 +118,15 @@ import json; json.dump({'flow':['PyranetFilterDataset']}, \
   open('$(flow_src_dir)/config.json','w'), indent='\t')"
 	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 
+# ── Pipeline 3: LangGraph flow ─────────────────────────────────────────────
+langgraph-flow:
+	@echo "=== Running Pipeline 3 — LangGraph ==="
+	cd $(LANGGRAPH_DIR) && python3 run.py langgraph $(LANGGRAPH_MODULES) --descriptiontype=$(LANGGRAPH_DESC) --samples=$(LANGGRAPH_SAMPLES)
+	@echo "=== Configuring VerilogEval ==="
+	$(MAKE) verilog-eval
+	@echo "=== Pipeline 3 complete ==="
+
+
 # ── Cleanup ────────────────────────────────────────────────────────────────
 clean-flow:
 	@echo "Removing .run_* directories and cached cell counts..."
@@ -122,6 +141,7 @@ help:
 	@echo "  verilog-eval   Configure verilog-eval benchmark"
 	@echo ""
 	@echo "  data-flow      Run full Pipeline 1 (steps: $(FLOW_STEPS))"
+	@echo "  langgraph-flow Run Pipeline 3 (LangGraph)"
 	@echo "  synthesis      Run synthesis step only"
 	@echo "  extract        Run extract step only"
 	@echo "  filter         Run filter step only"
@@ -135,4 +155,10 @@ help:
 	@echo "  --with-cell-range-start=N   (default: $(CELL_RANGE_START))"
 	@echo "  --with-cell-range-stop=N    (default: $(CELL_RANGE_STOP))"
 	@echo "  --with-flow-steps=LIST      (default: $(FLOW_STEPS))"
+	@echo ""
+	@echo "Configure options for Pipeline 3:"
+	@echo "  LANGGRAPH_DIR               (default: $(LANGGRAPH_DIR))"
+	@echo "  LANGGRAPH_MODULES           (default: $(LANGGRAPH_MODULES))"
+	@echo "  LANGGRAPH_DESC              (default: $(LANGGRAPH_DESC))"
+	@echo "  LANGGRAPH_SAMPLES           (default: $(LANGGRAPH_SAMPLES))"
 	@echo ""
