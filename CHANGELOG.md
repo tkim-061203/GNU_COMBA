@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.1] - 2026-04-06
+### Fixed
+- **Dataset Extraction Logic**: Resolved a critical bug in `PyranetExtractDataseByRangeOfLogicCell.py` where positional indices were being used instead of original dataset indices, leading to incorrect sample selection.
+- **Index Mapping**: Implemented proper mapping from filtered synthesis results back to the source dataset indices in generated `.npy` files.
+
+## [1.4.0] - 2026-04-06
+### Added
+- **Debugger Model Fine-Tuning**: Integrated `unsloth` pipelines (`train_debugger.py` and `train_auto.py`) for fine-tuning models on merged standard benchmarks (`VE_text_156`) and dynamic datasets filtered via Pipeline 1 logic limits.
+
+### Changed
+- **Logs Tracking**: Substituted static `logs/` directory gitignore paths for generic `*.log` filters to broadly avoid redundant version checks.
+
+### Fixed
+- **Pipeline 1 Path Escalation**: Patched `TRAIN_DATASET_DIR` paths causing `FileNotFoundError` by explicitly tracking absolute prefixes relative to the configured `src_dir` contexts natively within executing `.build` layers safely.
+
 ## [1.3.0] - 2026-04-05
 ### Added
 - **Icarus Verilog Integration**: Migrated the simulation engine from Verilator to `iverilog` and `vvp`, ensuring full compatibility with the VerilogEval benchmark standard.

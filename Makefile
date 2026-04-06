@@ -1,6 +1,6 @@
 JUPYTER_ARGS='--ip 0.0.0.0 --no-browser'
 QUIET=@
-src_dir           := $(CURDIR)
+src_dir           := $(abspath .)
 scripts_dir       := $(src_dir)/src
 flow_src_dir      := $(scripts_dir)/flow_src
 flow_inputs_dir   := $(flow_src_dir)/inputs
@@ -10,7 +10,8 @@ GENERATE_FLAGS = --samples=1 --examples=0 --provider=llamacpp \
                  --max-tokens=2048 --temperature=0.85 \
                  --model=manual_Mistral_7B --revision=None
 
-# ── Pipeline 1: Data-flow parameters ──────────────────────────────────────
+# ── Pipeline 1: Data-flow parameters (Yosys-based) ─────────────────────────
+# See README.md for a visual dataflow diagram of this pipeline.
 YOSYS_PATH        := /home/share/oss-cad-suite/bin/yosys
 TEMP_DIR          := /tmp
 TRAIN_DATASET_DIR := src/TrainDataset
@@ -22,9 +23,10 @@ FLOW_STEPS        := synthesis,extract,filter
 TRAIN_INDEX_NPY   := $(src_dir)/$(TRAIN_DATASET_DIR)/train_index2_$(CELL_RANGE_START)_$(CELL_RANGE_STOP).npy
 NO_LOGIC_NPY      := $(src_dir)/$(TRAIN_DATASET_DIR)/no_logic_index.npy
 
-# ── Pipeline 3: LangGraph parameters ──────────────────────────────────────
-LANGGRAPH_DIR     := /home/nntkim/nntkim_old/COMBA-LLM
-LANGGRAPH_MODULES := VE_code_completion/*
+# ── Pipeline 3: LangGraph Multi-Agent Verification (LLM-based) ─────────────
+# See README.md for a visual dataflow diagram of this pipeline.
+LANGGRAPH_DIR     := /home/nntkim/GNU_COMBA/src/langgraph_core
+LANGGRAPH_MODULES := verilogeval/*
 LANGGRAPH_DESC    := txt
 LANGGRAPH_SAMPLES := 1
 
@@ -57,20 +59,20 @@ langgraph:
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
 ## Each step updates flow_src/config.json before delegating to flow_src/main.py.
 data-flow: gen-flow-configs
-	@echo "=== Running Pipeline 1 — steps: $(FLOW_STEPS) ==="
+	@echo "=== Running Pipeline 1 - steps: $(FLOW_STEPS) ==="
 	@mkdir -p $(src_dir)/$(TRAIN_DATASET_DIR)
 	@# Build config.json dynamically from FLOW_STEPS
 	@python3 -c "\
-import json, sys; \
-steps_map = { \
-  'synthesis': 'PyranetSynthesis', \
-  'extract':   'PyranetExtractDataseByRangeOfLogicCell', \
-  'filter':    'PyranetFilterDataset', \
-}; \
-keys = [s.strip() for s in '$(FLOW_STEPS)'.split(',')]; \
-flow = [steps_map[k] for k in keys if k in steps_map]; \
-json.dump({'flow': flow}, open('$(flow_src_dir)/config.json','w'), indent='\t'); \
-print('config.json →', flow)"
+	import json, sys; \
+	steps_map = { \
+	  'synthesis': 'PyranetSynthesis', \
+	  'extract':   'PyranetExtractDataseByRangeOfLogicCell', \
+	  'filter':    'PyranetFilterDataset', \
+	}; \
+	keys = [s.strip() for s in '$(FLOW_STEPS)'.split(',')]; \
+	flow = [steps_map[k] for k in keys if k in steps_map]; \
+	json.dump({'flow': flow}, open('$(flow_src_dir)/config.json','w'), indent='\t'); \
+	print('config.json ->', flow)"
 	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 	@echo "=== Pipeline 1 complete ==="
 
@@ -79,43 +81,43 @@ gen-flow-configs:
 	@echo "--- Generating flow input configs ---"
 	@mkdir -p $(src_dir)/$(TRAIN_DATASET_DIR)
 	@python3 -c "\
-import json, os; \
-d='$(flow_inputs_dir)'; \
-os.makedirs(d, exist_ok=True); \
-json.dump({ \
-  'temp_dir':   '$(TEMP_DIR)', \
-  'yosys_path': '$(YOSYS_PATH)', \
-}, open(f'{d}/PyranetSynthesis.json','w'), indent='\t'); \
-json.dump({ \
-  'cell_range_start': $(CELL_RANGE_START), \
-  'cell_range_stop':  $(CELL_RANGE_STOP), \
-}, open(f'{d}/PyranetExtractDataseByRangeOfLogicCell.json','w'), indent='\t'); \
-json.dump({ \
-  'dataset_index':        '$(TRAIN_INDEX_NPY)', \
-  'dataset_index_output': '$(NO_LOGIC_NPY)', \
-}, open(f'{d}/PyranetFilterDataset.json','w'), indent='\t'); \
-print('Flow input configs written to $(flow_inputs_dir)')"
+	import json, os; \
+	d='$(flow_inputs_dir)'; \
+	os.makedirs(d, exist_ok=True); \
+	json.dump({ \
+	  'temp_dir':   '$(TEMP_DIR)', \
+	  'yosys_path': '$(YOSYS_PATH)', \
+	}, open(f'{d}/PyranetSynthesis.json','w'), indent='\t'); \
+	json.dump({ \
+	  'cell_range_start': $(CELL_RANGE_START), \
+	  'cell_range_stop':  $(CELL_RANGE_STOP), \
+	}, open(f'{d}/PyranetExtractDataseByRangeOfLogicCell.json','w'), indent='\t'); \
+	json.dump({ \
+	  'dataset_index':        '$(TRAIN_INDEX_NPY)', \
+	  'dataset_index_output': '$(NO_LOGIC_NPY)', \
+	}, open(f'{d}/PyranetFilterDataset.json','w'), indent='\t'); \
+	print('Flow input configs written to $(flow_inputs_dir)')"
 
 # ── Individual step shortcuts ──────────────────────────────────────────────
 synthesis: gen-flow-configs
 	@echo "--- Step: synthesis only ---"
 	@python3 -c "\
-import json; json.dump({'flow':['PyranetSynthesis']}, \
-  open('$(flow_src_dir)/config.json','w'), indent='\t')"
+	import json; json.dump({'flow':['PyranetSynthesis']}, \
+	  open('$(flow_src_dir)/config.json','w'), indent='\t')"
 	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 
 extract: gen-flow-configs
 	@echo "--- Step: extract only ---"
 	@python3 -c "\
-import json; json.dump({'flow':['PyranetExtractDataseByRangeOfLogicCell']}, \
-  open('$(flow_src_dir)/config.json','w'), indent='\t')"
+	import json; json.dump({'flow':['PyranetExtractDataseByRangeOfLogicCell']}, \
+	  open('$(flow_src_dir)/config.json','w'), indent='\t')"
 	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 
 filter: gen-flow-configs
 	@echo "--- Step: filter only ---"
 	@python3 -c "\
-import json; json.dump({'flow':['PyranetFilterDataset']}, \
-  open('$(flow_src_dir)/config.json','w'), indent='\t')"
+	import json; json.dump({'flow':['PyranetFilterDataset']}, \
+	  open('$(flow_src_dir)/config.json','w'), indent='\t')"
 	cd $(src_dir) && python3 $(flow_src_dir)/main.py
 
 # ── Pipeline 3: LangGraph flow ─────────────────────────────────────────────
@@ -141,12 +143,12 @@ help:
 	@echo "  verilog-eval   Configure verilog-eval benchmark"
 	@echo ""
 	@echo "  data-flow      Run full Pipeline 1 (steps: $(FLOW_STEPS))"
-	@echo "  langgraph-flow Run Pipeline 3 (LangGraph)"
 	@echo "  synthesis      Run synthesis step only"
 	@echo "  extract        Run extract step only"
 	@echo "  filter         Run filter step only"
 	@echo "  gen-flow-configs  Regenerate flow input JSON configs"
 	@echo "  clean-flow     Remove .run_* dirs and synthesis cache"
+	@echo "  langgraph-flow Run Pipeline 3 (LangGraph)"
 	@echo ""
 	@echo "Configure options for Pipeline 1:"
 	@echo "  --with-yosys-path=PATH      (default: $(YOSYS_PATH))"

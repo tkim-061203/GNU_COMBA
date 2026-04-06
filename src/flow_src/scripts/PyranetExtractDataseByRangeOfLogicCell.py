@@ -101,9 +101,13 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 			segment_idxs = np.concatenate((segment_idxs, idxs))
 
 		segment_idxs = np.unique(segment_idxs)
-		print(f"Samples in range [{cell_range_start}, {cell_range_stop}]: {len(segment_idxs)}")
+		
+		# ── Mapping subset indices back to original dataset indices ─────────
+		original_segment_idxs = all_cell_num_with_no_null[segment_idxs, 1].astype(np.uint64)
+		
+		print(f"Samples in range [{cell_range_start}, {cell_range_stop}]: {len(original_segment_idxs)}")
 
-		dataset = dataset.select(segment_idxs)
+		dataset = dataset.select(original_segment_idxs)
 		self.global_obj["dataset"] = dataset
 		print(dataset)
 
@@ -111,5 +115,5 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 		out_dir = os.path.join(self.trigger_path, "src", "TrainDataset")
 		os.makedirs(out_dir, exist_ok=True)
 		out_path = os.path.join(out_dir, f"train_index2_{cell_range_start}_{cell_range_stop}.npy")
-		np.save(out_path, segment_idxs)
-		print(f"Saved index to: {out_path}")
+		np.save(out_path, original_segment_idxs)
+		print(f"Saved original dataset indices to: {out_path}")

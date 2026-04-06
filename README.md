@@ -11,6 +11,67 @@ GNU_COMBA is a comprehensive framework designed for evaluating and benchmarking 
 - **Local Model Serving**: Scripts and configurations for serving models using vLLM.
 - **Jupyter Integration**: Easy access to research and development notebooks.
 
+## Pipeline Dataflows
+
+GNU_COMBA implements several specialized dataflows for hardware description processing and LLM-driven generation.
+
+### Pipeline 1: Synthesis & Dataset Extraction (Yosys Flow)
+
+Used for processing existing Verilog codebases to extract training or evaluation datasets.
+
+```mermaid
+graph LR
+    A[Verilog Sources] --> B[Yosys Synthesis]
+    B --> C[Module Extraction]
+    C --> D[Logic Cell Filtering]
+    D --> E[Processed Dataset]
+```
+
+1.  **Synthesis**: Uses Yosys to parse and synthesize Verilog source files into a standardized gate-level or intermediate representation.
+2.  **Extraction**: Identifies and extracts individual modules or sub-circuits based on complexity metrics (e.g., logic cell counts).
+3.  **Filtering**: Applies filters to ensure the extracted modules meet specific criteria (e.g., minimum logic complexity, no unsupported primitives).
+
+### Pipeline 3: LangGraph Multi-Agent Verification (LLM Flow)
+
+A sophisticated, iterative agentic workflow using LangGraph to ensure generated Verilog is both syntactically correct and functionally accurate.
+
+```mermaid
+graph TD
+    Start((Start)) --> NL[NL Converter]
+    NL --> XML[COMBA XML Description]
+    XML --> Gen[Verilog Generator]
+    Gen --> San[Verilog Sanitizer]
+    San --> SC{Syntax Check<br/>iverilog}
+    
+    SC -- Fail --> TED_SC[TED Syntax Agent]
+    TED_SC --> Debug[Debugger Agent]
+    Debug --> San
+    
+    SC -- Pass --> TS{TB Simulation<br/>iverilog/vvp}
+    
+    TS -- Fail --> TED_TS[TED TB Agent]
+    TED_TS --> Debug
+    
+    TS -- Pass --> Pass((Success: Pass))
+    
+    subgraph Feedback Loop
+    TED_SC
+    TED_TS
+    Debug
+    end
+```
+
+1.  **NL Converter**: Translates natural language requirements into a structured **COMBA XML** description.
+2.  **Verilog Generator**: Produces initial Verilog code from the XML specification.
+3.  **Verilog Sanitizer**: Extracts pure Verilog code from LLM response noise and auto-fixes trivial formatting issues.
+4.  **Syntax Check (SC)**: Performs rapid syntax validation using `iverilog --lint-only`.
+5.  **TED Syntax Agent**: Parses `iverilog` logs to identify the "Topmost Exception" and provide structured feedback.
+6.  **TB Simulation (TS)**: Executes functional verification against benchmark testbenches.
+7.  **TED TB Agent**: Parses simulation traces to identify functional bugs.
+8.  **Debugger Agent**: Unified correction agent that uses feedback from TED agents to iteratively refactor the Verilog code.
+
+---
+
 ## Project Structure
 
 - `src/`: Core Python source code for inference and processing.
@@ -47,6 +108,37 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
 
 ### Basic Workflow
 
+**Pipeline 1 (Synthesis & Dataset Extraction)**
+
+Used for processing Verilog codebases to extract specific modules based on complexity.
+
+1. **Create & enter build directory**:
+   ```bash
+   mkdir -p build_pipeline1
+   cd build_pipeline1
+   ```
+2. **Configure the extraction parameters**:
+   ```bash
+   ../configure --with-yosys-path=/usr/bin/yosys \
+                --with-cell-range-start=6 --with-cell-range-stop=10 \
+                --with-flow-steps=synthesis,extract,filter
+   ```
+3. **Run the data-flow pipeline**:
+   ```bash
+   make data-flow
+   ```
+
+> [!TIP]
+> **Synthesis Cache Completeness:** The extraction step depends on the `.cache_count_num_cell_2` directory. Ensure synthesis has been run for the entire dataset to achieve the expected module counts (e.g., ~85k for the 6-10 range). Extracting with a partial cache will result in proportional subset sizes.
+
+**.config Reference (Pipeline 1)**
+- `--with-yosys-path`: Path to the Yosys binary for hardware synthesis.
+- `--with-cell-range-start/stop`: Defines the logic complexity (cell count) range for module extraction.
+- `--with-flow-steps`: Comma-separated list of actions (`synthesis`, `extract`, `filter`).
+- `--with-temp-dir`: Temporary directory for synthesis intermediate files.
+
+---
+
 **Pipeline 2 (Standard Single-Model Inference)**
 
 1. **Create & enter build directory**:
@@ -56,7 +148,7 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
    ```
 2. **Configure the experiment**:
    ```bash
-   ../../../configure --with-provider=openai --with-model=<model> \
+   ../../../configure --with-provider=openai --with-model=generator \
                       --with-temperature=0 --with-samples=1 --with-examples=0 \
                       --with-model-manual=http://localhost:8000/v1 \
                       --with-task=code-complete-iccad2023
@@ -70,6 +162,13 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
    make verilog-eval
    make -j 20
    ```
+
+**.config Reference (Pipeline 2)**
+- `--with-provider`: Inference engine (`openai`, `llamacpp`).
+- `--with-model`: The name or path of the primary LLM.
+- `--with-temperature`: Creativity vs. precision (0.0 for deterministic).
+- `--with-samples`: Number of independent code samples to generate per problem.
+- `--with-task`: Benchmark dataset (`code-complete-iccad2023`).
 
 ---
 
@@ -92,17 +191,29 @@ GNU_COMBA uses a `configure` and `make` system to manage different evaluation ru
    ```bash
    make langgraph
    ```
-4. **Evaluate results**:
-   ```bash
-   make verilog-eval
-   make -j 20
-   ```
+
+> **Result:** The pipeline will automatically simulate each sample using `iverilog` and display the final pass rate summary and problem list after completion.
+
+**.config Reference (Pipeline 3)**
+- `--with-model-manual`: URL for the **Generator** LLM endpoint.
+- `--with-model-submanual`: URL for the **Debugger** LLM endpoint (for Dual GPU setups).
+- `--with-max-sc-trials`: Maximum iterations allowed for syntax correction (default: 10).
+- `--with-max-tb-trials`: Maximum iterations allowed for functional/testbench correction (default: 5).
+- `--with-max_token`: Limit for the generated Verilog code output.
 
 > **Note:** To clean a build directory before re-running:
 > ```bash
 > cd <your_build_directory>  # e.g., VE_testbench/langgraph/.build_sample_e0_t0
 > rm -rf *
 > ```
+
+---
+
+**Pipeline 4 (Model Fine-Tuning - Unsloth)**
+
+Support for rapid LLM fine-tuning (e.g., base generator and debugger models) is facilitated via `unsloth`, allowing multi-quantized training on combined specific HDL datasets.
+- Uses `SFTTrainer` combining Pipeline 1 indices (`train_index2_*.npy` & `Pyranet_text_only.jsonl`) with base benchmarks (e.g., `VE_text_156.jsonl`).
+- Managed through dedicated `train_auto.py` and `train_debugger.py` driver scripts.
 
 
 
@@ -183,4 +294,4 @@ make jupyterlab
 
 ---
 Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
-Version: 2.2.1
+Version: 2.2.2
