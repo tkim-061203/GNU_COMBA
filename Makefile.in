@@ -10,16 +10,32 @@ GENERATE_FLAGS = --samples=@samples@ --examples=@examples@ --provider=@provider@
                  --max-tokens=@max_token@ --temperature=@temperature@ \
                  --model=@model@ --revision=@revision@
 
+# Convert quiet config to flag
+QUIET_VAL=@quiet@
+ifeq ($(QUIET_VAL),True)
+  LANGGRAPH_QUIET = --quiet
+else
+  LANGGRAPH_QUIET =
+endif
+
 # ── Pipeline 1: Data-flow parameters ──────────────────────────────────────
 YOSYS_PATH        := @yosys_path@
 TEMP_DIR          := @temp_dir@
 TRAIN_DATASET_DIR := @train_dataset_dir@
 CELL_RANGE_START  := @cell_range_start@
 CELL_RANGE_STOP   := @cell_range_stop@
+EXTRACT_RANGES    := @extract_ranges@
 FLOW_STEPS        := @flow_steps@
 
 # Derived index paths (relative to src_dir so they survive cd)
-TRAIN_INDEX_NPY   := $(src_dir)/$(TRAIN_DATASET_DIR)/train_index2_$(CELL_RANGE_START)_$(CELL_RANGE_STOP).npy
+# Fallback naming logic: uses EXTRACT_RANGES if set, else cell range start-stop
+ifeq ($(EXTRACT_RANGES),None)
+  INDEX_SUFFIX := $(CELL_RANGE_START)_$(CELL_RANGE_STOP)
+else
+  INDEX_SUFFIX := $(subst ,_,$(EXTRACT_RANGES))
+endif
+
+TRAIN_INDEX_NPY   := $(src_dir)/$(TRAIN_DATASET_DIR)/train_index2_$(INDEX_SUFFIX).npy
 NO_LOGIC_NPY      := $(src_dir)/$(TRAIN_DATASET_DIR)/no_logic_index.npy
 
 # ── Pipeline 3: LangGraph Multi-Agent Verification (LLM-based) ─────────────
@@ -52,7 +68,7 @@ verilog-eval:
 
 langgraph:
 	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
-	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=@model_manual@ --model-submanual=@model_submanual@ --jobs 20
+	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=@model_manual@ --model-submanual=@model_submanual@ --jobs 20 $(LANGGRAPH_QUIET)
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -90,6 +106,7 @@ gen-flow-configs:
 	json.dump({ \
 	  'cell_range_start': $(CELL_RANGE_START), \
 	  'cell_range_stop':  $(CELL_RANGE_STOP), \
+	  'extract_ranges':   '$(EXTRACT_RANGES)', \
 	}, open(f'{d}/PyranetExtractDataseByRangeOfLogicCell.json','w'), indent='\t'); \
 	json.dump({ \
 	  'dataset_index':        '$(TRAIN_INDEX_NPY)', \

@@ -80,6 +80,7 @@ REPETITION_THRESHOLD = 0.35  # >35% duplicate non-empty lines
 def sanitize(
     raw_output: str,
     module_name: Optional[str] = None,
+    expected_header: Optional[str] = None,
     max_retries: int = 2,
     current_retry: int = 0,
 ) -> SanitizeResult:
@@ -160,6 +161,21 @@ def sanitize(
                 # Give up, pass raw text — Verilator will catch it
                 warnings.append("No 'module' keyword found after max retries — passing raw to Verilator")
                 code = text
+
+    # ── Step 3.5: Forced Header Alignment ──
+    if expected_header and code:
+        # Match header: 'module' whitespace 'name' whitespace '(' ... ')' whitespace ';'
+        # We want to replace everything from 'module' to just after the first ';' with expected_header
+        new_code = re.sub(
+            r'module\s+\w+\s*\(.*?\)\s*;',
+            expected_header,
+            code,
+            count=1,
+            flags=re.DOTALL
+        )
+        if new_code != code:
+            code = new_code
+            warnings.append("Forced header alignment: replaced generated header with expected header")
 
     # ── Step 4: Structural warnings (NEVER block) ──
     _collect_warnings(code, module_name, warnings)

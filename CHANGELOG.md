@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-04-07
+### Added
+- **Multi-Range Selection**: Added support for comma-separated extraction buckets (`--with-extract-ranges=6-10,11-15`) in Pipeline 1.
+- **Framework Integration**: Merged shared process pool logic from the `thanh_GNU` baseline for consistent multi-process handling in `GNU_COMBA`.
+- **Improved Scripting**: Refactored `PyranetExtractDataseByRangeOfLogicCell.py` to be more flexible, robust, and correctly handle original dataset index mappings.
+
 ## [1.4.1] - 2026-04-06
 ### Fixed
 - **Dataset Extraction Logic**: Resolved a critical bug in `PyranetExtractDataseByRangeOfLogicCell.py` where positional indices were being used instead of original dataset indices, leading to incorrect sample selection.

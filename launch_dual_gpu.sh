@@ -16,7 +16,7 @@
 set -euo pipefail
 
 # ── Config ──
-GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model}"
+GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_v2}"
 MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger}"
 PORT_GEN=8000
 PORT_DBG=8001

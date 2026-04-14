@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import atexit, json
+import atexit, json, re
 import os, glob, sys
 from langchain_community.llms import LlamaCpp
 # from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
@@ -399,8 +399,11 @@ Further explanation must be construct as the syntax of Verilog comment."""
 					
 				module_extraction_success = True
 				try:
+					# Strip markdown code fences that LLMs commonly emit (e.g. ```verilog ... ```)
+					resp_for_extraction = re.sub(r'```(?:\w+)?\s*\n?', '', resp)
+					resp_for_extraction = re.sub(r'\n?```', '', resp_for_extraction)
 					
-					module_definition, module_output_code, _, _, all_comment_ranges = module_extraction(resp)
+					module_definition, module_output_code, _, _, all_comment_ranges = module_extraction(resp_for_extraction)
 					# print(module_output_code)
 					resp = '\n'.join(module_output_code)
 				except:
@@ -412,6 +415,16 @@ Further explanation must be construct as the syntax of Verilog comment."""
 					loop_break = False
 					with open(f"{problemPromptFileNameNoSuffix}/error.txt", "a+") as file:
 						file.write(f"\n{i}: Out of token")
+					oft_trial_i += 1
+				elif (not module_extraction_success):
+					# Model returned malformed / non-Verilog output — retry with explicit format request
+					additionalPrompt = [
+						{'role': 'assistant', 'content': resp},
+						{'role': 'user', 'content': "Your response must be a valid Verilog module. Provide only the raw Verilog code without any markdown formatting, backticks, or explanation. Start directly with 'module TopModule' and end with 'endmodule'."},
+					]
+					loop_break = False
+					with open(f"{problemPromptFileNameNoSuffix}/error.txt", "a+") as file:
+						file.write(f"\n{i}: Extraction fail - retry")
 					oft_trial_i += 1
 				#
 				elif module_extraction_success:

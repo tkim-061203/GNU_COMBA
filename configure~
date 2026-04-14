@@ -619,6 +619,7 @@ ac_unique_file="src/main.py"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 flow_steps
+extract_ranges
 cell_range_stop
 cell_range_start
 train_dataset_dir
@@ -695,6 +696,7 @@ with_temp_dir
 with_train_dataset_dir
 with_cell_range_start
 with_cell_range_stop
+with_extract_ranges
 with_flow_steps
 '
       ac_precious_vars='build_alias
@@ -1336,6 +1338,8 @@ Optional Packages:
                           Output directory for training dataset index files
   --with-cell-range-start Min logic cell count to extract (inclusive)
   --with-cell-range-stop  Max logic cell count to extract (inclusive)
+  --with-extract-ranges   Comma-separated list of cell range buckets to
+                          extract (e.g. 6-10,11-15)
   --with-flow-steps       Comma-separated list of flow steps to run
                           (synthesis,extract,filter)
 
@@ -2079,6 +2083,24 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using cell range stop: ${cell_range_stop}" >&5
 printf "%s\n" "$as_me: using cell range stop: ${cell_range_stop}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-extract-ranges
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-extract-ranges was given.
+if test ${with_extract_ranges+y}
+then :
+  withval=$with_extract_ranges; extract_ranges="${with_extract_ranges}"
+else $as_nop
+  extract_ranges="None"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using extract ranges: ${extract_ranges}" >&5
+printf "%s\n" "$as_me: using extract ranges: ${extract_ranges}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-flow-steps

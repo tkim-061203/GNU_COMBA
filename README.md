@@ -119,7 +119,7 @@ Used for processing Verilog codebases to extract specific modules based on compl
    ```
 2. **Configure the extraction parameters**:
    ```bash
-   ../configure --with-yosys-path=/usr/bin/yosys \
+   ../configure --with-yosys-path=/home/share/oss-cad-suite/bin/yosys \
                 --with-cell-range-start=6 --with-cell-range-stop=10 \
                 --with-flow-steps=synthesis,extract,filter
    ```
@@ -200,6 +200,7 @@ Used for processing Verilog codebases to extract specific modules based on compl
 - `--with-max-sc-trials`: Maximum iterations allowed for syntax correction (default: 10).
 - `--with-max-tb-trials`: Maximum iterations allowed for functional/testbench correction (default: 5).
 - `--with-max_token`: Limit for the generated Verilog code output.
+- `--with-quiet`: Only show progress bar during LangGraph inference (default: True).
 
 > **Note:** To clean a build directory before re-running:
 > ```bash
@@ -222,20 +223,21 @@ Common setup configurations use the `eX_tY` naming convention (e: examples, t: t
 
 - **`e0_t0`**: Zero-shot without examples + Greedy Search (1 sample).
   ```bash
-  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
 - **`e0_t8`**: Zero-shot without examples + Temperature 0.8 (generates 20 samples).
   ```bash
-  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
 - **`e1_t0`**: One-shot with 1 example + Greedy Search.
   ```bash
-  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
 - **`e1_t8`**: One-shot with 1 example + Temperature 0.8 (generates 20 samples).
   ```bash
-  ../../../configure --with-provider=openai --with-model=qwen-base --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
+
 
 **2. Multi-Agent Inference with LangGraph (Pipeline 3 - Using `make langgraph`)**
 In this Multi-Agent setup, both generator and debugger models are used simultaneously. The pipeline automatically performs iterative error correction using LLM-driven feedback.
@@ -247,7 +249,7 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 
 - **`e0_t0` (Dual GPU LangGraph)**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
   ```
 
 - `--with-provider`: LLM provider (`llamacpp`, `openai`, etc.).
@@ -257,6 +259,7 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 - `--with-samples`: Number of samples per problem.
 - `--with-examples`: Number of ICL examples to include in the prompt.
 - `--with-task`: The benchmark task (e.g., `code-complete-iccad2023`).
+- `--with-quiet`: Control verbosity of LangGraph inference output.
 - `--with-model-manual`: URL for the primary generator LLM override (e.g., `http://localhost:8000/v1`).
 - `--with-model-submanual`: URL for the secondary debugging LLM (e.g., `http://localhost:8001/v1`) used in Dual GPU setups.
 

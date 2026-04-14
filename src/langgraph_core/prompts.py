@@ -25,14 +25,13 @@ FEWSHOT_XML_COMB = """\
 </module>"""
 
 FEWSHOT_VERILOG_COMB = """\
-module adder_8bit(
+module TopModule(
     input [7:0] a, b,
     input cin,
     output [7:0] sum,
     output cout
 );
-    // INLINE behavioral — even though spec says "full adders",
-    // implement with arithmetic operators, no sub-module instantiation.
+    // INLINE behavioral logic
     assign {{cout, sum}} = a + b + cin;
 endmodule
 """
@@ -51,7 +50,7 @@ FEWSHOT_XML_SEQ = """\
 </module>"""
 
 FEWSHOT_VERILOG_SEQ = """\
-module counter_12(
+module TopModule(
     input rst_n, input clk, input valid_count,
     output reg [3:0] out
 );
@@ -104,8 +103,10 @@ Convert natural language module descriptions into COMBA XML format.
     describe as "implement 16-bit addition inline using a single assign statement".
 - `<parameter_description>` must ONLY contain FSM state names and numeric constants
   that appear explicitly in the spec (e.g., ADD=6'b100000).
-  NEVER add internal signals (divisor_extend, shift registers, intermediate regs)
-  unless they are named in the spec's parameter/constant list.
+- Do NOT hallucinate internal registers, wires, or counters in the XML unless 
+  the input text explicitly names them. Focus on high-level properties.
+- NEVER add intermediate signals (divisor_extend, shift registers) in XML; the 
+  generator will figure these out from the `<implementation>` description.
 
 ## Style Examples
 ```xml
@@ -131,8 +132,21 @@ converterPromptTemplate = ChatPromptTemplate([
 
 GENERATOR_SYSTEM_PROMPT = """\
 You are a professional Verilog RTL code generator.
-Generate complete, synthesizable Verilog from COMBA XML.
+Generate complete, synthesizable Verilog from the provided Original Specification and COMBA XML.
 Output ONLY Verilog code, no explanation, no markdown fences.
+
+## PRIORITIZE ORIGINAL SPECIFICATION
+The "Original Specification" provides the exact requirements, including constraints like "inclusive" vs "exclusive", minimum/maximum values, resetting conditions, and exact module interfaces.
+The "XML Representation" is a structural guide. If there's any ambiguity, ALWAYS prioritize the instructions in the Original Specification.
+
+## CRITICAL: Required Logic Keywords
+The Verilog code MUST contain one of keywords performing logic operations, such as "always", "and", "assign", "not", "nand", "nor", "or", "xnor", "xor", or "display".
+Further explanation must be constructed as the syntax of a Verilog comment.
+Do NOT just return an empty module or a module with only port declarations.
+
+## INTERFACE ALIGNMENT
+The module header (name and ports) is FIXED. You must implement the logic within the PROVIDED header. 
+Even if the XML seems to suggest different port names, ALWAYS prioritize the port names in the provided module declaration.
 
 ## CONSTRAINTS (mandatory, apply to ALL designs)
 

@@ -155,16 +155,20 @@ AC_SUBST([max_tb_trials])
 AC_MSG_NOTICE([using max-tb-trials: ${max_tb_trials}])
 
 #-------------------------------------------------------------------------
-# --with-revision
+# --with-quiet
 #-------------------------------------------------------------------------
 
-AC_ARG_WITH(revision,
-  AS_HELP_STRING([--with-revision],[Revision pf LLM]),
-  [revision="${with_revision}"],
-  [revision="None"])
+AC_ARG_WITH(quiet,
+  AS_HELP_STRING([--with-quiet],[Only show progress bar during LangGraph inference (default: True)]),
+  [quiet="${with_quiet}"],
+  [quiet="True"])
 
-AC_SUBST([revision])
-AC_MSG_NOTICE([using revision: ${revision}])
+AC_SUBST([quiet])
+AC_MSG_NOTICE([using quiet mode: ${quiet}])
+
+#-------------------------------------------------------------------------
+# --with-revision
+#-------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------
 # --with-yosys-path
@@ -221,6 +225,18 @@ AC_ARG_WITH(cell-range-stop,
 
 AC_SUBST([cell_range_stop])
 AC_MSG_NOTICE([using cell range stop: ${cell_range_stop}])
+
+#-------------------------------------------------------------------------
+# --with-extract-ranges
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(extract-ranges,
+  AS_HELP_STRING([--with-extract-ranges],[Comma-separated list of cell range buckets to extract (e.g. 6-10,11-15)]),
+  [extract_ranges="${with_extract_ranges}"],
+  [extract_ranges="None"])
+
+AC_SUBST([extract_ranges])
+AC_MSG_NOTICE([using extract ranges: ${extract_ranges}])
 
 #-------------------------------------------------------------------------
 # --with-flow-steps

@@ -117,18 +117,21 @@ class OpenAiInferenceClient(GeneralInferenceClass):
 
 		else:
 			messages = [{"role": "user", "content": message} for message in prompt]
-		response = self.llm.chat.completions.create(
-			model=self.model,
-			messages=messages,
-			max_tokens=self.max_tokens, 
-			temperature=self.temperature,
-			top_p=self.top_p,
-			
-			# stop=self.tokenizer.eos_token,
-		)
-		# print(response)
-		# exit(123)
-		# response = self.llm.chat_completion(messages=[{"role": "user", "content": prompt}], max_tokens=self.max_tokens, temperature=self.temperature)
+		try:
+			response = self.llm.chat.completions.create(
+				model=self.model,
+				messages=messages,
+				max_tokens=self.max_tokens, 
+				temperature=self.temperature,
+				top_p=self.top_p,
+				
+				# stop=self.tokenizer.eos_token,
+			)
+		except openai.OpenAIError as e:
+			# openai exceptions (e.g. APIStatusError) are not picklable by dill/multiprocess
+			# because their __init__ requires 'response' and 'body' kwargs.
+			# Convert to a plain RuntimeError so the worker can relay it to the main process.
+			raise RuntimeError(f"OpenAI API error: {type(e).__name__}: {e}") from None
 
 		return (response.choices[0].message.content, 
 		  {"completion_tokens": response.usage.completion_tokens,

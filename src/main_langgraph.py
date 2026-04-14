@@ -32,6 +32,8 @@ def parse_cmdline():
     p.add_argument("-x", "--examples", type=int, default=0)
     p.add_argument("-r", "--revision", type=str, default=None)
     p.add_argument("--pattern", type=str, default="Prob*")
+    p.add_argument("-q", "--quiet", action="store_true", help="Only show progress bar")
+
     
     return p.parse_args()
 
@@ -163,6 +165,9 @@ def do_process(problemSet):
 
 def main():
     opts = parse_cmdline()
+    if opts.quiet:
+        os.environ["COMBA_QUIET"] = "1"
+    
     problemDir = PROBLEM_DIR
     problemPromptsPath = glob.glob(f"{problemDir}/{opts.pattern}_prompt.txt")
     problemPromptsPath.sort()

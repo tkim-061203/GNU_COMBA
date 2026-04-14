@@ -6,9 +6,12 @@ flow_src_dir      := $(scripts_dir)/flow_src
 flow_inputs_dir   := $(flow_src_dir)/inputs
 
 # ── Pipeline 2: LLM inference ──────────────────────────────────────────────
-GENERATE_FLAGS = --samples=1 --examples=0 --provider=llamacpp \
-                 --max-tokens=2048 --temperature=0.85 \
-                 --model=manual_Mistral_7B --revision=None
+# Model served by launch_dual_gpu.sh:
+#   port 8000 → --served-model-name generator  (base Qwen / generator)
+#   port 8001 → --served-model-name debugger   (merged LoRA / correcter)
+GENERATE_FLAGS = --samples=1 --examples=0 --provider=openai \
+                 --max-tokens=4096 --temperature=0.8 \
+                 --model=generator --revision=None
 
 # ── Pipeline 1: Data-flow parameters (Yosys-based) ─────────────────────────
 # See README.md for a visual dataflow diagram of this pipeline.
@@ -35,7 +38,7 @@ LANGGRAPH_SAMPLES := 1
 .PHONY: default jupyterlab verilog-eval \
         data-flow gen-flow-configs \
         synthesis extract filter \
-        langgraph-flow langgraph clean-flow help
+        langgraph-flow langgraph clean-flow clean help
 
 default:
 	echo $(scripts_dir)/main.py ${GENERATE_FLAGS}
@@ -50,10 +53,25 @@ verilog-eval:
 		--with-model=manual_Mistral_7B --with-task=code-complete-iccad2023 \
 		--with-samples=1 --with-examples=0 \
 		--with-model-manual=True
+# ── Full pipeline clean ────────────────────────────────────────────────────
+## Removes all generated artifacts across all three pipelines (no cache, no datasets).
+clean:
+	@echo "=== Cleaning all pipeline artifacts ==="
+	@# Pipeline 1 — .run_* dirs
+	@echo "--- Pipeline 1: removing .run_* directories..."
+	rm -rf $(src_dir)/.run_*
+	@# Pipeline 2 — LLM inference outputs
+	@echo "--- Pipeline 2: removing LLM inference outputs..."
+	rm -f $(src_dir)/config.log
+	rm -rf $(src_dir)/samples
+	@# Pipeline 3 — LangGraph outputs
+	@echo "--- Pipeline 3: removing LangGraph outputs..."
+	rm -rf $(LANGGRAPH_DIR)/outputs
+	@echo "=== Clean complete ==="
 
 langgraph:
 	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
-	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=True --jobs 20
+	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=True --jobs 20 --quiet
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -132,7 +150,7 @@ langgraph-flow:
 # ── Cleanup ────────────────────────────────────────────────────────────────
 clean-flow:
 	@echo "Removing .run_* directories and cached cell counts..."
-	rm -rf $(src_dir)/.run_* $(src_dir)/.cache_count_num_cell_2
+	rm -rf $(src_dir)/.run_*
 
 # ── Help ───────────────────────────────────────────────────────────────────
 help:
@@ -148,6 +166,7 @@ help:
 	@echo "  filter         Run filter step only"
 	@echo "  gen-flow-configs  Regenerate flow input JSON configs"
 	@echo "  clean-flow     Remove .run_* dirs and synthesis cache"
+	@echo "  clean          Remove ALL pipeline artifacts (P1 + P2 + P3)"
 	@echo "  langgraph-flow Run Pipeline 3 (LangGraph)"
 	@echo ""
 	@echo "Configure options for Pipeline 1:"

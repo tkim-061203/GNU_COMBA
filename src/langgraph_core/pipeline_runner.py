@@ -20,6 +20,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+COMBA_QUIET = os.environ.get("COMBA_QUIET", "0") == "1"
+
+def cprint(*args, **kwargs):
+    if not COMBA_QUIET:
+        print(*args, **kwargs)
+
 
 # ──────────────────────────────────────────────────────────────
 # LLM Factory — Unified fallback chain
@@ -36,24 +42,24 @@ def create_llm():
 
     if use_stub:
         from stub_llm import create_stub_llm
-        print("[COMBA] Using StubLLM (testing mode)")
+        cprint("[COMBA] Using StubLLM (testing mode)")
         return create_stub_llm()
 
     # Try COMBALlm (dual-GPU) first
     try:
         from llm_interface import COMBALlm
         llm = COMBALlm.from_env()
-        print(f"[COMBA] Using COMBALlm: {llm}")
+        cprint(f"[COMBA] Using COMBALlm: {llm}")
         return llm
     except Exception as e:
-        print(f"[COMBA] COMBALlm failed ({e}), falling back to ChatOpenAI")
+        cprint(f"[COMBA] COMBALlm failed ({e}), falling back to ChatOpenAI")
 
     # Fallback to ChatOpenAI
     from langchain_openai import ChatOpenAI
     base_url = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
     api_key = os.environ.get("LLM_API_KEY", "ollama")
     model = os.environ.get("LLM_MODEL", "qwen2.5-coder:7b")
-    print(f"[COMBA] Using ChatOpenAI: {model} @ {base_url}")
+    cprint(f"[COMBA] Using ChatOpenAI: {model} @ {base_url}")
     return ChatOpenAI(base_url=base_url, api_key=api_key, model=model, temperature=0.1)
 
 
@@ -81,7 +87,7 @@ def get_pipeline(llm=None):
     from comba_pipeline import build_comba_graph
     _llm = llm
     _graph = build_comba_graph(llm)
-    print("[COMBA] Pipeline graph compiled")
+    cprint("[COMBA] Pipeline graph compiled")
     return _llm, _graph
 
 
@@ -223,20 +229,20 @@ def run_pipeline_batch(
 
     total = len(module_norm_paths)
     if total == 0:
-        print("[COMBA] No modules found matching given paths")
+        cprint("[COMBA] No modules found matching given paths")
         return {}
 
     # Init pipeline once
     pipeline_llm, graph = get_pipeline(llm)
-    print(f"[COMBA] Batch: {total} modules × {samples} sample(s)")
+    cprint(f"[COMBA] Batch: {total} modules × {samples} sample(s)")
 
     all_results = {}
 
     for idx, module_path in enumerate(module_norm_paths, 1):
         module_name = os.path.basename(module_path)
-        print(f"\n{'═' * 60}")
-        print(f"  [{idx}/{total}] Module: {module_name}")
-        print(f"{'═' * 60}")
+        cprint(f"\n{'═' * 60}")
+        cprint(f"  [{idx}/{total}] Module: {module_name}")
+        cprint(f"{'═' * 60}")
 
         # Resolve description file
         if description_type == "xml":
@@ -247,7 +253,7 @@ def run_pipeline_batch(
             desc_file = os.path.join(module_path, f"design_description.{description_type}")
 
         if not os.path.isfile(desc_file):
-            print(f"  ⚠️ Description file not found: {desc_file}, skipping")
+            cprint(f"  ⚠️ Description file not found: {desc_file}, skipping")
             continue
 
         with open(desc_file, "r", encoding="utf-8") as f:
@@ -257,7 +263,7 @@ def run_pipeline_batch(
 
         for sample_idx in range(1, samples + 1):
             if samples > 1:
-                print(f"  ── Sample {sample_idx}/{samples} ──")
+                cprint(f"  ── Sample {sample_idx}/{samples} ──")
 
             # Build state
             state = make_initial_state(nl_input=description, module_name=module_name)
@@ -285,7 +291,7 @@ def run_pipeline_batch(
 
                 status = result["final_status"]
                 emoji = "🎉" if status == "pass" else "❌"
-                print(f"  {emoji} Result: {status} | SC:{result['sc_trial']} TS:{result['ts_trial']}")
+                cprint(f"  {emoji} Result: {status} | SC:{result['sc_trial']} TS:{result['ts_trial']}")
 
             except Exception as e:
                 result = {
@@ -296,7 +302,7 @@ def run_pipeline_batch(
                     "sc_trial": 0, "ts_trial": 0, "total_iter": 0,
                     "gvd": "", "xml_description": "", "sc_log": "", "tb_log": "",
                 }
-                print(f"  ❌ Pipeline error: {e}")
+                cprint(f"  ❌ Pipeline error: {e}")
 
             sample_results.append(result)
 
@@ -314,13 +320,13 @@ def run_pipeline_batch(
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2, ensure_ascii=False)
 
-        print(f"  📄 Report saved: {report_path}")
+        cprint(f"  📄 Report saved: {report_path}")
         all_results[module_name] = report_data
 
     # Summary
-    print(f"\n{'═' * 60}")
-    print("  SUMMARY")
-    print(f"{'═' * 60}")
+    cprint(f"\n{'═' * 60}")
+    cprint("  SUMMARY")
+    cprint(f"{'═' * 60}")
     pass_count = 0
     for name, data in all_results.items():
         if isinstance(data["samples"], list):
@@ -333,21 +339,21 @@ def run_pipeline_batch(
         if status == "pass":
             pass_count += 1
         emoji = "✅" if status == "pass" else "❌"
-        print(f"  {emoji} {name}: {status} (SC:{r.get('sc_trial',0)} TS:{r.get('ts_trial',0)})")
+        cprint(f"  {emoji} {name}: {status} (SC:{r.get('sc_trial',0)} TS:{r.get('ts_trial',0)})")
 
     if total > 0:
-        print(f"\n  Pass rate: {pass_count}/{total} ({pass_count/total*100:.1f}%)")
+        cprint(f"\n  Pass rate: {pass_count}/{total} ({pass_count/total*100:.1f}%)")
 
     # Save global summary
     os.makedirs("reports", exist_ok=True)
     summary_path = f"reports/summary_langgraph.{description_type}.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False)
-    print(f"  📄 Global summary: {summary_path}")
+    cprint(f"  📄 Global summary: {summary_path}")
 
     # Export Markdown summary
     md_path = _export_markdown_summary(all_results, description_type, samples, total)
-    print(f"  📝 Markdown summary: {md_path}")
+    cprint(f"  📝 Markdown summary: {md_path}")
 
     return all_results
 

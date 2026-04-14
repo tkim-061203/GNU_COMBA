@@ -1,5 +1,5 @@
 Problems with failures:
-Prob035_count1to10            [00/01](  0%)  0.00 R                       
+Prob045_edgedetect2           [00/01](  0%)  0.00 R                       
 Prob053_m2014_q4d             [00/01](  0%)  0.00 C                       
 Prob057_kmap2                 [00/01](  0%)  0.00 R                       
 Prob062_bugs_mux2             [00/01](  0%)  0.00 R                       
@@ -8,21 +8,18 @@ Prob068_countbcd              [00/01](  0%)  0.00 R
 Prob069_truthtable1           [00/01](  0%)  0.00 R                       
 Prob070_ece241_2013_q2        [00/01](  0%)  0.00 R                       
 Prob074_ece241_2014_q4        [00/01](  0%)  0.00 R                       
-Prob079_fsm3onehot            [00/01](  0%)  0.00 R                       
 Prob082_lfsr32                [00/01](  0%)  0.00 T                       
 Prob086_lfsr5                 [00/01](  0%)  0.00 R                       
-Prob088_ece241_2014_q5b       [00/01](  0%)  0.00 R                       
 Prob089_ece241_2014_q5a       [00/01](  0%)  0.00 R                       
 Prob091_2012_q2b              [00/01](  0%)  0.00 R                       
 Prob093_ece241_2014_q3        [00/01](  0%)  0.00 R                       
 Prob095_review2015_fsmshift   [00/01](  0%)  0.00 R                       
-Prob096_review2015_fsmseq     [00/01](  0%)  0.00 R                       
 Prob098_circuit7              [00/01](  0%)  0.00 R                       
 Prob099_m2014_q6c             [00/01](  0%)  0.00 R                       
 Prob101_circuit4              [00/01](  0%)  0.00 R                       
 Prob102_circuit3              [00/01](  0%)  0.00 R                       
+Prob103_circuit2              [00/01](  0%)  0.00 R                       
 Prob104_mt2015_muxdff         [00/01](  0%)  0.00 S                       
-Prob107_fsm1s                 [00/01](  0%)  0.00 w                       
 Prob108_rule90                [00/01](  0%)  0.00 R                       
 Prob113_2012_q1g              [00/01](  0%)  0.00 R                       
 Prob116_m2014_q3              [00/01](  0%)  0.00 R                       
@@ -49,7 +46,7 @@ Prob146_fsm_serialdata        [00/01](  0%)  0.00 R
 Prob147_circuit10             [00/01](  0%)  0.00 R                       
 Prob149_ece241_2013_q4        [00/01](  0%)  0.00 R                       
 Prob150_review2015_fsmonehot  [00/01](  0%)  0.00 R                       
-Prob151_review2015_fsm        [00/01](  0%)  0.00 r                       
+Prob151_review2015_fsm        [00/01](  0%)  0.00 R                       
 Prob152_lemmings3             [00/01](  0%)  0.00 R                       
 Prob153_gshare                [00/01](  0%)  0.00 R                       
 Prob154_fsm_ps2data           [00/01](  0%)  0.00 R                       

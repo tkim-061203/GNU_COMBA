@@ -35,6 +35,12 @@ import tempfile
 from typing import Optional
 from typing_extensions import TypedDict
 
+COMBA_QUIET = os.environ.get("COMBA_QUIET", "0") == "1"
+
+def cprint(*args, **kwargs):
+    if not COMBA_QUIET:
+        print(*args, **kwargs)
+
 from langgraph.graph import StateGraph, START, END
 
 from prompts import (
@@ -111,10 +117,20 @@ class COMBAState(TypedDict):
     error: Optional[str]                       # Runtime error message
     dataset_dir: Optional[str]                 # Dataset directory for testbenches
     work_dir: Optional[str]                    # Working directory for Verilator
+    expected_header: Optional[str]             # Extracted 'module TopModule (...);' for forced alignment
 
 
 def make_initial_state(nl_input: str = "", module_name: str = "", benchmark_id: str = "") -> COMBAState:
     """Create a fresh initial state with all fields zeroed."""
+    # Extract expected header (module TopModule ... ;) from nl_input
+    expected_header = None
+    if nl_input:
+        # Match from 'module' to the first ';'
+        # Benchmark prompts usually have 'module TopModule (...);' at the end
+        header_match = re.search(r'(module\s+\w+\s*\(.*?\)\s*;)', nl_input, re.DOTALL)
+        if header_match:
+            expected_header = header_match.group(1).strip()
+
     return COMBAState(
         nl_input=nl_input,
         xml_description=None,
@@ -147,6 +163,7 @@ def make_initial_state(nl_input: str = "", module_name: str = "", benchmark_id: 
         dataset_dir=None,
         work_dir=None,
         benchmark_id=benchmark_id or module_name or None,
+        expected_header=expected_header,
     )
 
 
@@ -172,13 +189,13 @@ class COMBANodes:
     # ──────────────────────────────────────────────────────────
     def node_converter(self, state: COMBAState) -> dict:
         """Convert natural language description to COMBA XML format."""
-        print("\n" + "=" * 60)
-        print("🔄 NODE: Converter (NL → XML)")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint("🔄 NODE: Converter (NL → XML)")
+        cprint("=" * 60)
 
         # If XML already provided, skip
         if state.get("xml_description"):
-            print("[SKIP] XML already present.")
+            cprint("[SKIP] XML already present.")
             return {}
 
         result = converterPromptTemplate.invoke({
@@ -200,7 +217,7 @@ class COMBANodes:
         match = re.search(r'<module\s+id="([^"]+)"', xml_text)
         module_name = match.group(1) if match else "unknown_module"
 
-        print(f"  ✅ Generated XML for module: {module_name}")
+        cprint(f"  ✅ Generated XML for module: {module_name}")
 
         return {
             "xml_description": xml_text,
@@ -213,19 +230,23 @@ class COMBANodes:
     def node_generator(self, state: COMBAState) -> dict:
         """Generate Verilog code from COMBA XML description.
         Outputs raw LLM text → routed to sanitizer."""
-        print("\n" + "=" * 60)
-        print("⚡ NODE: Generator (XML → raw LLM output)")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint("⚡ NODE: Generator (XML → raw LLM output)")
+        cprint("=" * 60)
 
+        nl_input = state.get("nl_input", "")
         xml_desc = state["xml_description"]
+        
+        combined_input = f"Original Specification:\n{nl_input}\n\nXML Representation:\n{xml_desc}"
+        
         result = generatorPromptTemplate.invoke({
-            "user_input": xml_desc,
+            "user_input": combined_input,
             "conversation": [],
         })
         response = self._llm.invoke(result)
         raw_output = response.content.strip()
 
-        print(f"  ✅ LLM returned {len(raw_output.splitlines())} lines")
+        cprint(f"  ✅ LLM returned {len(raw_output.splitlines())} lines")
 
         # Initialize MultiAttemptManager on first entry
         mgr = state.get("multi_attempt_mgr")
@@ -249,19 +270,19 @@ class COMBANodes:
         """Run VerilogSanitizer on raw LLM output.
         Extracts code from noise, auto-fixes trivial issues, collects warnings.
         NEVER blocks — code always reaches Verilator (except max-retry on empty)."""
-        print("\n" + "=" * 60)
-        print("🧹 NODE: Sanitizer")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint("🧹 NODE: Sanitizer")
+        cprint("=" * 60)
 
         raw = state.get("_raw_llm_output") or ""
         module_name = state.get("module_name")
         retry_count = state.get("_sanitize_retry_count", 0)
 
         result = verilog_sanitize(
-            raw_output=raw,
-            module_name=module_name,
-            max_retries=2,
-            current_retry=retry_count,
+            raw,
+            module_name=state.get("module_name"),
+            expected_header=state.get("expected_header"),
+            current_retry=state.get("_sanitize_retry_count", 0),
         )
 
         sanitize_dict = {
@@ -278,7 +299,7 @@ class COMBANodes:
 
         if result.needs_retry:
             updates["_sanitize_retry_count"] = retry_count + 1
-            print(f"  🔄 Needs retry ({retry_count + 1}/2): {result.retry_prompt[:60]}...")
+            cprint(f"  🔄 Needs retry ({retry_count + 1}/2): {result.retry_prompt[:60]}...")
         else:
             code = result.code or ""
             # Ensure trailing newline
@@ -289,11 +310,11 @@ class COMBANodes:
             # Set sgvd on first generation (from generator)
             if state.get("_last_llm_source") == "generator":
                 updates["sgvd"] = code
-            print(f"  ✅ Sanitized: {len(code.splitlines())} lines")
+            cprint(f"  ✅ Sanitized: {len(code.splitlines())} lines")
             if result.auto_fixed:
-                print(f"  🔧 Auto-fixed applied")
+                cprint(f"  🔧 Auto-fixed applied")
             for w in result.warnings:
-                print(f"  ⚠️ {w}")
+                cprint(f"  ⚠️ {w}")
 
         return updates
 
@@ -302,9 +323,9 @@ class COMBANodes:
     # ──────────────────────────────────────────────────────────
     def node_syntax_check(self, state: COMBAState) -> dict:
         """Run Verilator lint-only syntax check on current GVD."""
-        print("\n" + "=" * 60)
-        print(f"🔍 NODE: Syntax Check (SC trial #{state['sc_trial'] + 1})")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint(f"🔍 NODE: Syntax Check (SC trial #{state['sc_trial'] + 1})")
+        cprint("=" * 60)
 
         module_name = state["module_name"]
         gvd = state["gvd"]
@@ -349,7 +370,7 @@ class COMBANodes:
         ]
         exception_count = len(error_lines)
 
-        print(f"  SC log: {len(sc_log.splitlines())} lines, {exception_count} errors")
+        cprint(f"  SC log: {len(sc_log.splitlines())} lines, {exception_count} errors")
 
         return {
             "sc_log": sc_log,
@@ -368,9 +389,9 @@ class COMBANodes:
         Parse sc_log → extract topmost %Error → create EDP.
         Update EDTM tracker.
         """
-        print("\n" + "=" * 60)
-        print("🔎 NODE: TED Syntax (Parse topmost SC error)")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint("🔎 NODE: TED Syntax (Parse topmost SC error)")
+        cprint("=" * 60)
 
         sc_log = state["sc_log"] or ""
         edtm = dict(state.get("edtm", {}))   # shallow copy
@@ -384,7 +405,7 @@ class COMBANodes:
                 break
 
         if not topmost_error:
-            print("  ⚠️ No parseable error found in SC log")
+            cprint("  ⚠️ No parseable error found in SC log")
             return {
                 "sc_exception": None,
                 "edp": None,
@@ -400,7 +421,7 @@ class COMBANodes:
 
         # Check if this exception has been retried too many times
         if edtm[sig] > EDTM_MAX_RETRIES:
-            print(f"  ⛔ EDTM: Exception seen {edtm[sig]} times, marking unresolvable")
+            cprint(f"  ⛔ EDTM: Exception seen {edtm[sig]} times, marking unresolvable")
             # Format EDP to indicate the issue so the correcter tries a different approach
             edp = (
                 f"[EDTM WARNING: This error has been seen {edtm[sig]} times. "
@@ -410,8 +431,8 @@ class COMBANodes:
         else:
             edp = f"Topmost iverilog error:\n{topmost_error}"
 
-        print(f"  📋 EDP: {topmost_error[:80]}...")
-        print(f"  📊 EDTM count for this sig: {edtm[sig]}")
+        cprint(f"  📋 EDP: {topmost_error[:80]}...")
+        cprint(f"  📊 EDTM count for this sig: {edtm[sig]}")
 
         return {
             "sc_exception": topmost_error,
@@ -429,9 +450,9 @@ class COMBANodes:
         Delegates prompt building to MultiAttemptManager.
         Outputs raw LLM text → routed to extraction_guard.
         """
-        print("\n" + "=" * 60)
-        print(f"🐛 NODE: Debugger (phase={state['phase']})")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint(f"🐛 NODE: Debugger (phase={state['phase']})")
+        cprint("=" * 60)
 
         phase = state["phase"]
         current_gvd = state["gvd"]
@@ -439,7 +460,7 @@ class COMBANodes:
         module_name = state.get("module_name", "unknown")
 
         if not error_desc:
-            print("  ⚠️ No error description available, skipping")
+            cprint("  ⚠️ No error description available, skipping")
             return {}
 
         # ── Get or create MultiAttemptManager ──
@@ -453,7 +474,7 @@ class COMBANodes:
 
         # ── Get escalation level ──
         esc_level = mgr.get_escalation_level(error_key)
-        print(f"  📊 Escalation: L{esc_level} for key: {error_key[:60]}")
+        cprint(f"  📊 Escalation: L{esc_level} for key: {error_key[:60]}")
 
         # ── Build prompt via MultiAttemptManager ──
         if phase == "sc":
@@ -505,7 +526,7 @@ class COMBANodes:
             code_snapshot=current_gvd[:1000] if current_gvd else "",
         )
 
-        print(f"  ✅ Debugger LLM returned {len(raw_output.splitlines())} lines")
+        cprint(f"  ✅ Debugger LLM returned {len(raw_output.splitlines())} lines")
 
         return {
             "_raw_llm_output": raw_output,
@@ -527,9 +548,9 @@ class COMBANodes:
         5. If NOT found → fuzzy match or skip (keep GVD unchanged)
         6. Compare error count: increase → rollback to sgvd
         """
-        print("\n" + "=" * 60)
-        print("🩹 NODE: Patch Applier")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint("🩹 NODE: Patch Applier")
+        cprint("=" * 60)
 
         patch = state.get("debugger_patch")
         current_gvd = state["gvd"]
@@ -539,7 +560,7 @@ class COMBANodes:
         sc_prev_exception_count = state["sc_exception_count"]
 
         if not patch or not patch.get("buggy_code") or not patch.get("correct_code"):
-            print("  ⚠️ No valid patch, keeping current GVD")
+            cprint("  ⚠️ No valid patch, keeping current GVD")
             return {
                 "sgvd": sgvd,
                 "sc_prev_exception_count": sc_prev_exception_count,
@@ -552,7 +573,7 @@ class COMBANodes:
         # Try exact match first
         if buggy_code in current_gvd:
             new_gvd = current_gvd.replace(buggy_code, correct_code, 1)
-            print(f"  ✅ Exact match found — patch applied")
+            cprint(f"  ✅ Exact match found — patch applied")
         else:
             # Try normalized whitespace match
             normalized_gvd = self._normalize_whitespace(current_gvd)
@@ -562,16 +583,16 @@ class COMBANodes:
                 # Find the actual lines and replace
                 new_gvd = self._fuzzy_replace(current_gvd, buggy_code, correct_code)
                 if new_gvd != current_gvd:
-                    print(f"  ✅ Fuzzy match found — patch applied")
+                    cprint(f"  ✅ Fuzzy match found — patch applied")
                 else:
-                    print(f"  ⚠️ Fuzzy match failed to apply, keeping current GVD")
+                    cprint(f"  ⚠️ Fuzzy match failed to apply, keeping current GVD")
                     return {
                         "sgvd": sgvd,
                         "sc_prev_exception_count": sc_prev_exception_count,
                         "rollback_triggered": True,
                     }
             else:
-                print(f"  ⚠️ buggy_code NOT FOUND in GVD — skipping patch")
+                cprint(f"  ⚠️ buggy_code NOT FOUND in GVD — skipping patch")
                 return {
                     "sgvd": sgvd,
                     "sc_prev_exception_count": sc_prev_exception_count,
@@ -582,7 +603,7 @@ class COMBANodes:
         if new_gvd and not new_gvd.endswith("\n"):
             new_gvd += "\n"
 
-        print(f"  📝 GVD updated: {len(new_gvd.splitlines())} lines")
+        cprint(f"  📝 GVD updated: {len(new_gvd.splitlines())} lines")
 
         return {
             "gvd": new_gvd,
@@ -596,9 +617,9 @@ class COMBANodes:
     # ──────────────────────────────────────────────────────────
     def node_tb_sim(self, state: COMBAState) -> dict:
         """Run Icarus Verilog simulation using benchmark testbenches."""
-        print("\n" + "=" * 60)
-        print(f"🧪 NODE: TB Simulation (TS trial #{state['ts_trial'] + 1})")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint(f"🧪 NODE: TB Simulation (TS trial #{state['ts_trial'] + 1})")
+        cprint("=" * 60)
 
         module_name = state["module_name"]
         work_dir = state["work_dir"]
@@ -725,18 +746,24 @@ class COMBANodes:
 
         tb_log = "\n".join(tb_log_parts)
 
-        # Detect failures: "Failed" in logs
+        # Detect failures: "Failed" or "Mismatches: [>0]" in logs
         failure = None
         for line in tb_log.splitlines():
             if "Failed" in line:
                 failure = line.strip()
                 break
+            # Handle verilog-eval mismatch format: "Mismatches: 386 in 439 samples"
+            if "Mismatches:" in line:
+                match = re.search(r'Mismatches:\s*(\d+)', line)
+                if match and int(match.group(1)) > 0:
+                    failure = line.strip()
+                    break
 
         if not failure and "[RUN FAILED]" in tb_log:
             failure = "Simulation exited with non-zero code"
 
         status_msg = "PASS ✅" if not failure else f"FAIL: {failure[:60]}"
-        print(f"  TB result: {status_msg}")
+        cprint(f"  TB result: {status_msg}")
 
         return {
             "tb_log": tb_log,
@@ -755,9 +782,9 @@ class COMBANodes:
         Parse tb_log → extract topmost failure → TDP.
         Update EDTM tracker for TB failures.
         """
-        print("\n" + "=" * 60)
-        print("🔎 NODE: TED TB (Parse topmost TB failure)")
-        print("=" * 60)
+        cprint("\n" + "=" * 60)
+        cprint("🔎 NODE: TED TB (Parse topmost TB failure)")
+        cprint("=" * 60)
 
         tb_log = state["tb_log"] or ""
         edtm = dict(state.get("edtm", {}))   # shallow copy
@@ -783,7 +810,7 @@ class COMBANodes:
         sig_tb = "TB:" + re.sub(r'\d+', 'N', topmost_failure).strip()
         sig_tb = re.sub(r'\s+', ' ', sig_tb)
         edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
-        print(f"  📊 EDTM TB count for this sig: {edtm[sig_tb]}")
+        cprint(f"  📊 EDTM TB count for this sig: {edtm[sig_tb]}")
 
         tdp = f"Topmost testbench failure:\n{topmost_failure}"
 
@@ -800,7 +827,7 @@ class COMBANodes:
         if trace_lines:
             tdp += "\n\nDebug traces:\n" + "\n".join(trace_lines)
 
-        print(f"  📋 TDP: {topmost_failure[:80]}")
+        cprint(f"  📋 TDP: {topmost_failure[:80]}")
 
         return {
             "tdp": tdp,
@@ -957,7 +984,7 @@ def route_after_ted_syntax(state: COMBAState) -> str:
         error_key = re.sub(r':\d+:', ':N:', (state.get("sc_exception") or ""))
         error_key = re.sub(r'\s+', ' ', error_key).strip()[:100]
         if mgr.should_give_up(error_key):
-            print(f"  ⛔ MultiAttempt: giving up on error_key: {error_key[:50]}")
+            cprint(f"  ⛔ MultiAttempt: giving up on error_key: {error_key[:50]}")
             return "end_fail_sc"
     return "node_debugger"
 
@@ -972,7 +999,7 @@ def route_after_ted_tb(state: COMBAState) -> str:
         tb_failure = state.get("tb_failure", "")
         error_key = re.sub(r'\s+', ' ', tb_failure).strip()[:100]
         if mgr.should_give_up(error_key):
-            print(f"  ⛔ MultiAttempt: giving up on TB error: {error_key[:50]}")
+            cprint(f"  ⛔ MultiAttempt: giving up on TB error: {error_key[:50]}")
             return "end_fail_ts"
     return "node_debugger"
 
@@ -990,25 +1017,25 @@ def route_after_patcher(state: COMBAState) -> str:
 
 def end_pass(state: COMBAState) -> dict:
     """All checks passed!"""
-    print("\n🎉 PIPELINE COMPLETE: ALL PASS!")
+    cprint("\n🎉 PIPELINE COMPLETE: ALL PASS!")
     return {"final_status": "pass"}
 
 
 def end_fail_sc(state: COMBAState) -> dict:
     """SC trial limit reached."""
-    print(f"\n❌ PIPELINE FAILED: SC trial limit ({MAX_SC_TRIALS}) reached")
+    cprint(f"\n❌ PIPELINE FAILED: SC trial limit ({MAX_SC_TRIALS}) reached")
     return {"final_status": "fail_sc"}
 
 
 def end_fail_ts(state: COMBAState) -> dict:
     """TS trial limit reached."""
-    print(f"\n❌ PIPELINE FAILED: TS trial limit ({MAX_TS_TRIALS}) reached")
+    cprint(f"\n❌ PIPELINE FAILED: TS trial limit ({MAX_TS_TRIALS}) reached")
     return {"final_status": "fail_ts"}
 
 
 def end_max_iter(state: COMBAState) -> dict:
     """Total iteration limit reached."""
-    print(f"\n❌ PIPELINE FAILED: Total iteration limit ({MAX_TOTAL_ITER}) reached")
+    cprint(f"\n❌ PIPELINE FAILED: Total iteration limit ({MAX_TOTAL_ITER}) reached")
     return {"final_status": "max_iter"}
 
 

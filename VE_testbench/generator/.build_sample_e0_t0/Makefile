@@ -24,7 +24,7 @@
 default : all
 .PHONY : default
 
-src_dir      := ../../../ext/verilog-eval
+src_dir      := /home/nntkim/GNU_COMBA/ext/verilog-eval
 scripts_dir  := $(src_dir)/scripts
 
 #-------------------------------------------------------------------------
@@ -32,7 +32,7 @@ scripts_dir  := $(src_dir)/scripts
 #-------------------------------------------------------------------------
 
 GENERATE_VERILOG=$(scripts_dir)/sv-generate
-GENERATE_FLAGS = "--model=qwen-base"
+GENERATE_FLAGS = "--model=generator"
 
 examples=0
 ifeq ($(examples),yes)
@@ -67,7 +67,7 @@ IVERILOG_COMPILE=iverilog -Wall -Winfloop -Wno-timescale -g2012 -s tb
 # Dataset
 #-------------------------------------------------------------------------
 
-dataset_dir = ../../../ext/verilog-eval/dataset_code-complete-iccad2023
+dataset_dir = /home/nntkim/GNU_COMBA/ext/verilog-eval/dataset_code-complete-iccad2023
 VPATH = ${dataset_dir}
 include problems.mk
 include samples.mk
