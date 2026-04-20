@@ -50,42 +50,30 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 					all_cell_num_with_no_null[logic_index][0] = int(file_list[0]) if file_list[0] is not None else None
 					all_cell_num_with_no_null[logic_index][1] = int(file_list[1]) if file_list[1] != 'None' else None
 
-		# ── Filtering and Labeling ───────────────────────────────────────────
+				# ── Filtering and Labeling ───────────────────────────────────────────
 		all_cell_num_with_no_null = all_cell_num_with_no_null[:, 1]
 		all_cell_num_with_no_null = np.column_stack((all_cell_num_with_no_null, range(len(dataset))))
 		valid_idx = np.where(all_cell_num_with_no_null[:, 0] != None)
 		filtered_data = all_cell_num_with_no_null[valid_idx].astype(np.uint64)
-		
-		# Adding bucket labels
-		filtered_labeled = np.column_stack((filtered_data.astype(object), [''] * len(filtered_data)))
-		
-		for i in range(len(filtered_labeled)):
-			cnt = filtered_labeled[i][0]
-			if cnt == 0:
-				filtered_labeled[i][2] = '0-0'
-			else:
-				for start in range(1, 41, 5):
-					if start <= cnt <= (start + 4):
-						filtered_labeled[i][2] = f"{start}-{start+4}"
-						break
 
-		# ── Range Extraction (Local Positions Style) ─────────────────────────
-		extract_ranges = [r.strip() for r in extract_ranges_str.split(",")]
-		segment_idxs = np.array([], dtype=int)
-		for r in extract_ranges:
-			match_idxs = np.where(filtered_labeled[:, 2] == r)[0]
-			segment_idxs = np.concatenate((segment_idxs, match_idxs))
-		
-		segment_idxs = np.unique(segment_idxs)
+		# ── Range Extraction (Direct numeric filter) ─────────────────────────
+		cell_range_start = int(self.input_args.get("cell_range_start", 6))
+		cell_range_stop  = int(self.input_args.get("cell_range_stop", 10))
+		extract_ranges_str = f"{cell_range_start}-{cell_range_stop}"
+		print(f"Filtering cells in range [{cell_range_start}, {cell_range_stop}]")
+
+		# Filter trực tiếp bằng numeric range — không cần bucket label
+		cell_counts = filtered_data[:, 0]
+		segment_mask = (cell_counts >= cell_range_start) & (cell_counts <= cell_range_stop)
+		segment_idxs = np.where(segment_mask)[0]
+
 		print(f"Samples matching range: {len(segment_idxs)}")
 
-		# ── Mapping back to Original Global Indices (MANDATORY FOR CORRECTNESS) ──
-		# Lấy original index từ cột 1
-		original_idxs = filtered_labeled[segment_idxs, 1].astype(np.uint64)
+		# ── Mapping back to Original Global Indices ──────────────────────────
+		original_idxs = filtered_data[segment_idxs, 1]
 		
-		print(f"Total dataset: {len(dataset)}")  # phải ~200K+
+		print(f"Total dataset: {len(dataset)}")
 		print(f"Non-None count: {len(valid_idx[0])}")
-		print(f"Empty labels: {np.sum(filtered_labeled[:, 2] == '')}")
 		print(f"Matched segments: {len(segment_idxs)}")
 		print(f"Original idxs: {len(original_idxs)}")
 

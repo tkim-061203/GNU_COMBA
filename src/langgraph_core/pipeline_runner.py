@@ -58,7 +58,7 @@ def create_llm():
     from langchain_openai import ChatOpenAI
     base_url = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
     api_key = os.environ.get("LLM_API_KEY", "ollama")
-    model = os.environ.get("LLM_MODEL", "qwen2.5-coder:7b")
+    model = os.environ.get("LLM_MODEL", "generator")
     cprint(f"[COMBA] Using ChatOpenAI: {model} @ {base_url}")
     return ChatOpenAI(base_url=base_url, api_key=api_key, model=model, temperature=0.1)
 
@@ -117,6 +117,13 @@ def _prepare_state(
         module_name=module_name or "",
         benchmark_id=benchmark_id or ""
     )
+    if not dataset_dir:
+        # Default to the verilog-eval dataset directory if it exists
+        base_dir = os.path.dirname(__file__)
+        possible_dir = os.path.abspath(os.path.join(base_dir, "../../ext/verilog-eval/dataset_code-complete-iccad2023"))
+        if os.path.isdir(possible_dir):
+            dataset_dir = possible_dir
+
     if dataset_dir:
         state["dataset_dir"] = dataset_dir
 

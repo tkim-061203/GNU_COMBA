@@ -1,5 +1,5 @@
 {
-	"cell_range_start": 6,
-	"cell_range_stop": 10,
-	"extract_ranges": "6-10"
+	"cell_range_start": 0,
+	"cell_range_stop": 5,
+	"extract_ranges": "None"
 }

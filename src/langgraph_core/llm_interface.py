@@ -219,9 +219,9 @@ class COMBALlm(BaseChatModel):
         load_dotenv()
 
         base_url = os.getenv("LLM_BASE_URL", "http://localhost:8000/v1")
-        debugger_url = os.getenv("LLM_DEBUGGER_URL", "")
+        debugger_url = os.getenv("LLM_DEBUGGER_URL", "http://localhost:8001/v1")
         api_key = os.getenv("LLM_API_KEY", "not-needed")
-        model_base = os.getenv("LLM_MODEL_BASE", os.getenv("LLM_MODEL", "qwen-base"))
+        model_base = os.getenv("LLM_MODEL_BASE", os.getenv("LLM_MODEL", "generator"))
         model_debugger = os.getenv("LLM_MODEL_DEBUGGER", "debugger")
 
         # Auto-detect server mode

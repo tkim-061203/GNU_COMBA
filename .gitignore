@@ -31,3 +31,6 @@ vllm.out
 config.status
 config.log
 build_*
+.claude
+# Added by code-review-graph
+.code-review-graph/

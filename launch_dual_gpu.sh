@@ -15,9 +15,14 @@
 
 set -euo pipefail
 
+# Avoid V1 engine crashes (known issues with torch compilation in this version)
+export VLLM_USE_V1=0
+export VLLM_TORCH_COMPILE_LEVEL=0
+
+
 # ── Config ──
-GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_v2}"
-MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger}"
+GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_v4}"
+MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger_v2}"
 PORT_GEN=8000
 PORT_DBG=8001
 MAX_MODEL_LEN=16384
@@ -118,22 +123,25 @@ start_dual() {
 
     # ── GPU 0: Base Qwen ──
     echo "🔵 Starting Generator on GPU 0 (:$PORT_GEN)..."
-    CUDA_VISIBLE_DEVICES=0 nohup python -m vllm.entrypoints.openai.api_server \
+    CUDA_VISIBLE_DEVICES=0 VLLM_USE_V1=0 VLLM_TORCH_COMPILE_LEVEL=0 python -m vllm.entrypoints.openai.api_server \
         --model $GENERATED_MODEL \
         --download-dir $CACHE_DIR \
         --served-model-name generator \
         --dtype $DTYPE \
+        --enforce-eager \
+        --disable-log-stats \
         --max-model-len $MAX_MODEL_LEN \
         --gpu-memory-utilization $GPU_MEM \
         --port $PORT_GEN \
         --host 0.0.0.0 \
+        --tokenizer-mode auto \
         --trust-remote-code \
         > $LOG_DIR/vllm_gpu0_generator.log 2>&1 &
     echo "   PID: $! → log: $LOG_DIR/vllm_gpu0_generator.log"
 
     # ── GPU 1: Merged LoRA model ──
     echo "🔴 Starting Debugger on GPU 1 (:$PORT_DBG)..."
-    CUDA_VISIBLE_DEVICES=1 nohup python -m vllm.entrypoints.openai.api_server \
+    CUDA_VISIBLE_DEVICES=1 VLLM_USE_V1=0 VLLM_TORCH_COMPILE_LEVEL=0 python -m vllm.entrypoints.openai.api_server \
         --model $MERGED_MODEL \
         --served-model-name debugger \
         --dtype $DTYPE \
@@ -141,6 +149,9 @@ start_dual() {
         --gpu-memory-utilization $GPU_MEM \
         --port $PORT_DBG \
         --host 0.0.0.0 \
+        --enforce-eager \
+        --disable-log-stats \
+        --tokenizer-mode auto \
         --trust-remote-code \
         > $LOG_DIR/vllm_gpu1_debugger.log 2>&1 &
     echo "   PID: $! → log: $LOG_DIR/vllm_gpu1_debugger.log"
