@@ -8,31 +8,31 @@ The `langgraph_core` directory contains the LangGraph-based implementation of th
 
 The pipeline utilizes **LangGraph** to model the execution states and conditional routing. Currently, it implements up to 9 distinct nodes orchestrated sequentially and recursively:
 
-1. **`node_converter` (NL → XML):** 
+1. **`node_converter` (NL → XML):**
    Transcribes the initial unstructured natural language requirements into a tightly structured `COMBA XML` format. Validates that the core module definition and ports are intact.
-   
-2. **`node_generator` (XML → Raw LLM Output):** 
+
+2. **`node_generator` (XML → Raw LLM Output):**
    Consumes the XML and original constraints, instructing the base LLM to generate the initial Synthesizable Verilog Description (GVD).
 
-3. **`node_sanitizer` (Raw Text → Clean Verilog):** 
+3. **`node_sanitizer` (Raw Text → Clean Verilog):**
    Processes the raw LLM output using `VerilogSanitizer`, cleanly extracting the Verilog code from Markdown blocks, auto-fixing trivial syntax omissions (like missing semicolons or trailing commas), and emitting normalized code.
 
-4. **`node_syntax_check` (SC):** 
+4. **`node_syntax_check` (SC):**
    Invokes the compiler (`iverilog` via `-tnull` or `verilator --lint-only`) to perform a strict syntax and linting check on the sanitized Verilog code.
 
-5. **`node_ted_syntax` (Topmost Exception Detection - SC):** 
+5. **`node_ted_syntax` (Topmost Exception Detection - SC):**
    If syntax errors occur, this node extracts the *topmost* error. It queries the **EDTM** (Exception-Debugging Trial Management) system to prevent infinite looping over the same unresolvable error, and prepares an **EDP** (Exception Debugging Prompt).
 
-6. **`node_debugger` / `node_correcter`:** 
-   Invokes the LLM to fix the codebase. In v3, it uses a `MultiAttemptManager` for *escalating* prompt strictness (L0 to L4) based on how many times an error-key has been seen. 
+6. **`node_debugger` / `node_correcter`:**
+   Invokes the LLM to fix the codebase. In v3, it uses a `MultiAttemptManager` for *escalating* prompt strictness (L0 to L4) based on how many times an error-key has been seen.
 
-7. **`node_patcher`:** 
+7. **`node_patcher`:**
    Safely applies JSON-based diff patches (or fuzzy matches substitution) returned by the debugger exactly where the issue lies, avoiding regenerating entire large modules.
 
-8. **`node_tb_sim` (Testbench Simulation):** 
+8. **`node_tb_sim` (Testbench Simulation):**
    If the syntax check passes without errors, the state routes here. This node compiles the design thoroughly alongside the provided reference and testbench files and performs simulation.
 
-9. **`node_ted_tb` (Topmost Exception Detection - TB):** 
+9. **`node_ted_tb` (Topmost Exception Detection - TB):**
    If testbench assertions fail (Trace mismatches), it extracts the Topmost TB Failure trace and formulates a **TDP** (Testbench Debugging Prompt) to route back to the Debugger.
 
 ### Pipeline Flow Graph
@@ -46,6 +46,7 @@ NL → [Converter] → XML → [Generator] → [Sanitizer]
       [Debugger]              [Debugger]
             ↓                       ↓
        [Patcher]               [Patcher]
+            |                       ↓
             ↳ (loop back to Syntax Check)
 ```
 
