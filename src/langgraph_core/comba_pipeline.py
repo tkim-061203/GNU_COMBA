@@ -49,20 +49,52 @@ from prompts import (
     edpPromptTemplate,
     tdpPromptTemplate,
 )
+
+from multi_attempt import (
+    MultiAttemptManager,
+    DebugPhase,
+    EscalationLevel,
+)
 from verilog_sanitizer import sanitize as verilog_sanitize
-from multi_attempt import MultiAttemptManager
 
 # ──────────────────────────────────────────────────────────────
 # Configuration Constants
 # ──────────────────────────────────────────────────────────────
-MAX_SC_TRIALS = 10       # Max syntax-check correction cycles
-MAX_TS_TRIALS = 5        # Max testbench correction cycles
+MAX_SC_TRIALS = 8        # Max syntax-check correction cycles (tuned for VerilogEval)
+MAX_TS_TRIALS = 4        # Max testbench correction cycles
 MAX_TOTAL_ITER = 20      # Absolute hard cap on total iterations
 EDTM_MAX_RETRIES = 3     # Max retries for the same exception signature
 
-# Verilator flags matching the original Makefile
-VERILATOR_WNO = ["DECLFILENAME"]
-VERILATOR_WERROR = ["UNDRIVEN", "MULTIDRIVEN"]
+# iverilog flags for syntax-check (lint-only): suppress noise, keep real errors
+IVERILOG_SC_FLAGS = ["-tnull", "-Wno-timescale", "-Wno-implicit", "-g2012"]
+
+# iverilog flags for testbench simulation (compile + run)
+IVERILOG_TS_FLAGS = ["-Wall", "-Winfloop", "-Wno-timescale", "-g2012"]
+
+# VerilogEval: task_description max chars sent to debugger (truncate to save tokens)
+_MAX_TASK_DESC_CHARS = 400
+
+
+# ── Shared error-key normalizer (used by ted_syntax AND route_after_ted_syntax) ──
+_LINE_NUM_RE = re.compile(r'(?<=:)\d+(?=:)')
+_SPACES_RE = re.compile(r'\s+')
+
+def _normalize_error_key(s: str, max_len: int = 100) -> str:
+    """Canonical EDTM key: strip line numbers, collapse whitespace, truncate."""
+    s = _LINE_NUM_RE.sub('N', s)
+    s = _SPACES_RE.sub(' ', s).strip()
+    return s[:max_len]
+
+
+# ── Precise iverilog error counter ──
+_IVERILOG_ERROR_RE = re.compile(
+    r'^[^:\n]+:\d+:\s*error:',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+def _count_iverilog_errors(log: str) -> int:
+    """Count genuine iverilog error lines only (ignores warning: lines)."""
+    return len(_IVERILOG_ERROR_RE.findall(log))
 
 
 # ──────────────────────────────────────────────────────────────
@@ -120,8 +152,22 @@ class COMBAState(TypedDict):
     expected_header: Optional[str]             # Extracted 'module TopModule (...);' for forced alignment
 
 
-def make_initial_state(nl_input: str = "", module_name: str = "", benchmark_id: str = "") -> COMBAState:
-    """Create a fresh initial state with all fields zeroed."""
+def make_initial_state(
+    nl_input: str = "",
+    module_name: str = "",
+    benchmark_id: str = "",
+    work_dir: Optional[str] = None,
+) -> COMBAState:
+    """Create a fresh initial state with all fields zeroed.
+
+    Args:
+        nl_input:     Natural language / XML description.
+        module_name:  Module name (used for file naming).
+        benchmark_id: VerilogEval benchmark ID (defaults to module_name).
+        work_dir:     Pre-allocated working directory.  When provided the SC
+                      node reuses it instead of creating a new tempfile.mkdtemp,
+                      which prevents parallel-worker collisions.
+    """
     # Extract expected header (module TopModule ... ;) from nl_input
     expected_header = None
     if nl_input:
@@ -161,7 +207,7 @@ def make_initial_state(nl_input: str = "", module_name: str = "", benchmark_id: 
         final_status=None,
         error=None,
         dataset_dir=None,
-        work_dir=None,
+        work_dir=work_dir,
         benchmark_id=benchmark_id or module_name or None,
         expected_header=expected_header,
     )
@@ -235,9 +281,12 @@ class COMBANodes:
         cprint("=" * 60)
 
         nl_input = state.get("nl_input", "")
-        xml_desc = state["xml_description"]
+        xml_desc = state.get("xml_description")
         
-        combined_input = f"Original Specification:\n{nl_input}\n\nXML Representation:\n{xml_desc}"
+        if xml_desc and xml_desc != "(Bypassed XML; Using TXT mode)":
+            combined_input = f"Original Specification:\n{nl_input}\n\nXML Representation:\n{xml_desc}"
+        else:
+            combined_input = f"Original Specification:\n{nl_input}"
         
         result = generatorPromptTemplate.invoke({
             "user_input": combined_input,
@@ -322,7 +371,7 @@ class COMBANodes:
     # Node 3: Syntax Check — Verilator --lint-only
     # ──────────────────────────────────────────────────────────
     def node_syntax_check(self, state: COMBAState) -> dict:
-        """Run Verilator lint-only syntax check on current GVD."""
+        """Run iverilog lint-only syntax check on current GVD."""
         cprint("\n" + "=" * 60)
         cprint(f"🔍 NODE: Syntax Check (SC trial #{state['sc_trial'] + 1})")
         cprint("=" * 60)
@@ -330,23 +379,19 @@ class COMBANodes:
         module_name = state["module_name"]
         gvd = state["gvd"]
 
-        # Create temp work dir, write the .v file
+        # Reuse or create work dir
         work_dir = state.get("work_dir")
         if not work_dir:
             work_dir = tempfile.mkdtemp(prefix=f"comba_{module_name}_")
 
-        verilog_path = os.path.join(work_dir, f"{module_name}.v")
+        # Write as TopModule.sv so the SC file matches what TB will use
+        verilog_path = os.path.join(work_dir, "TopModule.sv")
         with open(verilog_path, "w", encoding="utf-8") as f:
             f.write(gvd)
 
-        # Build iverilog command for linting
-        cmd = [
-            "iverilog",
-            "-tnull",
-            "-Wall",
-            "-g2012",
-            f"{module_name}.v",
-        ]
+        # Use quiet iverilog flags — suppress timescale/implicit warnings,
+        # only real errors matter at this stage
+        cmd = ["iverilog"] + IVERILOG_SC_FLAGS + ["TopModule.sv"]
 
         try:
             result = subprocess.run(
@@ -362,13 +407,8 @@ class COMBANodes:
         except subprocess.TimeoutExpired:
             sc_log = "error: iverilog timed out after 30s"
 
-        # Count errors (iverilog typically prefixes or contains ": error:")
-        error_lines = [
-            line for line in sc_log.splitlines()
-            if (": error:" in line.lower() or ": syntax error" in line.lower() or "error:" in line.lower())
-            and "Exiting due to" not in line  # just in case
-        ]
-        exception_count = len(error_lines)
+        # Use precise regex counter (ignores warning: lines)
+        exception_count = _count_iverilog_errors(sc_log)
 
         cprint(f"  SC log: {len(sc_log.splitlines())} lines, {exception_count} errors")
 
@@ -412,9 +452,8 @@ class COMBANodes:
                 "phase": "sc",
             }
 
-        # Create exception signature for EDTM (normalize line numbers)
-        sig = re.sub(r':\d+:', ':N:', topmost_error)
-        sig = re.sub(r'\s+', ' ', sig).strip()
+        # Create exception signature for EDTM using shared normalizer
+        sig = _normalize_error_key(topmost_error)
 
         # Update EDTM counter
         edtm[sig] = edtm.get(sig, 0) + 1
@@ -468,9 +507,8 @@ class COMBANodes:
         if mgr is None:
             mgr = MultiAttemptManager()
 
-        # ── Build error_key for escalation tracking ──
-        error_key = re.sub(r':\d+:', ':N:', error_desc.split('\n')[0])
-        error_key = re.sub(r'\s+', ' ', error_key).strip()[:100]
+        # ── Build error_key for escalation tracking (shared normalizer) ──
+        error_key = _normalize_error_key(error_desc.split('\n')[0])
 
         # ── Get escalation level ──
         esc_level = mgr.get_escalation_level(error_key)
@@ -483,10 +521,10 @@ class COMBANodes:
                 module_name=module_name,
                 gvd=current_gvd,
                 exception_type="syntax_error",
-                exception_title=state.get("sc_exception", error_desc)[:200],
+                exception_title=(state.get("sc_exception") or error_desc)[:200],
                 exception_content=error_desc,
                 log_content=(state.get("sc_log") or "")[:2000],
-                task_description=state.get("nl_input", ""),
+                task_description=(state.get("nl_input") or "")[:_MAX_TASK_DESC_CHARS],
             )
         else:
             traces = ""
@@ -499,7 +537,7 @@ class COMBANodes:
                 todo_num=0,
                 trace_content=traces or "(no traces available)",
                 failure_content=state.get("tb_failure", error_desc),
-                task_description=state.get("nl_input", ""),
+                task_description=(state.get("nl_input") or "")[:_MAX_TASK_DESC_CHARS],
             )
 
         # ── Call LLM ──
@@ -518,10 +556,10 @@ class COMBANodes:
 
         raw_output = response.content.strip()
 
-        # Record attempt for escalation
+        # Record attempt for escalation (use DebugPhase enum)
         mgr.record_attempt(
             error_key=error_key,
-            phase="sc" if phase == "sc" else "ts",
+            phase=DebugPhase.SYNTAX if phase == "sc" else DebugPhase.TESTBENCH,
             error_detail=error_desc[:500],
             code_snapshot=current_gvd[:1000] if current_gvd else "",
         )
@@ -622,14 +660,28 @@ class COMBANodes:
         cprint("=" * 60)
 
         module_name = state["module_name"]
-        work_dir = state["work_dir"]
+        work_dir = state.get("work_dir")
         gvd = state["gvd"]
         dataset_dir = state.get("dataset_dir")
 
-        # Write current GVD to work dir
-        verilog_path = os.path.join(work_dir, f"{module_name}.sv")
-        with open(verilog_path, "w", encoding="utf-8") as f:
-            f.write(gvd)
+        # Guard: work_dir must exist (set by node_syntax_check)
+        if not work_dir:
+            return {
+                "tb_log": "error: work_dir not set — syntax check must run first",
+                "tb_failure": "Infrastructure error: work_dir missing",
+                "ts_trial": state["ts_trial"] + 1,
+                "total_iter": state["total_iter"] + 1,
+                "phase": "ts",
+            }
+
+        if not gvd:
+            return {
+                "tb_log": "error: no generated Verilog code found",
+                "tb_failure": "Infrastructure error: missing GVD",
+                "ts_trial": state["ts_trial"] + 1,
+                "total_iter": state["total_iter"] + 1,
+                "phase": "ts",
+            }
 
         # ── Link Test/Ref files ──
         if not dataset_dir:
@@ -662,20 +714,8 @@ class COMBANodes:
                 "phase": "ts",
             }
 
-        # ── Refactor: Rename module to TopModule for the testbench ──
-        # VerilogEval testbenches expect the DUT to be named "TopModule"
-        gvd = state.get("gvd", "")
-        if not gvd:
-             return {
-                "tb_log": "error: no generated Verilog code found",
-                "tb_failure": "Infrastructure error: missing GVD",
-                "ts_trial": state["ts_trial"] + 1,
-                "total_iter": state["total_iter"] + 1,
-                "phase": "ts",
-            }
-
-        # Regex replacement: module <any_name> ... -> module TopModule ...
-        # Using a generic regex to match the first module definition found
+        # node_syntax_check already wrote TopModule.sv; update it with latest gvd.
+        # Apply module rename: VerilogEval testbenches expect DUT named "TopModule".
         top_module_code = re.sub(
             r'module\s+[a-zA-Z0-9_]+',
             'module TopModule',
@@ -683,25 +723,21 @@ class COMBANodes:
             count=1,
             flags=re.MULTILINE
         )
-        
         top_module_dst = os.path.join(work_dir, "TopModule.sv")
         with open(top_module_dst, "w", encoding="utf-8") as f:
             f.write(top_module_code)
 
-        # ── Build iverilog command ──
+        # ── Build iverilog compile command using shared TS flags ──
         binary_out = f"{module_name}.vvp"
-        comp_cmd = [
-            "iverilog",
-            "-Wall",
-            "-Winfloop",
-            "-Wno-timescale",
-            "-g2012",
-            "-s", "tb",
-            "-o", binary_out,
-            "TopModule.sv",  # Use the renamed module
-            f"{bid}_test.sv",
-            f"{bid}_ref.sv"
-        ]
+        comp_cmd = (
+            ["iverilog"] + IVERILOG_TS_FLAGS + [
+                "-s", "tb",
+                "-o", binary_out,
+                "TopModule.sv",
+                f"{bid}_test.sv",
+                f"{bid}_ref.sv",
+            ]
+        )
 
         tb_log_parts = []
         try:
@@ -981,8 +1017,7 @@ def route_after_ted_syntax(state: COMBAState) -> str:
     # Check MultiAttemptManager.should_give_up if available
     mgr = state.get("multi_attempt_mgr")
     if mgr is not None:
-        error_key = re.sub(r':\d+:', ':N:', (state.get("sc_exception") or ""))
-        error_key = re.sub(r'\s+', ' ', error_key).strip()[:100]
+        error_key = _normalize_error_key(state.get("sc_exception") or "")
         if mgr.should_give_up(error_key):
             cprint(f"  ⛔ MultiAttempt: giving up on error_key: {error_key[:50]}")
             return "end_fail_sc"
@@ -996,8 +1031,8 @@ def route_after_ted_tb(state: COMBAState) -> str:
     # Check MultiAttemptManager.should_give_up if available
     mgr = state.get("multi_attempt_mgr")
     if mgr is not None:
-        tb_failure = state.get("tb_failure", "")
-        error_key = re.sub(r'\s+', ' ', tb_failure).strip()[:100]
+        tb_failure = state.get("tb_failure") or ""
+        error_key = _normalize_error_key(tb_failure)
         if mgr.should_give_up(error_key):
             cprint(f"  ⛔ MultiAttempt: giving up on TB error: {error_key[:50]}")
             return "end_fail_ts"

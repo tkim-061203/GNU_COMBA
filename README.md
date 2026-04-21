@@ -70,6 +70,13 @@ graph TD
 7.  **TED TB Agent**: Parses simulation traces to identify functional bugs.
 8.  **Debugger Agent**: Unified correction agent that uses feedback from TED agents to iteratively refactor the Verilog code.
 
+### Pipeline 3 Optimizations
+
+- **Isolated Execution**: Every sample runs in an independent, isolated `work_dir`, preventing file collisions and race conditions during parallel execution.
+- **Precise Error Parsing**: Standardized `iverilog` parsing filters out warnings and non-critical noise, allowing agents to focus exclusively on syntax errors.
+- **Token Efficiency**: Automated truncation of task descriptions in the debugger node to minimize context window overhead and save tokens.
+- **Description Flexibility**: Support for raw `.txt` input, bypassing the XML converter for users who prefer direct text-to-Verilog generation.
+
 ---
 
 ## Project Structure
@@ -201,6 +208,10 @@ Used for processing Verilog codebases to extract specific modules based on compl
 - `--with-max-tb-trials`: Maximum iterations allowed for functional/testbench correction (default: 5).
 - `--with-max_token`: Limit for the generated Verilog code output.
 - `--with-quiet`: Only show progress bar during LangGraph inference (default: True).
+- `--with-description-type`: (Batch mode) Specify `xml` or `txt` for processing design descriptions.
+
+> [!IMPORTANT]
+> **TXT Description Mode:** When using `LANGGRAPH_DESC=txt` (or `--desc-type txt`), the pipeline skips the XML conversion stage and passes the raw text specification directly to the generator. This is useful for benchmarks where the LLM performs better on raw problem statements.
 
 > **Note:** To clean a build directory before re-running:
 > ```bash
@@ -249,9 +260,9 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 
 - **`e0_t0` (Dual GPU LangGraph)**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
   ```
-../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
+../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
 
 - `--with-provider`: LLM provider (`llamacpp`, `openai`, etc.).
 - `--with-model`: Name or path of the model.
@@ -298,4 +309,4 @@ make jupyterlab
 
 ---
 Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
-Version: 2.2.2
+Version: 2.3.0

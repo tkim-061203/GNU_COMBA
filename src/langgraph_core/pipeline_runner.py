@@ -108,14 +108,17 @@ def _prepare_state(
     xml_description: Optional[str] = None,
     dataset_dir: Optional[str] = None,
     benchmark_id: Optional[str] = None,
+    work_dir: Optional[str] = None,
+    desc_type: str = "xml",
 ) -> dict:
-    """Build initial COMBAState, optionally injecting XML."""
+    """Build initial COMBAState, optionally injecting XML and a pre-created work_dir."""
     from comba_pipeline import make_initial_state
     
     state = make_initial_state(
-        nl_input=nl_input, 
+        nl_input=nl_input,
         module_name=module_name or "",
-        benchmark_id=benchmark_id or ""
+        benchmark_id=benchmark_id or "",
+        work_dir=work_dir,
     )
     if not dataset_dir:
         # Default to the verilog-eval dataset directory if it exists
@@ -126,6 +129,10 @@ def _prepare_state(
 
     if dataset_dir:
         state["dataset_dir"] = dataset_dir
+
+    # Ensure the pre-allocated work_dir exists on disk
+    if work_dir:
+        os.makedirs(work_dir, exist_ok=True)
 
     # If XML provided or input looks like XML, inject it
     if xml_description:
@@ -139,6 +146,10 @@ def _prepare_state(
         match = re.search(r'<module\s+id="([^"]+)"', nl_input)
         if match:
             state["module_name"] = match.group(1)
+            
+    # If in txt mode and no XML was specified, skip the converter by injecting a placeholder
+    if desc_type == "txt" and not state.get("xml_description"):
+        state["xml_description"] = "(Bypassed XML; Using TXT mode)"
 
     return state
 
@@ -150,6 +161,8 @@ def run_pipeline_sync(
     llm=None,
     dataset_dir: Optional[str] = None,
     benchmark_id: Optional[str] = None,
+    work_dir: Optional[str] = None,
+    desc_type: str = "xml",
 ) -> dict:
     """
     Run full COMBA pipeline synchronously.
@@ -159,12 +172,15 @@ def run_pipeline_sync(
         module_name: Optional module name override.
         xml_description: Optional pre-existing XML (skips converter).
         llm: Optional LLM instance (uses singleton if None).
+        dataset_dir: Path to VerilogEval dataset directory.
+        benchmark_id: Problem ID for testbench lookup.
+        work_dir: Optional pre-created directory for this run (prevents collisions).
 
     Returns:
         Final COMBAState dict.
     """
     _, graph = get_pipeline(llm)
-    state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id)
+    state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id, work_dir, desc_type)
     config = {"recursion_limit": 100}
     return graph.invoke(state, config)
 

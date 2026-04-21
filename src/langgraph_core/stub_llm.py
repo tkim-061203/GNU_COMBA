@@ -122,6 +122,7 @@ class StubLLM(BaseChatModel):
     responses: dict = Field(default_factory=dict)
     call_count: int = Field(default=0)
     model_name: str = "stub-llm"
+    model_config = {"extra": "allow"}
 
     @property
     def _llm_type(self) -> str:

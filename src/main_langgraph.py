@@ -33,13 +33,30 @@ def parse_cmdline():
     p.add_argument("-r", "--revision", type=str, default=None)
     p.add_argument("--pattern", type=str, default="Prob*")
     p.add_argument("-q", "--quiet", action="store_true", help="Only show progress bar")
-
-    
+    p.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Root directory for all outputs (default: current directory)",
+    )
+    p.add_argument(
+        "--desc-type",
+        type=str,
+        choices=["xml", "txt"],
+        default="xml",
+        help="Input description type to the pipeline (default: xml)",
+    )
     return p.parse_args()
 
 def do_process(problemSet):
     problemPromptPath, setIndex, opts = problemSet
-    
+
+    # Resolve stable output root once (never CWD-relative inside a Pool worker)
+    output_root = os.path.abspath(
+        opts.output_dir if getattr(opts, "output_dir", None)
+        else os.path.join(os.path.dirname(srcDir), "verilogeval_outputs")
+    )
+
     with open(problemPromptPath, 'r') as file:
         problemPrompt = file.read()
         
@@ -52,12 +69,14 @@ def do_process(problemSet):
     
     problemPromptFileName = os.path.basename(problemPromptPath)
     problemPromptFileNameNoSuffix = problemPromptFileName[:problemPromptFileName.rfind("_prompt.txt")]
-    
-    if not os.path.exists(problemPromptFileNameNoSuffix):
-        try:
-            os.makedirs(problemPromptFileNameNoSuffix, exist_ok=True)
-        except:
-            pass
+
+    # Build a stable, absolute output directory for this problem
+    prob_out_dir = os.path.join(output_root, problemPromptFileNameNoSuffix)
+    os.makedirs(prob_out_dir, exist_ok=True)
+
+    # Per-sample isolated work_dir avoids collision when --samples > 1
+    sample_work_dir = os.path.join(prob_out_dir, f"work_{setIndex:02d}")
+    os.makedirs(sample_work_dir, exist_ok=True)
 
     try:
         # User requested wiring args. to ChatOpenAI + submanual model url
@@ -87,7 +106,9 @@ def do_process(problemSet):
             module_name=problemPromptFileNameNoSuffix,
             benchmark_id=problemPromptFileNameNoSuffix,
             dataset_dir=PROBLEM_DIR,
-            llm=llm
+            llm=llm,
+            work_dir=sample_work_dir,  # isolated per sample
+            desc_type=opts.desc_type,
         )
     
         resp = state.get("gvd", "")
@@ -98,8 +119,11 @@ def do_process(problemSet):
         resp = f"// exception caught during invoke: {e}"
         state = {"error": str(e)}
 
-    # Ensure to create appropriate naming format as output `.build_*`
-    sample_base = f"{problemPromptFileNameNoSuffix}/{problemPromptFileNameNoSuffix}_sample{setIndex:02d}"
+    # Ensure outputs are written under the stable prob_out_dir (not CWD)
+    sample_base = os.path.join(
+        prob_out_dir,
+        f"{problemPromptFileNameNoSuffix}_sample{setIndex:02d}",
+    )
     verilog_file = f"{sample_base}.sv"
     with open(verilog_file, 'w+') as file:
         file.write(resp)
@@ -110,7 +134,6 @@ def do_process(problemSet):
         file.write(json.dumps(state, default=str))
 
     # Create sv-generate.log (required by sv-iv-analyze)
-    # Put token usage if available in state
     gen_log_file = f"{sample_base}-sv-generate.log"
     with open(gen_log_file, 'w+') as file:
         file.write(f"prompt_tokens = {state.get('prompt_tokens', 0)}\n")
@@ -118,8 +141,6 @@ def do_process(problemSet):
         file.write(f"cost = 0.0\n")
 
     # Rename module to TopModule for final verification simulation
-    # Regex replacement: module <any_name> ... -> module TopModule ...
-    # Using a generic regex to match the first module definition found
     top_verilog_code = re.sub(
         r'module\s+[a-zA-Z0-9_]+',
         'module TopModule',
@@ -131,10 +152,10 @@ def do_process(problemSet):
     with open(top_verilog_file, 'w') as f_top:
         f_top.write(top_verilog_code)
 
-    # Run Simulation (iverilog)
+    # Run Simulation (iverilog) — uses the TopModule.sv already in sample_work_dir
     test_sv = os.path.join(PROBLEM_DIR, f"{problemPromptFileNameNoSuffix}_test.sv")
     ref_sv = os.path.join(PROBLEM_DIR, f"{problemPromptFileNameNoSuffix}_ref.sv")
-    binary_out = f"{sample_base}"
+    binary_out = os.path.join(sample_work_dir, f"{problemPromptFileNameNoSuffix}")
     test_log = f"{sample_base}-sv-iv-test.log"
     
     comp_cmd = ["iverilog", "-Wall", "-Winfloop", "-Wno-timescale", "-g2012", "-s", "tb", "-o", binary_out, top_verilog_file, test_sv, ref_sv]
@@ -145,7 +166,7 @@ def do_process(problemSet):
             res = subprocess.run(comp_cmd, stdout=log_f, stderr=subprocess.STDOUT)
             if res.returncode == 0:
                 # Run binary
-                subprocess.run(["timeout", "30", f"./{binary_out}"], stdout=log_f, stderr=subprocess.STDOUT)
+                subprocess.run(["timeout", "30", binary_out], stdout=log_f, stderr=subprocess.STDOUT)
             else:
                 log_f.write(f"Compilation failed with return code {res.returncode}\n")
     except Exception as e:
@@ -167,7 +188,15 @@ def main():
     opts = parse_cmdline()
     if opts.quiet:
         os.environ["COMBA_QUIET"] = "1"
-    
+
+    output_dir = os.path.abspath(
+        opts.output_dir if opts.output_dir
+        else os.getcwd()
+    )
+    os.makedirs(output_dir, exist_ok=True)
+    opts.output_dir = output_dir
+    print(f"Output directory: {output_dir}")
+
     problemDir = PROBLEM_DIR
     problemPromptsPath = glob.glob(f"{problemDir}/{opts.pattern}_prompt.txt")
     problemPromptsPath.sort()
@@ -184,36 +213,40 @@ def main():
         for _ in tqdm(iterable=pool.imap_unordered(do_process, problemSets), total=len(problemSets)):
             pass
 
-    # Post-process: Run analysis
+    # Post-process: Run analysis — write reports into output_dir
     print("\n=== Running Analysis ===")
     analyze_script = os.path.join(VE_SCRIPTS, "sv-iv-analyze")
+    summary_txt = os.path.join(output_dir, "summary.txt")
+    summary_csv = os.path.join(output_dir, "summary.csv")
+    error_txt   = os.path.join(output_dir, "error_problems.txt")
+
     if os.path.exists(analyze_script):
-        # Run analysis and capture to summary.txt
-        with open("summary.txt", "w") as out:
-            subprocess.run([analyze_script, "--csv=summary.csv"], stdout=out, stderr=subprocess.STDOUT)
-        
-        # Read summary.txt to display pass rate
-        with open("summary.txt", "r") as f:
+        with open(summary_txt, "w") as out:
+            subprocess.run(
+                [analyze_script, f"--csv={summary_csv}"],
+                stdout=out, stderr=subprocess.STDOUT,
+                cwd=output_dir,
+            )
+
+        with open(summary_txt, "r") as f:
             lines = f.readlines()
-            for line in lines:
-                if "pass_rate" in line:
-                    print(line.strip())
-        
-        # Generate error summary
-        with open("error_problems.txt", "w") as err_f:
+        for line in lines:
+            if "pass_rate" in line:
+                print(line.strip())
+
+        with open(error_txt, "w") as err_f:
             err_f.write("Problems with failures:\n")
             for line in lines:
-                # Analysis output lines for problems usually look like: 
-                # ProbXXX_name [n/m](x%) ... passfail_string
-                # If passfail_string contains anything other than '.', it's a failure.
                 if line.startswith("Prob"):
                     parts = line.split()
                     if len(parts) >= 4:
                         passfail = parts[3]
                         if any(c != '.' for c in passfail):
                             err_f.write(line)
+        print(f"Reports written to: {output_dir}")
     else:
         print(f"Error: Analysis script not found at {analyze_script}")
+
 
 if __name__ == "__main__":
     main()

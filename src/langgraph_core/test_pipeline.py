@@ -40,6 +40,8 @@ from stub_llm import (
     GOOD_XML,
     DEBUGGER_PATCH_FIXED,
 )
+from comba_pipeline import _count_iverilog_errors, _normalize_error_key
+
 
 
 # ──────────────────────────────────────────────────────────────
@@ -75,6 +77,31 @@ TB_FAIL_RESULT = make_iverilog_result(
         "TODO 3 Failed at simtime 42\n"
     ),
 )
+
+
+# ──────────────────────────────────────────────────────────────
+# Test 0: Utility functions
+# ──────────────────────────────────────────────────────────────
+
+class TestUtilities:
+    def test_count_iverilog_errors(self):
+        log = (
+            "module.sv:10: error: syntax error\n"
+            "module.sv:12: warning: some warning\n"
+            "module.sv:15: ERROR: another error\n"
+            "   error: not a line start error\n"
+        )
+        # Should find 2 matches (line 1 and 3)
+        assert _count_iverilog_errors(log) == 2
+
+    def test_normalize_error_key(self):
+        err = "  adder_8bit.sv:123: error:  Signal 'result'   not found  "
+        norm = _normalize_error_key(err)
+        assert norm == "adder_8bit.sv:N: error: Signal 'result' not found"
+        
+        # Test truncation
+        long_err = "A" * 200
+        assert len(_normalize_error_key(long_err, max_len=50)) == 50
 
 
 # ──────────────────────────────────────────────────────────────
@@ -431,6 +458,36 @@ class TestNodes:
         assert result["_last_llm_source"] == "debugger"
         assert result["multi_attempt_mgr"] is not None
         assert result["escalation_level"] is not None
+
+    def test_node_debugger_truncates_input(self):
+        """Verify that debugger node truncates nl_input to save tokens."""
+        llm = create_stub_llm()
+        nodes = COMBANodes(llm)
+        state = make_initial_state(nl_input="A" * 1000)
+        state["phase"] = "sc"
+        state["edp"] = "error"
+        
+        with patch.object(llm, "invoke", return_value=MagicMock(content="fixed"), create=True) as mock_invoke:
+            nodes.node_debugger(state)
+            prompt = mock_invoke.call_args[0][0][0].content
+            # Check if truncation occurred (limit is 400 chars)
+            # The prompt contains more than just nl_input, but nl_input should be short.
+            assert "A" * 401 not in prompt
+            assert "A" * 400 in prompt
+
+    def test_node_syntax_check_uses_provided_work_dir(self):
+        """Verify that syntax check reuses the work_dir from state if present."""
+        llm = create_stub_llm()
+        nodes = COMBANodes(llm)
+        my_dir = "/tmp/my_custom_dir"
+        state = make_initial_state(work_dir=my_dir)
+        state["gvd"] = "module top; endmodule"
+        state["module_name"] = "top"
+        
+        with patch("comba_pipeline.subprocess.run", return_value=CLEAN_SC_RESULT):
+            with patch("comba_pipeline.open", MagicMock()):
+                result = nodes.node_syntax_check(state)
+                assert result["work_dir"] == my_dir
 
     def test_node_ted_tb_extracts_todo_failure(self):
         llm = create_stub_llm()

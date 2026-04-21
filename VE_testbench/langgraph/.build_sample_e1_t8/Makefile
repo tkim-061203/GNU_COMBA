@@ -68,7 +68,7 @@ verilog-eval:
 
 langgraph:
 	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
-	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=http://localhost:8000/v1 --model-submanual=True --jobs 20 $(LANGGRAPH_QUIET)
+	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 --jobs 20 $(LANGGRAPH_QUIET)
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
