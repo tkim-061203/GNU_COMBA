@@ -42,7 +42,7 @@ NO_LOGIC_NPY      := $(src_dir)/$(TRAIN_DATASET_DIR)/no_logic_index.npy
 # See README.md for a visual dataflow diagram of this pipeline.
 LANGGRAPH_DIR     := /home/nntkim/GNU_COMBA/src/langgraph_core
 LANGGRAPH_MODULES := verilogeval/*
-LANGGRAPH_DESC    := txt
+LANGGRAPH_DESC    := xml
 LANGGRAPH_SAMPLES := 1
 
 # ── Targets ────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ verilog-eval:
 
 langgraph:
 	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
-	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 --jobs 20 $(LANGGRAPH_QUIET)
+	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 --jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC)
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).

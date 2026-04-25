@@ -625,7 +625,7 @@ cell_range_start
 train_dataset_dir
 temp_dir
 yosys_path
-revision
+quiet
 max_tb_trials
 max_sc_trials
 task
@@ -690,7 +690,7 @@ with_model_submanual
 with_task
 with_max_sc_trials
 with_max_tb_trials
-with_revision
+with_quiet
 with_yosys_path
 with_temp_dir
 with_train_dataset_dir
@@ -1331,7 +1331,8 @@ Optional Packages:
                           code-complete-iccad2023
   --with-max-sc-trials    Max syntax correction cycles (default: 10)
   --with-max-tb-trials    Max testbench correction cycles (default: 5)
-  --with-revision         Revision pf LLM
+  --with-quiet            Only show progress bar during LangGraph inference
+                          (default: True)
   --with-yosys-path       Path to yosys binary for synthesis
   --with-temp-dir         Temp directory prefix for Yosys synthesis jobs
   --with-train-dataset-dir
@@ -1981,22 +1982,26 @@ fi
 printf "%s\n" "$as_me: using max-tb-trials: ${max_tb_trials}" >&6;}
 
 #-------------------------------------------------------------------------
-# --with-revision
+# --with-quiet
 #-------------------------------------------------------------------------
 
 
-# Check whether --with-revision was given.
-if test ${with_revision+y}
+# Check whether --with-quiet was given.
+if test ${with_quiet+y}
 then :
-  withval=$with_revision; revision="${with_revision}"
+  withval=$with_quiet; quiet="${with_quiet}"
 else $as_nop
-  revision="None"
+  quiet="True"
 fi
 
 
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using revision: ${revision}" >&5
-printf "%s\n" "$as_me: using revision: ${revision}" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using quiet mode: ${quiet}" >&5
+printf "%s\n" "$as_me: using quiet mode: ${quiet}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-revision
+#-------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------
 # --with-yosys-path

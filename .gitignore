@@ -34,3 +34,8 @@ build_*
 .claude
 # Added by code-review-graph
 .code-review-graph/
+
+RTLLM/modules/*
+!RTLLM/modules/*/reports/*
+!RTLLM/reports/fixrate/*
+RTLLM/reports/*

@@ -625,6 +625,7 @@ cell_range_start
 train_dataset_dir
 temp_dir
 yosys_path
+description_type
 quiet
 max_tb_trials
 max_sc_trials
@@ -691,6 +692,7 @@ with_task
 with_max_sc_trials
 with_max_tb_trials
 with_quiet
+with_description_type
 with_yosys_path
 with_temp_dir
 with_train_dataset_dir
@@ -1333,6 +1335,8 @@ Optional Packages:
   --with-max-tb-trials    Max testbench correction cycles (default: 5)
   --with-quiet            Only show progress bar during LangGraph inference
                           (default: True)
+  --with-description-type Input description type for Pipeline 3 (xml or txt,
+                          default: xml)
   --with-yosys-path       Path to yosys binary for synthesis
   --with-temp-dir         Temp directory prefix for Yosys synthesis jobs
   --with-train-dataset-dir
@@ -1998,6 +2002,24 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using quiet mode: ${quiet}" >&5
 printf "%s\n" "$as_me: using quiet mode: ${quiet}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-description-type
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-description-type was given.
+if test ${with_description_type+y}
+then :
+  withval=$with_description_type; description_type="${with_description_type}"
+else $as_nop
+  description_type="xml"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using description type: ${description_type}" >&5
+printf "%s\n" "$as_me: using description type: ${description_type}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-revision

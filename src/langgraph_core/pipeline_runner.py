@@ -223,6 +223,7 @@ def run_pipeline_batch(
     description_type: str = "xml",
     samples: int = 1,
     llm=None,
+    dataset_dir: Optional[str] = None,
 ) -> dict:
     """
     Run COMBA pipeline on multiple modules (evaluation mode).
@@ -282,16 +283,27 @@ def run_pipeline_batch(
         with open(desc_file, "r", encoding="utf-8") as f:
             description = f.read()
 
+        cprint(f"\n[MODULE {idx}] {module_name}")
         sample_results = []
 
         for sample_idx in range(1, samples + 1):
             if samples > 1:
                 cprint(f"  ── Sample {sample_idx}/{samples} ──")
 
-            # Build state
-            state = make_initial_state(nl_input=description, module_name=module_name)
-            if description_type == "xml":
-                state["xml_description"] = description
+            # Determine dataset_dir for this sample if not explicitly provided
+            sample_dataset_dir = dataset_dir
+            if not sample_dataset_dir and "RTLLM" in module_path:
+                # For RTLLM, testbenches are typically in the module directory itself
+                sample_dataset_dir = module_path
+
+            # Build state using helper to ensure all fields like dataset_dir are set
+            state = _prepare_state(
+                nl_input=description,
+                module_name=module_name,
+                xml_description=description if description_type == "xml" else None,
+                dataset_dir=sample_dataset_dir,
+                desc_type=description_type,
+            )
 
             try:
                 config = {"recursion_limit": 100}

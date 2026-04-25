@@ -167,6 +167,18 @@ AC_SUBST([quiet])
 AC_MSG_NOTICE([using quiet mode: ${quiet}])
 
 #-------------------------------------------------------------------------
+# --with-description-type
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(description-type,
+  AS_HELP_STRING([--with-description-type],[Input description type for Pipeline 3 (xml or txt, default: xml)]),
+  [description_type="${with_description_type}"],
+  [description_type="xml"])
+
+AC_SUBST([description_type])
+AC_MSG_NOTICE([using description type: ${description_type}])
+
+#-------------------------------------------------------------------------
 # --with-revision
 #-------------------------------------------------------------------------
 

@@ -221,6 +221,36 @@ Used for processing Verilog codebases to extract specific modules based on compl
 
 ---
 
+**RTLLM Benchmark (Verilator Mode)**
+
+RTLLM modules use C++ testbenches and require **Verilator** for simulation instead of Icarus Verilog.
+
+1. **Verify Prerequisites**:
+   - Ensure `verilator` is installed (`verilator --version`).
+   - Use the `kim_VE` conda environment.
+
+2. **Run Full Benchmark**:
+   ```bash
+   make RTLLM
+   ```
+   This command executes Pipeline 3 on the RTLLM dataset (found in `RTLLM/modules`) with 5 trials per design and saves aggregated reports to `RTLLM/reports/fixrate`.
+
+   > [!NOTE]
+   > **Estimated Runtime**: Completion typically takes **20–40 minutes** for the full suite (30 designs × 5 trials) when using the default 20 parallel workers.
+
+3. **Targeted Testing**:
+   To test specific designs or change trial counts:
+   ```bash
+   python3 benchmark_langgraph.py --dataset rtllm --trials 1 --designs JC_counter,FIFO_8bit
+   ```
+
+**Technical Integration:**
+- **Verilator Integration**: The pipeline automatically detects `tb.cpp` in the module directory and switches to the Verilator build flow (`verilator --cc --exe --build`).
+- **Waveform Tracing**: Automated VCD generation via the `--trace` flag is enabled for all RTLLM runs.
+- **Dynamic Dataset Pathing**: Supports module-local testbench lookups via the `dataset_dir` state variable.
+
+---
+
 **Pipeline 4 (Model Fine-Tuning - Unsloth)**
 
 Support for rapid LLM fine-tuning (e.g., base generator and debugger models) is facilitated via `unsloth`, allowing multi-quantized training on combined specific HDL datasets.
@@ -260,9 +290,12 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 
 - **`e0_t0` (Dual GPU LangGraph)**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
   ```
-../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
+  ```bash
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
+  ```
+
 
 - `--with-provider`: LLM provider (`llamacpp`, `openai`, etc.).
 - `--with-model`: Name or path of the model.

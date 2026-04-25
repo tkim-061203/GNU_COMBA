@@ -145,8 +145,13 @@ Further explanation must be constructed as the syntax of a Verilog comment.
 Do NOT just return an empty module or a module with only port declarations.
 
 ## INTERFACE ALIGNMENT
-The module header (name and ports) is FIXED. You must implement the logic within the PROVIDED header. 
+The module header (name and ports) is FIXED. You must implement the logic within the PROVIDED header.
 Even if the XML seems to suggest different port names, ALWAYS prioritize the port names in the provided module declaration.
+
+**CRITICAL — Use exact port names inside the body:**
+- If the header declares `input in` and `output out`, the body MUST use `in` and `out`.
+- Do NOT introduce internal aliases like `q`, `d`, `data_in`, `data_out` for ports that already have names.
+- Every input and output must be referenced by its declared name exactly as written in the port list.
 
 ## CONSTRAINTS (mandatory, apply to ALL designs)
 
@@ -156,10 +161,14 @@ Even if the XML seems to suggest different port names, ALWAYS prioritize the por
   → implement equivalent logic INLINE with operators (+, -, &, |, ^, ~, <<, >>).
 - NEVER instantiate a module unless you also provide its full definition.
 
-### R2: ASSIGNMENT DISCIPLINE
-- always @(*) or assign → BLOCKING (=) only.
-- always @(posedge clk) → NON-BLOCKING (<=) only.
-- Never mix = and <= on the same signal.
+### R2: ASSIGNMENT DISCIPLINE & OUTPUT DECLARATIONS
+- Outputs ASSIGNED in `always` blocks MUST be declared `output reg` (not plain `output`).
+  - Plain `output` is a wire — assigning a wire inside `always` is ILLEGAL in Verilog.
+  - Correct:   `output reg [3:0] count`
+  - Incorrect: `output [3:0] count` (when count appears in `always @(posedge clk) count <= ...`)
+- `always @(*)` or `assign` → use BLOCKING (`=`) only.
+- `always @(posedge clk)` → use NON-BLOCKING (`<=`) only.
+- Never mix `=` and `<=` on the same signal.
 
 ### R3: VARIABLE BIT-SELECT
 - ILLEGAL: signal[H : L + N*i]  (variable in range bounds)
@@ -171,10 +180,6 @@ Even if the XML seems to suggest different port names, ALWAYS prioritize the por
   → AMOUNT (shift count)       = `a[4:0]`
   → ALWAYS use `<<`, `>>`, `>>>` operators. NEVER implement shift via concatenation.
   → `{{a[31:0], a[31:0]}}` or `{{b[0], a[31:1]}}` style is WRONG for shifts.
-  Correct templates:
-    SLL / SLLV : `res = b << a[4:0];`
-    SRL / SRLV : `res = b >> a[4:0];`
-    SRA / SRAV : `res = $signed(b) >>> a[4:0];`
 - Load-upper-immediate (LUI): source operand is `a` (NOT `b`).
   → `res = {{a[15:0], 16'b0}};`
 - Arithmetic right shift (generic): `$signed(value) >>> amount`.
@@ -186,35 +191,18 @@ Even if the XML seems to suggest different port names, ALWAYS prioritize the por
   → Never use <= in combinational always @(*).
 
 ### R6: FSM / SEQUENCE DETECTION
-- Draw the state transition mentally from the TARGET SEQUENCE.
 - The FIRST bit of the sequence determines S0's transition.
   e.g., sequence starts with '1' → S0 waits for IN=1, NOT IN=0.
-- For overlapping detection, after a match, go to the state matching
-  the longest proper suffix of the sequence that is also a prefix.
+- For overlapping detection, after a match, go to the state matching the longest proper suffix of the sequence that is also a prefix.
 
 ### R7: TIMER / COUNTER FSM
 - Match the counter range and transition boundaries to the spec exactly.
 - Every input port declared in the spec MUST influence the logic.
-  If port X exists, it cannot be left unused — implement its effect.
-- For interrupt/pedestrian-style inputs that modify a counter mid-state:
-  → Place the interrupt check INSIDE the FSM state block, with HIGHEST priority
-    (before normal decrement / transition check).
-  → Guard with the STATE REGISTER (not the output signal — outputs are delayed).
-  → Example for a pass_request that shortens green cnt to 10:
-       if (state == s3_green && pass_request && cnt > 10)
-           cnt <= 10;
-       else if (cnt == boundary)
-           ...transition...
-       else
-           cnt <= cnt - 1;
-- Counter reload timing: assign the new cnt value in the SAME cycle as the state
-  transition. Use `state` (or next-state) to detect entry — do NOT use output
-  light signals (e.g. `green`, `red`) because they are registered and are delayed
-  by one clock cycle.
+- Counter reload timing: assign the new cnt value in the SAME cycle as the state transition. Use `state` (or next-state) to detect entry — do NOT use light/output signals (delayed).
 
 ## XML → Verilog Mapping
 - Module name = `<module id>`, ports = `<input id>` / `<output id>`.
-- `width_description` → signal width. `depth_description` → array depth.
+- `width_description` → signal width.
 - `sequential_logic` → reg + always @(posedge clk).
 - `combinational_logic` → wire/assign or always @(*).
 - Code must pass Verilator.
@@ -252,7 +240,7 @@ generatorPromptTemplate = ChatPromptTemplate([
 
 EDP_SYSTEM_PROMPT = """\
 You are a Verilog syntax debugging expert.
-Fix the TOPMOST Verilator error. Return the complete corrected code only.
+Fix the TOPMOST iverilog error. Return the complete corrected code only.
 
 ## Error → Fix Mapping
 - "Cannot find file containing module: 'X'"
@@ -267,19 +255,26 @@ Fix the TOPMOST Verilator error. Return the complete corrected code only.
   → Separate into comb (=) and seq (<=) blocks. Never both on same signal.
 - "COMBDLY"
   → Replace <= with = inside always @(*) blocks.
-- "PROCASSWIRE"
-  → Change wire to reg if assigned in always, or use assign for wire.
+- "PROCASSWIRE" / "is not a valid l-value" / "declared here as wire"
+  → The output port is declared as plain `output` (wire) but assigned inside `always`.
+  → Fix: change `output foo` → `output reg foo` (or add `reg foo;` separately).
+  → NEVER leave an always-assigned output as a plain wire.
 - "Expecting expression to be constant, variable isn't const" (bit-select)
   → Replace signal[H:L+N*i] with signal[N*i +: W].
 - "Width mismatch" / "WIDTHEXPAND" / "WIDTHTRUNC"
   → Adjust operand widths or use explicit zero/sign extension.
 - "syntax error, unexpected '.'"
   → Sub-module port syntax used incorrectly. Likely needs inline rewrite.
+- "Index ... is out of range"
+  → A generate/for loop accesses an index beyond the declared port width.
+  → Fix: tighten loop bounds to match the port declaration ([H:L] means H down to L).
 
 ## Rules
 1. Fix ONLY the topmost error. Cascading errors resolve automatically.
-2. Preserve module name, ports, architecture.
-3. No markdown fences, no explanation. Code only.
+2. Preserve module name, ports, architecture exactly as given.
+3. NEVER add or rename ports. The port list (header) is FIXED and forced by the testbench.
+4. If a variable is missing (e.g. "Could not find variable 'q'"), DO NOT add it to the port list. Either declare it internally as a `wire` or `reg`, OR rewrite the logic to use the existing ports (e.g., use `out` instead of `q`).
+5. No markdown fences, no explanation. Code only.
 """
 
 EDP_USER_PROMPT = """\
@@ -324,45 +319,33 @@ Return the complete corrected code only.
 3. Check these common root causes:
    - Operand swap: value vs amount in shifts, dividend vs divisor, a vs b.
    - Off-by-one: counter boundary (== N-1 vs == N), pipeline latency.
+   - Reset polarity: check if rst_n is active-low (if(!rst_n)) or active-high.
    - Accumulator output timing: emit result AFTER including current input.
    - Incomplete iteration: combinational algorithm must process ALL bits/steps.
    - Unused inputs: every declared port must affect logic per the spec.
    - FSM transition error: verify each state's next-state matches the spec.
    - Wrong operator: + vs -, & vs &&, | vs ||, >> vs >>>.
    - Width truncation: intermediate result too narrow, losing upper bits.
-4. Preserve module interface exactly.
-5. No markdown fences, no explanation. Code only.
+4. Preserve module interface exactly. NEVER add or rename ports.
+5. No markdown fences. Code only.
 
 ## CRITICAL PATTERN-SPECIFIC RULES
 
 ### P1: "Signal is not used" warning + TB failure
-If the Verilator SC log contains a warning like:
-  "Signal is not used: 'X'"
-and X is an INPUT PORT, then the generated code has a MISSING FEATURE.
-You MUST:
-- Read the specification to find what X is supposed to do.
-- Implement X's effect in the logic. Do NOT just add a dummy reference.
-- X likely modifies a counter, enables/disables a path, or triggers a state change.
+If the SC log contains a warning like "Signal is not used: 'X'" and X is an INPUT PORT, the generated code has a MISSING FEATURE. Implement X's effect in the logic.
 
 ### P2: Shift/ALU operations produce wrong results
-If the module is an ALU and shift operations (SLL/SRL/SRA/SLLV/SRLV/SRAV/LUI) fail:
-- Shifts MUST use <<, >>, >>> operators. NEVER use concatenation for shifts.
-- SLL/SLLV: res = b << a[4:0];   (shift b left by a)
-- SRL/SRLV: res = b >> a[4:0];   (shift b right by a)
-- SRA/SRAV: res = $signed(b) >>> a[4:0];  (arithmetic right shift)
-- LUI: res = {{a[15:0], 16'b0}};   (source is a, NOT b)
-- If the code uses {{a[31:0], b[4:0]}} or similar concatenation for shifts,
-  that is WRONG — replace with the correct shift operator.
+- Shifts MUST use <<, >>, >>> operators. NEVER use concatenation.
+- Verify operand order (e.g. SLL is often `res = b << a[4:0]`).
+- LUI (Load Upper Immediate) usually targets upper 16 bits: `res = {{a[15:0], 16'b0}}`.
 
-### P3: Counter/timer value mismatch (clock output != expected)
-If the trace shows clock/counter output differs from reference by a fixed offset:
-- Check counter reload values: the spec says "60 cycles green" means
-  cnt should start at 60 and count down to 1 (or 0), not start at 58.
-- Check transition boundary: if spec says "N cycles", counter should
-  reload N on state entry and transition when cnt reaches the end value.
-- Check if an interrupt/request input (e.g., pass_request) should modify
-  the counter mid-state. If the spec says "shorten to 10 if remaining > 10",
-  implement: if (in_target_state && request && cnt > 10) cnt <= 10;
+### P3: Counter/Handshake Logic
+- Counter reload: Reset the counter in the SAME cycle as state transition. Use next-state (or state entry trigger) for the reload signal.
+- Handshake (opn_valid, res_ready, res_valid): 
+  → Set `res_valid` high only when the operation is DONE (last cycle).
+  → Clear `res_valid` when `res_ready` is asserted.
+  → Do NOT use `res_ready` as an l-value (it is an input from the testbench).
+- Default values: In combinational logic, always assign a default 0 (or wires to GND) for outputs. NEVER used high-impedance 'z' unless building a tri-state buffer.
 """
 
 TDP_USER_PROMPT = """\
@@ -463,7 +446,7 @@ You are a Verilog debugger. Fix the specific error. Do not rewrite unnecessarily
 
 ## Rules
 1. Preserve module name, ports, architecture.
-2. Must compile with Verilator.
+2. Must compile with iverilog.
 3. Self-contained — no external sub-modules.
 4. Phase "sc" → syntax fix. Phase "ts" → logic fix.
 5. Return ONLY the complete fixed Verilog code.
@@ -497,7 +480,15 @@ _ERROR_PATTERNS = {
     "blk_nonblk":    re.compile(r"BLKANDNBLK|Blocked and non-blocking", re.I),
     "combdly":       re.compile(r"COMBDLY|Delayed assignments.*non-clocked", re.I),
     "var_bitselect": re.compile(r"Expecting expression to be constant.*variable isn't const", re.I),
-    "procasswire":   re.compile(r"PROCASSWIRE|Procedural assignment to wire", re.I),
+    # iverilog: "X is not a valid l-value" / "declared here as wire" / PROCASSWIRE
+    "procasswire":   re.compile(
+        r"PROCASSWIRE|Procedural assignment to wire"
+        r"|is not a valid l-value"
+        r"|declared here as wire",
+        re.I,
+    ),
+    # iverilog out-of-range indexing (generate loops exceeding port width)
+    "out_of_range":  re.compile(r"Index .* is out of range|out of range", re.I),
 }
 
 _ERROR_CONSTRAINTS = {
@@ -518,8 +509,17 @@ _ERROR_CONSTRAINTS = {
         "Replace signal[H:L+N*i] with signal[N*i +: W].\n"
     ),
     "procasswire": (
-        "\n## CRITICAL: Procedural Assignment to Wire\n"
-        "Change wire→reg if assigned in always, or use assign for wire.\n"
+        "\n## CRITICAL: Output Port Declaration Mismatch\n"
+        "An output port is declared as a wire (plain `output`) but assigned in an `always` block.\n"
+        "Fix: change `output foo` → `output reg foo` (or `output logic foo`) for all such ports.\n"
+    ),
+    "out_of_range": (
+        "\n## CRITICAL: Array/Port Index Out of Range\n"
+        "You are indexing a port beyond its declared width.\n"
+        "Possibility 1: A generate/for-loop exceeds boundaries. Tighten loop bounds.\n"
+        "Possibility 2: You are using one-hot state parameter values (like A=4'b0001, meaning 1) as bit INDICES (like next_state[A]). "
+        "A 4-bit vector only has indices 0, 1, 2, 3! Using next_state[4'b1000] attempts to access index 8, which is out of range.\n"
+        "Fix: EITHER use 0-based indices for your parameters (parameter A=0, B=1...) OR do not use them as indices inside the brackets.\n"
     ),
 }
 

@@ -38,7 +38,7 @@ LANGGRAPH_SAMPLES := 1
 .PHONY: default jupyterlab verilog-eval \
         data-flow gen-flow-configs \
         synthesis extract filter \
-        langgraph-flow langgraph clean-flow clean help
+        langgraph-flow langgraph RTLLM clean-flow clean help
 
 default:
 	echo $(scripts_dir)/main.py ${GENERATE_FLAGS}
@@ -72,6 +72,10 @@ clean:
 langgraph:
 	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
 	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=True --jobs 20 --quiet --desc-type $(LANGGRAPH_DESC)
+
+RTLLM:
+	@echo "=== Running benchmark for RTLLM dataset ==="
+	conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -168,6 +172,7 @@ help:
 	@echo "  clean-flow     Remove .run_* dirs and synthesis cache"
 	@echo "  clean          Remove ALL pipeline artifacts (P1 + P2 + P3)"
 	@echo "  langgraph-flow Run Pipeline 3 (LangGraph)"
+	@echo "  RTLLM          Run benchmark for RTLLM dataset"
 	@echo ""
 	@echo "Configure options for Pipeline 1:"
 	@echo "  --with-yosys-path=PATH      (default: $(YOSYS_PATH))"

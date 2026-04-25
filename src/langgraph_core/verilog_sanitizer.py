@@ -72,6 +72,20 @@ MAX_LINES = 600
 # Repetition detection threshold
 REPETITION_THRESHOLD = 0.35  # >35% duplicate non-empty lines
 
+# Output port extraction: capture optional width + name
+# Matches: output, output reg, output logic, output [N:M], output reg [N:M]
+_OUTPUT_PORT_RE = re.compile(
+    r'\boutput\s+(?:(?:reg|logic|wire)\s+)?(?:\[[^\]]*\]\s+)?(\w+)',
+    re.MULTILINE,
+)
+
+# Always-block LHS assignment: <name> <= ... or <name> = ...
+# Captures the signal name on the left of a blocking/non-blocking assignment
+_ALWAYS_LHS_RE = re.compile(
+    r'^[\t ]*([A-Za-z_]\w*)\s*(?:\[[^\]]*\])?\s*(?:<=|=(?!=))',
+    re.MULTILINE,
+)
+
 
 # ─────────────────────────────────────────────
 # Main Function
@@ -132,6 +146,18 @@ def sanitize(
             if unique_ratio < (1 - REPETITION_THRESHOLD):
                 warnings.append(f"High line repetition detected ({1-unique_ratio:.0%} duplicate)")
 
+    # ── Step 2.5: Strip descriptive hallucinations from 'module' line ──
+    # LLMs sometimes write "module performs addition (..." instead of "module adder (..."
+    if module_name and re.search(r'module\s+[a-zA-Z_]\w*\s+performs\b', text, re.I):
+        text = re.sub(
+            r'module\s+.*?\s*\(',
+            f'module {module_name} (',
+            text,
+            count=1,
+            flags=re.MULTILINE | re.IGNORECASE
+        )
+        warnings.append("Stripped descriptive hallucination from module declaration")
+
     # ── Step 3: Extract module...endmodule ──
     blocks = MODULE_BLOCK_RE.findall(text)
 
@@ -177,19 +203,119 @@ def sanitize(
             code = new_code
             warnings.append("Forced header alignment: replaced generated header with expected header")
 
+    # ── Step 3.6: Auto-promote output → output reg ──
+    # Outputs assigned in always blocks must be declared reg; iverilog rejects
+    # wire l-values inside procedural blocks (only caught at testbench elaboration).
+    code, promoted = _auto_promote_output_reg(code)
+    if promoted:
+        warnings.append(f"Auto-promoted to 'output reg': {', '.join(promoted)}")
+
+    # ── Step 3.7: Generate-loop port-bounds check (warning only) ──
+    _check_generate_bounds(code, warnings)
+
     # ── Step 4: Structural warnings (NEVER block) ──
     _collect_warnings(code, module_name, warnings)
 
+    any_auto_fixed = (
+        "Auto-appended" in " ".join(warnings)
+        or bool(promoted)
+    )
     return SanitizeResult(
         code=code.strip(),
         warnings=warnings,
-        auto_fixed=("Auto-appended" in " ".join(warnings)),
+        auto_fixed=any_auto_fixed,
     )
 
 
 # ─────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────
+
+
+def _auto_promote_output_reg(code: str) -> tuple[str, list[str]]:
+    """
+    Promote bare `output` ports to `output reg` when they appear as LHS
+    targets inside `always` blocks (blocking or non-blocking assignment).
+
+    Returns:
+        (new_code, list_of_promoted_names)
+
+    This fixes the most common iverilog elaboration error:
+        "<port> is not a valid l-value … declared here as wire"
+    which only surfaces during testbench compilation, not SC lint-only mode.
+    """
+    # Collect all output port names that are NOT already declared as reg/logic
+    # Use a more flexible regex that doesn't require start-of-line
+    bare_output_re = re.compile(
+        r'\boutput\s+(?!reg\b)(?!logic\b)(?!wire\b)'
+        r'(?:\[[^\]]*\]\s+)?(\w+)',
+        re.MULTILINE,
+    )
+    bare_outputs = {m.group(1) for m in bare_output_re.finditer(code)}
+
+    if not bare_outputs:
+        return code, []
+
+    # Collect all signal names that appear as LHS inside always blocks
+    always_lhs: set[str] = set()
+    # Find always block bodies (everything between 'always' and the matching end)
+    # Simple heuristic: scan for 'always' then collect assignments until 'end' depth=0
+    for block_m in re.finditer(r'\balways\b[\s\S]*?(?=\balways\b|\bassign\b|endmodule)', code):
+        block_text = block_m.group(0)
+        for lhs_m in _ALWAYS_LHS_RE.finditer(block_text):
+            always_lhs.add(lhs_m.group(1))
+
+    # Determine which bare outputs need promotion
+    to_promote = bare_outputs & always_lhs
+    if not to_promote:
+        return code, []
+
+    new_code = code
+    for name in to_promote:
+        # Replace 'output [width] name' → 'output reg [width] name'
+        new_code = re.sub(
+            r'\b(output\s+)((?:\[[^\]]*\]\s*)?)(' + re.escape(name) + r')\b',
+            r'\1reg \2\3',
+            new_code,
+            flags=re.MULTILINE
+        )
+
+    return new_code, sorted(to_promote)
+
+
+def _check_generate_bounds(code: str, warnings: list[str]) -> None:
+    """
+    Warn when a generate/for loop uses an index that may exceed the declared
+    port width (common pattern: output [98:0] foo; for (i=0;i<100;...) foo[i]).
+
+    This is a WARNING only — never blocks code.
+    """
+    # Extract declared output port widths: output [H:L] name
+    port_ranges: dict[str, tuple[int, int]] = {}  # name → (high, low)
+    for m in re.finditer(
+        r'\boutput\s+(?:reg\s+|logic\s+|wire\s+)?\[\s*(\d+)\s*:\s*(\d+)\s*\]\s+(\w+)',
+        code, re.MULTILINE
+    ):
+        high, low, name = int(m.group(1)), int(m.group(2)), m.group(3)
+        port_ranges[name] = (high, low)
+
+    if not port_ranges:
+        return
+
+    # Find `for` loop upper bounds (i < N  or i <= N)
+    for loop_m in re.finditer(
+        r'for\s*\([^;]*;[^;]*<\s*(\d+)\s*;',
+        code, re.MULTILINE
+    ):
+        upper = int(loop_m.group(1))  # exclusive upper bound
+        # Check if any port indexed by [i] would go out of range
+        for name, (high, low) in port_ranges.items():
+            # If loop goes 0..upper-1 but port is [high:low], max valid index is high
+            if upper - 1 > high:
+                warnings.append(
+                    f"Generate-loop may access {name}[{upper-1}] but port is declared [{high}:{low}] "
+                    f"(max valid index {high})"
+                )
 
 def _pick_block(
     blocks: list[str],

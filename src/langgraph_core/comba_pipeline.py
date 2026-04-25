@@ -60,8 +60,8 @@ from verilog_sanitizer import sanitize as verilog_sanitize
 # ──────────────────────────────────────────────────────────────
 # Configuration Constants
 # ──────────────────────────────────────────────────────────────
-MAX_SC_TRIALS = 8        # Max syntax-check correction cycles (tuned for VerilogEval)
-MAX_TS_TRIALS = 4        # Max testbench correction cycles
+MAX_SC_TRIALS = 10        # Max syntax-check correction cycles (tuned for VerilogEval)
+MAX_TS_TRIALS = 5        # Max testbench correction cycles
 MAX_TOTAL_ITER = 20      # Absolute hard cap on total iterations
 EDTM_MAX_RETRIES = 3     # Max retries for the same exception signature
 
@@ -95,6 +95,70 @@ _IVERILOG_ERROR_RE = re.compile(
 def _count_iverilog_errors(log: str) -> int:
     """Count genuine iverilog error lines only (ignores warning: lines)."""
     return len(_IVERILOG_ERROR_RE.findall(log))
+
+
+# ── Wire l-value port extractor ──
+_WIRE_LVALUE_RE = re.compile(
+    r'error:\s+(\w+)\s+is not a valid l-value',
+    re.IGNORECASE,
+)
+
+def _extract_wire_lvalue_ports(log: str) -> list[str]:
+    """
+    Parse iverilog TB compilation log for wire l-value errors.
+    Returns list of port names that need to be changed to `output reg`.
+
+    Example log line:
+      TopModule.sv:4: error: shift_ena is not a valid l-value in tb.top_module1.
+      TopModule.sv:4:      : shift_ena is declared here as wire.
+    """
+    seen: dict[str, int] = {}
+    for m in _WIRE_LVALUE_RE.finditer(log):
+        name = m.group(1)
+        seen[name] = seen.get(name, 0) + 1
+    # Return sorted list for deterministic output
+    return sorted(seen.keys())
+
+
+# ── Port mismatch extractor (C++ / Verilog) ──
+def _extract_port_mismatch(log: str) -> list[str]:
+    """Extract missing port names from Verilator/Icarus error logs."""
+    # Verilator: error: ‘class Vadder_pipe_64bit’ has no member named ‘adda’
+    verilator_re = re.compile(r"no member named [‘'\"`]([a-zA-Z0-9_]+)[’'\"`]")
+    # Icarus: error: port 'X' is not a port of ...
+    icarus_re = re.compile(r"port '([a-zA-Z0-9_]+)' is not a port of")
+    
+    ports = set()
+    for m in verilator_re.finditer(log):
+        ports.add(m.group(1))
+    for m in icarus_re.finditer(log):
+        ports.add(m.group(1))
+    return sorted(list(ports))
+
+
+# ── XML Header Synthesizer ──
+def _build_header_from_xml(xml_text: str) -> Optional[str]:
+    """Synthesize a Verilog module header from COMBA XML ports."""
+    if not xml_text or "<ports>" not in xml_text:
+        return None
+        
+    # Extract module name
+    name_match = re.search(r'<module\s+id="([^"]+)"', xml_text)
+    mod_name = name_match.group(1) if name_match else "TopModule"
+    
+    # Extract ports
+    # Example: <input id="adda" width_description="[63:0]">
+    port_matches = re.findall(r'<(input|output)\s+id="([^"]+)"(?:\s+width_description="([^"]+)")?', xml_text)
+    if not port_matches:
+        return None
+        
+    ports_code = []
+    for kind, pid, width in port_matches:
+        w_str = f" {width}" if width else ""
+        ports_code.append(f"    {kind}{w_str} {pid}")
+        
+    header = f"module {mod_name}(\n" + ",\n".join(ports_code) + "\n);"
+    return header
 
 
 # ──────────────────────────────────────────────────────────────
@@ -259,16 +323,24 @@ class COMBANodes:
                 if not line.strip().startswith("```")
             )
 
-        # Extract module name from XML
+        # Extract module name from XML (but do not overwrite existing state name)
         match = re.search(r'<module\s+id="([^"]+)"', xml_text)
-        module_name = match.group(1) if match else "unknown_module"
+        xml_mod_name = match.group(1) if match else "unknown"
+        
+        cprint(f"  ✅ Generated XML for module: {xml_mod_name} (using anchored name: {state['module_name']})")
 
-        cprint(f"  ✅ Generated XML for module: {module_name}")
-
-        return {
+        updates = {
             "xml_description": xml_text,
-            "module_name": module_name,
         }
+
+        # Synthesize expected_header if it's still missing
+        if not state.get("expected_header"):
+            header = _build_header_from_xml(xml_text)
+            if header:
+                updates["expected_header"] = header
+                cprint("  🏗️ Synthesized expected_header from XML")
+
+        return updates
 
     # ──────────────────────────────────────────────────────────
     # Node 2: Generator — XML → raw LLM output
@@ -528,15 +600,19 @@ class COMBANodes:
             )
         else:
             traces = ""
+            failure_str = error_desc or state.get("tb_failure", "")
             if error_desc and "Debug traces:" in error_desc:
-                traces = error_desc.split("Debug traces:")[-1].strip()
+                parts = error_desc.split("Debug traces:", 1)
+                failure_str = parts[0].strip()
+                traces = parts[1].strip()
+                
             prompt_text = mgr.build_ts_prompt(
                 error_key=error_key,
                 module_name=module_name,
                 gvd=current_gvd,
                 todo_num=0,
                 trace_content=traces or "(no traces available)",
-                failure_content=state.get("tb_failure", error_desc),
+                failure_content=failure_str,
                 task_description=(state.get("nl_input") or "")[:_MAX_TASK_DESC_CHARS],
             )
 
@@ -683,7 +759,7 @@ class COMBANodes:
                 "phase": "ts",
             }
 
-        # ── Link Test/Ref files ──
+        # ── Link Test/Ref files or use RTLLM C++ Testbench ──
         if not dataset_dir:
             return {
                 "tb_log": "error: dataset_dir not found in state",
@@ -693,7 +769,13 @@ class COMBANodes:
                 "phase": "ts",
             }
 
-        # Use benchmark_id for file identity in the dataset
+        # RTLLM Case: Look for tb.cpp in the dataset (module) directory
+        tb_cpp_src = os.path.join(dataset_dir, "tb.cpp")
+        if os.path.isfile(tb_cpp_src):
+            cprint(f"  📦 Detected RTLLM-style C++ testbench: {tb_cpp_src}")
+            return self._run_rtllm_verilator(state, tb_cpp_src)
+
+        # VerilogEval Case: Use benchmark_id for file identity in the dataset
         bid = state.get("benchmark_id", module_name)
         test_sv_src = os.path.join(dataset_dir, f"{bid}_test.sv")
         ref_sv_src = os.path.join(dataset_dir, f"{bid}_ref.sv")
@@ -801,13 +883,96 @@ class COMBANodes:
         status_msg = "PASS ✅" if not failure else f"FAIL: {failure[:60]}"
         cprint(f"  TB result: {status_msg}")
 
+        # If it passed VerilogEval testbench, it must contain 'passed'
+        final_status = "pass" if failure is None and "passed" in tb_log.lower() else None
+
         return {
             "tb_log": tb_log,
             "tb_failure": failure,
+            "final_status": final_status,
             "ts_trial": state["ts_trial"] + 1,
             "total_iter": state["total_iter"] + 1,
-            "phase": "ts",
+            "phase": "ts" if not final_status else "done",
         }
+
+    def _run_rtllm_verilator(self, state: COMBAState, tb_cpp_path: str) -> dict:
+        """Helper to run RTLLM C++ testbenches via Verilator."""
+        module_name = state["module_name"] or "TopModule"
+        work_dir = state["work_dir"]
+        gvd = state["gvd"]
+
+        # For RTLLM, the C++ testbench expects the module name to match what's in the repo.
+        # We save it as <module_name>.v
+        verilog_path = os.path.join(work_dir, f"{module_name}.v")
+        with open(verilog_path, "w", encoding="utf-8") as f:
+            f.write(gvd)
+        
+        # Copy tb.cpp to work_dir
+        tb_cpp_dst = os.path.join(work_dir, "tb.cpp")
+        shutil.copy2(tb_cpp_path, tb_cpp_dst)
+
+        # Build (Verilator)
+        cmd = [
+            "verilator", "--cc", "--exe", "--build", "-j",
+            "--trace",
+            "-Wall", "-Wno-fatal",
+            "--top-module", module_name,
+            f"{module_name}.v", "tb.cpp"
+        ]
+
+        tb_log_parts = []
+        try:
+            r1 = subprocess.run(
+                cmd, cwd=work_dir, capture_output=True, text=True, timeout=120
+            )
+            tb_log_parts.append(f"[COMPILE]\n{r1.stderr}{r1.stdout}")
+            
+            if r1.returncode != 0:
+                return {
+                    "tb_log": "\n".join(tb_log_parts),
+                    "tb_failure": "Verilator compilation failed",
+                    "ts_trial": state["ts_trial"] + 1,
+                    "total_iter": state["total_iter"] + 1,
+                    "phase": "ts",
+                }
+
+            # Run
+            exe = os.path.join(work_dir, f"obj_dir/V{module_name}")
+            if not os.path.exists(exe):
+                return {
+                    "tb_log": "\n".join(tb_log_parts) + f"\nerror: exe {exe} not found",
+                    "tb_failure": "Verilator executable not found",
+                    "ts_trial": state["ts_trial"] + 1,
+                    "total_iter": state["total_iter"] + 1,
+                    "phase": "ts",
+                }
+
+            r2 = subprocess.run(
+                [exe], cwd=work_dir, capture_output=True, text=True, timeout=60
+            )
+            tb_log_parts.append(f"[RUN]\n{r2.stderr}{r2.stdout}")
+
+            # Check for failure tags
+            raw = (r2.stdout or "") + (r2.stderr or "")
+            fail_keywords = ["fail", "error", "mismatch", "assertion", "todo"]
+            is_fail = any(k in raw.lower() for k in fail_keywords)
+
+            return {
+                "tb_log": "\n".join(tb_log_parts),
+                "tb_failure": "Testbench failed" if is_fail else None,
+                "final_status": "pass" if not is_fail else None,
+                "ts_trial": state["ts_trial"] + 1,
+                "total_iter": state["total_iter"] + 1,
+                "phase": "ts" if is_fail else "done",
+            }
+        except Exception as e:
+            return {
+                "tb_log": f"error: {e}",
+                "tb_failure": "Infrastructure error during Verilator run",
+                "ts_trial": state["ts_trial"] + 1,
+                "total_iter": state["total_iter"] + 1,
+                "phase": "ts",
+            }
 
     # ──────────────────────────────────────────────────────────
     # Node 7: TED TB — Parse topmost TB failure → TDP
@@ -822,8 +987,49 @@ class COMBANodes:
         cprint("🔎 NODE: TED TB (Parse topmost TB failure)")
         cprint("=" * 60)
 
-        tb_log = state["tb_log"] or ""
+        tb_log = state.get("tb_log", "")
+        module_name = state.get("module_name", "unknown")
         edtm = dict(state.get("edtm", {}))   # shallow copy
+
+        # ── Fast-path: wire l-value errors ──
+        wire_ports = _extract_wire_lvalue_ports(tb_log)
+        if wire_ports:
+            port_list = ', '.join(f"'{p}'" for p in wire_ports)
+            tdp = (
+                f"[WIRE L-VALUE FIX REQUIRED]\n"
+                f"The following output port(s) are declared as plain `output` (wire) "
+                f"but are assigned inside `always` blocks: {port_list}.\n"
+                f"Fix: change each declaration from `output foo` → `output reg foo`.\n"
+                f"Example:  output shift_ena  →  output reg shift_ena\n"
+                f"This is the ONLY change needed — do not alter any logic."
+            )
+            sig_tb = "WIRE_LVALUE:" + "_".join(wire_ports)
+            edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
+            cprint(f"  ⚡ Wire l-value ports detected: {wire_ports}")
+            return {
+                "tdp": tdp,
+                "phase": "ts",
+                "edtm": edtm,
+            }
+
+        # ── Fast-path: Port mismatch (missing members/ports) ──
+        missing_ports = _extract_port_mismatch(tb_log)
+        if missing_ports:
+            p_list = ', '.join(f"'{p}'" for p in missing_ports)
+            tdp = (
+                f"[PORT MISMATCH DETECTED]\n"
+                f"The testbench expects the following port(s) which are MISSING in your module: {p_list}.\n"
+                f"You MUST use the exact port names defined in the specification. "
+                f"Do not rename ports or add extra ports to the module header."
+            )
+            sig_tb = "PORT_MISMATCH:" + "_".join(missing_ports)
+            edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
+            cprint(f"  ⚡ Port mismatch detected: {missing_ports}")
+            return {
+                "tdp": tdp,
+                "phase": "ts",
+                "edtm": edtm,
+            }
 
         # Extract topmost failure line
         topmost_failure = None
@@ -850,18 +1056,49 @@ class COMBANodes:
 
         tdp = f"Topmost testbench failure:\n{topmost_failure}"
 
-        # Include traces (lines after the failure for context)
+        # Include helpful context (custom traces)
         trace_lines = []
         found = False
+        hints = []
         for line in tb_log.splitlines():
-            if found and len(trace_lines) < 5:
-                if "TRACE" in line or "INPUT" in line or "OUTPUT" in line:
-                    trace_lines.append(line.strip())
-            if topmost_failure and topmost_failure in line:
-                found = True
+            if "TRACE" in line or "INPUT" in line or "OUTPUT" in line:
+                trace_lines.append(line.strip())
 
-        if trace_lines:
-            tdp += "\n\nDebug traces:\n" + "\n".join(trace_lines)
+        # RTLLM: Read tb.cpp for port context
+        dataset_dir = state.get("dataset_dir")
+        tb_ref = ""
+        if dataset_dir:
+            tb_cpp = os.path.join(dataset_dir, "tb.cpp")
+            if os.path.isfile(tb_cpp):
+                try:
+                    with open(tb_cpp, "r", encoding="utf-8") as f:
+                        full_cpp = f.read()
+                        # Extract class definitions that usually contain the ports
+                        m1 = re.search(r"class\s+\w+InTx\s*\{[\s\S]+?\}", full_cpp)
+                        if m1: tb_ref += f"// Testbench Input Struct:\n{m1.group(0)}\n"
+                        m2 = re.search(r"class\s+\w+OutTx\s*\{[\s\S]+?\}", full_cpp)
+                        if m2: tb_ref += f"// Testbench Output Struct:\n{m2.group(0)}\n"
+                except:
+                    pass
+
+        # Dynamic category-specific hints
+        from multi_attempt import CATEGORY_HINTS
+        mod_hint = ""
+        best_match_len = 0
+        for key, hint_text in CATEGORY_HINTS.items():
+            if re.search(rf'\b{re.escape(key)}\b', module_name.lower()):
+                if len(key) > best_match_len:
+                    mod_hint = hint_text
+                    best_match_len = len(key)
+        if mod_hint:
+            hints.append(f"CATEGORY HINT: {mod_hint}")
+
+        all_traces = hints + trace_lines
+        if all_traces:
+            tdp += "\n\nDebug traces:\n" + "\n".join(all_traces)
+        
+        if tb_ref:
+            tdp += "\n\nTestbench Reference Snippet:\n" + tb_ref
 
         cprint(f"  📋 TDP: {topmost_failure[:80]}")
 
