@@ -1,0 +1,21 @@
+{
+  "module_name": "adder_8bit",
+  "description_type": "RTLLM.txt",
+  "samples": {
+    "module_name": "adder_8bit",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 3,
+    "ts_trial": 3,
+    "total_iter": 6,
+    "gvd": "module adder_8bit(\n    input [7:0] a,\n    input [7:0] b,\n    input cin,\n    output [7:0] sum,\n    output cout\n);\n\n    wire [3:0] sum_low, sum_high;\n    wire carry;\n\n    // Instantiate lower 4-bit adder\n    assign {carry, sum_low} = a[3:0] + b[3:0] + cin;\n\n    // Instantiate higher 4-bit adder\n    assign {cout, sum_high} = a[7:4] + b[7:4] + carry;\n\n    // Concatenate the outputs of the two 4-bit adders\n    assign sum = {sum_high, sum_low};\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_8bit\">\n    <description>Implement an 8-bit adder with bit-level adders in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[7:0]\">8-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[7:0]\">8-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"sum\" width_description=\"[7:0]\">8-bit sum output.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>Uses full adders to perform addition.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE]\n%Warning-WIDTH: adder_8bit.v:13:47: Operator ADD expects 5 bits on the RHS, but RHS's VARREF 'cin' generates 1 bits.\n                                  : ... In instance adder_8bit\n   13 |     assign {carry, sum_low} = a[3:0] + b[3:0] + cin;\n      |                                               ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: adder_8bit.v:16:47: Operator ADD expects 5 bits on the RHS, but RHS's VARREF 'carry' generates 1 bits.\n                                  : ... In instance adder_8bit\n   16 |     assign {cout, sum_high} = a[7:4] + b[7:4] + carry;\n      |                                               ^\nmake[1]: Entering directory '/tmp/comba_adder_8bit_sfcak_zx/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_8bit.cpp Vadder_8bit__Trace.cpp Vadder_8bit__Slow.cpp Vadder_8bit__Syms.cpp Vadder_8bit__Trace__Slow.cpp > Vadder_8bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_8bit__ALL.o Vadder_8bit__ALL.cpp\nar -cr Vadder_8bit__ALL.a Vadder_8bit__ALL.o\nranlib Vadder_8bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_8bit__ALL.a      -o Vadder_8bit\nmake[1]: Leaving directory '/tmp/comba_adder_8bit_sfcak_zx/obj_dir'\n\n[RUN]\n",
+    "error": null,
+    "edtm": {
+      "TB:Verilator compilation failed": 1,
+      "TB:Vadder_Nbit: ../tb.cpp:N: void adder_NbitScb::writeOut(adder_NbitOutTx*): Assertion `(tx->sum | (tx->cout << N)) == (in->a + in->b + in->cin) && \"TODO N Failed: Addition logic result is incorrect\"' failed.": 1
+    }
+  }
+}

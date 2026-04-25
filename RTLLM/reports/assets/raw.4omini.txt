@@ -1,0 +1,202 @@
+{
+  "adder_8bit": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "adder_16bit": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "adder_32bit": {
+    "syntax_success": 5,
+    "func_success": 4
+  },
+  "adder_pipe_64bit": {
+    "syntax_success": 5,
+    "func_success": 2
+  },
+  "adder_bcd": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "sub_64bit": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "multi_8bit": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "multi_16bit": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "multi_booth_8bit": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "multi_pipe_4bit": {
+    "syntax_success": 5,
+    "func_success": 2
+  },
+  "multi_pipe_8bit": {
+    "syntax_success": 5,
+    "func_success": 0
+  },
+  "div_16bit": {
+    "syntax_success": 5,
+    "func_success": 1
+  },
+  "div_8bit": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "comparator_3bit": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "comparator_4bit": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "accu": {
+    "syntax_success": 5,
+    "func_success": 0
+  },
+  "fixed_point_adder": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "fixed_point_substractor": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "float_multi": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "asyn_fifo": {
+    "syntax_success": 3,
+    "func_success": 0
+  },
+  "LIFObuffer": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "right_shifter": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "LFSR": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "barrel_shifter": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "fsm": {
+    "syntax_success": 4,
+    "func_success": 0
+  },
+  "sequence_detector": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "counter_12": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "JC_counter": {
+    "syntax_success": 5,
+    "func_success": 2
+  },
+  "ring_counter": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "up_down_counter": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "signal_generator": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "square_wave": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "clkgenerator": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "instr_reg": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "ROM": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "RAM": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "alu": {
+    "syntax_success": 5,
+    "func_success": 4
+  },
+  "pe": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "freq_divbyodd": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "freq_divbyeven": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "": {
+    "syntax_success": 0,
+    "func_success": 0
+  },
+  "calendar": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "traffic_light": {
+    "syntax_success": 5,
+    "func_success": 0
+  },
+  "width_8to16": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "synchronizer": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "edge_detect": {
+    "syntax_success": 5,
+    "func_success": 5
+  },
+  "pulse_detect": {
+    "syntax_success": 5,
+    "func_success": 0
+  },
+  "parallel2serial": {
+    "syntax_success": 5,
+    "func_success": 0
+  },
+  "serial2parallel": {
+    "syntax_success": 5,
+    "func_success": 0
+  },
+  "freq_div": {
+    "syntax_success": 5,
+    "func_success": 2
+  }
+}

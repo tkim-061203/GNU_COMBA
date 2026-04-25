@@ -1,0 +1,21 @@
+{
+  "module_name": "adder_8bit",
+  "description_type": "RTLLM.txt",
+  "samples": {
+    "module_name": "adder_8bit",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 6,
+    "ts_trial": 4,
+    "total_iter": 10,
+    "gvd": "module adder_8bit(\n    input [7:0] a,\n    input [7:0] b,\n    input cin,\n    output [7:0] sum,\n    output cout\n);\n\n    wire c1;\n\n    assign {c1, sum[3:0]} = a[3:0] + b[3:0] + cin;\n    assign {cout, sum[7:4]} = a[7:4] + b[7:4] + c1;\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_8bit\">\n    <description>Implement an 8-bit adder with bit-level adders in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[7:0]\">8-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[7:0]\">8-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"sum\" width_description=\"[7:0]\">8-bit sum output.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>Uses full adders to perform addition.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE]\n%Warning-WIDTH: adder_8bit.v:11:45: Operator ADD expects 5 bits on the RHS, but RHS's VARREF 'cin' generates 1 bits.\n                                  : ... In instance adder_8bit\n   11 |     assign {c1, sum[3:0]} = a[3:0] + b[3:0] + cin;\n      |                                             ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: adder_8bit.v:12:47: Operator ADD expects 5 bits on the RHS, but RHS's VARREF 'c1' generates 1 bits.\n                                  : ... In instance adder_8bit\n   12 |     assign {cout, sum[7:4]} = a[7:4] + b[7:4] + c1;\n      |                                               ^\nmake[1]: Entering directory '/tmp/comba_adder_8bit_9u3ufhq2/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_8bit.cpp Vadder_8bit__Trace.cpp Vadder_8bit__Slow.cpp Vadder_8bit__Syms.cpp Vadder_8bit__Trace__Slow.cpp > Vadder_8bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_8bit__ALL.o Vadder_8bit__ALL.cpp\nar -cr Vadder_8bit__ALL.a Vadder_8bit__ALL.o\nranlib Vadder_8bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_8bit__ALL.a      -o Vadder_8bit\nmake[1]: Leaving directory '/tmp/comba_adder_8bit_9u3ufhq2/obj_dir'\n\n[RUN]\n",
+    "error": null,
+    "edtm": {
+      "TB:Verilator compilation failed": 3,
+      "TopModule.sv:N: error: Unknown module type: adder_4bit": 2
+    }
+  }
+}

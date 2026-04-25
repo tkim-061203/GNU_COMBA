@@ -1,0 +1,20 @@
+{
+  "module_name": "right_shifter",
+  "description_type": "RTLLM.txt",
+  "samples": {
+    "module_name": "right_shifter",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module right_shifter(\n    input clk,\n    input d,\n    output reg [7:0] q\n);\n\n    initial begin\n        q = 8'b0;\n    end\n\n    always @(posedge clk) begin\n        q <= {d, q[7:1]};\n    end\n\nendmodule\n",
+    "xml_description": "<module id=\"right_shifter\">\n    <description>Implement a right shifter.</description>\n    <ports>\n        <input id=\"clk\">Clock.</input>\n        <input id=\"d\">Input signal to be right-shifted.</input>\n        <output id=\"q\" width_description=\"[7:0]\">Output signal representing the result of the right shift operation.</output>\n    </ports>\n    <parameter_description>\n        <param id=\"width\" value=\"8\">Width of the input and output signals.</param>\n    </parameter_description>\n    <logic_description>\n        <sequential_logic>\n            <reg id=\"q\" type=\"state\" width_description=\"[7:0]\">Register to store the right-shifted result.</reg>\n            <always>\n                <clk_edge>Positive</clk_edge>\n                <statement>\n                    <assignment>\n                        <left><id>q</id></left>\n                        <right><expr>((<id>q</id> >> 1))</expr>\n                    </assignment>\n                </statement>\n            </always>\n            <always>\n                <clk_edge>Positive</clk_edge>\n                <statement>\n                    <assignment>\n                        <left><id>q[7]</id></left>\n                        <right><id>d</id></right>\n                    </assignment>\n                </statement>\n            </always>\n        </sequential_logic>\n    </logic_description>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE]\nmake[1]: Entering directory '/tmp/comba_right_shifter_c43jeprh/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vright_shifter.cpp Vright_shifter__Trace.cpp Vright_shifter__Slow.cpp Vright_shifter__Syms.cpp Vright_shifter__Trace__Slow.cpp > Vright_shifter__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vright_shifter__ALL.o Vright_shifter__ALL.cpp\nar -cr Vright_shifter__ALL.a Vright_shifter__ALL.o\nranlib Vright_shifter__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vright_shifter__ALL.a      -o Vright_shifter\nmake[1]: Leaving directory '/tmp/comba_right_shifter_c43jeprh/obj_dir'\n\n[RUN]\n",
+    "error": null,
+    "edtm": {
+      "TB:Verilator compilation failed": 1
+    }
+  }
+}

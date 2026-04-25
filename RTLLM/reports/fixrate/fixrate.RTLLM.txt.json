@@ -1,0 +1,118 @@
+{
+    "adder_8bit": {
+        "syntax": 0.758095238095238,
+        "tb": 1.0
+    },
+    "adder_16bit": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "adder_32bit": {
+        "syntax": 0.8516666666666666,
+        "tb": 1.0
+    },
+    "accu": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "adder_pipe_64bit": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "multi_8bit": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "multi_16bit": {
+        "syntax": 0.5599999999999999,
+        "tb": 1.0
+    },
+    "multi_pipe_4bit": {
+        "syntax": 0.8999999999999999,
+        "tb": 0.8
+    },
+    "multi_pipe_8bit": {
+        "syntax": 1.0,
+        "tb": 0.4
+    },
+    "div_8bit": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "div_16bit": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "JC_counter": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "right_shifter": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "synchronizer": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "counter_12": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "freq_div": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "signal_generator": {
+        "syntax": 1.0,
+        "tb": 0.8999999999999999
+    },
+    "serial2parallel": {
+        "syntax": 1.0,
+        "tb": 0.6000000000000001
+    },
+    "parallel2serial": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "pulse_detect": {
+        "syntax": 0.30000000000000004,
+        "tb": 0.2
+    },
+    "edge_detect": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "fsm": {
+        "syntax": 0.8,
+        "tb": 0.0
+    },
+    "width_8to16": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "traffic_light": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "calendar": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "RAM": {
+        "syntax": 1.0,
+        "tb": 1.0
+    },
+    "asyn_fifo": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "alu": {
+        "syntax": 1.0,
+        "tb": 0.0
+    },
+    "pe": {
+        "syntax": 1.0,
+        "tb": 1.0
+    }
+}

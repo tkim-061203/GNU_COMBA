@@ -1,0 +1,39 @@
+\begin{tabular}{c|cc|cc}
+\toprule
+ & \multicolumn{2}{r}{\bfseries GPT‑4O MINI + COMBA-PROMPT } & \multicolumn{2}{r}{\bfseries GPT‑4O MINI + RTLLM } \\
+ & SYNTAX & FUNC. & SYNTAX & FUNC. \\
+Designs &  &  &  &  \\
+\midrule
+adder\_8bit & \color{black} {\cellcolor{lightblue}} 80.06\% & \color{black} {\cellcolor{lightgreen}} 100\% & 75.81\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+adder\_16bit & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+adder\_32bit & 80.56\% & 80\% & \color{black} {\cellcolor{lightblue}} 85.17\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+accu & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+adder\_pipe\_64bit & 80\% & \color{black} {\cellcolor{lightgreen}} 80\% & \color{black} {\cellcolor{lightblue}} 100\% & 0\% \\ \midrule
+multi\_8bit & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+multi\_16bit & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & 56\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+multi\_pipe\_4bit & 70\% & 60\% & \color{black} {\cellcolor{lightblue}} 90\% & \color{black} {\cellcolor{lightgreen}} 80\% \\ \midrule
+multi\_pipe\_8bit & \color{black} {\cellcolor{lightblue}} 100\% & 20\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 40\% \\ \midrule
+div\_8bit & 78.67\% & 60\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+div\_16bit & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+JC\_counter & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & 0\% \\ \midrule
+right\_shifter & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+synchronizer & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+counter\_12 & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+freq\_div & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & 0\% \\ \midrule
+signal\_generator & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & 90\% \\ \midrule
+serial2parallel & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & 60\% \\ \midrule
+parallel2serial & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & 0\% \\ \midrule
+pulse\_detect & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & 30\% & 20\% \\ \midrule
+edge\_detect & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+fsm & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & 80\% & 0\% \\ \midrule
+width\_8to16 & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+traffic\_light & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & 0\% \\ \midrule
+calendar & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+RAM & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+asyn\_fifo & 75\% & \color{black} {\cellcolor{lightgreen}} 20\% & \color{black} {\cellcolor{lightblue}} 100\% & 0\% \\ \midrule
+alu & 82\% & \color{black} {\cellcolor{lightgreen}} 60\% & \color{black} {\cellcolor{lightblue}} 100\% & 0\% \\ \midrule
+pe & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% & \color{black} {\cellcolor{lightblue}} 100\% & \color{black} {\cellcolor{lightgreen}} 100\% \\ \midrule
+Average & \color{black} {\cellcolor{lightblue}} 94.70\% & \color{black} {\cellcolor{lightgreen}} 88.97\% & 93.69\% & 65.17\% \\ \midrule
+Best Quality Num & 23 & \color{black} {\cellcolor{lightgreen}} 25 & \color{black} {\cellcolor{lightblue}} 25 & 18 \\
+\bottomrule
+\end{tabular}

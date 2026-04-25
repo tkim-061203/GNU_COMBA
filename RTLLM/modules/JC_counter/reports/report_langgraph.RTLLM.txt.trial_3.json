@@ -1,0 +1,21 @@
+{
+  "module_name": "JC_counter",
+  "description_type": "RTLLM.txt",
+  "samples": {
+    "module_name": "JC_counter",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 5,
+    "ts_trial": 5,
+    "total_iter": 10,
+    "gvd": "module JC_counter(\n    input clk, rst_n,\n    output reg [63:0] Q\n);\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        Q <= 64'b0000000000000000000000000000000000000000000000000000000000000000;\n    end\n    else begin\n        Q[63] <= ~Q[0];\n        Q[62:0] <= Q[63:1];\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"JC_counter\">\n    <description>Implement a 64-bit Johnson counter (torsional ring counter), and the state of the similar 4-bit Johnson counter example is as follows: 0000, 1000, 1100, 1110, 1111, 0111, 0011, 0001, 0000.</description>\n    <ports>\n        <input id=\"clk\">Clock.</input>\n        <input id=\"rst_n\">Active-low reset.</input>\n        <output id=\"Q\" width_description=\"[63:0]\">Current count value.</output>\n    </ports>\n    <implementation>Reset to 0. Increment if Q[0]=0, decrement if Q[0]=1.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE]\nmake[1]: Entering directory '/tmp/comba_JC_counter_ts3tsrd2/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include VJC_counter.cpp VJC_counter__Trace.cpp VJC_counter__Slow.cpp VJC_counter__Syms.cpp VJC_counter__Trace__Slow.cpp > VJC_counter__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o VJC_counter__ALL.o VJC_counter__ALL.cpp\nar -cr VJC_counter__ALL.a VJC_counter__ALL.o\nranlib VJC_counter__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o VJC_counter__ALL.a      -o VJC_counter\nmake[1]: Leaving directory '/tmp/comba_JC_counter_ts3tsrd2/obj_dir'\n\n[RUN]\n",
+    "error": null,
+    "edtm": {
+      "TB:Verilator compilation failed": 1,
+      "TB:VJC_counter: ../tb.cpp:N: void JC_counterScb::writeOut(JC_counterOutTx*): Assertion `tx->Q == out_tx_ref.Q && \"TODO N Failed: Counter Shifting logic result of the Verilog module is incorrect\"' failed.": 3
+    }
+  }
+}

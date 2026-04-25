@@ -1,0 +1,20 @@
+{
+  "module_name": "adder_16bit",
+  "description_type": "RTLLM.txt",
+  "samples": {
+    "module_name": "adder_16bit",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module adder_16bit(\n    input [15:0] a,\n    input [15:0] b,\n    input Cin,\n    output [15:0] y,\n    output Co\n);\n\n    wire [7:0] sum_low;\n    wire [7:0] sum_high;\n    wire carry;\n\n    assign {carry, sum_low} = a[7:0] + b[7:0] + Cin;\n    assign {Co, sum_high} = a[15:8] + b[15:8] + carry;\n    assign y = {sum_high, sum_low};\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_16bit\">\n    <description>Implement a 16-bit full adder in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[15:0]\">16-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[15:0]\">16-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"sum\" width_description=\"[15:0]\">16-bit sum output.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>\n        <p>Design a 16-bit full adder.</p>\n        <p>Use a single assign statement to perform the addition.</p>\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE]\n%Warning-WIDTH: adder_16bit.v:13:47: Operator ADD expects 9 bits on the RHS, but RHS's VARREF 'Cin' generates 1 bits.\n                                   : ... In instance adder_16bit\n   13 |     assign {carry, sum_low} = a[7:0] + b[7:0] + Cin;\n      |                                               ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: adder_16bit.v:14:47: Operator ADD expects 9 bits on the RHS, but RHS's VARREF 'carry' generates 1 bits.\n                                   : ... In instance adder_16bit\n   14 |     assign {Co, sum_high} = a[15:8] + b[15:8] + carry;\n      |                                               ^\nmake[1]: Entering directory '/tmp/comba_adder_16bit_7y9dxeop/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_16bit.cpp Vadder_16bit__Trace.cpp Vadder_16bit__Slow.cpp Vadder_16bit__Syms.cpp Vadder_16bit__Trace__Slow.cpp > Vadder_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_16bit__ALL.o Vadder_16bit__ALL.cpp\nar -cr Vadder_16bit__ALL.a Vadder_16bit__ALL.o\nranlib Vadder_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_16bit__ALL.a      -o Vadder_16bit\nmake[1]: Leaving directory '/tmp/comba_adder_16bit_7y9dxeop/obj_dir'\n\n[RUN]\n",
+    "error": null,
+    "edtm": {
+      "TB:Verilator compilation failed": 1
+    }
+  }
+}
