@@ -530,7 +530,7 @@ def runLangGraphFlow(
     datasetDir: typing.Optional[str] = None,
 ):
     """
-    Run the full COMBA v2 pipeline (LangGraph) on each module.
+    Run the full COMBA v2 pi`peline (LangGraph) on each module.
     Delegates to pipeline_runner.run_pipeline_batch().
     """
     sys.path.insert(0, os.path.join(srcDir, "src", "langgraph_core"))

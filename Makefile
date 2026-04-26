@@ -33,12 +33,21 @@ LANGGRAPH_MODULES := verilogeval/*
 LANGGRAPH_DESC    := xml
 LANGGRAPH_SAMPLES := 1
 
+# ── Testbench simulator selection ──────────────────────────────────────────
+# iverilog   = Icarus Verilog (default, fast, .v compatibility)
+# verilator  = Verilator (>=5.x, --binary --timing for SV testbenches)
+# auto       = pick verilator for RTLLM, iverilog for VerilogEval
+# Override at command line:  make RTLLM TS_SIMULATOR=iverilog
+TS_SIMULATOR      := iverilog
+
 # ── Targets ────────────────────────────────────────────────────────────────
 
 .PHONY: default jupyterlab verilog-eval \
         data-flow gen-flow-configs \
         synthesis extract filter \
-        langgraph-flow langgraph RTLLM clean-flow clean help
+        langgraph-flow langgraph \
+        RTLLM RTLLM-iverilog RTLLM-auto VerilogEval-bench \
+        check-verilator clean-flow clean help
 
 default:
 	echo $(scripts_dir)/main.py ${GENERATE_FLAGS}
@@ -53,6 +62,7 @@ verilog-eval:
 		--with-model=manual_Mistral_7B --with-task=code-complete-iccad2023 \
 		--with-samples=1 --with-examples=0 \
 		--with-model-manual=True
+
 # ── Full pipeline clean ────────────────────────────────────────────────────
 ## Removes all generated artifacts across all three pipelines (no cache, no datasets).
 clean:
@@ -73,9 +83,24 @@ langgraph:
 	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
 	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=True --jobs 20 --quiet --desc-type $(LANGGRAPH_DESC)
 
+# ── RTLLM benchmark targets ────────────────────────────────────────────────
+# Default RTLLM target uses Verilator (better SV support for RTLLM testbenches).
+# Pipeline auto-falls-back to iverilog if Verilator is < 5.x or missing.
 RTLLM:
-	@echo "=== Running benchmark for RTLLM dataset ==="
-	conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@echo "=== Running benchmark for RTLLM dataset (simulator: verilator) ==="
+	COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+
+RTLLM-iverilog:
+	@echo "=== Running benchmark for RTLLM dataset (simulator: iverilog) ==="
+	COMBA_TS_SIMULATOR=iverilog conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+
+RTLLM-auto:
+	@echo "=== Running benchmark for RTLLM dataset (auto-pick: verilator) ==="
+	COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+
+VerilogEval-bench:
+	@echo "=== Running benchmark for VerilogEval dataset (simulator: $(TS_SIMULATOR)) ==="
+	COMBA_TS_SIMULATOR=$(TS_SIMULATOR) conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset verilogeval --trials 5
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -144,12 +169,20 @@ filter: gen-flow-configs
 
 # ── Pipeline 3: LangGraph flow ─────────────────────────────────────────────
 langgraph-flow:
-	@echo "=== Running Pipeline 3 — LangGraph ==="
-	cd $(LANGGRAPH_DIR) && python3 run.py langgraph $(LANGGRAPH_MODULES) --descriptiontype=$(LANGGRAPH_DESC) --samples=$(LANGGRAPH_SAMPLES)
+	@echo "=== Running Pipeline 3 — LangGraph (simulator: $(TS_SIMULATOR)) ==="
+	cd $(LANGGRAPH_DIR) && COMBA_TS_SIMULATOR=$(TS_SIMULATOR) python3 run.py langgraph $(LANGGRAPH_MODULES) --descriptiontype=$(LANGGRAPH_DESC) --samples=$(LANGGRAPH_SAMPLES)
 	@echo "=== Configuring VerilogEval ==="
 	$(MAKE) verilog-eval
 	@echo "=== Pipeline 3 complete ==="
 
+# ── Verilator environment check ────────────────────────────────────────────
+## Verify that verilator >= 5.x is available before running RTLLM target
+check-verilator:
+	@echo "--- Checking Verilator installation ---"
+	@which verilator || { echo "❌ verilator not in PATH"; exit 1; }
+	@verilator --version
+	@verilator --version | grep -qE 'Verilator [5-9]' && echo "✅ Verilator >= 5.x" \
+	    || echo "⚠️  Verilator < 5.x detected — pipeline will auto-fall-back to iverilog for SV testbenches"
 
 # ── Cleanup ────────────────────────────────────────────────────────────────
 clean-flow:
@@ -164,15 +197,21 @@ help:
 	@echo "  jupyterlab     Start Jupyter Lab"
 	@echo "  verilog-eval   Configure verilog-eval benchmark"
 	@echo ""
-	@echo "  data-flow      Run full Pipeline 1 (steps: $(FLOW_STEPS))"
-	@echo "  synthesis      Run synthesis step only"
-	@echo "  extract        Run extract step only"
-	@echo "  filter         Run filter step only"
+	@echo "  data-flow         Run full Pipeline 1 (steps: $(FLOW_STEPS))"
+	@echo "  synthesis         Run synthesis step only"
+	@echo "  extract           Run extract step only"
+	@echo "  filter            Run filter step only"
 	@echo "  gen-flow-configs  Regenerate flow input JSON configs"
-	@echo "  clean-flow     Remove .run_* dirs and synthesis cache"
-	@echo "  clean          Remove ALL pipeline artifacts (P1 + P2 + P3)"
-	@echo "  langgraph-flow Run Pipeline 3 (LangGraph)"
-	@echo "  RTLLM          Run benchmark for RTLLM dataset"
+	@echo "  clean-flow        Remove .run_* dirs and synthesis cache"
+	@echo "  clean             Remove ALL pipeline artifacts (P1 + P2 + P3)"
+	@echo "  langgraph-flow    Run Pipeline 3 (LangGraph)"
+	@echo ""
+	@echo "Benchmark targets:"
+	@echo "  RTLLM             Run RTLLM benchmark (simulator: verilator)"
+	@echo "  RTLLM-iverilog    Run RTLLM benchmark (simulator: iverilog)"
+	@echo "  RTLLM-auto        Run RTLLM benchmark (auto-pick simulator)"
+	@echo "  VerilogEval-bench Run VerilogEval benchmark (default: $(TS_SIMULATOR))"
+	@echo "  check-verilator   Verify verilator >=5.x is installed"
 	@echo ""
 	@echo "Configure options for Pipeline 1:"
 	@echo "  --with-yosys-path=PATH      (default: $(YOSYS_PATH))"
@@ -187,4 +226,9 @@ help:
 	@echo "  LANGGRAPH_MODULES           (default: $(LANGGRAPH_MODULES))"
 	@echo "  LANGGRAPH_DESC              (default: $(LANGGRAPH_DESC))"
 	@echo "  LANGGRAPH_SAMPLES           (default: $(LANGGRAPH_SAMPLES))"
+	@echo ""
+	@echo "Simulator selection:"
+	@echo "  TS_SIMULATOR                (default: $(TS_SIMULATOR))"
+	@echo "  Values: iverilog | verilator | auto"
+	@echo "  Example: make RTLLM TS_SIMULATOR=iverilog"
 	@echo ""
