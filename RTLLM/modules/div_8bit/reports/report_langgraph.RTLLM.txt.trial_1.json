@@ -1,21 +1,73 @@
 {
   "module_name": "div_8bit",
   "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "div_8bit",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 4,
+    "sc_trial": 1,
     "ts_trial": 1,
-    "total_iter": 5,
-    "gvd": "module div_16bit(\n    input clk,\n    input rst,\n    input sign,\n    input [7:0] dividend,\n    input [7:0] divisor,\n    input opn_valid,\n    input res_ready,\n    output reg res_valid,\n    output [15:0] result\n);\n\nreg [15:0] shift_reg;\nreg [7:0] divisor_neg;\nreg [3:0] counter;\nreg [7:0] alu_a, alu_b;\nreg alu_cin;\nreg [7:0] alu_result;\nreg [15:0] final_result;\n\nalways @(posedge clk or negedge rst) begin\n    if (!rst) begin\n        shift_reg <= 16'b0;\n        divisor_neg <= 8'b0;\n        counter <= 4'b0;\n        alu_a <= 8'b0;\n        alu_b <= 8'b0;\n        alu_cin <= 1'b0;\n        alu_result <= 8'b0;\n        final_result <= 16'b0;\n        res_valid <= 1'b0;\n    end else if (opn_valid && !res_valid) begin\n        alu_a <= dividend;\n        alu_b <= divisor;\n        divisor_neg <= ~divisor + 1'b1;\n        shift_reg <= {1'b0, dividend, 7'b0};\n        counter <= 4'b1;\n        res_valid <= 1'b0;\n    end else if (!res_valid) begin\n        if (counter[3]) begin\n            shift_reg <= {shift_reg[14:0], 1'b0};\n            if (shift_reg[15:8] >= divisor) begin\n                shift_reg[15:8] <= shift_reg[15:8] - divisor;\n                shift_reg[0] <= 1'b1;\n            end else begin\n                shift_reg[0] <= 1'b0;\n            end\n            counter <= 4'b0;\n            final_result <= shift_reg;\n            res_valid <= 1'b1;\n        end else begin\n            counter <= counter + 1'b1;\n            alu_result <= alu_a - alu_b - alu_cin;\n            alu_cin <= alu_cout;\n            alu_a <= alu_result;\n            shift_reg <= {shift_reg[14:0], alu_result[7]};\n        end\n    end else if (res_valid && res_ready) begin\n        res_valid <= 1'b0;\n    end\nend\n\nassign result = final_result;\n\nendmodule\n",
-    "xml_description": "<module id=\"div_16bit\">\n    <description>Design a simplified radix-2 divider on 8-bit numbers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst\">Reset signal.</input>\n        <input id=\"sign\">Signed or unsigned operation.</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">Dividend.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">Divisor.</input>\n        <input id=\"opn_valid\">Valid operation.</input>\n        <input id=\"res_ready\">Result ready for the next operation.</input>\n        <output id=\"res_valid\">Result valid.</output>\n        <output id=\"result\" width_description=\"[15:0]\">Result.</output>\n    </ports>\n    <parameter_description>\n        <param id=\"IDLE\">0</param>\n        <param id=\"START\">1</param>\n        <param id=\"DONE\">2</param>\n    </parameter_description>\n    <logic_description>\n        <sequential_logic id=\"res_valid\" type=\"reg\">\n            <true>\n                <condition>\n                    <not>\n                        <and>\n                            <or>\n                                <input_ref id=\"rst\"/>\n                                <input_ref id=\"cnt[7]\"/>\n                            </or>\n                            <input_ref id=\"res_valid\"/>\n                            <input_ref id=\"res_ready\"/>\n                        </and>\n                    </not>\n                </condition>\n                <assignment>\n                    <input_ref id=\"res_valid\"/> <= <const>0</const>;\n                </assignment>\n            </true>\n            <false>\n                <condition>\n                    <and>\n                        <input_ref id=\"res_valid\"/>\n                        <input_ref id=\"res_ready\"/>\n                    </and>\n                </condition>\n                <assignment>\n                    <input_ref id=\"res_valid\"/> <= <const>0</const>;\n                </assignment>\n            </false>\n        </sequential_logic>\n    </logic_description>\n    <implementation>\n        <p>Implement a 8-bit divider.</p>\n        <p>Algorithm:</p>\n        <ol>\n            <li>Save the inputs.</li>\n            <li>Initialize the shift register SR with the absolute value of the dividend shifted left by one bit.</li>\n            <li>Initialize NEG_DIVISOR to the negated absolute value of the divisor.</li>\n            <li>Set the counter cnt to 1 and start_cnt to 1 to begin the division process.</li>\n            <li>Division Process: If the counter cnt reaches 8 (most significant bit of cnt is set), the division is complete.</li>\n            <ol>\n                <li>Clear cnt and start_cnt.</li>\n                <li>Update the shift register SR with the final remainder and quotient.</li>\n            </ol>\n            <li>Otherwise, increment the counter cnt, and update the shift register SR based on the subtraction result:</li>\n            <ol>\n                <li>Subtract NEG_DIVISOR.</li>\n                <li>Use a multiplexer to select the appropriate result based on the carry-out.</li>\n                <li>Update SR by shifting left and inserting the carry-out.</li>\n            </ol>\n        </ol>\n    </implementation>\n</module>",
+    "total_iter": 2,
+    "gvd": "module div_8bit(\n    input clk,\n    input rst,\n    input sign,\n    input [7:0] dividend,\n    input [7:0] divisor,\n    input opn_valid,\n    input res_ready,\n    output reg res_valid,\n    output reg [15:0] result\n);\n//YOUR CODE HERE\nreg [7:0] dividend_r, divisor_r;\nreg [15:0] SR, NEG_DIVISOR;\nreg [3:0] cnt;\nreg start_cnt;\nreg carry_out, subtraction_result;\nreg [15:0] remainder, quotient;\nalways @(posedge clk or negedge rst) begin\n    if (!rst) begin\n        dividend_r <= 8'b0;\n        divisor_r <= 8'b0;\n        cnt <= 4'b0;\n        start_cnt <= 1'b0;\n        result <= 16'b0;\n        remainder <= 16'b0;\n        quotient <= 16'b0;\n        start_cnt <= 1'b0;\n        carry_out <= 1'b0;\n        subtraction_result <= 1'b0;\n        SR <= 16'b0;\n        NEG_DIVISOR <= 16'b0;\n    end else begin\n        if (opn_valid == 1'b1 && res_valid == 1'b0) begin\n            dividend_r <= dividend;\n            divisor_r <= divisor;\n            SR <= {dividend, 8'b0}; // Initialize SR with the dividend shifted left by 8 bits\n            NEG_DIVISOR <= (~{divisor, 8'b0}) + 1; // Negate the divisor and shift it left by 8 bits\n            cnt <= 4'b0001; // Set the counter to 1\n            start_cnt <= 1'b1; // Set start_cnt to 1 to start the division process\n        end else if (start_cnt) begin\n            if (cnt[3] == 1'b1) begin\n                cnt <= 4'b0; // Reset the counter when the most significant bit is 1\n                start_cnt <= 1'b0; // Reset start_cnt to 0 to end the division process\n                result <= SR; // Set the result to the content of SR\n                remainder <= SR; // Set the remainder to the content of SR\n                quotient <= quotient; // Keep the quotient unchanged\n            end else begin\n                cnt <= cnt + 1; // Increment the counter by 1\n                if (remainder >= 0) begin\n                    carry_out <= 1'b1; // Set carry_out to 1 if the subtraction result is non-negative\n                    remainder <= subtraction_result; // Set the remainder to the subtraction result\n                end else begin\n                    carry_out <= 1'b0; // Set carry_out to 0 if the subtraction result is negative\n                    remainder <= subtraction_result; // Set the remainder to the subtraction result\n                end\n                SR <= {SR[14:0], carry_out}; // Shift the SR to the left by 1 bit and insert the carry_out at LSB\n                subtraction_result <= remainder - NEG_DIVISOR; // Subtract the divisor from the remainder\n            end\n        end\n        if (rst) begin\n            res_valid <= 1'b0;\n        end else begin\n            if (cnt == 4'b1000) begin\n                res_valid <= 1'b1;\n            end else if (res_valid && res_ready) begin\n                res_valid <= 1'b0;\n            end\n        end\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"div_8bit\">\n    <description>Implement a simplified radix-2 divider on 8-bit signed or unsigned integers. and the inputs are two 8-bit operands. The module accepts a dividend and a divisor as inputs and provides a 16-bit result containing both the quotient and the remainder. The design supports both signed and unsigned division operations.</description>\n    <ports>\n        <input id=\"clk\">Clock.</input>\n        <input id=\"rst\">Reset.</input>\n        <input id=\"sign\">1-bit indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">8-bit input signal representing the dividend for division.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">8-bit input signal representing the divisor for division.</input>\n        <input id=\"opn_valid\">1-bit indicates that a valid operation request is present.</input>\n        <input id=\"res_ready\">1-bit indicates that the 16-bit output result has already been acknowledged.</input>\n        <output id=\"res_valid\">1-bit output signal indicating the result is valid and ready.</output>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit the output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n    </ports>\n    <parameter_description>\n        <param id=\"STATE_0\">0</param>\n        <param id=\"STATE_1\">1</param>\n        <param id=\"STATE_2\">2</param>\n        <param id=\"STATE_3\">3</param>\n    </parameter_description>\n    <implementation>\n        <para>Implement the divider operation using a sequential algorithm. Reset the internal states when the rst signal is high. If opn_valid is high, perform the division operation. If res_valid is high, output the result.</para>\n        <para>Initialize the internal registers and variables. The internal registers include the shift register (SR), the negative divisor (NEG_DIVISOR), the remainder (REM), the quotient (QUO), and the counter (COUNT).</para>\n        <para>SR is initialized to the absolute value of the dividend shifted left by one bit.</para>\n        <para>NEG_DIVISOR is initialized to the absolute value of the divisor.</para>\n        <para>QUO and REM are initialized to zero.</para>\n        <para>COUNT is initialized to one.</para>\n        <para>On every clock cycle, if the rst signal is high, reset all the internal states.</para>\n        <para>Otherwise, if opn_valid is high, perform the division operation.</para>\n        <para>Otherwise, if res_valid is high, shift the quotient and remainder into SR.</para>\n        <para>Otherwise, perform the subtraction of the divisor from the remainder.</para>\n        <para>if the subtraction result is non-negative, set the carry_out to 1 and the subtraction result to the remainder.</para>\n        <para>if the subtraction result is negative, set the carry_out to 0 and the remainder to the subtraction result.</para>\n        <para>Shift the SR to the left by one bit and insert the carry_out at the least significant bit.</para>\n        <para>Increment the counter by one.</para>\n        <para>if the counter is equal to 8, set res_valid to 1 and the result to the contents of SR.</para>\n        <para>Otherwise, if the counter is not equal to 8, set res_valid to 0.</para>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-DECLFILENAME: div_8bit.v:1:8: Filename 'div_8bit' does not match MODULE name: 'div_16bit'\n    1 | module div_16bit(\n      |        ^~~~~~~~~\n                       ... Use \"/* verilator lint_off DECLFILENAME */\" and lint_on around source to disable this message.\n%Error: Specified --top-module 'div_8bit' was not found in design.\n%Error: Exiting due to 1 error(s)\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: div_8bit.v:52:31: Operator ASSIGNDLY expects 16 bits on the Assign RHS, but Assign RHS's VARREF 'subtraction_result' generates 1 bits.\n                                : ... In instance div_8bit\n   52 |                     remainder <= subtraction_result;  \n      |                               ^~\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: div_8bit.v:55:31: Operator ASSIGNDLY expects 16 bits on the Assign RHS, but Assign RHS's VARREF 'subtraction_result' generates 1 bits.\n                                : ... In instance div_8bit\n   55 |                     remainder <= subtraction_result;  \n      |                               ^~\n%Warning-WIDTH: div_8bit.v:58:36: Operator ASSIGNDLY expects 1 bits on the Assign RHS, but Assign RHS's SUB generates 16 bits.\n                                : ... In instance div_8bit\n   58 |                 subtraction_result <= remainder - NEG_DIVISOR;  \n      |                                    ^~\n%Warning-UNUSED: div_8bit.v:4:11: Signal is not used: 'sign'\n                                : ... In instance div_8bit\n    4 |     input sign,\n      |           ^~~~\n%Warning-UNUSED: div_8bit.v:13:11: Signal is not used: 'dividend_r'\n                                 : ... In instance div_8bit\n   13 | reg [7:0] dividend_r, divisor_r;\n      |           ^~~~~~~~~~\n%Warning-UNUSED: div_8bit.v:13:23: Signal is not used: 'divisor_r'\n                                 : ... In instance div_8bit\n   13 | reg [7:0] dividend_r, divisor_r;\n      |                       ^~~~~~~~~\n%Warning-UNSIGNED: div_8bit.v:50:31: Comparison is constant due to unsigned arithmetic\n                                   : ... In instance div_8bit\n   50 |                 if (remainder >= 0) begin\n      |                               ^~\n\n[RUN]\n",
     "error": null,
-    "edtm": {
-      "TopModule.sv:N: error: mux_out is not a valid l-value in div_16bit.": 2,
-      "TopModule.sv:N: error: Unable to bind wire/reg/memory `alu_cout' in `div_16bit'": 1
+    "edtm": {},
+    "self_consistency": {
+      "samples_run": 3,
+      "max_samples": 5,
+      "best_sample_idx": 2,
+      "best_temperature": 0.5,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 197.07,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 76,
+          "elapsed_s": 79.94
+        },
+        {
+          "idx": 1,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 64,
+          "elapsed_s": 84.36
+        },
+        {
+          "idx": 2,
+          "T": 0.5,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 72,
+          "elapsed_s": 32.76
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
     }
   }
 }

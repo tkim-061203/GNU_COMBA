@@ -1,6 +1,7 @@
 {
   "module_name": "counter_12",
   "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "counter_12",
     "description_type": "RTLLM.txt",
@@ -8,11 +9,53 @@
     "sc_trial": 1,
     "ts_trial": 1,
     "total_iter": 2,
-    "gvd": "module counter_12(\n    input rst_n,\n    input clk,\n    input valid_count,\n    output reg [3:0] out\n);\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n)\n            out <= 4'd0;\n        else if (valid_count) begin\n            if (out == 4'd11)\n                out <= 4'd0;\n            else\n                out <= out + 1;\n        end\n    end\nendmodule\n",
-    "xml_description": "<module id=\"counter_12\">\n    <description>Counter from 0 to 11, controlled by valid_count.</description>\n    <ports>\n        <input id=\"rst_n\">Reset signal (active low)</input>\n        <input id=\"clk\">Clock signal</input>\n        <input id=\"valid_count\">Enable counting</input>\n        <output id=\"out\" width_description=\"[3:0]\">Current count</output>\n    </ports>\n    <parameter_description>\n        <enum id=\"state\">\n            <enum_value>Idle=3'b000</enum_value>\n            <enum_value>Counting=3'b001</enum_value>\n            <enum_value>Done=3'b010</enum_value>\n        </enum>\n    </parameter_description>\n    <implementation>\n        <sequential_logic>\n            <if>\n                <condition>Negedge rst_n</condition>\n                <true>\n                    <assign>out = 4'b0000</assign>\n                </true>\n                <false>\n                    <if>\n                        <condition>Posedge clk</condition>\n                        <true>\n                            <if>\n                                <condition>valid_count == 1 && out == 4'd11</condition>\n                                <true>\n                                    <assign>out = 4'b0000</assign>\n                                </true>\n                                <false>\n                                    <assign>out = out + 1</assign>\n                                </false>\n                            </if>\n                        </true>\n                    </if>\n                </false>\n            </if>\n        </sequential_logic>\n    </implementation>\n</module>",
+    "gvd": "module counter_12(\n    input rst_n,\n    input clk,\n    input valid_count,\n    output reg [3:0] out\n); \n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            out <= 4'b0000;\n        end else if (valid_count == 1) begin\n            if (out == 4'd11) begin\n                out <= 4'b0000;\n            end else begin\n                out <= out + 4'b0001;\n            end\n        end\n    end\nendmodule\n",
+    "xml_description": "<module id=\"counter_12\">\n    <description>Counter from 0 to 11, controlled by valid_count.</description>\n    <ports>\n        <input id=\"rst_n\">Reset signal (active low)</input>\n        <input id=\"clk\">Clock signal</input>\n        <input id=\"valid_count\">Enable counting</input>\n        <output id=\"out\" width_description=\"[3:0]\">Current count.</output>\n    </ports>\n    <parameter_description>\n        <enum id=\"STATE_0\" value=\"4'd0\">STATE_0 description</enum>\n        <enum id=\"STATE_1\" value=\"4'd1\">STATE_1 description</enum>\n        <enum id=\"STATE_2\" value=\"4'd2\">STATE_2 description</enum>\n        <enum id=\"STATE_3\" value=\"4'd3\">STATE_3 description</enum>\n        <enum id=\"STATE_4\" value=\"4'd4\">STATE_4 description</enum>\n        <enum id=\"STATE_5\" value=\"4'd5\">STATE_5 description</enum>\n        <enum id=\"STATE_6\" value=\"4'd6\">STATE_6 description</enum>\n        <enum id=\"STATE_7\" value=\"4'd7\">STATE_7 description</enum>\n        <enum id=\"STATE_8\" value=\"4'd8\">STATE_8 description</enum>\n        <enum id=\"STATE_9\" value=\"4'd9\">STATE_9 description</enum>\n        <enum id=\"STATE_10\" value=\"4'd10\">STATE_10 description</enum>\n        <enum id=\"STATE_11\" value=\"4'd11\">STATE_11 description</enum>\n    </parameter_description>\n    <logic_description>\n        <sequential_logic id=\"counter\">\n            if (!rst_n) begin\n                <sequential>\n                    <assign id=\"out\" value=\"4'b0000\"/>\n                </sequential>\n            end else if (valid_count == 1) begin\n                <sequential>\n                    <assign id=\"out\" value=\"out == 4'd11 ? 4'b0000 : out + 4'b0001;\"/>\n                </sequential>\n            end\n        </sequential_logic>\n    </logic_description>\n    <task>\n        <description>Reset the counter to 0.</description>\n        <invocation>reset_counter()</invocation>\n        <code>\n            <sequential>\n                <assign id=\"out\" value=\"4'b0000\"/>\n            </sequential>\n        </code>\n    </task>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_counter_12_mbf5mlzo/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcounter_12.cpp Vcounter_12__Trace.cpp Vcounter_12__Slow.cpp Vcounter_12__Syms.cpp Vcounter_12__Trace__Slow.cpp > Vcounter_12__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcounter_12__ALL.o Vcounter_12__ALL.cpp\nar -cr Vcounter_12__ALL.a Vcounter_12__ALL.o\nranlib Vcounter_12__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcounter_12__ALL.a      -o Vcounter_12\nmake[1]: Leaving directory '/tmp/comba_counter_12_mbf5mlzo/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n\n[RUN]\n",
     "error": null,
-    "edtm": {}
+    "edtm": {},
+    "self_consistency": {
+      "samples_run": 2,
+      "max_samples": 5,
+      "best_sample_idx": 1,
+      "best_temperature": 0.5,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 46.63,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 10,
+          "ts_trial": 0,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 27,
+          "elapsed_s": 32.16
+        },
+        {
+          "idx": 1,
+          "T": 0.5,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 18,
+          "elapsed_s": 14.47
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
   }
 }

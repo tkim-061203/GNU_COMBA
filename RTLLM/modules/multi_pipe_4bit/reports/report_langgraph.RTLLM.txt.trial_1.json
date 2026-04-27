@@ -1,20 +1,76 @@
 {
   "module_name": "multi_pipe_4bit",
   "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "multi_pipe_4bit",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_ts",
-    "sc_trial": 5,
-    "ts_trial": 5,
-    "total_iter": 10,
-    "gvd": "module multi_pipe_4bit(\n    input clk,\n    input rst_n,\n    input [3:0] mul_a,\n    input [3:0] mul_b,\n    output reg [7:0] mul_out\n);\n\nreg [3:0] reg_a, reg_b;\nreg [7:0] reg_out;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        reg_a <= 4'b0;\n        reg_b <= 4'b0;\n        reg_out <= 8'b0;\n    end else begin\n        reg_a <= mul_a;\n        reg_b <= mul_b;\n        reg_out <= reg_a * reg_b;\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        mul_out <= 8'b0;\n    end else begin\n        mul_out <= reg_out;\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>Implement a 4-bit unsigned number pipeline multiplier.</description>\n    <ports>\n        <input id=\"clk\">Clock.</input>\n        <input id=\"rst_n\">Active-low reset.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Multiplicand.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Multiplier.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product.</output>\n    </ports>\n    <parameter_description>\n        <param id=\"size\">4</param>\n    </parameter_description>\n    <implementation>\n    The input signals (mul_a and mul_b) are extended by adding \"size\" number of zero bits at the most significant bit positions.<br>\n    For example, if the input signal mul_a is 4'b1010, the extended signal mul_a_extend is 8'b0000_1010.<br>\n    The multiplication operation is performed using a generate block, which generates the partial products based on the multiplier bits.<br>\n    For each bit position i from 0 to size-1, the partial product is calculated as follows:<br>\n    If the corresponding bit in the multiplier is 1, the multiplicand is left-shifted by i positions.<br>\n    If the corresponding bit in the multiplier is 0, the partial product is set to 0 ('d0).<br>\n    The partial products are then added to obtain the final product.<br>\n    The module uses registers to store the intermediate sum values.<br>\n    On the positive edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the module performs add operations.<br>\n    If the reset signal (rst_n) is low, indicating a reset condition, the registers are set to 0.<br>\n    If the reset signal (rst_n) is high, the registers are updated with the sum of the corresponding partial products.<br>\n    On the positive edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the module calculates the final product.<br>\n    If the reset signal (rst_n) is low, indicating a reset condition, the product output (mul_out) is set to 0.<br>\n    If the reset signal (rst_n) is high, the product output (mul_out) is updated with the sum of registers.<br>\n    </implementation>\n</module>",
+    "final_status": "pass",
+    "sc_trial": 4,
+    "ts_trial": 1,
+    "total_iter": 5,
+    "gvd": "module multi_pipe_4bit(\n    input clk,\n    input rst_n,\n    input [3:0] mul_a,\n    input [3:0] mul_b,\n    output reg [7:0] mul_out\n);\n\nparameter SIZE = 4;\n\nreg [SIZE-1:0] reg1, reg2, reg3, reg4;\nreg [SIZE:0] reg5, reg6, reg7;\nreg [(SIZE*(SIZE-1))/2:0] partial_products;\n\nalways @(*) begin\n    if (!rst_n) begin\n        partial_products = 0;\n    end else begin\n        partial_products = {4'b0, mul_a};\n        for (int i = 0; i < SIZE; i++) begin\n            if (mul_b[i]) begin\n                partial_products = partial_products + (mul_a << i);\n            end\n        end\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        reg1 <= 0;\n        reg2 <= 0;\n        reg3 <= 0;\n        reg4 <= 0;\n        reg5 <= 0;\n        reg6 <= 0;\n        reg7 <= 0;\n    end else begin\n        reg1 <= partial_products[(SIZE*(SIZE-1))/2 - 1:(SIZE-1)/2];\n        reg2 <= partial_products[(SIZE-1)/2 - 1:(SIZE-1)%2];\n        reg3 <= partial_products[(SIZE-1)%2 - 1:0];\n        reg4 <= partial_products[SIZE - 1:0];\n        reg5 <= reg1 + reg2;\n        reg6 <= reg3 + reg4;\n        reg7 <= reg5 + reg6;\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        mul_out <= 0;\n    end else begin\n        mul_out <= reg5 + reg7;\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>Implement a 4-bit multiplier with pipeline registers.</description>\n    <ports>\n        <input id=\"clk\">Clock.</input>\n        <input id=\"rst_n\">Active-low reset.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Multiplicand.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Multiplier.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product.</output>\n    </ports>\n    <parameter_description>\n        <param id=\"size\">4</param>\n    </parameter_description>\n    <implementation>\n    The input signals (mul_a and mul_b) are extended by adding \"size\" number of zero bits at the most significant bit positions.<p></p>\n    Multiplication operation:<p></p>\n    The module uses a generate block to perform multiplication for each bit position of the multiplier (mul_b) and generate the partial products.<p></p>\n    For each bit position i from 0 to size-1, the partial product is calculated as follows:<p></p>\n    If the corresponding bit in the multiplier is 1, the multiplicand is left-shifted by i positions.<p></p>\n    If the corresponding bit in the multiplier is 0, the partial product is set to 0 ('d0).<p></p>\n    Add of partial products:<p></p>\n    The module uses registers to store the intermediate sum values.<p></p>\n    On the positive edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the module performs add operations.<p></p>\n    If the reset signal (rst_n) is low, indicating a reset condition, the registers are set to 0.<p></p>\n    If the reset signal (rst_n) is high, the registers are updated with the sum of the corresponding partial products.<p></p>\n    Final product calculation:<p></p>\n    On the positive edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the module calculates the final product.<p></p>\n    If the reset signal (rst_n) is low, indicating a reset condition, the product output (mul_out) is set to 0.<p></p>\n    If the reset signal (rst_n) is high, the product output (mul_out) is updated with the sum of registers.<p></p>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_multi_pipe_4bit_siav59_5/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_pipe_4bit.cpp Vmulti_pipe_4bit__Trace.cpp Vmulti_pipe_4bit__Slow.cpp Vmulti_pipe_4bit__Syms.cpp Vmulti_pipe_4bit__Trace__Slow.cpp > Vmulti_pipe_4bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vmulti_pipe_4bit__ALL.o Vmulti_pipe_4bit__ALL.cpp\nar -cr Vmulti_pipe_4bit__ALL.a Vmulti_pipe_4bit__ALL.o\nranlib Vmulti_pipe_4bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vmulti_pipe_4bit__ALL.a      -o Vmulti_pipe_4bit\nmake[1]: Leaving directory '/tmp/comba_multi_pipe_4bit_siav59_5/obj_dir'\n\n[RUN]\nVmulti_pipe_4bit: ../tb.cpp:121: void multi_pipe_4bitScb::writeOut(multi_pipe_4bitOutTx*): Assertion `tx->mul_out == (in->mul_a * in->mul_b) && \"TODO 3 Failed: Multiplication output logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 10\n# TODO 3 INPUT TRACE: in->mul_a = 0x9, in->mul_b = 0xc\n# TODO 3 OUTPUT TRACE: tx->mul_out = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: mul_out = 0x6c\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: multi_pipe_4bit.v:28:14: Operator ASSIGNDLY expects 6 bits on the Assign RHS, but Assign RHS's VARREF 'reg3' generates 4 bits.\n                                       : ... In instance multi_pipe_4bit\n   28 |         reg6 <= reg3;\n      |              ^~\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: multi_pipe_4bit.v:38:17: Operator ASSIGNDLY expects 8 bits on the Assign RHS, but Assign RHS's VARREF 'reg7' generates 6 bits.\n                                       : ... In instance multi_pipe_4bit\n   38 |         mul_out <= reg7;\n      |                 ^~\n%Warning-UNUSED: multi_pipe_4bit.v:9:29: Signal is not used: 'reg4'\n                                       : ... In instance multi_pipe_4bit\n    9 | reg [3:0] reg1, reg2, reg3, reg4;\n      |                             ^~~~\n\n[RUN]\nVmulti_pipe_4bit: ../tb.cpp:121: void multi_pipe_4bitScb::writeOut(multi_pipe_4bitOutTx*): Assertion `tx->mul_out == (in->mul_a * in->mul_b) && \"TODO 3 Failed: Multiplication output logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 10\n# TODO 3 INPUT TRACE: in->mul_a = 0xe, in->mul_b = 0x2\n# TODO 3 OUTPUT TRACE: tx->mul_out = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: mul_out = 0x1c\n",
     "error": null,
     "edtm": {
-      "TB:Vmulti_pipe_Nbit: ../tb.cpp:N: void multi_pipe_NbitScb::writeOut(multi_pipe_NbitOutTx*): Assertion `tx->mul_out == (in->mul_a * in->mul_b) && \"TODO N Failed: Multiplication output logic result of the Verilog module is incorrect\"' failed.": 5
+      "TopModule.sv:N: error: part select partial_products[0:1] is out of order.": 2,
+      "TopModule.sv:N: error: Could not find variable ``partial_products'' in ``multi_pipe_4bit''": 1
+    },
+    "self_consistency": {
+      "samples_run": 3,
+      "max_samples": 5,
+      "best_sample_idx": 2,
+      "best_temperature": 0.5,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 154.31,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 32,
+          "elapsed_s": 51.46
+        },
+        {
+          "idx": 1,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 26,
+          "elapsed_s": 60.13
+        },
+        {
+          "idx": 2,
+          "T": 0.5,
+          "status": "pass",
+          "sc_trial": 4,
+          "ts_trial": 1,
+          "iter": 5,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 56,
+          "elapsed_s": 42.72
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 2,
+      "commits": 2,
+      "used_fallback": false,
+      "baseline_sc": 1,
+      "final_sc": 1
     }
   }
 }

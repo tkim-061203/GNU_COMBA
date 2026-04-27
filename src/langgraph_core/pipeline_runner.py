@@ -2,11 +2,13 @@
 COMBA Pipeline Runner — Shared module for api_server.py and run.py.
 
 Provides:
-    create_llm()            — Unified LLM factory (StubLLM → COMBALlm → ChatOpenAI)
-    get_pipeline(llm)       — Lazy-init singleton graph
-    run_pipeline_sync()     — Run full pipeline, return final state
-    run_pipeline_streaming() — Yield (node_name, state_update) per step
-    run_pipeline_batch()    — Batch evaluation over module directories
+    create_llm()              — Unified LLM factory (StubLLM → COMBALlm → ChatOpenAI)
+    get_pipeline(llm)         — Lazy-init singleton graph
+    run_pipeline_sync()       — Run full pipeline, return final state
+                                (auto-dispatches to multi_sample if SC=1)
+    run_pipeline_streaming()  — Yield (node_name, state_update) per step
+    run_pipeline_batch()      — Batch evaluation over module directories
+                                (auto-dispatches to multi_sample if SC=1)
 """
 
 import os
@@ -28,6 +30,15 @@ def cprint(*args, **kwargs):
 
 
 # ──────────────────────────────────────────────────────────────
+# Self-Consistency Detection
+# ──────────────────────────────────────────────────────────────
+
+def _is_sc_enabled() -> bool:
+    """Check env flag COMBA_SELF_CONSISTENCY=1."""
+    return os.environ.get("COMBA_SELF_CONSISTENCY", "0") == "1"
+
+
+# ──────────────────────────────────────────────────────────────
 # LLM Factory — Unified fallback chain
 # ──────────────────────────────────────────────────────────────
 
@@ -45,7 +56,6 @@ def create_llm():
         cprint("[COMBA] Using StubLLM (testing mode)")
         return create_stub_llm()
 
-    # Try COMBALlm (dual-GPU) first
     try:
         from llm_interface import COMBALlm
         llm = COMBALlm.from_env()
@@ -54,7 +64,6 @@ def create_llm():
     except Exception as e:
         cprint(f"[COMBA] COMBALlm failed ({e}), falling back to ChatOpenAI")
 
-    # Fallback to ChatOpenAI
     from langchain_openai import ChatOpenAI
     base_url = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
     api_key = os.environ.get("LLM_API_KEY", "ollama")
@@ -72,10 +81,7 @@ _graph = None
 
 
 def get_pipeline(llm=None):
-    """
-    Lazy-init and return (llm, graph) tuple.
-    If llm is provided, use it; otherwise create via create_llm().
-    """
+    """Lazy-init and return (llm, graph) tuple."""
     global _llm, _graph
 
     if _graph is not None and llm is None:
@@ -99,7 +105,7 @@ def reset_pipeline():
 
 
 # ──────────────────────────────────────────────────────────────
-# Pipeline Runners
+# State preparation
 # ──────────────────────────────────────────────────────────────
 
 def _prepare_state(
@@ -113,7 +119,7 @@ def _prepare_state(
 ) -> dict:
     """Build initial COMBAState, optionally injecting XML and a pre-created work_dir."""
     from comba_pipeline import make_initial_state
-    
+
     state = make_initial_state(
         nl_input=nl_input,
         module_name=module_name or "",
@@ -121,7 +127,6 @@ def _prepare_state(
         work_dir=work_dir,
     )
     if not dataset_dir:
-        # Default to the verilog-eval dataset directory if it exists
         base_dir = os.path.dirname(__file__)
         possible_dir = os.path.abspath(os.path.join(base_dir, "../../ext/verilog-eval/dataset_code-complete-iccad2023"))
         if os.path.isdir(possible_dir):
@@ -130,11 +135,9 @@ def _prepare_state(
     if dataset_dir:
         state["dataset_dir"] = dataset_dir
 
-    # Ensure the pre-allocated work_dir exists on disk
     if work_dir:
         os.makedirs(work_dir, exist_ok=True)
 
-    # If XML provided or input looks like XML, inject it
     if xml_description:
         state["xml_description"] = xml_description
         if not module_name:
@@ -146,13 +149,16 @@ def _prepare_state(
         match = re.search(r'<module\s+id="([^"]+)"', nl_input)
         if match:
             state["module_name"] = match.group(1)
-            
-    # If in txt mode and no XML was specified, skip the converter by injecting a placeholder
+
     if desc_type == "txt" and not state.get("xml_description"):
         state["xml_description"] = "(Bypassed XML; Using TXT mode)"
 
     return state
 
+
+# ──────────────────────────────────────────────────────────────
+# Pipeline runners (SC-aware)
+# ──────────────────────────────────────────────────────────────
 
 def run_pipeline_sync(
     nl_input: str,
@@ -163,24 +169,39 @@ def run_pipeline_sync(
     benchmark_id: Optional[str] = None,
     work_dir: Optional[str] = None,
     desc_type: str = "xml",
+    _sc_bypass: bool = False,
 ) -> dict:
     """
-    Run full COMBA pipeline synchronously.
+    Run COMBA pipeline.
 
-    Args:
-        nl_input: Natural language or XML description.
-        module_name: Optional module name override.
-        xml_description: Optional pre-existing XML (skips converter).
-        llm: Optional LLM instance (uses singleton if None).
-        dataset_dir: Path to VerilogEval dataset directory.
-        benchmark_id: Problem ID for testbench lookup.
-        work_dir: Optional pre-created directory for this run (prevents collisions).
+    If COMBA_SELF_CONSISTENCY=1 and not _sc_bypass, dispatches to
+    multi_sample.run_with_self_consistency() for hierarchical best-of-N.
+    Otherwise runs the graph once (legacy single-pass behavior).
 
-    Returns:
-        Final COMBAState dict.
+    `_sc_bypass=True` is used internally by multi_sample to avoid recursion.
     """
+    if _is_sc_enabled() and not _sc_bypass:
+        try:
+            from multi_sample import run_with_self_consistency
+            pipeline_llm, _ = get_pipeline(llm)
+            return run_with_self_consistency(
+                nl_input=nl_input,
+                module_name=module_name,
+                xml_description=xml_description,
+                llm=pipeline_llm,
+                dataset_dir=dataset_dir,
+                benchmark_id=benchmark_id,
+                work_dir=work_dir,
+                desc_type=desc_type,
+            )
+        except ImportError as e:
+            cprint(f"[COMBA] multi_sample not available ({e}), running single-pass")
+
     _, graph = get_pipeline(llm)
-    state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id, work_dir, desc_type)
+    state = _prepare_state(
+        nl_input, module_name, xml_description,
+        dataset_dir, benchmark_id, work_dir, desc_type,
+    )
     config = {"recursion_limit": 100}
     return graph.invoke(state, config)
 
@@ -195,15 +216,7 @@ def run_pipeline_streaming(
 ) -> Iterator[Tuple[str, dict]]:
     """
     Run COMBA pipeline, yielding (node_name, state_update) per step.
-
-    Args:
-        nl_input: Natural language or XML description.
-        module_name: Optional module name override.
-        xml_description: Optional pre-existing XML (skips converter).
-        llm: Optional LLM instance (uses singleton if None).
-
-    Yields:
-        (node_name, state_update) tuples for each pipeline step.
+    Streaming mode does NOT support self-consistency (single-pass only).
     """
     _, graph = get_pipeline(llm)
     state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id)
@@ -215,8 +228,47 @@ def run_pipeline_streaming(
 
 
 # ──────────────────────────────────────────────────────────────
-# Batch Evaluation
+# Batch Evaluation (with SC dispatcher)
 # ──────────────────────────────────────────────────────────────
+
+def _run_one_module(
+    description: str,
+    module_name: str,
+    description_type: str,
+    sample_dataset_dir: Optional[str],
+    pipeline_llm,
+    graph,
+) -> dict:
+    """
+    Run pipeline for one module. Dispatches to multi_sample if SC=1.
+
+    Returns a state dict with optional `self_consistency` metadata.
+    """
+    if _is_sc_enabled():
+        try:
+            from multi_sample import run_with_self_consistency
+            return run_with_self_consistency(
+                nl_input=description,
+                module_name=module_name,
+                xml_description=description if description_type == "xml" else None,
+                llm=pipeline_llm,
+                dataset_dir=sample_dataset_dir,
+                benchmark_id=module_name,
+                desc_type=description_type,
+            )
+        except ImportError as e:
+            cprint(f"[COMBA] multi_sample import failed ({e}), single-pass fallback")
+
+    state = _prepare_state(
+        nl_input=description,
+        module_name=module_name,
+        xml_description=description if description_type == "xml" else None,
+        dataset_dir=sample_dataset_dir,
+        desc_type=description_type,
+    )
+    config = {"recursion_limit": 100}
+    return graph.invoke(state, config)
+
 
 def run_pipeline_batch(
     module_paths: List[str],
@@ -228,24 +280,11 @@ def run_pipeline_batch(
     """
     Run COMBA pipeline on multiple modules (evaluation mode).
 
-    For each module directory:
-      1. Read design_description.{xml|txt}
-      2. Run pipeline with optional repeated samples
-      3. Save per-module JSON report
-      4. Print summary
-
-    Args:
-        module_paths: List of glob patterns or paths to module directories.
-        description_type: "xml", "txt", or custom extension.
-        samples: Number of trials per module.
-        llm: Optional LLM override.
-
-    Returns:
-        Dict mapping module_name → report_data.
+    Auto-dispatches to multi_sample.run_with_self_consistency when
+    COMBA_SELF_CONSISTENCY=1 is set in env.
     """
     from comba_pipeline import make_initial_state
 
-    # Resolve globs
     resolved_paths = []
     for mp in module_paths:
         resolved_paths.extend(glob.glob(mp))
@@ -256,9 +295,12 @@ def run_pipeline_batch(
         cprint("[COMBA] No modules found matching given paths")
         return {}
 
-    # Init pipeline once
     pipeline_llm, graph = get_pipeline(llm)
-    cprint(f"[COMBA] Batch: {total} modules × {samples} sample(s)")
+    sc_active = _is_sc_enabled()
+    cprint(
+        f"[COMBA] Batch: {total} modules × {samples} sample(s) "
+        f"| SC={'ON' if sc_active else 'OFF'}"
+    )
 
     all_results = {}
 
@@ -268,7 +310,6 @@ def run_pipeline_batch(
         cprint(f"  [{idx}/{total}] Module: {module_name}")
         cprint(f"{'═' * 60}")
 
-        # Resolve description file
         if description_type == "xml":
             desc_file = os.path.join(module_path, "design_description.xml")
         elif description_type == "txt":
@@ -288,26 +329,21 @@ def run_pipeline_batch(
 
         for sample_idx in range(1, samples + 1):
             if samples > 1:
-                cprint(f"  ── Sample {sample_idx}/{samples} ──")
+                cprint(f"  ── Trial {sample_idx}/{samples} ──")
 
-            # Determine dataset_dir for this sample if not explicitly provided
             sample_dataset_dir = dataset_dir
             if not sample_dataset_dir and "RTLLM" in module_path:
-                # For RTLLM, testbenches are typically in the module directory itself
                 sample_dataset_dir = module_path
 
-            # Build state using helper to ensure all fields like dataset_dir are set
-            state = _prepare_state(
-                nl_input=description,
-                module_name=module_name,
-                xml_description=description if description_type == "xml" else None,
-                dataset_dir=sample_dataset_dir,
-                desc_type=description_type,
-            )
-
             try:
-                config = {"recursion_limit": 100}
-                final = graph.invoke(state, config)
+                final = _run_one_module(
+                    description=description,
+                    module_name=module_name,
+                    description_type=description_type,
+                    sample_dataset_dir=sample_dataset_dir,
+                    pipeline_llm=pipeline_llm,
+                    graph=graph,
+                )
 
                 result = {
                     "module_name": module_name,
@@ -324,9 +360,26 @@ def run_pipeline_batch(
                     "edtm": final.get("edtm", {}),
                 }
 
+                # Preserve SC metadata for analyze_self_consistency.py
+                if "self_consistency" in final:
+                    result["self_consistency"] = final["self_consistency"]
+                # Preserve guard summary
+                if "guard_summary" in final:
+                    result["guard_summary"] = final["guard_summary"]
+
                 status = result["final_status"]
                 emoji = "🎉" if status == "pass" else "❌"
-                cprint(f"  {emoji} Result: {status} | SC:{result['sc_trial']} TS:{result['ts_trial']}")
+
+                sc_meta = result.get("self_consistency")
+                if sc_meta:
+                    cprint(
+                        f"  {emoji} Result: {status} | SC:{result['sc_trial']} "
+                        f"TS:{result['ts_trial']} | "
+                        f"BoN: {sc_meta['samples_run']}/{sc_meta['max_samples']} "
+                        f"(best=s{sc_meta['best_sample_idx']})"
+                    )
+                else:
+                    cprint(f"  {emoji} Result: {status} | SC:{result['sc_trial']} TS:{result['ts_trial']}")
 
             except Exception as e:
                 result = {
@@ -341,7 +394,6 @@ def run_pipeline_batch(
 
             sample_results.append(result)
 
-        # Save per-module report
         reports_dir = os.path.join(module_path, "reports")
         os.makedirs(reports_dir, exist_ok=True)
 
@@ -349,6 +401,7 @@ def run_pipeline_batch(
         report_data = {
             "module_name": module_name,
             "description_type": description_type,
+            "self_consistency_enabled": sc_active,
             "samples": sample_results if samples > 1 else sample_results[0],
         }
 
@@ -358,35 +411,39 @@ def run_pipeline_batch(
         cprint(f"  📄 Report saved: {report_path}")
         all_results[module_name] = report_data
 
-    # Summary
     cprint(f"\n{'═' * 60}")
     cprint("  SUMMARY")
     cprint(f"{'═' * 60}")
     pass_count = 0
+    sc_recovered = 0
     for name, data in all_results.items():
         if isinstance(data["samples"], list):
             passed_samples = [x for x in data["samples"] if x.get("final_status") == "pass"]
             r = passed_samples[0] if passed_samples else data["samples"][0]
         else:
             r = data["samples"]
-            
+
         status = r.get("final_status", "?")
         if status == "pass":
             pass_count += 1
+            sc_meta = r.get("self_consistency")
+            if sc_meta and sc_meta.get("best_sample_idx", 0) > 0:
+                sc_recovered += 1
+
         emoji = "✅" if status == "pass" else "❌"
         cprint(f"  {emoji} {name}: {status} (SC:{r.get('sc_trial',0)} TS:{r.get('ts_trial',0)})")
 
     if total > 0:
         cprint(f"\n  Pass rate: {pass_count}/{total} ({pass_count/total*100:.1f}%)")
+        if sc_active and sc_recovered > 0:
+            cprint(f"  SC recovered: {sc_recovered} module(s) needed Tier 2 retries")
 
-    # Save global summary
     os.makedirs("reports", exist_ok=True)
     summary_path = f"reports/summary_langgraph.{description_type}.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False)
     cprint(f"  📄 Global summary: {summary_path}")
 
-    # Export Markdown summary
     md_path = _export_markdown_summary(all_results, description_type, samples, total)
     cprint(f"  📝 Markdown summary: {md_path}")
 
@@ -403,20 +460,13 @@ def _export_markdown_summary(
     samples: int,
     total: int,
 ) -> str:
-    """
-    Write a human-readable Markdown summary of the batch run.
-
-    File is saved to:
-        reports/summary_langgraph.<description_type>.md
-
-    Returns the path of the written file.
-    """
+    """Write a human-readable Markdown summary of the batch run."""
     import datetime
 
     now = datetime.datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    sc_active = _is_sc_enabled()
 
-    # ── Aggregate stats ──────────────────────────────────────
     pass_count = 0
     fail_sc = 0
     fail_ts = 0
@@ -425,11 +475,12 @@ def _export_markdown_summary(
     total_ts_trials = 0
     total_iters = 0
     counted = 0
+    sc_recovered = 0
+    sc_total_samples = 0
 
     rows = []
     for name, data in all_results.items():
         s = data.get("samples")
-        # Normalise: single-sample run stores a dict, multi stores a list
         if isinstance(s, list):
             passed_samples = [x for x in s if x.get("final_status") == "pass"]
             r = passed_samples[0] if passed_samples else s[0]
@@ -441,10 +492,13 @@ def _export_markdown_summary(
         ts = r.get("ts_trial", 0)
         iters = r.get("total_iter", 0)
         err = r.get("error") or ""
+        sc_meta = r.get("self_consistency") or {}
 
         if status == "pass":
             pass_count += 1
             icon = "✅"
+            if sc_meta.get("best_sample_idx", 0) > 0:
+                sc_recovered += 1
         elif status == "fail_sc":
             fail_sc += 1
             icon = "❌"
@@ -458,20 +512,23 @@ def _export_markdown_summary(
         total_sc_trials += sc
         total_ts_trials += ts
         total_iters += iters
+        if sc_meta.get("samples_run"):
+            sc_total_samples += sc_meta["samples_run"]
         counted += 1
 
-        # Truncate long error strings for the table
         short_err = (err[:60] + "…") if len(err) > 60 else err
+        bon = sc_meta.get("samples_run", 1)
+        best_idx = sc_meta.get("best_sample_idx", 0)
 
-        rows.append((icon, name, status, sc, ts, iters, short_err))
+        rows.append((icon, name, status, sc, ts, iters, bon, best_idx, short_err))
 
     n = counted or 1
     pass_pct = pass_count / n * 100
     avg_sc = total_sc_trials / n
     avg_ts = total_ts_trials / n
     avg_iter = total_iters / n
+    avg_samples = sc_total_samples / n if sc_active else 1.0
 
-    # ── Build Markdown ────────────────────────────────────────
     lines = [
         f"# COMBA Pipeline — Batch Summary",
         f"",
@@ -479,7 +536,8 @@ def _export_markdown_summary(
         f"| --- | ----- |",
         f"| **Run timestamp** | `{timestamp}` |",
         f"| **Description type** | `{description_type}` |",
-        f"| **Samples per module** | {samples} |",
+        f"| **Trials per module** | {samples} |",
+        f"| **Self-consistency** | `{'ON' if sc_active else 'OFF'}` |",
         f"| **Total modules** | {total} |",
         f"| **Passed** | {pass_count} / {total} ({pass_pct:.1f}%) |",
         f"| **Failed (syntax)** | {fail_sc} |",
@@ -488,19 +546,40 @@ def _export_markdown_summary(
         f"| **Avg SC trials** | {avg_sc:.2f} |",
         f"| **Avg TS trials** | {avg_ts:.2f} |",
         f"| **Avg total iterations** | {avg_iter:.2f} |",
+    ]
+    if sc_active:
+        lines.extend([
+            f"| **Avg samples / module** | {avg_samples:.2f} |",
+            f"| **SC-recovered (Tier 2 saved)** | {sc_recovered} |",
+        ])
+
+    lines += [
         f"",
         f"---",
         f"",
         f"## Per-Module Results",
         f"",
-        f"| # | Status | Module | Final Status | SC Trials | TS Trials | Total Iter | Error |",
-        f"| - | ------ | ------ | ------------ | --------- | --------- | ---------- | ----- |",
     ]
 
-    for idx, (icon, name, status, sc, ts, iters, err) in enumerate(rows, 1):
-        lines.append(
-            f"| {idx} | {icon} | `{name}` | `{status}` | {sc} | {ts} | {iters} | {err} |"
-        )
+    if sc_active:
+        lines += [
+            f"| # | Status | Module | Final | SC | TS | Iter | BoN | Best | Error |",
+            f"| - | ------ | ------ | ----- | -- | -- | ---- | --- | ---- | ----- |",
+        ]
+        for idx, (icon, name, status, sc, ts, iters, bon, best_idx, err) in enumerate(rows, 1):
+            lines.append(
+                f"| {idx} | {icon} | `{name}` | `{status}` | {sc} | {ts} | "
+                f"{iters} | {bon} | s{best_idx} | {err} |"
+            )
+    else:
+        lines += [
+            f"| # | Status | Module | Final Status | SC Trials | TS Trials | Total Iter | Error |",
+            f"| - | ------ | ------ | ------------ | --------- | --------- | ---------- | ----- |",
+        ]
+        for idx, (icon, name, status, sc, ts, iters, bon, best_idx, err) in enumerate(rows, 1):
+            lines.append(
+                f"| {idx} | {icon} | `{name}` | `{status}` | {sc} | {ts} | {iters} | {err} |"
+            )
 
     lines += [
         f"",
@@ -512,7 +591,6 @@ def _export_markdown_summary(
 
     md_content = "\n".join(lines)
 
-    # ── Write file ────────────────────────────────────────────
     os.makedirs("reports", exist_ok=True)
     md_path = f"reports/summary_langgraph.{description_type}.md"
     with open(md_path, "w", encoding="utf-8") as f:

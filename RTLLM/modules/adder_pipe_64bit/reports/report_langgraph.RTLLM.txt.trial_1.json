@@ -1,6 +1,7 @@
 {
   "module_name": "adder_pipe_64bit",
   "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "adder_pipe_64bit",
     "description_type": "RTLLM.txt",
@@ -8,13 +9,91 @@
     "sc_trial": 5,
     "ts_trial": 5,
     "total_iter": 10,
-    "gvd": "module adder_pipe_64bit(\n    input clk,\n    input rst_n,\n    input i_en,\n    input [63:0] adda,\n    input [63:0] addb,\n    output [64:0] result,\n    output o_en\n);\n\nreg [63:0] adda_reg, addb_reg;\nreg [64:0] result_reg;\nreg o_en_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        adda_reg <= 64'b0;\n        addb_reg <= 64'b0;\n        result_reg <= 65'b0;\n        o_en_reg <= 1'b0;\n    end\n    else if (i_en) begin\n        adda_reg <= adda;\n        addb_reg <= addb;\n        result_reg <= adda_reg + addb_reg;\n        o_en_reg <= 1'b1;\n    end\n    else begin\n        o_en_reg <= 1'b0;\n    end\nend\n\nassign result = result_reg;\nassign o_en = o_en_reg;\n\nendmodule\n",
-    "xml_description": "<module id=\"adder_pipe_64bit\">\n    <description>Implement a module of a 64-bit ripple carry adder, which includes several registers to enable the pipeline stages.</description>\n    <ports>\n        <input id=\"clk\">Clock input</input>\n        <input id=\"rst_n\">Active low reset signal</input>\n        <input id=\"i_en\">Enable signal for addition operation</input>\n        <input id=\"adda\" width_description=\"[63:0]\">64-bit input operand A</input>\n        <input id=\"addb\" width_description=\"[63:0]\">64-bit input operand B</input>\n        <output id=\"result\" width_description=\"[64:0]\">65-bit output representing the sum of adda and addb.</output>\n        <output id=\"o_en\">Output enable signal.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"N\" value_description=\"1\">Pipeline stage parameter</parameter>\n    </parameter_description>\n    <implementation>\n        <p>For pipeline stages </p>\n        <p>1. Registers are added to enable the pipeline stages.</p>\n        <p>2. The registers are controlled by the clock and reset signals.</p>\n        <p>3. The sum values for each pipeline stage are calculated by adding the corresponding input operands and carry values.</p>\n        <p>4. The output enable signal is updated based on the pipeline stages and is synchronized with the clock and reset signals.</p>\n    </implementation>\n</module>",
+    "gvd": "module adder_pipe_64bit(\n    input clk,\n    input rst_n,\n    input i_en,\n    input [63:0] adda,\n    input [63:0] addb,\n    output [64:0] result,\n    output o_en\n);\n\nreg [63:0] adda_reg, addb_reg;\nreg i_en_reg;\nreg [64:0] result_reg;\nreg o_en_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg <= 64'b0;\n        addb_reg <= 64'b0;\n        i_en_reg <= 1'b0;\n        result_reg <= 65'b0;\n        o_en_reg <= 1'b0;\n    end else begin\n        adda_reg <= adda;\n        addb_reg <= addb;\n        i_en_reg <= i_en;\n        result_reg <= adda_reg + addb_reg;\n        o_en_reg <= i_en_reg;\n    end\nend\n\nassign result = result_reg;\nassign o_en = o_en_reg;\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_pipe_64bit\">\n    <description>Implement a 64-bit ripple carry adder, which includes several registers to enable the pipeline stages.</description>\n    <ports>\n        <input id=\"clk\">Clock input</input>\n        <input id=\"rst_n\">Active low reset signal</input>\n        <input id=\"i_en\">Enable signal for addition operation</input>\n        <input id=\"adda\" width_description=\"[63:0]\">64-bit input operand A</input>\n        <input id=\"addb\" width_description=\"[63:0]\">64-bit input operand B</input>\n        <output id=\"result\" width_description=\"[64:0]\">65-bit output representing the sum of adda and addb.</output>\n        <output id=\"o_en\">Output enable signal.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"REG1\" value_description=\"[63:0]\">Register to store the input addend A.</parameter>\n        <parameter name=\"REG2\" value_description=\"[63:0]\">Register to store the input addend B.</parameter>\n        <parameter name=\"REG3\" value_description=\"[64:0]\">Register to store the input carry.</parameter>\n        <parameter name=\"REG4\" value_description=\"[63:0]\">Register to store the input addend A for the second stage.</parameter>\n        <parameter name=\"REG5\" value_description=\"[63:0]\">Register to store the input addend B for the second stage.</parameter>\n        <parameter name=\"REG6\" value_description=\"[64:0]\">Register to store the input carry for the second stage.</parameter>\n        <parameter name=\"REG7\" value_description=\"[63:0]\">Register to store the input addend A for the third stage.</parameter>\n        <parameter name=\"REG8\" value_description=\"[63:0]\">Register to store the input addend B for the third stage.</parameter>\n        <parameter name=\"REG9\" value_description=\"[64:0]\">Register to store the input carry for the third stage.</parameter>\n        <parameter name=\"REG10\" value_description=\"[63:0]\">Register to store the input addend A for the fourth stage.</parameter>\n        <parameter name=\"REG11\" value_description=\"[63:0]\">Register to store the input addend B for the fourth stage.</parameter>\n        <parameter name=\"REG12\" value_description=\"[64:0]\">Register to store the input carry for the fourth stage.</parameter>\n        <parameter name=\"REG13\" value_description=\"[63:0]\">Register to store the input addend A for the fifth stage.</parameter>\n        <parameter name=\"REG14\" value_description=\"[63:0]\">Register to store the input addend B for the fifth stage.</parameter>\n        <parameter name=\"REG15\" value_description=\"[64:0]\">Register to store the input carry for the fifth stage.</parameter>\n        <parameter name=\"REG16\" value_description=\"[63:0]\">Register to store the input addend A for the sixth stage.</parameter>\n        <parameter name=\"REG17\" value_description=\"[63:0]\">Register to store the input addend B for the sixth stage.</parameter>\n        <parameter name=\"REG18\" value_description=\"[64:0]\">Register to store the input carry for the sixth stage.</parameter>\n        <parameter name=\"REG19\" value_description=\"[63:0]\">Register to store the input addend A for the seventh stage.</parameter>\n        <parameter name=\"REG20\" value_description=\"[63:0]\">Register to store the input addend B for the seventh stage.</parameter>\n        <parameter name=\"REG21\" value_description=\"[64:0]\">Register to store the input carry for the seventh stage.</parameter>\n        <parameter name=\"REG22\" value_description=\"[63:0]\">Register to store the input addend A for the eighth stage.</parameter>\n        <parameter name=\"REG23\" value_description=\"[63:0]\">Register to store the input addend B for the eighth stage.</parameter>\n        <parameter name=\"REG24\" value_description=\"[64:0]\">Register to store the input carry for the eighth stage.</parameter>\n        <parameter name=\"REG25\" value_description=\"[63:0]\">Register to store the input addend A for the ninth stage.</parameter>\n        <parameter name=\"REG26\" value_description=\"[63:0]\">Register to store the input addend B for the ninth stage.</parameter>\n        <parameter name=\"REG27\" value_description=\"[64:0]\">Register to store the input carry for the ninth stage.</parameter>\n        <parameter name=\"REG28\" value_description=\"[63:0]\">Register to store the input addend A for the tenth stage.</parameter>\n        <parameter name=\"REG29\" value_description=\"[63:0]\">Register to store the input addend B for the tenth stage.</parameter>\n        <parameter name=\"REG30\" value_description=\"[64:0]\">Register to store the input carry for the tenth stage.</parameter>\n        <parameter name=\"REG31\" value_description=\"[63:0]\">Register to store the input addend A for the eleventh stage.</parameter>\n        <parameter name=\"REG32\" value_description=\"[63:0]\">Register to store the input addend B for the eleventh stage.</parameter>\n        <parameter name=\"REG33\" value_description=\"[64:0]\">Register to store the input carry for the eleventh stage.</parameter>\n        <parameter name=\"REG34\" value_description=\"[63:0]\">Register to store the input addend A for the twelfth stage.</parameter>\n        <parameter name=\"REG35\" value_description=\"[63:0]\">Register to store the input addend B for the twelfth stage.</parameter>\n        <parameter name=\"REG36\" value_description=\"[64:0]\">Register to store the input carry for the twelfth stage.</parameter>\n        <parameter name=\"REG37\" value_description=\"[63:0]\">Register to store the input addend A for the thirteenth stage.</parameter>\n        <parameter name=\"REG38\" value_description=\"[63:0]\">Register to store the input addend B for the thirteenth stage.</parameter>\n        <parameter name=\"REG39\" value_description=\"[64:0]\">Register to store the input carry for the thirteenth stage.</parameter>\n        <parameter name=\"REG40\" value_description=\"[63:0]\">Register to store the input addend A for the fourth stage.</parameter>\n        <parameter name=\"REG41\" value_description=\"[63:0]\">Register to store the input addend B for the fourth stage.</parameter>\n        <parameter name=\"REG42\" value_description=\"[64:0]\">Register to store the input carry for the fourth stage.</parameter>\n    </parameter_description>\n    <logic_description>\n        <sequential_logic>\n            <reg id=\"REG1\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend A.</reg>\n            <reg id=\"REG2\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend B.</reg>\n            <reg id=\"REG3\" type=\"reg\" width_description=\"[64:0]\">Register to store the input carry.</reg>\n            <reg id=\"REG4\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend A for the second stage.</reg>\n            <reg id=\"REG5\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend B for the second stage.</reg>\n            <reg id=\"REG6\" type=\"reg\" width_description=\"[64:0]\">Register to store the input carry for the second stage.</reg>\n            <reg id=\"REG7\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend A for the third stage.</reg>\n            <reg id=\"REG8\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend B for the third stage.</reg>\n            <reg id=\"REG9\" type=\"reg\" width_description=\"[64:0]\">Register to store the input carry for the third stage.</reg>\n            <reg id=\"REG10\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend A for the fourth stage.</reg>\n            <reg id=\"REG11\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend B for the fourth stage.</reg>\n            <reg id=\"REG12\" type=\"reg\" width_description=\"[64:0]\">Register to store the input carry for the fourth stage.</reg>\n            <reg id=\"REG13\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend A for the fifth stage.</reg>\n            <reg id=\"REG14\" type=\"reg\" width_description=\"[63:0]\">Register to store the input addend B for the fifth stage.</reg>\n            <reg",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n../tb.cpp: In member function ‘void adder_pipe_64bitOutMon::monitor()’:\n../tb.cpp:212:49: error: request for member ‘m_storage’ in ‘((adder_pipe_64bitOutMon*)this)->adder_pipe_64bitOutMon::dut->Vadder_pipe_64bit::result’, which is of non-class type ‘WData [3]’ {aka ‘unsigned int [3]’}\n  212 |         tx->result = (((__uint128_t)dut->result.m_storage[2]) << 64) | (((__uint128_t)dut->result.m_storage[1]) << 32) | dut->result.m_storage[0];\n      |                                                 ^~~~~~~~~\n../tb.cpp:212:99: error: request for member ‘m_storage’ in ‘((adder_pipe_64bitOutMon*)this)->adder_pipe_64bitOutMon::dut->Vadder_pipe_64bit::result’, which is of non-class type ‘WData [3]’ {aka ‘unsigned int [3]’}\n  212 |         tx->result = (((__uint128_t)dut->result.m_storage[2]) << 64) | (((__uint128_t)dut->result.m_storage[1]) << 32) | dut->result.m_storage[0];\n      |                                                                                                   ^~~~~~~~~\n../tb.cpp:212:134: error: request for member ‘m_storage’ in ‘((adder_pipe_64bitOutMon*)this)->adder_pipe_64bitOutMon::dut->Vadder_pipe_64bit::result’, which is of non-class type ‘WData [3]’ {aka ‘unsigned int [3]’}\n  212 |         tx->result = (((__uint128_t)dut->result.m_storage[2]) << 64) | (((__uint128_t)dut->result.m_storage[1]) << 32) | dut->result.m_storage[0];\n      |                                                                                                                                      ^~~~~~~~~\nmake[1]: *** [Vadder_pipe_64bit.mk:59: tb.o] Error 1\nmake[1]: *** Waiting for unfinished jobs....\n%Error: make -C obj_dir -f Vadder_pipe_64bit.mk -j exitted with 2\n%Error: Command Failed /usr/bin/verilator_bin --cc --exe --build -j --trace -Wall -Wno-fatal --top-module adder_pipe_64bit adder_pipe_64bit.v tb.cpp\nmake[1]: Entering directory '/tmp/comba_adder_pipe_64bit_xfvv28cc/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_pipe_64bit.cpp Vadder_pipe_64bit__Trace.cpp Vadder_pipe_64bit__Slow.cpp Vadder_pipe_64bit__Syms.cpp Vadder_pipe_64bit__Trace__Slow.cpp > Vadder_pipe_64bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_pipe_64bit__ALL.o Vadder_pipe_64bit__ALL.cpp\nmake[1]: Leaving directory '/tmp/comba_adder_pipe_64bit_xfvv28cc/obj_dir'\n",
+    "tb_log": "[COMPILE verilator+cpp]\n../tb.cpp: In member function ‘void adder_pipe_64bitOutMon::monitor()’:\n../tb.cpp:212:49: error: request for member ‘m_storage’ in ‘((adder_pipe_64bitOutMon*)this)->adder_pipe_64bitOutMon::dut->Vadder_pipe_64bit::result’, which is of non-class type ‘WData [3]’ {aka ‘unsigned int [3]’}\n  212 |         tx->result = (((__uint128_t)dut->result.m_storage[2]) << 64) | (((__uint128_t)dut->result.m_storage[1]) << 32) | dut->result.m_storage[0];\n      |                                                 ^~~~~~~~~\n../tb.cpp:212:99: error: request for member ‘m_storage’ in ‘((adder_pipe_64bitOutMon*)this)->adder_pipe_64bitOutMon::dut->Vadder_pipe_64bit::result’, which is of non-class type ‘WData [3]’ {aka ‘unsigned int [3]’}\n  212 |         tx->result = (((__uint128_t)dut->result.m_storage[2]) << 64) | (((__uint128_t)dut->result.m_storage[1]) << 32) | dut->result.m_storage[0];\n      |                                                                                                   ^~~~~~~~~\n../tb.cpp:212:134: error: request for member ‘m_storage’ in ‘((adder_pipe_64bitOutMon*)this)->adder_pipe_64bitOutMon::dut->Vadder_pipe_64bit::result’, which is of non-class type ‘WData [3]’ {aka ‘unsigned int [3]’}\n  212 |         tx->result = (((__uint128_t)dut->result.m_storage[2]) << 64) | (((__uint128_t)dut->result.m_storage[1]) << 32) | dut->result.m_storage[0];\n      |                                                                                                                                      ^~~~~~~~~\nmake[2]: *** [Vadder_pipe_64bit.mk:59: tb.o] Error 1\nmake[2]: *** Waiting for unfinished jobs....\n%Error: make -C obj_dir -f Vadder_pipe_64bit.mk -j exitted with 2\n%Error: Command Failed /usr/bin/verilator_bin --cc --exe --build -j --trace -Wall -Wno-fatal --top-module adder_pipe_64bit adder_pipe_64bit.v tb.cpp\n",
     "error": null,
     "edtm": {
       "TB:Verilator compilation failed": 5
+    },
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 2,
+      "best_temperature": 0.5,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "total_elapsed_s": 324.71,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 33,
+          "elapsed_s": 52.12
+        },
+        {
+          "idx": 1,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 36,
+          "elapsed_s": 109.63
+        },
+        {
+          "idx": 2,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 35,
+          "elapsed_s": 58.88
+        },
+        {
+          "idx": 3,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 63,
+          "elapsed_s": 52.03
+        },
+        {
+          "idx": 4,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 45,
+          "elapsed_s": 52.03
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 8,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
     }
   }
 }

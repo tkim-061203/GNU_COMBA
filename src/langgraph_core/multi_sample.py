@@ -285,6 +285,7 @@ def run_with_self_consistency(
                 benchmark_id=benchmark_id,
                 work_dir=sample_work_dir,
                 desc_type=desc_type,
+                _sc_bypass=True,   # prevent infinite recursion
             )
         except Exception as e:
             logger.error(f"[multi_sample] sample {idx} crashed: {e}")

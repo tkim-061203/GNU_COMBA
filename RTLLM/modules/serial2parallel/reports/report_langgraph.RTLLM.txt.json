@@ -1,20 +1,52 @@
 {
   "module_name": "serial2parallel",
   "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "serial2parallel",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 3,
-    "ts_trial": 3,
-    "total_iter": 6,
-    "gvd": "module serial2parallel(\n    input clk,\n    input rst_n,\n    input din_serial,\n    input din_valid,\n    output reg [7:0] dout_parallel,\n    output reg dout_valid\n);\n\nreg [3:0] count;\nreg [7:0] shift_reg;\n\nalways @(posedge clk) begin\n    if (!rst_n) begin\n        count <= 0;\n        shift_reg <= 0;\n        dout_parallel <= 0;\n        dout_valid <= 0;\n    end else if (din_valid) begin\n        if (count == 4'd8) begin\n            shift_reg <= {shift_reg[6:0], din_serial};\n            count <= 0;\n            dout_parallel <= shift_reg;\n            dout_valid <= 1'b1;\n        end else begin\n            shift_reg <= {shift_reg[6:0], din_serial};\n            count <= count + 1;\n            dout_valid <= 1'b0;\n        end\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"serial2parallel\">\n    <description>Implement a series-parallel conversion circuit.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data.</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"cnt\">Counter to keep track of the number of serial input data bits.</parameter>\n    </parameter_description>\n    <implementation>\n        <sequential_logic>\n            <if>\n                <condition>\n                    <equals>\n                        <input_ref id=\"rst_n\"/>\n                        <bit>0</bit>\n                    </equals>\n                </condition>\n                <then>\n                    <assign>\n                        <output_ref id=\"cnt\"/> = 4'b0000;\n                    </assign>\n                    <assign>\n                        <output_ref id=\"dout_parallel\"/> = 8'b00000000;\n                    </assign>\n                    <assign>\n                        <output_ref id=\"dout_valid\"/> = 1'b0;\n                    </assign>\n                </then>\n                <else>\n                    <if>\n                        <condition>\n                            <equals>\n                                <input_ref id=\"din_valid\"/>\n                                <bit>1</bit>\n                            </equals>\n                        </condition>\n                        <then>\n                            <assign>\n                                <output_ref id=\"cnt\"/> = <output_ref id=\"cnt\"/> + 4'b0001;\n                            </assign>\n                            <if>\n                                <condition>\n                                    <equals>\n                                        <output_ref id=\"cnt\"/> \n                                        <binary>1000</binary>\n                                    </equals>\n                                </condition>\n                                <then>\n                                    <assign>\n                                        <output_ref id=\"dout_parallel\"/> = <shift><input_ref id=\"dout_parallel\"/> <input_ref id=\"din_serial\"/></shift>;\n                                    </assign>\n                                    <assign>\n                                        <output_ref id=\"dout_valid\"/> = 1'b1;\n                                    </assign>\n                                    <assign>\n                                        <output_ref id=\"cnt\"/> = 4'b0000;\n                                    </assign>\n                                </then>\n                                <else>\n                                    <assign>\n                                        <output_ref id=\"dout_valid\"/> = 1'b0;\n                                    </assign>\n                                </else>\n                            </if>\n                        </then>\n                    </if>\n                </else>\n            </if>\n        </sequential_logic>\n    </implementation>\n</module>",
+    "sc_trial": 5,
+    "ts_trial": 5,
+    "total_iter": 10,
+    "gvd": "module serial2parallel(\n    input clk,\n    input rst_n,\n    input din_serial,\n    input din_valid,\n    output reg [7:0] dout_parallel,\n    output reg dout_valid\n);\n\nreg [2:0] count;\nreg [7:0] shift_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        count <= 0;\n        shift_reg <= 0;\n        dout_parallel <= 0;\n        dout_valid <= 0;\n    end else begin\n        if (din_valid) begin\n            shift_reg <= {shift_reg[6:0], din_serial};\n            count <= count + 1;\n            if (count == 7) begin\n                dout_parallel <= shift_reg;\n                dout_valid <= 1;\n            end else begin\n                dout_valid <= 0;\n            end\n        end else begin\n            dout_valid <= 0;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"serial2parallel\">\n    <description>Implement a series-parallel conversion circuit.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data.</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"cnt\">Counter to count the number of input data.</parameter>\n    </parameter_description>\n    <logic_description>\n        <reg type=\"sequential_logic\" id=\"cnt\" width_description=\"[3:0]\">Counter to count the number of input data.</reg>\n    </logic_description>\n    <implementation>\n        <case>\n            <item>\n                <condition>\n                    <and>\n                        <item><signal>reset</signal></item>\n                    </and>\n                </condition>\n                <action>\n                    <sequential>\n                        <item><assign><signal>cnt</signal> = <value>0</value></assign></item>\n                        <item><assign><signal>dout_valid</signal> = <value>0</value></assign></item>\n                    </sequential>\n                </action>\n            </item>\n            <item>\n                <condition>\n                    <and>\n                        <item><signal>reset</signal> is not active</item>\n                        <item><signal>din_valid</signal> = <value>1</value></item>\n                    </and>\n                </condition>\n                <action>\n                    <sequential>\n                        <item><assign><signal>cnt</signal> = <signal>cnt</signal> + <value>1</value></assign></item>\n                        <item>\n                            <assign>\n                                <signal>dout_parallel</signal>[<signal>cnt</signal>] = <signal>din_serial</signal>\n                            </assign>\n                        </item>\n                        <item>\n                            <if>\n                                <cond><signal>cnt</signal> == <value>3'b111</value></cond>\n                                <true>\n                                    <assign><signal>dout_valid</signal> = <value>1</value></assign>\n                                </true>\n                                <false>\n                                    <assign><signal>dout_valid</signal> = <value>0</value></assign>\n                                </false>\n                            </if>\n                        </item>\n                    </sequential>\n                </action>\n            </item>\n        </case>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_serial2parallel_mr9zmkxz/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel__Trace.cpp Vserial2parallel__Slow.cpp Vserial2parallel__Syms.cpp Vserial2parallel__Trace__Slow.cpp > Vserial2parallel__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\nar -cr Vserial2parallel__ALL.a Vserial2parallel__ALL.o\nranlib Vserial2parallel__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vserial2parallel__ALL.a      -o Vserial2parallel\nmake[1]: Leaving directory '/tmp/comba_serial2parallel_mr9zmkxz/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:VserialNparallel: ../tb.cpp:N: void serialNparallelScb::writeOut(serialNparallelOutTx*): Assertion `tx->dout_parallel == out_tx_ref.dout_parallel && \"TODO N Failed: Parallel logic result of the Verilog module is incorrect\"' failed.": 2
+      "TB:VserialNparallel: ../tb.cpp:N: void serialNparallelScb::writeOut(serialNparallelOutTx*): Assertion `tx->dout_parallel == out_tx_ref.dout_parallel && \"TODO N Failed: Parallel logic result of the Verilog module is incorrect\"' failed.": 2,
+      "TB:VserialNparallel: ../tb.cpp:N: void serialNparallelScb::writeOut(serialNparallelOutTx*): Assertion `tx->dout_parallel == N && tx->dout_valid == N && \"TODO N Failed: Reset logic result of the Verilog module is incorrect\"' failed.": 2
+    },
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 31.55,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 35,
+          "elapsed_s": 31.55
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 8,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
     }
   }
 }
