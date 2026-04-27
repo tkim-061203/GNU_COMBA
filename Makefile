@@ -40,6 +40,25 @@ LANGGRAPH_SAMPLES := 1
 # Override at command line:  make RTLLM TS_SIMULATOR=iverilog
 TS_SIMULATOR      := iverilog
 
+# ── Self-Consistency (hierarchical best-of-N) ──────────────────────────────
+# Wraps Pipeline 3 with N-sample selection. Tier 1 = T=0 baseline, Tier 2 =
+# diverse retries with temperature schedule. Early exit on first PASS.
+# Override at command line: make RTLLM SC=1 SC_MAX=8
+SC                := 0
+SC_MAX            := 5
+SC_EARLY_EXIT     := 1
+SC_WALL_BUDGET    := 0
+SC_DIVERSITY      := 1
+
+# Compose env-vars block prepended to benchmark commands
+SC_ENV = COMBA_SELF_CONSISTENCY=$(SC) COMBA_MAX_SAMPLES=$(SC_MAX) \
+         COMBA_EARLY_EXIT=$(SC_EARLY_EXIT) COMBA_WALL_BUDGET=$(SC_WALL_BUDGET) \
+         COMBA_DIVERSITY_HINTS=$(SC_DIVERSITY)
+
+# ── Report directories (used by analyze targets) ──────────────────────────
+RTLLM_REPORTS_DIR := RTLLM/modules
+VEVAL_REPORTS_DIR := ext/verilog-eval/dataset_spec-to-rtl
+
 # ── Targets ────────────────────────────────────────────────────────────────
 
 .PHONY: default jupyterlab verilog-eval \
@@ -47,7 +66,9 @@ TS_SIMULATOR      := iverilog
         synthesis extract filter \
         langgraph-flow langgraph \
         RTLLM RTLLM-iverilog RTLLM-auto VerilogEval-bench \
-        check-verilator clean-flow clean help
+        RTLLM-sc VerilogEval-sc \
+        analyze-sc analyze-sc-rtllm analyze-sc-veval analyze-enum \
+        check-verilator check-analyzers clean-flow clean help
 
 default:
 	echo $(scripts_dir)/main.py ${GENERATE_FLAGS}
@@ -86,21 +107,58 @@ langgraph:
 # ── RTLLM benchmark targets ────────────────────────────────────────────────
 # Default RTLLM target uses Verilator (better SV support for RTLLM testbenches).
 # Pipeline auto-falls-back to iverilog if Verilator is < 5.x or missing.
+# All targets thread SC_ENV; set SC=1 to enable self-consistency.
 RTLLM:
-	@echo "=== Running benchmark for RTLLM dataset (simulator: verilator) ==="
-	COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@echo "=== Running benchmark for RTLLM dataset (sim: verilator, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@$(MAKE) -s analyze-sc-rtllm
 
 RTLLM-iverilog:
-	@echo "=== Running benchmark for RTLLM dataset (simulator: iverilog) ==="
-	COMBA_TS_SIMULATOR=iverilog conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@echo "=== Running benchmark for RTLLM dataset (sim: iverilog, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=iverilog conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@$(MAKE) -s analyze-sc-rtllm
 
 RTLLM-auto:
-	@echo "=== Running benchmark for RTLLM dataset (auto-pick: verilator) ==="
-	COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@echo "=== Running benchmark for RTLLM dataset (auto-pick, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@$(MAKE) -s analyze-sc-rtllm
 
 VerilogEval-bench:
-	@echo "=== Running benchmark for VerilogEval dataset (simulator: $(TS_SIMULATOR)) ==="
-	COMBA_TS_SIMULATOR=$(TS_SIMULATOR) conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset verilogeval --trials 5
+	@echo "=== Running benchmark for VerilogEval dataset (sim: $(TS_SIMULATOR), SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=$(TS_SIMULATOR) conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset verilogeval --trials 5
+	@$(MAKE) -s analyze-sc-veval
+
+# ── Convenience SC-enabled variants (force SC=1) ───────────────────────────
+RTLLM-sc:
+	@$(MAKE) -s RTLLM SC=1
+
+VerilogEval-sc:
+	@$(MAKE) -s VerilogEval-bench SC=1
+
+# ── Post-benchmark analyzers ───────────────────────────────────────────────
+# `analyze-sc` runs only if SC was enabled for the previous benchmark.
+# It silently no-ops on legacy reports lacking self_consistency metadata.
+analyze-sc: analyze-sc-rtllm analyze-sc-veval
+
+analyze-sc-rtllm:
+	@if [ "$(SC)" = "1" ] && [ -d "$(RTLLM_REPORTS_DIR)" ]; then \
+		echo ""; \
+		echo "=== Self-Consistency Analysis: RTLLM ==="; \
+		python3 analyze_self_consistency.py $(RTLLM_REPORTS_DIR) \
+			--out reports/analyze_sc_rtllm.json || true; \
+	fi
+
+analyze-sc-veval:
+	@if [ "$(SC)" = "1" ] && [ -d "$(VEVAL_REPORTS_DIR)" ]; then \
+		echo ""; \
+		echo "=== Self-Consistency Analysis: VerilogEval ==="; \
+		python3 analyze_self_consistency.py $(VEVAL_REPORTS_DIR) \
+			--out reports/analyze_sc_veval.json || true; \
+	fi
+
+analyze-enum:
+	@echo "=== Enum / Port Mismatch Analysis: RTLLM ==="
+	@python3 analyze_enum_bug.py $(RTLLM_REPORTS_DIR) || true
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -184,6 +242,17 @@ check-verilator:
 	@verilator --version | grep -qE 'Verilator [5-9]' && echo "✅ Verilator >= 5.x" \
 	    || echo "⚠️  Verilator < 5.x detected — pipeline will auto-fall-back to iverilog for SV testbenches"
 
+# ── Analyzer scripts presence check ────────────────────────────────────────
+## Verify analyzer scripts are present at project root before benchmark.
+check-analyzers:
+	@echo "--- Checking analyzer scripts ---"
+	@test -f analyze_self_consistency.py && echo "✅ analyze_self_consistency.py" \
+	    || echo "⚠️  analyze_self_consistency.py missing (analyze-sc target will no-op)"
+	@test -f analyze_enum_bug.py && echo "✅ analyze_enum_bug.py" \
+	    || echo "⚠️  analyze_enum_bug.py missing (analyze-enum target will no-op)"
+	@test -f src/langgraph_core/multi_sample.py && echo "✅ multi_sample.py" \
+	    || echo "⚠️  src/langgraph_core/multi_sample.py missing (SC=1 will fail)"
+
 # ── Cleanup ────────────────────────────────────────────────────────────────
 clean-flow:
 	@echo "Removing .run_* directories and cached cell counts..."
@@ -210,8 +279,19 @@ help:
 	@echo "  RTLLM             Run RTLLM benchmark (simulator: verilator)"
 	@echo "  RTLLM-iverilog    Run RTLLM benchmark (simulator: iverilog)"
 	@echo "  RTLLM-auto        Run RTLLM benchmark (auto-pick simulator)"
+	@echo "  RTLLM-sc          Shortcut: RTLLM with SC=1 enabled"
 	@echo "  VerilogEval-bench Run VerilogEval benchmark (default: $(TS_SIMULATOR))"
+	@echo "  VerilogEval-sc    Shortcut: VerilogEval with SC=1 enabled"
+	@echo ""
+	@echo "Analyzer targets (auto-run after benchmarks when SC=1):"
+	@echo "  analyze-sc        Analyze self-consistency for both benchmarks"
+	@echo "  analyze-sc-rtllm  Analyze RTLLM SC reports → reports/analyze_sc_rtllm.json"
+	@echo "  analyze-sc-veval  Analyze VerilogEval SC reports → reports/analyze_sc_veval.json"
+	@echo "  analyze-enum      Detect enum/port mismatch issues in RTLLM"
+	@echo ""
+	@echo "Environment checks:"
 	@echo "  check-verilator   Verify verilator >=5.x is installed"
+	@echo "  check-analyzers   Verify analyzer scripts + multi_sample.py present"
 	@echo ""
 	@echo "Configure options for Pipeline 1:"
 	@echo "  --with-yosys-path=PATH      (default: $(YOSYS_PATH))"
@@ -231,4 +311,12 @@ help:
 	@echo "  TS_SIMULATOR                (default: $(TS_SIMULATOR))"
 	@echo "  Values: iverilog | verilator | auto"
 	@echo "  Example: make RTLLM TS_SIMULATOR=iverilog"
+	@echo ""
+	@echo "Self-consistency selection (best-of-N):"
+	@echo "  SC                          (default: $(SC), set to 1 to enable)"
+	@echo "  SC_MAX                      (default: $(SC_MAX), max samples per module)"
+	@echo "  SC_EARLY_EXIT               (default: $(SC_EARLY_EXIT))"
+	@echo "  SC_DIVERSITY                (default: $(SC_DIVERSITY), inject hints in Tier 2)"
+	@echo "  SC_WALL_BUDGET              (default: $(SC_WALL_BUDGET), per-module sec, 0=unlimited)"
+	@echo "  Example: make RTLLM SC=1 SC_MAX=8"
 	@echo ""

@@ -1,0 +1,247 @@
+{
+  "totals": {
+    "NO_ENUM": 149,
+    "NO_COMPARISONS": 17,
+    "ENUM_VALUE_MISMATCH": 12,
+    "ENUM_INDEX_BUG": 0,
+    "ENUM_OK": 0
+  },
+  "suspect_modules": {
+    "alu": {
+      "ENUM_VALUE_MISMATCH": 7
+    },
+    "counter_12": {
+      "ENUM_VALUE_MISMATCH": 5,
+      "NO_ENUM": 1
+    }
+  },
+  "details": {
+    "ENUM_INDEX_BUG": [],
+    "ENUM_VALUE_MISMATCH": [
+      {
+        "module": "alu",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "final_status": "fail_ts",
+        "enum_count": 17,
+        "comp_count": 10,
+        "overlap": 6,
+        "missing": [
+          "32'd0",
+          "6'd1",
+          "6'd5",
+          "6'd8"
+        ],
+        "expected_sample": [
+          "6'd0",
+          "6'd15",
+          "6'd2",
+          "6'd3",
+          "6'd32"
+        ]
+      },
+      {
+        "module": "alu",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "final_status": "fail_ts",
+        "enum_count": 17,
+        "comp_count": 11,
+        "overlap": 6,
+        "missing": [
+          "1'd1",
+          "32'd0",
+          "6'd1",
+          "6'd5",
+          "6'd8"
+        ],
+        "expected_sample": [
+          "6'd0",
+          "6'd15",
+          "6'd2",
+          "6'd3",
+          "6'd32"
+        ]
+      },
+      {
+        "module": "alu",
+        "report": "report_langgraph.RTLLM.txt.trial_2.json",
+        "final_status": "fail_ts",
+        "enum_count": 17,
+        "comp_count": 10,
+        "overlap": 6,
+        "missing": [
+          "32'd0",
+          "6'd1",
+          "6'd5",
+          "6'd8"
+        ],
+        "expected_sample": [
+          "6'd0",
+          "6'd15",
+          "6'd2",
+          "6'd3",
+          "6'd32"
+        ]
+      },
+      {
+        "module": "alu",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "final_status": "fail_ts",
+        "enum_count": 17,
+        "comp_count": 10,
+        "overlap": 6,
+        "missing": [
+          "32'd0",
+          "6'd1",
+          "6'd5",
+          "6'd8"
+        ],
+        "expected_sample": [
+          "6'd0",
+          "6'd15",
+          "6'd2",
+          "6'd3",
+          "6'd32"
+        ]
+      },
+      {
+        "module": "alu",
+        "report": "report_langgraph.RTLLM.txt.trial_4.json",
+        "final_status": "fail_ts",
+        "enum_count": 17,
+        "comp_count": 10,
+        "overlap": 6,
+        "missing": [
+          "32'd0",
+          "6'd1",
+          "6'd5",
+          "6'd8"
+        ],
+        "expected_sample": [
+          "6'd0",
+          "6'd15",
+          "6'd2",
+          "6'd3",
+          "6'd32"
+        ]
+      },
+      {
+        "module": "alu",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
+        "final_status": "fail_ts",
+        "enum_count": 17,
+        "comp_count": 10,
+        "overlap": 6,
+        "missing": [
+          "32'd0",
+          "6'd1",
+          "6'd5",
+          "6'd8"
+        ],
+        "expected_sample": [
+          "6'd0",
+          "6'd15",
+          "6'd2",
+          "6'd3",
+          "6'd32"
+        ]
+      },
+      {
+        "module": "alu",
+        "report": "report_langgraph.xml.json",
+        "final_status": "fail_ts",
+        "enum_count": 20,
+        "comp_count": 13,
+        "overlap": 6,
+        "missing": [
+          "32'd0",
+          "6'd1",
+          "6'd10",
+          "6'd11",
+          "6'd5"
+        ],
+        "expected_sample": [
+          "$clog2(depth)",
+          "16",
+          "6'd0",
+          "6'd15",
+          "6'd2"
+        ]
+      },
+      {
+        "module": "counter_12",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "final_status": "pass",
+        "enum_count": 2,
+        "comp_count": 1,
+        "overlap": 0,
+        "missing": [
+          "4'd11"
+        ],
+        "expected_sample": [
+          "0x0",
+          "0x1"
+        ]
+      },
+      {
+        "module": "counter_12",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "final_status": "pass",
+        "enum_count": 2,
+        "comp_count": 1,
+        "overlap": 0,
+        "missing": [
+          "4'd11"
+        ],
+        "expected_sample": [
+          "0x0",
+          "0x1"
+        ]
+      },
+      {
+        "module": "counter_12",
+        "report": "report_langgraph.RTLLM.txt.trial_2.json",
+        "final_status": "pass",
+        "enum_count": 2,
+        "comp_count": 1,
+        "overlap": 0,
+        "missing": [
+          "4'd11"
+        ],
+        "expected_sample": [
+          "0x0",
+          "0x1"
+        ]
+      },
+      {
+        "module": "counter_12",
+        "report": "report_langgraph.RTLLM.txt.trial_4.json",
+        "final_status": "pass",
+        "enum_count": 2,
+        "comp_count": 1,
+        "overlap": 0,
+        "missing": [
+          "4'd11"
+        ],
+        "expected_sample": [
+          "0x0",
+          "0x1"
+        ]
+      },
+      {
+        "module": "counter_12",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
+        "final_status": "pass",
+        "enum_count": 2,
+        "comp_count": 1,
+        "overlap": 0,
+        "missing": [
+          "4'd11"
+        ],
+        "expected_sample": [
+          "0x0",
+          "0x1"
+        ]
+      }
+    ]
+  }
+}

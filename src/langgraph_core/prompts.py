@@ -200,6 +200,34 @@ Even if the XML seems to suggest different port names, ALWAYS prioritize the por
 - Every input port declared in the spec MUST influence the logic.
 - Counter reload timing: assign the new cnt value in the SAME cycle as the state transition. Use `state` (or next-state) to detect entry — do NOT use light/output signals (delayed).
 
+### R8: HONOR EXACT ENUM / PARAMETER VALUES (DO NOT INVENT INDICES)
+- When XML contains `<enum id="NAME" value="W'bXXXX">` or
+  `<parameter id="NAME" value="W'bXXXX">`, the generated Verilog MUST
+  compare against THAT EXACT LITERAL VALUE.
+- ILLEGAL: counting opcodes 0,1,2,3... when spec says 6'b100000, 6'b100001...
+  Example BAD:
+      assign r = (aluc == 6'b000000) ? add : (aluc == 6'b000001) ? sub : 0;
+  Example GOOD (when spec defines ADD=6'b100000, SUB=6'b100010):
+      assign r = (aluc == 6'b100000) ? add : (aluc == 6'b100010) ? sub : 0;
+- If unsure, prefer using the symbolic parameter name:
+      parameter ADD = 6'b100000;
+      parameter SUB = 6'b100010;
+      assign r = (aluc == ADD) ? add_r : (aluc == SUB) ? sub_r : 0;
+- This rule is CRITICAL for ALU/decoder/FSM modules where opcode encoding
+  is explicit in the spec.
+
+### R9: PORT NAME FIDELITY (NEVER ADD / RENAME / DROP)
+- Module ports MUST be EXACTLY the set of `<input id>` and `<output id>`
+  from the XML — same names, same widths, same direction, same order.
+- DO NOT add ports the testbench does not provide (no extra `clock`, `enable`,
+  `valid`, etc. unless declared in XML).
+- DO NOT rename `clk` ↔ `clock`, `rst_n` ↔ `reset`, `data_in` ↔ `din`.
+- DO NOT drop ports declared in XML even if they appear unused — drive a
+  default value or use them in the logic per the spec.
+- If a TB compile error mentions a port not in the XML (e.g., dut->clock when
+  XML defines `clk`), the testbench is buggy — do NOT add that port.
+  Keep the GVD ports matching the XML spec.
+
 ## XML → Verilog Mapping
 - Module name = `<module id>`, ports = `<input id>` / `<output id>`.
 - `width_description` → signal width.
