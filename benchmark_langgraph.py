@@ -204,7 +204,7 @@ def aggregate_results(trial_results: dict, all_modules: list[str],
 
         rows.append({
             'Module': module_name,
-            'SC Pass Rate': f"{sc_pass_count / num_trials * 100:.0f}%",
+            'Syntax Pass Rate': f"{sc_pass_count / num_trials * 100:.0f}%",
             'TB Pass Rate': f"{tb_pass_count / num_trials * 100:.0f}%",
             'Syntax FR': f"{np.mean(syntax_frs) * 100:.2f}%",
             'Func FR': f"{np.mean(func_frs) * 100:.2f}%",
@@ -276,7 +276,7 @@ def aggregate_results(trial_results: dict, all_modules: list[str],
 def print_summary(rows, df, stats, num_trials, num_modules):
     """Print summary table to console."""
     print(f"\n=== GLOBAL RESULTS ({num_trials} trials × {num_modules} modules) ===")
-    print(f"SC Pass Rate:    {stats['avg_sc_pr']:.1f}%")
+    print(f"Syntax Pass Rate:    {stats['avg_sc_pr']:.1f}%")
     print(f"TB Pass Rate:    {stats['avg_tb_pr']:.1f}%")
     print(f"Syntax Fix Rate: {stats['avg_sfr']:.2f}%")
     print(f"Func Fix Rate:   {stats['avg_ffr']:.2f}%")
@@ -284,7 +284,7 @@ def print_summary(rows, df, stats, num_trials, num_modules):
     print(f"TB Failures:     {stats['total_tb_fixed']}/{stats['total_tb_exceptions']}")
     print()
 
-    print(df[['Module', 'SC Pass Rate', 'TB Pass Rate', 'Syntax FR', 'Func FR']].to_string(index=False))
+    print(df[['Module', 'Syntax Pass Rate', 'TB Pass Rate', 'Syntax FR', 'Func FR']].to_string(index=False))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -329,7 +329,7 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
 
     # --- CSV ---
     csv_path = os.path.join(output_dir, f'benchmark_{description_type}_{num_trials}trials.csv')
-    df[['Module', 'SC Pass Rate', 'TB Pass Rate', 'Syntax FR', 'Func FR']].to_csv(
+    df[['Module', 'Syntax Pass Rate', 'TB Pass Rate', 'Syntax FR', 'Func FR']].to_csv(
         csv_path, index=False
     )
     print(f'📄 CSV saved: {csv_path}')
@@ -338,7 +338,7 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
     latex_rows = []
     for r in rows:
         latex_rows.append(
-            f"  {r['Module']} & {r['SC Pass Rate']} & {r['TB Pass Rate']} & "
+            f"  {r['Module']} & {r['Syntax Pass Rate']} & {r['TB Pass Rate']} & "
             f"{r['Syntax FR']} & {r['Func FR']} \\\\"
         )
     latex_avg = (
@@ -353,7 +353,7 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
         f'\\caption{{Pass Rate and Fix Rate ({description_type}, {num_trials} trials)}}',
         r'\begin{tabular}{l|cc|cc}',
         r'  \hline',
-        r'  Design & SC PR & TB PR & Syntax FR & Func FR \\',
+        r'  Design & Syntax PR & TB PR & Syntax FR & Func FR \\',
         r'  \hline',
         *latex_rows,
         r'  \hline',
@@ -375,19 +375,19 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
         f"**Modules:** {len(rows)} | **Trials:** {num_trials}", "",
         f"## Summary", "",
         f"| Metric | Value |", f"|--------|-------|",
-        f"| SC Pass Rate | **{avg_sc_pr:.1f}%** |",
+        f"| Syntax Pass Rate | **{avg_sc_pr:.1f}%** |",
         f"| TB Pass Rate | **{avg_tb_pr:.1f}%** |",
         f"| Syntax Fix Rate | **{avg_sfr:.2f}%** |",
         f"| Func Fix Rate | **{avg_ffr:.2f}%** |",
-        f"| SC Exceptions | {stats['total_sc_fixed']}/{stats['total_sc_exceptions']} |",
+        f"| Syntax Exceptions | {stats['total_sc_fixed']}/{stats['total_sc_exceptions']} |",
         f"| TB Failures | {stats['total_tb_fixed']}/{stats['total_tb_exceptions']} |", "",
         f"## Per-Design", "",
-        f"| Design | SC PR | TB PR | Syntax FR | Func FR |",
+        f"| Design | Syntax PR | TB PR | Syntax FR | Func FR |",
         f"|--------|-------|-------|-----------|---------|",
     ]
     for r in rows:
         md_lines.append(
-            f"| {r['Module']} | {r['SC Pass Rate']} | {r['TB Pass Rate']} | "
+            f"| {r['Module']} | {r['Syntax Pass Rate']} | {r['TB Pass Rate']} | "
             f"{r['Syntax FR']} | {r['Func FR']} |"
         )
     md_lines.append(

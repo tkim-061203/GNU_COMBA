@@ -1,7 +1,7 @@
 {
   "module_name": "asyn_fifo",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": true,
+  "self_consistency_enabled": false,
   "samples": {
     "module_name": "asyn_fifo",
     "description_type": "RTLLM.txt",
@@ -9,37 +9,16 @@
     "sc_trial": 2,
     "ts_trial": 1,
     "total_iter": 3,
-    "gvd": "module dual_port_RAM #(parameter DEPTH = 16, parameter WIDTH = 8) (\n    input wclk,\n    input wenc,\n    input [$clog2(DEPTH)-1:0] waddr,\n    input [WIDTH-1:0] wdata,\n    input rclk,\n    input renc,\n    input [$clog2(DEPTH)-1:0] raddr,\n    output reg [WIDTH-1:0] rdata\n);\ndmodule\nmodule asyn_fifo\n#(\n    parameter WIDTH = 8,\n    parameter DEPTH = 16\n)\n(\n    input wclk,\n    input rclk,\n    input wrstn,\n    input rrstn,\n    input winc,\n    input rinc,\n    input wdata\n);\nendmodule\n",
-    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Implement an asynchronous FIFO, FIFO bit width and depth can be configured(parameter DEPTH = 16, parameter WIDTH = 8). The asynchronous FIFO structure is divided into several parts. The first part is dual-port RAM, which is used for data storage. Instantiate dual-port RAM as a submodule, The RAM ports are input wclk, input wenc, input [$clog2(DEPTH)-1:0] waddr, input [WIDTH-1:0] wdata, input rclk, input renc, input [$clog2(DEPTH)-1:0] raddr, output reg [WIDTH-1:0] rdata. The second part is the data write controller. The third part is the data read controller. The fourth part is the read pointer synchronizer. The read pointer is collected using the two-stage trigger of the write clock and output to the data write controller. The fifth part is the write pointer synchronizer, which uses the two-stage trigger of the read clock to collect the write pointer and output it to the data read controller.</description>\n    <ports>\n        <input id=\"wclk\">Write clock.</input>\n        <input id=\"rclk\">Read clock.</input>\n        <input id=\"rstn\">Reset.</input>\n        <input id=\"winc\">Write increment.</input>\n        <input id=\"rinc\">Read increment.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data.</input>\n        <output id=\"wfull\">Write full.</output>\n        <output id=\"rempty\">Read empty.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">Data width of FIFO.</parameter>\n        <parameter id=\"DEPTH\">Depth of FIFO.</parameter>\n    </parameter_description>\n    <implementation>\n        <p>Asynchronous FIFO is composed of four parts:</p>\n        <ol>\n            <li><p><strong>Dual-port RAM:</strong> Data storage module that supports simultaneous read and write operations. It has separate clock inputs for write (wclk) and read (rclk) operations, separate address inputs for write (waddr) and read (raddr) operations, a write enable input (wenc) and a write data input (wdata), a read enable input (renc) and a read data output (rdata).</p></li>\n            <li><p><strong>Data write controller:</strong> Module that manages the write operation. It determines when data can be written to the FIFO and controls the write operation based on the write increment signal (winc) and the current state of the FIFO.</p></li>\n            <li><p><strong>Data read controller:</strong> Module that manages the read operation. It determines when data can be read from the FIFO and controls the read operation based on the read increment signal (rinc) and the current state of the FIFO.</p></li>\n            <li><p><strong>Read pointer synchronizer:</strong> Module that synchronizes the read pointer with the write clock. It uses a two-stage trigger of the write clock to collect the read pointer and output it to the data write controller.</p></li>\n            <li><p><strong>Write pointer synchronizer:</strong> Module that synchronizes the write pointer with the read clock. It uses a two-stage trigger of the read clock to collect the write pointer and output it to the data read controller.</p></li>\n        </ol>\n        <p>Asynchronous FIFO uses Gray code to compare the read and write pointers. When the read and write pointers are equal, the FIFO is empty. When the write pointer has one more cycle RAM than the read pointer, the highest and second-highest bits of the read and write pointer are opposite, the remaining bits are the same, and the FIFO is full.</p>\n    </implementation>\n</module>",
+    "gvd": "module dual_port_RAM #(parameter DEPTH = 16, parameter WIDTH = 8) (\n    input wclk,\n    input wenc,\n    input [$clog2(DEPTH)-1:0] waddr,\n    input [WIDTH-1:0] wdata,\n    input rclk,\n    input renc,\n    input [$clog2(DEPTH)-1:0] raddr,\n    output reg [WIDTH-1:0] rdata\n);\ndmodule\nmodule asyn_fifo\n#(\n    parameter WIDTH = 8,\n    parameter DEPTH = 16\n)\n(\n    input wclk,\n    input rclk,\n    input wrstn,\n    input rrstn,\n    input winc,\n    input rinc,\n    input [WIDTH-1:0] wdata:\n);\nendmodule\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Implement an asynchronous FIFO, FIFO bit width and depth can be configured(parameter DEPTH = 16, parameter WIDTH = 8).</description>\n    <ports>\n        <input id=\"wclk\">Write clock.</input>\n        <input id=\"rclk\">Read clock.</input>\n        <input id=\"wrstn\">Write reset.</input>\n        <input id=\"rrstn\">Read reset.</input>\n        <input id=\"winc\">Write increment.</input>\n        <input id=\"rinc\">Read increment.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data.</input>\n        <output id=\"wfull\">Write full.</output>\n        <output id=\"rempty\">Read empty.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">Data width of FIFO.</parameter>\n        <parameter id=\"DEPTH\">Depth of FIFO.</parameter>\n    </parameter_description>\n    <implementation>\n    <para>1. Instantiate dual-port RAM as a submodule.</para>\n    <para>2. Use waddr, raddr to control read and write address.</para>\n    <para>3. Use wenc, renc to control read and write enable.</para>\n    <para>4. Use wdata to control write data.</para>\n    <para>5. Use rdata to output read data.</para>\n    </implementation>\n</module>",
     "sc_log": "",
     "tb_log": "[COMPILE verilator+cpp]\n%Warning-DECLFILENAME: asyn_fifo.v:1:8: Filename 'asyn_fifo' does not match MODULE name: 'dual_port_RAM'\n    1 | module dual_port_RAM #(parameter DEPTH = 16, parameter WIDTH = 8) (\n      |        ^~~~~~~~~~~~~\n                       ... Use \"/* verilator lint_off DECLFILENAME */\" and lint_on around source to disable this message.\n%Error: Specified --top-module 'asyn_fifo' was not found in design.\n%Error: Exiting due to 1 error(s)\n",
     "error": null,
     "edtm": {
       "TopModule.sv:N: syntax error": 1
     },
-    "self_consistency": {
-      "samples_run": 1,
-      "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
-      "best_status": "pass",
-      "early_exit": true,
-      "total_elapsed_s": 29.52,
-      "all_samples": [
-        {
-          "idx": 0,
-          "T": 0.0,
-          "status": "pass",
-          "sc_trial": 2,
-          "ts_trial": 1,
-          "iter": 3,
-          "sc_err": 0,
-          "tb_err": 2,
-          "gvd_lines": 26,
-          "elapsed_s": 29.52
-        }
-      ]
-    },
+    "failure_type": "",
+    "vcd_status": "",
     "guard_summary": {
       "rollbacks": 1,
       "commits": 1,

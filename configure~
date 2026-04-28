@@ -625,10 +625,12 @@ cell_range_start
 train_dataset_dir
 temp_dir
 yosys_path
+max_samples
+self_consistency
 description_type
 quiet
 max_tb_trials
-max_sc_trials
+max_syntax_trials
 task
 model_submanual
 model_manual
@@ -689,10 +691,12 @@ with_examples
 with_model_manual
 with_model_submanual
 with_task
-with_max_sc_trials
+with_max_syntax_trials
 with_max_tb_trials
 with_quiet
 with_description_type
+with_self_consistency
+with_max_samples
 with_yosys_path
 with_temp_dir
 with_train_dataset_dir
@@ -1331,12 +1335,15 @@ Optional Packages:
   --with-model-submanual  Submanual of model
   --with-task             Task to execute: spec-to-rtl or
                           code-complete-iccad2023
-  --with-max-sc-trials    Max syntax correction cycles (default: 10)
+  --with-max-syntax-trials
+                          Max syntax correction cycles (default: 10)
   --with-max-tb-trials    Max testbench correction cycles (default: 5)
   --with-quiet            Only show progress bar during LangGraph inference
                           (default: True)
   --with-description-type Input description type for Pipeline 3 (xml or txt,
                           default: xml)
+  --with-self-consistency Enable Best-of-N multi-sampling (default: 0)
+  --with-max-samples      Max samples for self-consistency (default: 5)
   --with-yosys-path       Path to yosys binary for synthesis
   --with-temp-dir         Temp directory prefix for Yosys synthesis jobs
   --with-train-dataset-dir
@@ -1950,22 +1957,22 @@ fi
 printf "%s\n" "$as_me: using task: ${task}" >&6;}
 
 #-------------------------------------------------------------------------
-# --with-max-sc-trials
+# --with-max-syntax-trials
 #-------------------------------------------------------------------------
 
 
-# Check whether --with-max-sc-trials was given.
-if test ${with_max_sc_trials+y}
+# Check whether --with-max-syntax-trials was given.
+if test ${with_max_syntax_trials+y}
 then :
-  withval=$with_max_sc_trials; max_sc_trials="${with_max_sc_trials}"
+  withval=$with_max_syntax_trials; max_syntax_trials="${with_max_syntax_trials}"
 else $as_nop
-  max_sc_trials="10"
+  max_syntax_trials="10"
 fi
 
 
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-sc-trials: ${max_sc_trials}" >&5
-printf "%s\n" "$as_me: using max-sc-trials: ${max_sc_trials}" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-syntax-trials: ${max_syntax_trials}" >&5
+printf "%s\n" "$as_me: using max-syntax-trials: ${max_syntax_trials}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-max-tb-trials
@@ -2020,6 +2027,42 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using description type: ${description_type}" >&5
 printf "%s\n" "$as_me: using description type: ${description_type}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-self-consistency
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-self-consistency was given.
+if test ${with_self_consistency+y}
+then :
+  withval=$with_self_consistency; self_consistency="${with_self_consistency}"
+else $as_nop
+  self_consistency="0"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using self-consistency: ${self_consistency}" >&5
+printf "%s\n" "$as_me: using self-consistency: ${self_consistency}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-max-samples
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-max-samples was given.
+if test ${with_max_samples+y}
+then :
+  withval=$with_max_samples; max_samples="${with_max_samples}"
+else $as_nop
+  max_samples="5"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max samples: ${max_samples}" >&5
+printf "%s\n" "$as_me: using max samples: ${max_samples}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-revision

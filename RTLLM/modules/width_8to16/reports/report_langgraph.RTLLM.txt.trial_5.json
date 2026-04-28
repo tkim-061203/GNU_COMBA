@@ -1,48 +1,28 @@
 {
   "module_name": "width_8to16",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": true,
+  "self_consistency_enabled": false,
   "samples": {
     "module_name": "width_8to16",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 4,
-    "ts_trial": 4,
-    "total_iter": 8,
-    "gvd": "module width_8to16\n(\n    input clk,\n    input rst_n,\n    input valid_in,\n    input [7:0] data_in,\n    output reg valid_out,\n    output reg [15:0] data_out\n);\n\nreg [7:0] data_buffer;\nreg valid_buffer;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data_buffer <= 8'b0;\n        valid_buffer <= 1'b0;\n    end\n    else if (valid_in) begin\n        data_buffer <= data_in;\n        valid_buffer <= ~valid_buffer;\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data_out <= 16'b0;\n        valid_out <= 1'b0;\n    end\n    else if (valid_buffer) begin\n        data_out <= {data_buffer, data_in};\n        valid_out <= 1'b1;\n    end\n    else begin\n        valid_out <= 1'b0;\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"width_8to16\">\n    <description>Converts 8-bit data input to 16-bit data output.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"valid_in\">Input signal indicating the validity of the input data.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data.</input>\n        <output id=\"valid_out\">Output signal indicating the validity of the output data.</output>\n        <output id=\"data_out\" width_description=\"[15:0]\">16-bit output data.</output>\n    </ports>\n    <parameter_description>\n        <enum id=\"flag\">Flag signal for controlling data output.</enum>\n    </parameter_description>\n    <logic_description>\n        <reg type=\"sequential_logic\" id=\"data_lock\" width_description=\"[7:0]\">Register for temporarily storing the first valid input data.</reg>\n        <reg type=\"sequential_logic\" id=\"flag\">Flag signal for controlling data output.</reg>\n    </logic_description>\n    <implementation>\n        <when test=\"&rst_n\">\n            <block>\n                <case test=\"&valid_in\">\n                    <statement test=\"!flag\">data_out &lt;= {data_lock, data_in};</statement>\n                    <statement test=\"flag\">valid_out &lt;= 1'b1;</statement>\n                </case>\n                <case test=\"&valid_in\">\n                    <statement test=\"!flag\">flag &lt;= 1'b1;</statement>\n                    <statement test=\"flag\">flag &lt;= 1'b0;</statement>\n                </case>\n                <case test=\"!&valid_in\">\n                    <statement test=\"flag\">valid_out &lt;= 1'b1;</statement>\n                </case>\n            </block>\n        </when>\n        <else>\n            <block>\n                <case test=\"!flag\">\n                    <statement test=\"!valid_in\">data_out &lt;= 16'd0;</statement>\n                </case>\n                <case test=\"flag\">\n                    <statement test=\"!valid_in\">valid_out &lt;= 1'b0;</statement>\n                </case>\n            </block>\n        </else>\n    </implementation>\n</module>",
+    "sc_trial": 5,
+    "ts_trial": 5,
+    "total_iter": 10,
+    "gvd": "module width_8to16\n(\n    input clk,\n    input rst_n,\n    input valid_in,\n    input [7:0] data_in,\n    output reg valid_out,\n    output reg [15:0] data_out\n);\n\nreg [7:0] data_lock;\nreg flag;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data_out <= 0;\n        valid_out <= 0;\n        data_lock <= 0;\n        flag <= 0;\n    end\n    else begin\n        if (valid_in) begin\n            if (flag) begin\n                data_out <= {data_lock, data_in};\n                valid_out <= 1;\n                flag <= 0;\n            end\n            else begin\n                data_lock <= data_in;\n                flag <= 1;\n                valid_out <= 0;\n            end\n        end\n        else begin\n            valid_out <= 0;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"width_8to16\">\n    <description>Implement a data width conversion circuit that converts 8-bit data input to 16-bit data output. The module provides two output ports: valid_out, which indicates the validity of the output data, and data_out, which represents the converted 16-bit output data. The first arriving 8-bit data should be placed in the higher 8 bits of the 16-bit data output. The valid_out and data_out signals are generated in the next clock cycle after the two data inputs. When there is only one data input, valid_out and data_out are not generated immediately. Instead, they wait for the arrival of the next data input to complete the concatenation of the two data inputs before generating valid_out and data_out. </description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"valid_in\">Input signal indicating the validity of the input data.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data to be converted.</input>\n        <output id=\"valid_out\">Output signal indicating the validity of the output data.</output>\n        <output id=\"data_out\" width_description=\"[15:0]\">16-bit output data resulting from the width conversion.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"state_idle\">0</parameter>\n        <parameter id=\"state_1st\">1</parameter>\n        <parameter id=\"state_2nd\">2</parameter>\n    </parameter_description>\n    <logic_description>\n        <reg type=\"sequential_logic\" id=\"state\">1'b0</reg>\n        <reg type=\"sequential_logic\" id=\"data_lock\" width_description=\"[7:0]\">8'b0</reg>\n        <reg type=\"sequential_logic\" id=\"data_lock_1\" width_description=\"[7:0]\">8'b0</reg>\n        <reg type=\"sequential_logic\" id=\"valid_out_reg\">1'b0</reg>\n        <reg type=\"sequential_logic\" id=\"data_out_reg\" width_description=\"[15:0]\">16'b0</reg>\n    </logic_description>\n    <implementation>\n    <p>On reset, state is set to state_idle, and both data_lock and valid_out_reg are cleared to 0.</p>\n    <p>When valid_in is high, if state is state_idle, the incoming data_in is stored in data_lock. If state is state_1st, the incoming data_in is stored in data_lock_1. If state is state_2nd, valid_out_reg is set to 1 and data_out_reg is set to the concatenation of data_lock and data_lock_1.</p>\n    <p>When valid_in is low, if state is state_2nd, state is set to state_idle.</p>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_width_8to16_l7ry5ibu/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vwidth_8to16.cpp Vwidth_8to16__Trace.cpp Vwidth_8to16__Slow.cpp Vwidth_8to16__Syms.cpp Vwidth_8to16__Trace__Slow.cpp > Vwidth_8to16__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vwidth_8to16__ALL.o Vwidth_8to16__ALL.cpp\nar -cr Vwidth_8to16__ALL.a Vwidth_8to16__ALL.o\nranlib Vwidth_8to16__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vwidth_8to16__ALL.a      -o Vwidth_8to16\nmake: Leaving directory '/tmp/comba_width_8to16_l7ry5ibu/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_width_8to16_5ql_27v7/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vwidth_8to16.cpp Vwidth_8to16__Trace.cpp Vwidth_8to16__Slow.cpp Vwidth_8to16__Syms.cpp Vwidth_8to16__Trace__Slow.cpp > Vwidth_8to16__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vwidth_8to16__ALL.o Vwidth_8to16__ALL.cpp\nar -cr Vwidth_8to16__ALL.a Vwidth_8to16__ALL.o\nranlib Vwidth_8to16__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vwidth_8to16__ALL.a      -o Vwidth_8to16\nmake[1]: Leaving directory '/tmp/comba_width_8to16_5ql_27v7/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
+      "TB:Verilator compilation failed": 1,
       "TB:Vwidth_NtoN: ../tb.cpp:N: void width_NtoNScb::writeOut(width_NtoNOutTx*): Assertion `tx->data_out == NxN && tx->valid_out == NxN && \"TODO N Failed: Reset logic result of the Verilog module is incorrect\"' failed.": 3
     },
-    "self_consistency": {
-      "samples_run": 1,
-      "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
-      "best_status": "pass",
-      "early_exit": true,
-      "total_elapsed_s": 41.79,
-      "all_samples": [
-        {
-          "idx": 0,
-          "T": 0.0,
-          "status": "pass",
-          "sc_trial": 4,
-          "ts_trial": 4,
-          "iter": 8,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 39,
-          "elapsed_s": 41.79
-        }
-      ]
-    },
+    "failure_type": "",
+    "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 6,
+      "commits": 8,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

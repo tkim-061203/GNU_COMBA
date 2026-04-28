@@ -17,10 +17,10 @@ The pipeline utilizes **LangGraph** to model the execution states and conditiona
 3. **`node_sanitizer` (Raw Text → Clean Verilog):**
    Processes the raw LLM output using `VerilogSanitizer`, cleanly extracting the Verilog code from Markdown blocks, auto-fixing trivial syntax omissions (like missing semicolons or trailing commas), and emitting normalized code.
 
-4. **`node_syntax_check` (SC):**
+4. **`node_syntax_check` (Syntax Check):**
    Invokes the compiler (`iverilog` via `-tnull` or `verilator --lint-only`) to perform a strict syntax and linting check on the sanitized Verilog code.
 
-5. **`node_ted_syntax` (Topmost Exception Detection - SC):**
+5. **`node_ted_syntax` (Topmost Exception Detection - Syntax Check):**
    If syntax errors occur, this node extracts the *topmost* error. It queries the **EDTM** (Exception-Debugging Trial Management) system to prevent infinite looping over the same unresolvable error, and prepares an **EDP** (Exception Debugging Prompt).
 
 6. **`node_debugger` / `node_correcter`:**

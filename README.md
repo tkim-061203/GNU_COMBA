@@ -203,7 +203,7 @@ Used for processing Verilog codebases to extract specific modules based on compl
 **.config Reference (Pipeline 3)**
 - `--with-model-manual`: URL for the **Generator** LLM endpoint.
 - `--with-model-submanual`: URL for the **Debugger** LLM endpoint (for Dual GPU setups).
-- `--with-max-sc-trials`: Maximum iterations allowed for syntax correction (default: 10).
+- `--with-max-syntax-trials`: Maximum iterations allowed for syntax correction (default: 10).
 - `--with-max-tb-trials`: Maximum iterations allowed for functional/testbench correction (default: 5).
 - `--with-max_token`: Limit for the generated Verilog code output.
 - `--with-quiet`: Only show progress bar during LangGraph inference (default: True).
@@ -289,25 +289,38 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 - **Iverilog Simulation**: Uses `iverilog` and `vvp` to provide precise functional feedback to the debugger agent.
 - **Dual GPU Routing**: Explicitly declare the Debugger URL (`--with-model-submanual`) to route tasks correctly between the two GPUs.
 
-- **`e0_t0` (Dual GPU LangGraph)**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
+- **Dual GPU LangGraph**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
+  
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+                     --with-temperature=0 --with-samples=1 --with-examples=0 \
+                     --with-model-manual=http://localhost:8000/v1 \
+                     --with-model-submanual=http://localhost:8001/v1 \
+                     --with-task=code-complete-iccad2023 --with-quiet=True
   ```
+
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-model-submanual=http://localhost:8001/v1 --with-task=code-complete-iccad2023 --with-quiet=True
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+                     --with-temperature=0.8 --with-samples=20 --with-examples=1 \
+                     --with-model-manual=http://localhost:8000/v1 \
+                     --with-model-submanual=http://localhost:8001/v1 \
+                     --with-task=code-complete-iccad2023 --with-quiet=True
   ```
 
 
 - `--with-provider`: LLM provider (`llamacpp`, `openai`, etc.).
 - `--with-model`: Name or path of the model.
 - `--with-max_token`: Maximum number of output tokens.
-- `--with-temperature`: Sampling temperature.
-- `--with-samples`: Number of samples per problem.
+- `--with-temperature`: Creativity vs. precision (0.0 for deterministic).
+- `--with-samples`: Number of independent code samples to generate per problem.
 - `--with-examples`: Number of ICL examples to include in the prompt.
-- `--with-task`: The benchmark task (e.g., `code-complete-iccad2023`).
-- `--with-quiet`: Control verbosity of LangGraph inference output.
-- `--with-model-manual`: URL for the primary generator LLM override (e.g., `http://localhost:8000/v1`).
-- `--with-model-submanual`: URL for the secondary debugging LLM (e.g., `http://localhost:8001/v1`) used in Dual GPU setups.
+- `--with-task`: Benchmark dataset (`code-complete-iccad2023` or `spec-to-rtl`).- `--with-model-manual`: Base URL for the primary model (e.g., generator).
+- `--with-model-submanual`: Base URL for the sub-model (e.g., debugger).
+- `--with-max-syntax-trials`: Max syntax correction attempts (default: 10).
+- `--with-max-tb-trials`: Max testbench debugging attempts (default: 5).
+- `--with-quiet`: Control verbosity of LangGraph inference output (True/False).
+- `--with-description-type`: Input description format for Pipeline 3 (xml or txt).
+
 
 ### Local Model Serving (Dual GPU)
 
@@ -323,6 +336,32 @@ You can serve the base model and debugger model locally on a dual-GPU setup usin
 # Check status
 ./launch_dual_gpu.sh --status
 ```
+
+## Make Target Reference
+
+### Inference & Benchmarks
+- **`make langgraph`**: Run Pipeline 3 (LangGraph) on the **VerilogEval V1** dataset. This is the main target for spec-to-RTL agentic inference.
+- **`make langgraph-veval-v2`**: Run Pipeline 3 on the **VerilogEval V2** (spec-to-rtl) dataset.
+- **`make RTLLM`**: Run Pipeline 3 on the **RTLLM** dataset (uses Verilator by default).
+- **`make VerilogEval-bench`**: Run the legacy benchmark script for VerilogEval (calls `benchmark_langgraph.py`).
+- **`make default`**: Run standard non-agentic LLM inference (Pipeline 2).
+
+### Data Preparation (Pipeline 1)
+- **`make data-flow`**: Execute the full extraction pipeline (synthesis, extract, filter).
+- **`make synthesis`**: Run only the Yosys synthesis step.
+- **`make extract`**: Extract sub-modules from synthesized netlists.
+- **`make filter`**: Filter extracted modules by cell count/complexity.
+
+### Analysis & Debugging
+- **`make analyze-syntax`**: Run the self-consistency analyzer for all benchmarks (requires `SC=1`).
+- **`make analyze-enum`**: Specifically detect port/enum mismatch issues in RTLLM generations.
+- **`make jupyterlab`**: Launch a Jupyter Lab instance for interactive development.
+
+### Maintenance
+- **`make help`**: Display all available targets and their default configurations.
+- **`make clean`**: Remove build artifacts and temporary files.
+
+---
 
 ## Edit configure.ac (Autoconfig)
 

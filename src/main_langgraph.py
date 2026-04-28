@@ -46,10 +46,16 @@ def parse_cmdline():
         default="xml",
         help="Input description type to the pipeline (default: xml)",
     )
+    p.add_argument(
+        "--dataset-dir",
+        type=str,
+        default=None,
+        help="Path to the dataset directory (default: ICCAD 2023)",
+    )
     return p.parse_args()
 
 def do_process(problemSet):
-    problemPromptPath, setIndex, opts = problemSet
+    problemPromptPath, setIndex, opts, problemDir = problemSet
 
     # Resolve stable output root once (never CWD-relative inside a Pool worker)
     output_root = os.path.abspath(
@@ -61,11 +67,13 @@ def do_process(problemSet):
         problemPrompt = file.read()
         
     problemModuleDefStart = problemPrompt.rfind("module TopModule")
-    if problemModuleDefStart == -1:
-        return
-        
-    problemModuleDef = problemPrompt[problemModuleDefStart:]
-    problemModuleDescription = problemPrompt[:problemModuleDefStart]
+    if problemModuleDefStart != -1:
+        problemModuleDef = problemPrompt[problemModuleDefStart:]
+        problemModuleDescription = problemPrompt[:problemModuleDefStart]
+    else:
+        # For VerilogEval V2 (spec-to-rtl), there's no module header in the prompt
+        problemModuleDef = ""
+        problemModuleDescription = problemPrompt
     
     problemPromptFileName = os.path.basename(problemPromptPath)
     problemPromptFileNameNoSuffix = problemPromptFileName[:problemPromptFileName.rfind("_prompt.txt")]
@@ -105,7 +113,7 @@ def do_process(problemSet):
             nl_input=full_description,
             module_name=problemPromptFileNameNoSuffix,
             benchmark_id=problemPromptFileNameNoSuffix,
-            dataset_dir=PROBLEM_DIR,
+            dataset_dir=problemDir,
             llm=llm,
             work_dir=sample_work_dir,  # isolated per sample
             desc_type=opts.desc_type,
@@ -153,8 +161,8 @@ def do_process(problemSet):
         f_top.write(top_verilog_code)
 
     # Run Simulation (iverilog) — uses the TopModule.sv already in sample_work_dir
-    test_sv = os.path.join(PROBLEM_DIR, f"{problemPromptFileNameNoSuffix}_test.sv")
-    ref_sv = os.path.join(PROBLEM_DIR, f"{problemPromptFileNameNoSuffix}_ref.sv")
+    test_sv = os.path.join(problemDir, f"{problemPromptFileNameNoSuffix}_test.sv")
+    ref_sv = os.path.join(problemDir, f"{problemPromptFileNameNoSuffix}_ref.sv")
     binary_out = os.path.join(sample_work_dir, f"{problemPromptFileNameNoSuffix}")
     test_log = f"{sample_base}-sv-iv-test.log"
     
@@ -197,11 +205,14 @@ def main():
     opts.output_dir = output_dir
     print(f"Output directory: {output_dir}")
 
-    problemDir = PROBLEM_DIR
+    problemDir = opts.dataset_dir if opts.dataset_dir else PROBLEM_DIR
+    problemDir = os.path.abspath(problemDir)
+    print(f"Dataset directory: {problemDir}")
+
     problemPromptsPath = glob.glob(f"{problemDir}/{opts.pattern}_prompt.txt")
     problemPromptsPath.sort()
 
-    problemSets = [(x, y, opts) for y in range(1, opts.samples + 1) for x in problemPromptsPath]
+    problemSets = [(x, y, opts, problemDir) for y in range(1, opts.samples + 1) for x in problemPromptsPath]
 
     num_cores = opts.jobs
     if num_cores > len(problemSets):

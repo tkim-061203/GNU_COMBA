@@ -8,7 +8,7 @@ flow_inputs_dir   := $(flow_src_dir)/inputs
 # ── Pipeline 2: LLM inference ──────────────────────────────────────────────
 GENERATE_FLAGS = --samples=1 --examples=0 --provider=openai \
                  --max-tokens=4096 --temperature=0 \
-                 --model=generator --revision=@revision@
+                 --model=generator
 
 # Convert quiet config to flag
 QUIET_VAL=True
@@ -40,17 +40,27 @@ NO_LOGIC_NPY      := $(src_dir)/$(TRAIN_DATASET_DIR)/no_logic_index.npy
 
 # ── Pipeline 3: LangGraph Multi-Agent Verification (LLM-based) ─────────────
 # See README.md for a visual dataflow diagram of this pipeline.
+SC                := 0
 LANGGRAPH_DIR     := /home/nntkim/GNU_COMBA/src/langgraph_core
 LANGGRAPH_MODULES := verilogeval/*
 LANGGRAPH_DESC    := xml
 LANGGRAPH_SAMPLES := 1
+TS_SIMULATOR     := iverilog
+SC_ENV            := SC=$(SC)
+RTLLM_REPORTS_DIR := RTLLM/modules
+VEVAL_REPORTS_DIR := verilogeval_outputs
+
+VEVAL_V1_DIR      := $(src_dir)/ext/verilog-eval/dataset_code-complete-iccad2023
+VEVAL_V2_DIR      := $(src_dir)/ext/verilog-eval/dataset_spec-to-rtl
 
 # ── Targets ────────────────────────────────────────────────────────────────
 
 .PHONY: default jupyterlab verilog-eval \
         data-flow gen-flow-configs \
-        synthesis extract filter \
-        langgraph-flow langgraph clean-flow help
+        synthesis extract filter langgraph langgraph-flow \
+        RTLLM RTLLM-iverilog RTLLM-auto VerilogEval-bench \
+        analyze-syntax analyze-syntax-rtllm analyze-syntax-veval analyze-enum \
+        check-verilator check-analyzers clean-flow clean help
 
 default:
 	echo $(scripts_dir)/main.py ${GENERATE_FLAGS}
@@ -66,9 +76,39 @@ verilog-eval:
 		--with-samples=1 --with-examples=0 \
 		--with-model-manual=http://localhost:8000/v1
 
+RTLLM:
+	@echo "=== Running benchmark for RTLLM dataset (sim: verilator, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@$(MAKE) -s analyze-syntax-rtllm
+
+RTLLM-iverilog:
+	@echo "=== Running benchmark for RTLLM dataset (sim: iverilog, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=iverilog conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@$(MAKE) -s analyze-syntax-rtllm
+
+RTLLM-auto:
+	@echo "=== Running benchmark for RTLLM dataset (auto-pick, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@$(MAKE) -s analyze-syntax-rtllm
+
+VerilogEval-bench:
+	@echo "=== Running benchmark for VerilogEval dataset (sim: $(TS_SIMULATOR), SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=$(TS_SIMULATOR) conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset verilogeval --trials 5
+	@$(MAKE) -s analyze-syntax-veval
+
 langgraph:
-	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
-	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 --jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC)
+	@echo "=== Running LangGraph Inference: VerilogEval V1 (Parallel) ==="
+	$(SC_ENV) COMBA_MAX_SAMPLES=5 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
+		--model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 \
+		--jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
+		--dataset-dir $(VEVAL_V1_DIR)
+
+langgraph-veval-v2:
+	@echo "=== Running LangGraph Inference: VerilogEval V2 (Parallel) ==="
+	$(SC_ENV) COMBA_MAX_SAMPLES=5 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
+		--model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 \
+		--jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
+		--dataset-dir $(VEVAL_V2_DIR)
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -149,6 +189,27 @@ clean-flow:
 	@echo "Removing .run_* directories and cached cell counts..."
 	rm -rf $(src_dir)/.run_* $(src_dir)/.cache_count_num_cell_2
 
+# ── Post-benchmark analyzers ───────────────────────────────────────────────
+# `analyze-syntax` runs only if SC was enabled for the previous benchmark.
+# It silently no-ops on legacy reports lacking self_consistency metadata.
+analyze-syntax: analyze-syntax-rtllm analyze-syntax-veval
+
+analyze-syntax-rtllm:
+	@if [ "$(SC)" = "1" ] && [ -d "$(RTLLM_REPORTS_DIR)" ]; then \
+		echo ""; \
+		echo "=== Self-Consistency Analysis: RTLLM ==="; \
+		python3 analyze_self_consistency.py $(RTLLM_REPORTS_DIR) \
+			--out reports/analyze_syntax_rtllm.json || true; \
+	fi
+
+analyze-syntax-veval:
+	@if [ "$(SC)" = "1" ] && [ -d "$(VEVAL_REPORTS_DIR)" ]; then \
+		echo ""; \
+		echo "=== Self-Consistency Analysis: VerilogEval ==="; \
+		python3 analyze_self_consistency.py $(VEVAL_REPORTS_DIR) \
+			--out reports/analyze_syntax_veval.json || true; \
+	fi
+
 # ── Help ───────────────────────────────────────────────────────────────────
 help:
 	@echo ""
@@ -158,12 +219,26 @@ help:
 	@echo "  verilog-eval   Configure verilog-eval benchmark"
 	@echo ""
 	@echo "  data-flow      Run full Pipeline 1 (steps: $(FLOW_STEPS))"
-	@echo "  langgraph-flow Run Pipeline 3 (LangGraph)"
+	@echo "  langgraph-flow    Run Pipeline 3 (LangGraph)"
+	@echo "  langgraph         Run LangGraph on VerilogEval V1 (Parallel)"
+	@echo "  langgraph-veval-v2 Run LangGraph on VerilogEval V2 (Parallel)"
 	@echo "  synthesis      Run synthesis step only"
 	@echo "  extract        Run extract step only"
 	@echo "  filter         Run filter step only"
 	@echo "  gen-flow-configs  Regenerate flow input JSON configs"
 	@echo "  clean-flow     Remove .run_* dirs and synthesis cache"
+	@echo ""
+	@echo "Benchmark targets (Pipeline 3):"
+	@echo "  RTLLM             Run RTLLM benchmark (simulator: verilator)"
+	@echo "  RTLLM-iverilog    Run RTLLM benchmark (simulator: iverilog)"
+	@echo "  RTLLM-auto        Run RTLLM benchmark (auto-pick simulator)"
+	@echo "  VerilogEval-bench Run VerilogEval benchmark (default: $(TS_SIMULATOR))"
+	@echo ""
+	@echo "Analyzer targets (auto-run after benchmarks when SC=1):"
+	@echo "  analyze-syntax        Analyze self-consistency for both benchmarks"
+	@echo "  analyze-syntax-rtllm  Analyze RTLLM SC reports → reports/analyze_syntax_rtllm.json"
+	@echo "  analyze-syntax-veval  Analyze VerilogEval SC reports → reports/analyze_syntax_veval.json"
+	@echo "  analyze-enum          Detect enum/port mismatch issues in RTLLM"
 	@echo ""
 	@echo "Configure options for Pipeline 1:"
 	@echo "  --with-yosys-path=PATH      (default: $(YOSYS_PATH))"

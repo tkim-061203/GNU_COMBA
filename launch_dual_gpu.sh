@@ -21,7 +21,7 @@ export VLLM_TORCH_COMPILE_LEVEL=0
 
 
 # ── Config ──
-GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_v2}"
+GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_v4}"
 MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger_v2}"
 PORT_GEN=8000
 PORT_DBG=8001

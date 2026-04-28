@@ -69,14 +69,14 @@ from verilog_sanitizer import sanitize as verilog_sanitize
 # ──────────────────────────────────────────────────────────────
 # Configuration Constants
 # ──────────────────────────────────────────────────────────────
-MAX_SC_TRIALS = 10        # Max syntax-check correction cycles
+MAX_SYNTAX_TRIALS = 10        # Max syntax-check correction cycles
 MAX_TS_TRIALS = 10         # Max testbench correction cycles
 MAX_TOTAL_ITER = 30       # Absolute hard cap on total iterations
 EDTM_MAX_RETRIES = 3      # Max retries for the same exception signature
 GUARD_MAX_BAD_STREAK = 2  # Max consecutive rollbacks before stop
 
 # iverilog flags for syntax-check (lint-only)
-IVERILOG_SC_FLAGS = ["-tnull", "-Wno-timescale", "-Wno-implicit", "-g2012"]
+IVERILOG_SYNTAX_FLAGS = ["-tnull", "-Wno-timescale", "-Wno-implicit", "-g2012"]
 
 # iverilog flags for testbench simulation
 IVERILOG_TS_FLAGS = ["-Wall", "-Winfloop", "-Wno-timescale", "-g2012"]
@@ -578,7 +578,7 @@ class COMBANodes:
         with open(verilog_path, "w", encoding="utf-8") as f:
             f.write(gvd)
 
-        cmd = ["iverilog"] + IVERILOG_SC_FLAGS + ["TopModule.sv"]
+        cmd = ["iverilog"] + IVERILOG_SYNTAX_FLAGS + ["TopModule.sv"]
 
         try:
             result = subprocess.run(
@@ -1395,7 +1395,7 @@ def route_after_ted_syntax(state: COMBAState) -> str:
     if not state.get("sc_exception"):
         return "node_tb_sim"
 
-    if state["sc_trial"] >= MAX_SC_TRIALS:
+    if state["sc_trial"] >= MAX_SYNTAX_TRIALS:
         return "end_fail_sc"
 
     # MultiAttemptManager give-up check
@@ -1485,7 +1485,7 @@ def end_pass(state: COMBAState) -> dict:
 
 def end_fail_sc(state: COMBAState) -> dict:
     """SC trial limit reached."""
-    cprint(f"\n❌ PIPELINE FAILED: SC trial limit ({MAX_SC_TRIALS}) reached")
+    cprint(f"\n❌ PIPELINE FAILED: SC trial limit ({MAX_SYNTAX_TRIALS}) reached")
     return _terminal_with_fallback(state, "fail_sc", "sc")
 
 

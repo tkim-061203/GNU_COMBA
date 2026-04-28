@@ -630,7 +630,7 @@ self_consistency
 description_type
 quiet
 max_tb_trials
-max_sc_trials
+max_syntax_trials
 task
 model_submanual
 model_manual
@@ -691,7 +691,7 @@ with_examples
 with_model_manual
 with_model_submanual
 with_task
-with_max_sc_trials
+with_max_syntax_trials
 with_max_tb_trials
 with_quiet
 with_description_type
@@ -1335,7 +1335,8 @@ Optional Packages:
   --with-model-submanual  Submanual of model
   --with-task             Task to execute: spec-to-rtl or
                           code-complete-iccad2023
-  --with-max-sc-trials    Max syntax correction cycles (default: 10)
+  --with-max-syntax-trials
+                          Max syntax correction cycles (default: 10)
   --with-max-tb-trials    Max testbench correction cycles (default: 5)
   --with-quiet            Only show progress bar during LangGraph inference
                           (default: True)
@@ -1956,22 +1957,22 @@ fi
 printf "%s\n" "$as_me: using task: ${task}" >&6;}
 
 #-------------------------------------------------------------------------
-# --with-max-sc-trials
+# --with-max-syntax-trials
 #-------------------------------------------------------------------------
 
 
-# Check whether --with-max-sc-trials was given.
-if test ${with_max_sc_trials+y}
+# Check whether --with-max-syntax-trials was given.
+if test ${with_max_syntax_trials+y}
 then :
-  withval=$with_max_sc_trials; max_sc_trials="${with_max_sc_trials}"
+  withval=$with_max_syntax_trials; max_syntax_trials="${with_max_syntax_trials}"
 else $as_nop
-  max_sc_trials="10"
+  max_syntax_trials="10"
 fi
 
 
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-sc-trials: ${max_sc_trials}" >&5
-printf "%s\n" "$as_me: using max-sc-trials: ${max_sc_trials}" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max-syntax-trials: ${max_syntax_trials}" >&5
+printf "%s\n" "$as_me: using max-syntax-trials: ${max_syntax_trials}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-max-tb-trials

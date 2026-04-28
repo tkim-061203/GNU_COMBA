@@ -131,16 +131,16 @@ AC_SUBST([task])
 AC_MSG_NOTICE([using task: ${task}])
 
 #-------------------------------------------------------------------------
-# --with-max-sc-trials
+# --with-max-syntax-trials
 #-------------------------------------------------------------------------
 
-AC_ARG_WITH(max-sc-trials,
-  AS_HELP_STRING([--with-max-sc-trials],[Max syntax correction cycles (default: 10)]),
-  [max_sc_trials="${with_max_sc_trials}"],
-  [max_sc_trials="10"])
+AC_ARG_WITH(max-syntax-trials,
+  AS_HELP_STRING([--with-max-syntax-trials],[Max syntax correction cycles (default: 10)]),
+  [max_syntax_trials="${with_max_syntax_trials}"],
+  [max_syntax_trials="10"])
 
-AC_SUBST([max_sc_trials])
-AC_MSG_NOTICE([using max-sc-trials: ${max_sc_trials}])
+AC_SUBST([max_syntax_trials])
+AC_MSG_NOTICE([using max-syntax-trials: ${max_syntax_trials}])
 
 #-------------------------------------------------------------------------
 # --with-max-tb-trials
