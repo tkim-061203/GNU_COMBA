@@ -45,6 +45,13 @@ def cprint(*args, **kwargs):
 
 from langgraph.graph import StateGraph, START, END
 
+from fsm_patch import (
+    node_classify_tb,
+    route_after_classify_tb,
+    node_vcd_analyzer,
+    node_ted_tb_v5,
+)
+
 from prompts import (
     converterPromptTemplate,
     generatorPromptTemplate,
@@ -63,8 +70,8 @@ from verilog_sanitizer import sanitize as verilog_sanitize
 # Configuration Constants
 # ──────────────────────────────────────────────────────────────
 MAX_SC_TRIALS = 10        # Max syntax-check correction cycles
-MAX_TS_TRIALS = 5         # Max testbench correction cycles
-MAX_TOTAL_ITER = 20       # Absolute hard cap on total iterations
+MAX_TS_TRIALS = 10         # Max testbench correction cycles
+MAX_TOTAL_ITER = 30       # Absolute hard cap on total iterations
 EDTM_MAX_RETRIES = 3      # Max retries for the same exception signature
 GUARD_MAX_BAD_STREAK = 2  # Max consecutive rollbacks before stop
 
@@ -749,21 +756,11 @@ class COMBANodes:
                 task_description=(state.get("nl_input") or "")[:_MAX_TASK_DESC_CHARS],
             )
         else:
-            traces = ""
-            failure_str = error_desc or state.get("tb_failure", "")
-            if error_desc and "Debug traces:" in error_desc:
-                parts = error_desc.split("Debug traces:", 1)
-                failure_str = parts[0].strip()
-                traces = parts[1].strip()
-
             prompt_text = mgr.build_ts_prompt(
+                state=state,
                 error_key=error_key,
                 module_name=module_name,
                 gvd=current_gvd,
-                todo_num=0,
-                trace_content=traces or "(no traces available)",
-                failure_content=failure_str,
-                task_description=(state.get("nl_input") or "")[:_MAX_TASK_DESC_CHARS],
             )
 
         # Call LLM
@@ -1381,9 +1378,9 @@ def route_after_sc(state: COMBAState) -> str:
 
 
 def route_after_ts(state: COMBAState) -> str:
-    """After Guard TS — has failures? → TED_TB, else → PASS."""
+    """After Guard TS — has failures? → classify_tb, else → PASS."""
     if state.get("tb_failure"):
-        return "node_ted_tb"
+        return "node_classify_tb"
     return "end_pass"
 
 
@@ -1546,7 +1543,11 @@ def build_comba_graph(llm):
     builder.add_node("node_debugger", nodes.node_debugger)
     builder.add_node("node_tb_sim", nodes.node_tb_sim)
     builder.add_node("node_guard_ts", nodes.node_guard_ts)
-    builder.add_node("node_ted_tb", nodes.node_ted_tb)
+    builder.add_node("node_ted_tb", lambda state: node_ted_tb_v5(state, nodes.node_ted_tb))
+    
+    # ── ADD nodes ──
+    builder.add_node("node_classify_tb", node_classify_tb)
+    builder.add_node("node_vcd_analyzer", node_vcd_analyzer)
 
     # ── Terminal nodes ──
     builder.add_node("end_pass", end_pass)
@@ -1588,12 +1589,22 @@ def build_comba_graph(llm):
         {"node_ted_syntax": "node_ted_syntax", "node_tb_sim": "node_tb_sim"},
     )
 
-    # After Guard TS → TED_TB (failed) or END (passed)
+    # After Guard TS → classify_tb (failed) or END (passed)
     builder.add_conditional_edges(
         "node_guard_ts",
         route_after_ts,
-        {"node_ted_tb": "node_ted_tb", "end_pass": "end_pass"},
+        {"node_classify_tb": "node_classify_tb", "end_pass": "end_pass"},
     )
+
+    # ── ADD: classifier → analyzer or ted_tb ──
+    builder.add_conditional_edges(
+        "node_classify_tb",
+        route_after_classify_tb,
+        {"node_vcd_analyzer": "node_vcd_analyzer", "node_ted_tb": "node_ted_tb"},
+    )
+
+    # ── ADD: analyzer always goes to TED-TB ──
+    builder.add_edge("node_vcd_analyzer", "node_ted_tb")
 
     # After TED Syntax → Debugger / TB / fail
     builder.add_conditional_edges(

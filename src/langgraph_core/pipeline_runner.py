@@ -358,6 +358,8 @@ def run_pipeline_batch(
                     "tb_log": final.get("tb_log", ""),
                     "error": final.get("error"),
                     "edtm": final.get("edtm", {}),
+                    "failure_type": final.get("failure_type", ""),
+                    "vcd_status": final.get("vcd_status", ""),
                 }
 
                 # Preserve SC metadata for analyze_self_consistency.py
@@ -492,6 +494,8 @@ def _export_markdown_summary(
         ts = r.get("ts_trial", 0)
         iters = r.get("total_iter", 0)
         err = r.get("error") or ""
+        failure_type = r.get("failure_type") or ""
+        vcd_status = r.get("vcd_status") or ""
         sc_meta = r.get("self_consistency") or {}
 
         if status == "pass":
@@ -519,6 +523,11 @@ def _export_markdown_summary(
         short_err = (err[:60] + "…") if len(err) > 60 else err
         bon = sc_meta.get("samples_run", 1)
         best_idx = sc_meta.get("best_sample_idx", 0)
+
+        if failure_type:
+            short_err = f"[{failure_type}] {short_err}"
+            if vcd_status == "ok":
+                short_err += " (+VCD)"
 
         rows.append((icon, name, status, sc, ts, iters, bon, best_idx, short_err))
 

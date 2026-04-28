@@ -265,22 +265,37 @@ class MultiAttemptManager:
 
     def build_ts_prompt(
         self,
+        state: dict,
         error_key: str,
         module_name: str,
         gvd: str,
-        todo_num: int,
-        trace_content: str,
-        failure_content: str,
-        testbench_content: str = "",
-        task_description: str = "",
     ) -> str:
         """Build escalating TDP (Testbench-Debugging Prompt) for functional fix."""
 
         level = self.get_escalation_level(error_key)
+        
+        tdp = state.get("current_tdp", {}) or {}
+        structured_body = tdp.get("structured_body", "")
+        
+        # Fallback extraction if v5 patch was bypassed or didn't set structured_body
+        error_desc = state.get("tdp", "")
+        failure_content = error_desc or state.get("tb_failure", "")
+        trace_content = ""
+        if error_desc and "Debug traces:" in error_desc:
+            parts = error_desc.split("Debug traces:", 1)
+            failure_content = parts[0].strip()
+            trace_content = parts[1].strip()
+            
+        if structured_body:
+            failure_content = structured_body
+            trace_content = ""  # already included in structured_body
+
+        task_description = (state.get("nl_input") or "")[:2500]
+        testbench_content = state.get("testbench_content", "")
 
         # Base TDP
         base = self._base_tdp(
-            module_name, gvd, todo_num, trace_content,
+            module_name, gvd, 0, trace_content,
             failure_content, testbench_content, task_description
         )
 

@@ -22,7 +22,7 @@ src/.cache_count_num_cell*
 **/*.env
 */*/.build_*/*/
 */*/.build_*/wave.vcd
-logs
+logs/
 .pytest_cache
 .run*
 .cache*

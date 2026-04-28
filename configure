@@ -625,6 +625,8 @@ cell_range_start
 train_dataset_dir
 temp_dir
 yosys_path
+max_samples
+self_consistency
 description_type
 quiet
 max_tb_trials
@@ -693,6 +695,8 @@ with_max_sc_trials
 with_max_tb_trials
 with_quiet
 with_description_type
+with_self_consistency
+with_max_samples
 with_yosys_path
 with_temp_dir
 with_train_dataset_dir
@@ -1337,6 +1341,8 @@ Optional Packages:
                           (default: True)
   --with-description-type Input description type for Pipeline 3 (xml or txt,
                           default: xml)
+  --with-self-consistency Enable Best-of-N multi-sampling (default: 0)
+  --with-max-samples      Max samples for self-consistency (default: 5)
   --with-yosys-path       Path to yosys binary for synthesis
   --with-temp-dir         Temp directory prefix for Yosys synthesis jobs
   --with-train-dataset-dir
@@ -2020,6 +2026,42 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using description type: ${description_type}" >&5
 printf "%s\n" "$as_me: using description type: ${description_type}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-self-consistency
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-self-consistency was given.
+if test ${with_self_consistency+y}
+then :
+  withval=$with_self_consistency; self_consistency="${with_self_consistency}"
+else $as_nop
+  self_consistency="0"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using self-consistency: ${self_consistency}" >&5
+printf "%s\n" "$as_me: using self-consistency: ${self_consistency}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-max-samples
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-max-samples was given.
+if test ${with_max_samples+y}
+then :
+  withval=$with_max_samples; max_samples="${with_max_samples}"
+else $as_nop
+  max_samples="5"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max samples: ${max_samples}" >&5
+printf "%s\n" "$as_me: using max samples: ${max_samples}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-revision

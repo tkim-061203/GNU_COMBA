@@ -1,98 +1,29 @@
 {
   "module_name": "synchronizer",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": true,
+  "self_consistency_enabled": false,
   "samples": {
     "module_name": "synchronizer",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_ts",
-    "sc_trial": 5,
-    "ts_trial": 5,
-    "total_iter": 10,
-    "gvd": "module synchronizer(\n    input clk_a,\n    input clk_b,\n    input arstn,\n    input brstn,\n    input data_in,\n    input data_en,\n    output reg dataout\n);\n\nreg [1:0] sync_a;\nreg [2:0] sync_b;\n\nalways @(posedge clk_a or negedge arstn) begin\n    if (!arstn) begin\n        sync_a <= 2'b00;\n    end else begin\n        sync_a <= {sync_a[0], data_in};\n    end\nend\n\nalways @(posedge clk_b or negedge brstn) begin\n    if (!brstn) begin\n        sync_b <= 3'b000;\n    end else begin\n        sync_b <= {sync_b[1:0], sync_a[1]};\n    end\nend\n\nalways @(posedge clk_b) begin\n    if (sync_b[2] && sync_b[1] && !sync_b[0]) begin\n        dataout <= sync_a[1];\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"synchronizer\">\n    <description>Implement a multi-bit MUX-based synchronizer, data_in will remain constant during the period when data_en is high, and data_en is high for at least 3 clk_b clock cycles. When the value of data_en is high, data can be synchronized. The data change frequency of data_in is very low. The change interval between two adjacent data is at least 10 clk_b clock cycles.</description>\n    <ports>\n        <input id=\"clk_a\">Clock signal A.</input>\n        <input id=\"clk_b\">Clock signal B.</input>\n        <input id=\"arstn\">Active-low reset signal A.</input>\n        <input id=\"brstn\">Active-low reset signal B.</input>\n        <input id=\"data_in\" width_description=\"[3:0]\">Input data signal.</input>\n        <input id=\"data_en\">Input enable signal.</input>\n        <output id=\"dataout\" width_description=\"[3:0]\">Output data signal.</output>\n    </ports>\n    <parameter_description>\n        <enum id=\"state\" width_description=\"[1:0]\">\n            <enum_value id=\"idle\" value=\"0\">Idle state.</enum_value>\n            <enum_value id=\"wait_1\" value=\"1\">Wait state 1.</enum_value>\n            <enum_value id=\"wait_2\" value=\"2\">Wait state 2.</enum_value>\n        </enum>\n    </parameter_description>\n    <logic_description>\n        <reg id=\"data_reg\" width_description=\"[3:0]\" type=\"sequential_logic\">Data register.</reg>\n        <reg id=\"en_data_reg\" width_description=\"[3:0]\" type=\"sequential_logic\">Enable data register.</reg>\n        <reg id=\"en_clap_one\" width_description=\"[3:0]\" type=\"sequential_logic\">Enable control register 1.</reg>\n        <reg id=\"en_clap_two\" width_description=\"[3:0]\" type=\"sequential_logic\">Enable control register 2.</reg>\n        <enum_value id=\"state_idle\" value=\"0\">Idle state.</enum_value>\n        <enum_value id=\"state_wait_1\" value=\"1\">Wait state 1.</enum_value>\n        <enum_value id=\"state_wait_2\" value=\"2\">Wait state 2.</enum_value>\n    </logic_description>\n    <implementation>\n    The module includes a register, data_reg, to store the input data signal, data_in.<br>\n    On the positive edge of clock signal A (clk_a) or the falling edge of reset signal A (arstn), the module updates the register.<br>\n    If the reset signal A (arstn) is low, indicating a reset condition, the register (data_reg) is set to 0.<br>\n    If the reset signal A (arstn) is high, the register (data_reg) is updated with the input data signal (data_in).<br>\n    The module includes a register, en_data_reg, to store the input enable signal, data_en.<br>\n    On the positive edge of clock signal A (clk_a) or the falling edge of reset signal A (arstn), the module updates the register.<br>\n    If the reset signal A (arstn) is low, the register (en_data_reg) is set to 0.<br>\n    If the reset signal A (arstn) is high, the register (en_data_reg) is updated with the input enable signal (data_en).<br>\n    The module includes two registers, en_clap_one and en_clap_two, to control the selection of the input data.<br>\n    On the positive edge of clock signal B (clk_b) or the falling edge of reset signal B (brstn), the module updates the registers.<br>\n    If the reset signal B (brstn) is low, indicating a reset condition, both registers (en_clap_one and en_clap_two) are set to 0.<br>\n    If the reset signal B (brstn) is high, the registers (en_clap_one and en_clap_two) are updated based on the value of en_data_reg.<br>\n    The output assignment.<br>\n    On the positive edge of clock signal B (clk_b) or the falling edge of reset signal B (brstn), the module assigns the output data value.<br>\n    If the reset signal B (brstn) is low, indicating a reset condition, the output data (dataout) is set to 0.<br>\n    If the reset signal B (brstn) is high and the control signal (en_clap_two) is active, the output data (dataout) is assigned the value of the data register (data_reg).<br>\n    If the control signal (en_clap_two) is inactive, the output data (dataout) retains its previous value.<br>\n    </implementation>\n</module>",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 1,
+    "total_iter": 3,
+    "gvd": "module synchronizer\n(\n    input clk_a,\n    input clk_b,\n    input arstn,\n    input brstn,\n    input [3:0] data_in,\n    input data_en,\n    output [3:0] dataout\n);\n// ------------------------------\n//        Your Code\n// ------------------------------\nreg [3:0] data_reg;\nreg [3:0] en_data_reg;\nreg [3:0] en_clap_one;\nreg [3:0] en_clap_two;\nreg [3:0] dataout_reg;\nassign dataout = dataout_reg;\nalways @(posedge clk_a or negedge arstn) begin\n    if (!arstn) data_reg <= 4'b0000;\n    else data_reg <= data_in;\nend\nalways @(posedge clk_a or negedge arstn) begin\n    if (!arstn) en_data_reg <= 1'b0;\n    else en_data_reg <= data_en;\nend\nalways @(posedge clk_b or negedge brstn) begin\n    if (!brstn) en_clap_one <= 1'b0;\n    else en_clap_one <= en_data_reg;\nend\nalways @(posedge clk_b or negedge brstn) begin\n    if (!brstn) en_clap_two <= 1'b0;\n    else en_clap_two <= en_clap_one;\nend\nalways @(posedge clk_b or negedge brstn) begin\n    if (!brstn) dataout_reg <= 4'b0000;\n    else if (en_clap_two) dataout_reg <= data_reg;\n    else dataout_reg <= dataout_reg;\nend\nendmodule\n",
+    "xml_description": "<module id=\"synchronizer\">\n    <description>Implement a multi-bit MUX-based synchronizer. The data_en signal is synchronous to clk_a and the data_in is constant during data_en high. The data_en signal is 1-cycle pulse generated by FSM and the data_in is input data of the FSM. The clk_a is FSM's clock and clk_b is clock of this synchronizer. The dataout is output of this synchronizer, which is connected to the FSM output.</description>\n    <ports>\n        <input id=\"clk_a\">Input clock A.</input>\n        <input id=\"clk_b\">Input clock B.</input>\n        <input id=\"arstn\">Input reset A.</input>\n        <input id=\"brstn\">Input reset B.</input>\n        <input id=\"data_in\" width_description=\"[3:0]\">Input data.</input>\n        <input id=\"data_en\">Input data enable.</input>\n        <output id=\"dataout\" width_description=\"[3:0]\">Output data.</output>\n    </ports>\n    <parameter_description>\n        <enum id=\"state\" width_description=\"[1:0]\">\n            <enum_value id=\"one\" value=\"0b01\">State one.</enum_value>\n            <enum_value id=\"two\" value=\"0b10\">State two.</enum_value>\n        </enum>\n    </parameter_description>\n    <logic_description>\n        <reg id=\"data_reg\" width_description=\"[3:0]\" type=\"sequential_logic\">Data input register.</reg>\n        <reg id=\"en_data_reg\" width_description=\"[3:0]\" type=\"sequential_logic\">Data enable register.</reg>\n        <reg id=\"en_clap_one\" width_description=\"[3:0]\" type=\"sequential_logic\">Clap one enable register.</reg>\n        <reg id=\"en_clap_two\" width_description=\"[3:0]\" type=\"sequential_logic\">Clap two enable register.</reg>\n    </logic_description>\n    <implementation>\n        <always_comb>\n            <case>\n                <case_item>\n                    <condition>\n                        <and>\n                            <term><signal>reset</signal></term>\n                        </and>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>data_reg</signal></lhs>\n                            <rhs>4'b0000</rhs>\n                        </assign>\n                    </result>\n                </case_item>\n                <case_item>\n                    <condition>\n                        <not>\n                            <term><signal>reset</signal></term>\n                        </not>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>data_reg</signal></lhs>\n                            <rhs><signal>data_in</signal></rhs>\n                        </assign>\n                    </result>\n                </case_item>\n            </case>\n        </always_comb>\n        <always_comb>\n            <case>\n                <case_item>\n                    <condition>\n                        <and>\n                            <term><signal>reset</signal></term>\n                        </and>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>en_data_reg</signal></lhs>\n                            <rhs>1'b0</rhs>\n                        </assign>\n                    </result>\n                </case_item>\n                <case_item>\n                    <condition>\n                        <not>\n                            <term><signal>reset</signal></term>\n                        </not>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>en_data_reg</signal></lhs>\n                            <rhs><signal>data_en</signal></rhs>\n                        </assign>\n                    </result>\n                </case_item>\n            </case>\n        </always_comb>\n        <always_comb>\n            <case>\n                <case_item>\n                    <condition>\n                        <and>\n                            <term><signal>reset</signal></term>\n                        </and>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>en_clap_one</signal></lhs>\n                            <rhs>1'b0</rhs>\n                        </assign>\n                    </result>\n                </case_item>\n                <case_item>\n                    <condition>\n                        <not>\n                            <term><signal>reset</signal></term>\n                        </not>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>en_clap_one</signal></lhs>\n                            <rhs><signal>en_data_reg</signal></rhs>\n                        </assign>\n                    </result>\n                </case_item>\n            </case>\n        </always_comb>\n        <always_comb>\n            <case>\n                <case_item>\n                    <condition>\n                        <and>\n                            <term><signal>reset</signal></term>\n                        </and>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>en_clap_two</signal></lhs>\n                            <rhs>1'b0</rhs>\n                        </assign>\n                    </result>\n                </case_item>\n                <case_item>\n                    <condition>\n                        <not>\n                            <term><signal>reset</signal></term>\n                        </not>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>en_clap_two</signal></lhs>\n                            <rhs><signal>en_clap_one</signal></rhs>\n                        </assign>\n                    </result>\n                </case_item>\n            </case>\n        </always_comb>\n        <always_comb>\n            <case>\n                <case_item>\n                    <condition>\n                        <and>\n                            <term><signal>reset</signal></term>\n                        </and>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>dataout</signal></lhs>\n                            <rhs>4'b0000</rhs>\n                        </assign>\n                    </result>\n                </case_item>\n                <case_item>\n                    <condition>\n                        <not>\n                            <term><signal>reset</signal></term>\n                        </not>\n                    </condition>\n                    <result>\n                        <assign>\n                            <lhs><signal>dataout</signal></lhs>\n                            <rhs>\n                                <cond_expr>\n                                    <condition><signal>en_clap_two</signal></condition>\n                                    <true_expr><signal>data_reg</signal></true_expr>\n                                    <false_expr><signal>dataout</signal></false_expr>\n                                </cond_expr>\n                            </rhs>\n                        </assign>\n                    </result>\n                </case_item>\n            </case>\n        </always_comb>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSED: synchronizer.v:7:11: Signal is not used: 'data_en'\n                                    : ... In instance synchronizer\n    7 |     input data_en,\n      |           ^~~~~~~\n                 ... Use \"/* verilator lint_off UNUSED */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_synchronizer_lt20jkdb/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vsynchronizer.cpp Vsynchronizer__Trace.cpp Vsynchronizer__Slow.cpp Vsynchronizer__Syms.cpp Vsynchronizer__Trace__Slow.cpp > Vsynchronizer__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vsynchronizer__ALL.o Vsynchronizer__ALL.cpp\nar -cr Vsynchronizer__ALL.a Vsynchronizer__ALL.o\nranlib Vsynchronizer__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vsynchronizer__ALL.a      -o Vsynchronizer\nmake: Leaving directory '/tmp/comba_synchronizer_lt20jkdb/obj_dir'\n\n[RUN]\nVsynchronizer: ../tb.cpp:138: void synchronizerScb::writeOut(synchronizerOutTx*): Assertion `tx->dataout == in_tx_ref.data_in && \"TODO 3 Failed: Synchronization logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 26\n# TODO 3 INPUT TRACE: in->arstn = 0x1, in->brstn = 0x1, in->data_en = 0x1, in->data_in = 0x3\n# TODO 3 OUTPUT TRACE: tx->dataout = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: dataout = 0x3\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: synchronizer.v:25:29: Operator ASSIGNDLY expects 4 bits on the Assign RHS, but Assign RHS's CONST '1'h0' generates 1 bits.\n                                    : ... In instance synchronizer\n   25 |     if (!arstn) en_data_reg <= 1'b0;\n      |                             ^~\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: synchronizer.v:26:22: Operator ASSIGNDLY expects 4 bits on the Assign RHS, but Assign RHS's VARREF 'data_en' generates 1 bits.\n                                    : ... In instance synchronizer\n   26 |     else en_data_reg <= data_en;\n      |                      ^~\n%Warning-WIDTH: synchronizer.v:29:29: Operator ASSIGNDLY expects 4 bits on the Assign RHS, but Assign RHS's CONST '1'h0' generates 1 bits.\n                                    : ... In instance synchronizer\n   29 |     if (!brstn) en_clap_one <= 1'b0;\n      |                             ^~\n%Warning-WIDTH: synchronizer.v:33:29: Operator ASSIGNDLY expects 4 bits on the Assign RHS, but Assign RHS's CONST '1'h0' generates 1 bits.\n                                    : ... In instance synchronizer\n   33 |     if (!brstn) en_clap_two <= 1'b0;\n      |                             ^~\n%Warning-WIDTH: synchronizer.v:38:10: Logical Operator IF expects 1 bit on the If, but If's VARREF 'en_clap_two' generates 4 bits.\n                                    : ... In instance synchronizer\n   38 |     else if (en_clap_two) dataout_reg <= data_reg;\n      |          ^~\nmake[1]: Entering directory '/tmp/comba_synchronizer_onk8a9g7/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vsynchronizer.cpp Vsynchronizer__Trace.cpp Vsynchronizer__Slow.cpp Vsynchronizer__Syms.cpp Vsynchronizer__Trace__Slow.cpp > Vsynchronizer__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vsynchronizer__ALL.o Vsynchronizer__ALL.cpp\nar -cr Vsynchronizer__ALL.a Vsynchronizer__ALL.o\nranlib Vsynchronizer__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vsynchronizer__ALL.a      -o Vsynchronizer\nmake[1]: Leaving directory '/tmp/comba_synchronizer_onk8a9g7/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:Vsynchronizer: ../tb.cpp:N: void synchronizerScb::writeOut(synchronizerOutTx*): Assertion `tx->dataout == in_tx_ref.data_in && \"TODO N Failed: Synchronization logic result of the Verilog module is incorrect\"' failed.": 5
+      "TopModule.sv:N: error: dataout is not a valid l-value in synchronizer.": 1
     },
-    "self_consistency": {
-      "samples_run": 5,
-      "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
-      "best_status": "fail_ts",
-      "early_exit": false,
-      "total_elapsed_s": 254.98,
-      "all_samples": [
-        {
-          "idx": 0,
-          "T": 0.0,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 36,
-          "elapsed_s": 70.43
-        },
-        {
-          "idx": 1,
-          "T": 0.5,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 38,
-          "elapsed_s": 43.11
-        },
-        {
-          "idx": 2,
-          "T": 0.5,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 36,
-          "elapsed_s": 44.91
-        },
-        {
-          "idx": 3,
-          "T": 0.8,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 38,
-          "elapsed_s": 46.25
-        },
-        {
-          "idx": 4,
-          "T": 0.8,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 35,
-          "elapsed_s": 50.28
-        }
-      ]
-    },
+    "failure_type": "",
+    "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 8,
+      "commits": 2,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": 3,
       "final_sc": 0
     }
   }

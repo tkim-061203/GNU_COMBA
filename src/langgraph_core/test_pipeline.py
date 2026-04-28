@@ -11,6 +11,7 @@ Usage:
 
 import pytest
 from unittest.mock import patch, MagicMock
+import os
 import subprocess
 
 from comba_pipeline import (
@@ -41,6 +42,7 @@ from stub_llm import (
     DEBUGGER_PATCH_FIXED,
 )
 from comba_pipeline import _count_iverilog_errors, _normalize_error_key
+from fsm_patch import route_after_classify_tb
 
 
 
@@ -173,7 +175,7 @@ class TestRoutingFunctions:
         state = make_initial_state()
         state["dataset_dir"] = "/tmp"
         state["tb_failure"] = "TODO 3 Failed"
-        assert route_after_ts(state) == "node_ted_tb"
+        assert route_after_ts(state) == "node_classify_tb"
 
     def test_route_after_ts_pass(self):
         # In the real pipeline, this is passed from run_pipeline_sync
@@ -182,6 +184,17 @@ class TestRoutingFunctions:
         state["dataset_dir"] = "/tmp"
         state["tb_failure"] = None
         assert route_after_ts(state) == "end_pass"
+
+    # ── Classify TB routing (v5) ──
+    def test_route_after_classify_tb_fsm(self):
+        state = make_initial_state()
+        state["failure_type"] = "fsm_state_error"
+        assert route_after_classify_tb(state) == "node_vcd_analyzer"
+
+    def test_route_after_classify_tb_comb(self):
+        state = make_initial_state()
+        state["failure_type"] = "combinational_mismatch"
+        assert route_after_classify_tb(state) == "node_ted_tb"
 
     # ── TED SC routing (enhanced with MultiAttempt) ──
     def test_route_after_ted_syntax_under_limit(self):
@@ -537,11 +550,20 @@ class TestE2EGraph:
                 return next(sc_iter, CLEAN_SC_RESULT)
             elif "vvp" in cmd_str.lower() or "iverilog" in cmd_str.lower():
                 return next(tb_iter, TB_PASS_RESULT)
+            elif "vcdvcd" in cmd_str.lower():
+                return make_iverilog_result(0)
             return make_iverilog_result(0)
+
+        original_isfile = os.path.isfile
+        def mock_isfile(path):
+            if "test.sv" in path or "tb.sv" in path or "tb.v" in path:
+                return True
+            return original_isfile(path)
 
         with patch("comba_pipeline.subprocess.run", side_effect=mock_subprocess_run):
             with patch("comba_pipeline.shutil.copy2"):
-                result = graph.invoke(state, {"recursion_limit": 150})
+                with patch("os.path.isfile", side_effect=mock_isfile):
+                    result = graph.invoke(state, {"recursion_limit": 150})
 
         return result
 
@@ -614,6 +636,8 @@ class TestE2EGraph:
             "node_ted_syntax",
             "node_debugger",
             "node_tb_sim",
+            "node_classify_tb",
+            "node_vcd_analyzer",
             "node_ted_tb",
             "end_pass",
             "end_fail_sc",

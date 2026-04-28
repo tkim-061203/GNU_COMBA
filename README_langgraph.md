@@ -37,17 +37,32 @@ The pipeline utilizes **LangGraph** to model the execution states and conditiona
 
 ### Pipeline Flow Graph
 
-```text
-NL → [Converter] → XML → [Generator] → [Sanitizer]
-  → [Syntax Check] → pass? → [TB Sim] → pass? → END ✅
-            ↓ fail                  ↓ fail
-       [TED_SC]                [TED_TB]
-            ↓                       ↓
-      [Debugger]              [Debugger]
-            ↓                       ↓
-       [Patcher]               [Patcher]
-            |                       ↓
-            ↳ (loop back to Syntax Check)
+```mermaid
+graph TD
+    Start((Start)) --> NL[node_converter<br/>NL → XML]
+    NL --> XML[COMBA XML Description]
+    XML --> Gen[node_generator<br/>XML → Raw Verilog]
+    Gen --> San[node_sanitizer<br/>Clean & Fix Verilog]
+    San --> SC{node_syntax_check<br/>iverilog / verilator}
+    
+    SC -- Fail --> TED_SC[node_ted_syntax<br/>Extract Topmost Err]
+    TED_SC --> Debug[node_debugger<br/>L0-L4 Escalation]
+    Debug --> Patch[node_patcher<br/>Apply Patch/Diff]
+    Patch --> San
+    
+    SC -- Pass --> TS{node_tb_sim<br/>TB Simulation}
+    
+    TS -- Fail --> TED_TS[node_ted_tb<br/>Extract TB Trace]
+    TED_TS --> Debug
+    
+    TS -- Pass --> Pass((Success: Pass ✅))
+
+    subgraph Iterative Debug Loop
+    TED_SC
+    TED_TS
+    Debug
+    Patch
+    end
 ```
 
 ---
@@ -86,12 +101,21 @@ Tracks the exception count per iteration in a snapshot history (`sgvd_versions`)
 
 ### Multi-Attempt Escalation (`multi_attempt.py`)
 
-The pipeline doesn't just ask the LLM repeatedly. It tracks the failure level:
+The pipeline doesn't just ask the LLM repeatedly. It tracks the failure level using a `MultiAttemptManager`:
 
-* **L0**: Gentle hint
-* **L1**: Explicit constraint injection
-* **L2**: Forced rewrite of the block
-* **L3 / L4**: High hostility / rollback directives
+* **L0**: Gentle hint (Standard retry).
+* **L1**: Explicit constraint injection (Port preservation, assignment rules).
+* **L2**: Forced block rewrite (Directs LLM to discard and replace a specific logic block).
+* **L3 / L4**: High hostility / Architecture rollback (Forces a fundamental rethink or reverts to a prior known state).
+
+### Hierarchical Self-Consistency (`multi_sample.py`)
+
+To further boost the pass rate, the pipeline implements a **Best-of-N Self-Consistency** strategy:
+
+*   **Tier 1 (Deterministic Baseline)**: Runs a single sample at `Temperature=0.0`. If this sample passes all tests, the pipeline exits early to save tokens and time.
+*   **Tier 2 (Diversity Sampling)**: If Tier 1 fails, the pipeline spawns up to `N-1` additional independent parallel samples at increasing temperatures (e.g., 0.5 to 1.0).
+*   **Diversity Hints**: For Tier 2 samples, the generator is injected with unique "Diversity Hints" (e.g., "Try a case statement instead of if-else") to explore different architectural solutions.
+*   **Scoring & Selection**: Each finished sample is scored by `(Status, -TB_Errors, -SC_Errors, -Code_Size)`. The best-performing sample is selected as the final result.
 
 ---
 
@@ -110,6 +134,6 @@ Can safely fall back to standard `ChatOpenAI`/`Ollama` endpoints via `.env` defi
 
 The core entry point utilities are within `pipeline_runner.py`:
 
-* `run_pipeline_sync()`: Invokes a single module prompt run until resolution or limit.
+* `run_pipeline_sync()`: Invokes a single module prompt run until resolution or limit. Automatically dispatches to `multi_sample` if self-consistency is enabled.
 * `run_pipeline_streaming()`: Generates an event-driven stream yielding the node and current graphical state per jump (used in UI/API connections).
-* `run_pipeline_batch()`: Executes over directories of descriptions and outputs aggregated markdown (`summary_langgraph.xml.md`) and JSON reports tracking Pass Rates, Avg trials, and error classifications.
+* `run_pipeline_batch()`: Executes over directories of descriptions and outputs aggregated markdown (`summary_langgraph.md`) and JSON reports tracking Pass Rates, Avg trials, and BoN (Best-of-N) statistics.

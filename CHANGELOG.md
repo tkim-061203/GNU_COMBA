@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2026-04-28
+### Added
+- **Hierarchical Self-Consistency**: Implemented a multi-sample Best-of-N strategy in `multi_sample.py`. Includes Tier 1 (deterministic) and Tier 2 (diverse sampling) execution modes.
+- **Diversity Hint Injection**: Automated system message monkey-patching to inject architectural hints (e.g., "use case statements") for diverse sample generation.
+- **Enhanced Build System**: Integrated `--with-self-consistency` and `--with-max-samples` flags into `configure.ac` and `Makefile`.
+- **Advanced Batch Reporting**: Added BoN (Best-of-N) statistics, Tier 2 recovery counts, and per-sample temperature tracking to markdown and JSON reports.
+
+### Changed
+- **Multi-Attempt Escalation**: Refined the `MultiAttemptManager` with L0-L4 escalation levels, including architecture rollbacks and hostililty prompts for hard-to-fix bugs.
+- **Isolated Execution**: Standardized `__s{idx}` work directory suffixing for collision-free parallel sampling.
+
+## [2.3.0] - 2026-04-20
+### Added
+- **Isolated Work Directories**: Every module run now executes in a unique, isolated directory to prevent race conditions during high-concurrency `iverilog` runs.
+- **Token Efficiency**: Implemented automated task description truncation in the debugger node to handle large module contexts.
+- **Flexible Input Types**: Added support for raw `.txt` input to bypass XML conversion for compatible benchmarks.
+
 ## [1.5.0] - 2026-04-07
 ### Added
 - **Multi-Range Selection**: Added support for comma-separated extraction buckets (`--with-extract-ranges=6-10,11-15`) in Pipeline 1.

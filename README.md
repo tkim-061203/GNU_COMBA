@@ -70,10 +70,9 @@ graph TD
 7.  **TED TB Agent**: Parses simulation traces to identify functional bugs.
 8.  **Debugger Agent**: Unified correction agent that uses feedback from TED agents to iteratively refactor the Verilog code.
 
-### Pipeline 3 Optimizations
-
 - **Isolated Execution**: Every sample runs in an independent, isolated `work_dir`, preventing file collisions and race conditions during parallel execution.
 - **Precise Error Parsing**: Standardized `iverilog` parsing filters out warnings and non-critical noise, allowing agents to focus exclusively on syntax errors.
+- **Hierarchical Self-Consistency**: Multi-sample Best-of-N strategy. Tier 1 (deterministic) for speed, Tier 2 (diverse sampling with hints) for robustness.
 - **Token Efficiency**: Automated truncation of task descriptions in the debugger node to minimize context window overhead and save tokens.
 - **Description Flexibility**: Support for raw `.txt` input, bypassing the XML converter for users who prefer direct text-to-Verilog generation.
 
@@ -209,6 +208,8 @@ Used for processing Verilog codebases to extract specific modules based on compl
 - `--with-max_token`: Limit for the generated Verilog code output.
 - `--with-quiet`: Only show progress bar during LangGraph inference (default: True).
 - `--with-description-type`: (Batch mode) Specify `xml` or `txt` for processing design descriptions.
+- `--with-self-consistency`: Enable Best-of-N multi-sampling (default: 0).
+- `--with-max-samples`: Max samples for self-consistency (default: 5).
 
 > [!IMPORTANT]
 > **TXT Description Mode:** When using `LANGGRAPH_DESC=txt` (or `--desc-type txt`), the pipeline skips the XML conversion stage and passes the raw text specification directly to the generator. This is useful for benchmarks where the LLM performs better on raw problem statements.
@@ -342,4 +343,4 @@ make jupyterlab
 
 ---
 Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
-Version: 2.3.0
+Version: 2.4.0

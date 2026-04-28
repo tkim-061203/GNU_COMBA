@@ -68,7 +68,7 @@ verilog-eval:
 
 langgraph:
 	@echo "=== Running LangGraph Inference (Parallel Jobs) ==="
-	$(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=@model_manual@ --model-submanual=@model_submanual@ --jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC)
+	COMBA_SELF_CONSISTENCY=@self_consistency@ COMBA_MAX_SAMPLES=@max_samples@ $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} --model-manual=@model_manual@ --model-submanual=@model_submanual@ --jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC)
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).

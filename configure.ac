@@ -179,6 +179,30 @@ AC_SUBST([description_type])
 AC_MSG_NOTICE([using description type: ${description_type}])
 
 #-------------------------------------------------------------------------
+# --with-self-consistency
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(self-consistency,
+  AS_HELP_STRING([--with-self-consistency],[Enable Best-of-N multi-sampling (default: 0)]),
+  [self_consistency="${with_self_consistency}"],
+  [self_consistency="0"])
+
+AC_SUBST([self_consistency])
+AC_MSG_NOTICE([using self-consistency: ${self_consistency}])
+
+#-------------------------------------------------------------------------
+# --with-max-samples
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(max-samples,
+  AS_HELP_STRING([--with-max-samples],[Max samples for self-consistency (default: 5)]),
+  [max_samples="${with_max_samples}"],
+  [max_samples="5"])
+
+AC_SUBST([max_samples])
+AC_MSG_NOTICE([using max samples: ${max_samples}])
+
+#-------------------------------------------------------------------------
 # --with-revision
 #-------------------------------------------------------------------------
 
