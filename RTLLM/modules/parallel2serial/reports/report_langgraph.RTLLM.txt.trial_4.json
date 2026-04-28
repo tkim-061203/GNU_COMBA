@@ -1,49 +1,27 @@
 {
   "module_name": "parallel2serial",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": true,
+  "self_consistency_enabled": false,
   "samples": {
     "module_name": "parallel2serial",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 5,
-    "ts_trial": 5,
-    "total_iter": 10,
-    "gvd": "module parallel2serial(\n    input clk,\n    input rst_n,\n    input [3:0] d,\n    output valid_out,\n    output dout\n);\n\nreg [3:0] shift_reg;\nreg [1:0] counter;\nreg valid;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        shift_reg <= 4'b0;\n        counter <= 2'b0;\n        valid <= 1'b0;\n    end\n    else begin\n        if (counter == 2'b11) begin\n            shift_reg <= d;\n            counter <= 2'b0;\n            valid <= 1'b1;\n        end\n        else begin\n            shift_reg <= {shift_reg[2:0], 1'b0};\n            counter <= counter + 1'b1;\n            valid <= 1'b1;\n        end\n    end\nend\n\nassign valid_out = valid;\nassign dout = shift_reg[3];\n\nendmodule\n",
-    "xml_description": "<module id=\"parallel2serial\">\n    <description>Implement a module for parallel-to-serial conversion, where every four input bits are converted to a serial one bit output (from MSB to LSB). The output signal valid_out is set to 1 to indicate the availability of valid serial output. When valid_out = 1, the most significant bit of d is output, and the remaining three bits are output sequentially in the following 3 cycles.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst_n\">Reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"d\" width_description=\"[3:0]\">4-bit parallel data input.</input>\n        <output id=\"valid_out\">Valid signal indicating the availability of serial output.</output>\n        <output id=\"dout\">Serial output representing the converted data.</output>\n    </ports>\n    <parameter_description>\n        <param id=\"WIDTH\" value=\"4\">Width of parallel data input.</param>\n        <param id=\"COUNT\" value=\"3\">Count of cycles for serial output.</param>\n    </parameter_description>\n    <logic_description>\n        <reg id=\"cnt\" type=\"sequential_logic\" width_description=\"[2:0]\">Counter register for serial output.</reg>\n        <reg id=\"valid\" type=\"sequential_logic\">Valid signal register for serial output.</reg>\n        <reg id=\"data\" type=\"sequential_logic\" width_description=\"[3:0]\">Data register for parallel data input.</reg>\n    </logic_description>\n    <implementation>\n        <p>Parallel-to-serial conversion is performed by shifting the data register (data) and outputting the most significant bit (MSB) to the serial output (dout) in a sequential manner.</p>\n        <p>When the counter register (cnt) reaches 3 (COUNT), the data register (data) is updated with the parallel data input (d), and the counter register (cnt) is reset to 0.</p>\n        <p>At the same time, the valid signal (valid) is set to 1 to indicate that the serial output is available.</p>\n        <p>When the counter register (cnt) is not 3 (COUNT), the data register (data) is shifted left by 1 bit.</p>\n        <p>The valid signal (valid) is set to 0 to indicate that the serial output is not available.</p>\n        <p>The counter register (cnt) is incremented by 1 to keep track of the number of cycles for serial output.</p>\n        <p>Reset behavior: When the reset signal (rst_n) is low, the counter register (cnt) is reset to 0.</p>\n    </implementation>\n</module>",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module parallel2serial\n(\n    input clk,\n    input rst_n,\n    input [3:0] d,\n    output valid_out,\n    output dout\n);\n\nreg [2:0] cnt;\nreg valid;\nreg [3:0] data;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        cnt <= 3'b0;\n        valid <= 1'b0;\n        data <= 4'b0;\n    end\n    else begin\n        if (cnt == 3'b11) begin\n            data <= d;\n            cnt <= 3'b0;\n            valid <= 1'b1;\n        end\n        else begin\n            cnt <= cnt + 1'b1;\n            valid <= 1'b0;\n            data <= {data[2:0], data[3]};\n        end\n    end\nend\n\nassign dout = data[3];\nassign valid_out = valid;\n\nendmodule\n",
+    "xml_description": "<module id=\"parallel2serial\">\n    <description>Implement a module for parallel-to-serial conversion, where every four input bits are converted to a serial one bit output (from MSB to LSB). The output signal valid_out is set to 1 to indicate the availability of valid serial output. When valid_out = 1, the most significant bit of d is output, and the remaining three bits are output sequentially in the following 3 cycles.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst_n\">Reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"d\" width_description=\"[3:0]\">4-bit parallel data input.</input>\n        <output id=\"valid_out\">Valid signal indicating the availability of serial output.</output>\n        <output id=\"dout\">Serial output representing the converted data.</output>\n    </ports>\n    <parameter_description>\n        <param id=\"WIDTH\" value=\"4\">Width of parallel data input.</param>\n        <param id=\"COUNT\" value=\"3\">Count of cycles for parallel-to-serial conversion.</param>\n    </parameter_description>\n    <logic_description>\n        <reg id=\"cnt\" type=\"sequential_logic\" width_description=\"[2:0]\">Counter register for sequential logic.</reg>\n        <reg id=\"valid\" type=\"sequential_logic\">Valid register for sequential logic.</reg>\n        <reg id=\"data\" type=\"sequential_logic\" width_description=\"[3:0]\">Data register for sequential logic.</reg>\n    </logic_description>\n    <implementation>\n        <sequential>\n            <assign id=\"cnt[2:0]\" next_value=\"((rst_n) ? cnt[2:0] + 1'b1 : 3'b0)\"/>\n            <assign id=\"valid\" next_value=\"(cnt[2:0] == 3'b100 ? 1'b1 : 1'b0)\"/>\n            <assign id=\"data[3:0]\" next_value=\"(cnt[2:0] == 3'b100 ? d[3:0] : data[3:0] << 1)\"/>\n        </sequential>\n        <combinational>\n            <assign id=\"dout\" value=\"data[3]\"/>\n            <assign id=\"valid_out\" value=\"valid\"/>\n        </combinational>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_parallel2serial_q5s5a4ef/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vparallel2serial.cpp Vparallel2serial__Trace.cpp Vparallel2serial__Slow.cpp Vparallel2serial__Syms.cpp Vparallel2serial__Trace__Slow.cpp > Vparallel2serial__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vparallel2serial__ALL.o Vparallel2serial__ALL.cpp\nar -cr Vparallel2serial__ALL.a Vparallel2serial__ALL.o\nranlib Vparallel2serial__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vparallel2serial__ALL.a      -o Vparallel2serial\nmake: Leaving directory '/tmp/comba_parallel2serial_q5s5a4ef/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_parallel2serial_jtsgqoef/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vparallel2serial.cpp Vparallel2serial__Trace.cpp Vparallel2serial__Slow.cpp Vparallel2serial__Syms.cpp Vparallel2serial__Trace__Slow.cpp > Vparallel2serial__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vparallel2serial__ALL.o Vparallel2serial__ALL.cpp\nar -cr Vparallel2serial__ALL.a Vparallel2serial__ALL.o\nranlib Vparallel2serial__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vparallel2serial__ALL.a      -o Vparallel2serial\nmake[1]: Leaving directory '/tmp/comba_parallel2serial_jtsgqoef/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:Verilator compilation failed": 1,
-      "TB:VparallelNserial: ../tb.cpp:N: void parallelNserialScb::writeOut(parallelNserialOutTx*): Assertion `tx->valid_out == N && \"TODO N Failed: Valid-out logic result of the Verilog module is incorrect\"' failed.": 3
+      "TB:Verilator compilation failed": 1
     },
-    "self_consistency": {
-      "samples_run": 1,
-      "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
-      "best_status": "pass",
-      "early_exit": true,
-      "total_elapsed_s": 28.77,
-      "all_samples": [
-        {
-          "idx": 0,
-          "T": 0.0,
-          "status": "pass",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 36,
-          "elapsed_s": 28.77
-        }
-      ]
-    },
+    "failure_type": "",
+    "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 8,
+      "commits": 2,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

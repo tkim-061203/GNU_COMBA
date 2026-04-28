@@ -1,7 +1,7 @@
 {
   "module_name": "adder_16bit",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": true,
+  "self_consistency_enabled": false,
   "samples": {
     "module_name": "adder_16bit",
     "description_type": "RTLLM.txt",
@@ -9,37 +9,16 @@
     "sc_trial": 2,
     "ts_trial": 1,
     "total_iter": 3,
-    "gvd": "module adder_16bit(\n    input [15:0] a,\n    input [15:0] b,\n    input Cin,\n    output [15:0] y,\n    output Co\n);\n\n    wire [15:0] sum;\n    wire [15:0] carry;\n\n    // 16-bit full adder logic\n    assign {carry[0], sum[0]} = a[0] + b[0] + Cin;\n    assign {carry[1], sum[1]} = a[1] + b[1] + carry[0];\n    assign {carry[2], sum[2]} = a[2] + b[2] + carry[1];\n    assign {carry[3], sum[3]} = a[3] + b[3] + carry[2];\n    assign {carry[4], sum[4]} = a[4] + b[4] + carry[3];\n    assign {carry[5], sum[5]} = a[5] + b[5] + carry[4];\n    assign {carry[6], sum[6]} = a[6] + b[6] + carry[5];\n    assign {carry[7], sum[7]} = a[7] + b[7] + carry[6];\n    assign {carry[8], sum[8]} = a[8] + b[8] + carry[7];\n    assign {carry[9], sum[9]} = a[9] + b[9] + carry[8];\n    assign {carry[10], sum[10]} = a[10] + b[10] + carry[9];\n    assign {carry[11], sum[11]} = a[11] + b[11] + carry[10];\n    assign {carry[12], sum[12]} = a[12] + b[12] + carry[11];\n    assign {carry[13], sum[13]} = a[13] + b[13] + carry[12];\n    assign {carry[14], sum[14]} = a[14] + b[14] + carry[13];\n    assign {Co, sum[15]} = a[15] + b[15] + carry[14];\n\n    assign y = sum;\n\nendmodule\n",
-    "xml_description": "<module id=\"adder_16bit\">\n    <description>Implement a 16-bit full adder in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[15:0]\">16-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[15:0]\">16-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"sum\" width_description=\"[15:0]\">16-bit output representing the sum of A and B.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>\n        <p>Implement a 16-bit full adder in combinational logic.</p>\n        <p>Use half adders and full adders to perform addition.</p>\n    </implementation>\n</module>",
+    "gvd": "module adder_16bit\n(\n    input [15:0] a,\n    input [15:0] b,\n    input Cin,\n    output [15:0] y,\n    output Co\n);\n\nwire [15:0] sum;\nwire cout;\n\nassign {cout, sum} = a + b + Cin;\nassign y = sum;\nassign Co = cout;\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_16bit\">\n    <description>Implement a 16-bit full adder in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[15:0]\">16-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[15:0]\">16-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"sum\" width_description=\"[15:0]\">16-bit sum output.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>\n        <p>Design a 16-bit full adder.</p>\n        <p>Use a single assign statement to perform the addition.</p>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSED: adder_16bit.v:10:17: Bits of signal are not driven, nor used: 'carry'[15]\n                                    : ... In instance adder_16bit\n   10 |     wire [15:0] carry;\n      |                 ^~~~~\n                 ... Use \"/* verilator lint_off UNUSED */\" and lint_on around source to disable this message.\n%Warning-UNOPTFLAT: adder_16bit.v:10:17: Signal unoptimizable: Feedback to clock or circular logic: 'adder_16bit.carry'\n   10 |     wire [15:0] carry;\n      |                 ^~~~~\n                    adder_16bit.v:10:17:      Example path: adder_16bit.carry\n                    adder_16bit.v:14:31:      Example path: ASSIGNW\n                    adder_16bit.v:14:21:      Example path: adder_16bit.__Vconcswap1\n                    adder_16bit.v:14:31:      Example path: ASSIGNW\n                    adder_16bit.v:10:17:      Example path: adder_16bit.carry\nmake: Entering directory '/tmp/comba_adder_16bit_68kqlnjq/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_16bit.cpp Vadder_16bit__Trace.cpp Vadder_16bit__Slow.cpp Vadder_16bit__Syms.cpp Vadder_16bit__Trace__Slow.cpp > Vadder_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_16bit__ALL.o Vadder_16bit__ALL.cpp\nar -cr Vadder_16bit__ALL.a Vadder_16bit__ALL.o\nranlib Vadder_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_16bit__ALL.a      -o Vadder_16bit\nmake: Leaving directory '/tmp/comba_adder_16bit_68kqlnjq/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: adder_16bit.v:13:28: Operator ADD expects 17 bits on the RHS, but RHS's VARREF 'Cin' generates 1 bits.\n                                   : ... In instance adder_16bit\n   13 | assign {cout, sum} = a + b + Cin;\n      |                            ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\nmake[1]: Entering directory '/tmp/comba_adder_16bit_ipv6k3kf/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_16bit.cpp Vadder_16bit__Trace.cpp Vadder_16bit__Slow.cpp Vadder_16bit__Syms.cpp Vadder_16bit__Trace__Slow.cpp > Vadder_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_16bit__ALL.o Vadder_16bit__ALL.cpp\nar -cr Vadder_16bit__ALL.a Vadder_16bit__ALL.o\nranlib Vadder_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_16bit__ALL.a      -o Vadder_16bit\nmake[1]: Leaving directory '/tmp/comba_adder_16bit_ipv6k3kf/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
       "TopModule.sv:N: error: Unable to bind wire/reg/memory `cin' in `adder_16bit'": 1
     },
-    "self_consistency": {
-      "samples_run": 1,
-      "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
-      "best_status": "pass",
-      "early_exit": true,
-      "total_elapsed_s": 29.09,
-      "all_samples": [
-        {
-          "idx": 0,
-          "T": 0.0,
-          "status": "pass",
-          "sc_trial": 2,
-          "ts_trial": 1,
-          "iter": 3,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 32,
-          "elapsed_s": 29.09
-        }
-      ]
-    },
+    "failure_type": "",
+    "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
       "commits": 2,

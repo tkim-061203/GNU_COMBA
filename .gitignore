@@ -34,7 +34,7 @@ build_*
 .claude
 # Added by code-review-graph
 .code-review-graph/
-
+.vscode/
 RTLLM/modules/*
 !RTLLM/modules/*/
 RTLLM/modules/*/*
