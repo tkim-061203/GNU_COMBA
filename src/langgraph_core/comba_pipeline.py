@@ -517,9 +517,7 @@ class COMBANodes:
 
         result = verilog_sanitize(
             raw,
-            module_name=state.get("module_name"),
             expected_header=state.get("expected_header"),
-            current_retry=state.get("_sanitize_retry_count", 0),
         )
 
         sanitize_dict = {
@@ -1363,6 +1361,11 @@ def route_after_sanitizer(state: COMBAState) -> str:
     """After Sanitizer — needs retry? → re-query LLM, else → SC."""
     result = state.get("sanitize_result") or {}
     if result.get("needs_retry"):
+        retry_count = state.get("_sanitize_retry_count", 0)
+        if retry_count >= 2:
+            cprint(f"  ⛔ GUARD STOP: Sanitizer retry cap reached ({retry_count}/2).")
+            return "end_fail_sc"
+            
         source = state.get("_last_llm_source", "generator")
         if source == "debugger":
             return "node_debugger"
@@ -1579,6 +1582,7 @@ def build_comba_graph(llm):
             "node_syntax_check": "node_syntax_check",
             "node_generator": "node_generator",
             "node_debugger": "node_debugger",
+            "end_fail_sc": "end_fail_sc",
         },
     )
 

@@ -100,14 +100,14 @@ langgraph:
 	@echo "=== Running LangGraph Inference: VerilogEval V1 (Parallel) ==="
 	$(SC_ENV) COMBA_MAX_SAMPLES=5 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
 		--model-manual=True --model-submanual=True \
-		--jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
+		--jobs 10 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
 		--dataset-dir $(VEVAL_V1_DIR)
 
 langgraph-veval-v2:
 	@echo "=== Running LangGraph Inference: VerilogEval V2 (Parallel) ==="
 	$(SC_ENV) COMBA_MAX_SAMPLES=5 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
 		--model-manual=True --model-submanual=True \
-		--jobs 20 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
+		--jobs 10 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
 		--dataset-dir $(VEVAL_V2_DIR)
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
