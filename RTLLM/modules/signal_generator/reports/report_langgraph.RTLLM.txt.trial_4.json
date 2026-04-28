@@ -1,21 +1,87 @@
 {
   "module_name": "signal_generator",
   "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "signal_generator",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 5,
-    "ts_trial": 5,
-    "total_iter": 10,
-    "gvd": "module signal_generator(\n    input clk,\n    input rst_n,\n    output [4:0] wave\n);\n\nreg [4:0] wave_reg;\nreg up;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        wave_reg <= 5'd0;\n        up <= 1'b1;\n    end\n    else begin\n        if (up) begin\n            if (wave_reg == 5'd31)\n                up <= 1'b0;\n            else\n                wave_reg <= wave_reg + 1'b1;\n        end\n        else begin\n            if (wave_reg == 5'd0)\n                up <= 1'b1;\n            else\n                wave_reg <= wave_reg - 1'b1;\n        end\n    end\nend\n\nassign wave = wave_reg;\n\nendmodule\n",
-    "xml_description": "<module id=\"signal_generator\">\n    <description>Triangle Wave signal generator.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <output id=\"wave\" width_description=\"[4:0]\">Output waveform signal.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"state_0\">0</parameter>\n        <parameter name=\"state_1\">1</parameter>\n    </parameter_description>\n    <logic_description>\n        <reg type=\"sequential_logic\" width_description=\"[4:0]\">wave</reg>\n        <reg type=\"sequential_logic\" width_description=\"[0:0]\">state</reg>\n    </logic_description>\n    <implementation>\n    &lt;!-- Reset and state --&gt;\n    always @(posedge clk or negedge rst_n) begin\n        if (~rst_n) begin\n            state &lt;= 1'b0;\n        end\n        else begin\n            case (state)\n                &lt;!-- State 0: Increment --&gt;\n                1'b0: begin\n                    state &lt;= 1'b1;\n                end\n                &lt;!-- State 1: Decrement --&gt;\n                1'b1: begin\n                    state &lt;= 1'b0;\n                end\n            endcase\n        end\n    end\n    &lt;!-- Waveform generation --&gt;\n    always @(posedge clk or negedge rst_n) begin\n        if (~rst_n) begin\n            wave &lt;= 5'b0;\n        end\n        else begin\n            case (state)\n                1'b0: begin\n                    if (wave != 5'd31) begin\n                        wave &lt;= wave + 1'b1;\n                    end\n                end\n                1'b1: begin\n                    if (wave != 5'd0) begin\n                        wave &lt;= wave - 1'b1;\n                    end\n                end\n            endcase\n        end\n    end\n    </implementation>\n</module>",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module signal_generator(\n    input clk,\n    input rst_n,\n    output reg [4:0] wave\n);\n    reg [4:0] next_wave;\n    reg state;\n\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            state <= 1'b0;\n            wave <= 5'd0;\n        end else begin\n            if (state == 1'b0 && wave == 5'd31) begin\n                state <= 1'b1;\n            end else if (state == 1'b1 && wave == 5'd0) begin\n                state <= 1'b0;\n            end else begin\n                wave <= next_wave;\n            end\n        end\n    end\n\n    always @(*) begin\n        if (state == 1'b0) begin\n            next_wave = wave + 1'b1;\n        end else begin\n            next_wave = wave - 1'b1;\n        end\n    end\n\nendmodule\n",
+    "xml_description": "<module id=\"signal_generator\">\n    <description>Triangle Wave signal generator.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <output id=\"wave\" width_description=\"[4:0]\">Output wave signal.</output>\n    </ports>\n    <parameter_description>\n        <state value=\"0\">Initial state.</state>\n        <state value=\"1\">Reverse state.</state>\n    </parameter_description>\n    <logic_description>\n        <reg type=\"sequential_logic\" width_description=\"[4:0]\" from=\"0\" to=\"wave\">5-bit waveform register.</reg>\n        <reg type=\"sequential_logic\" width_description=\"[0:0]\" from=\"0\" to=\"state\">State register.</reg>\n    </logic_description>\n    <implementation>\n    &lt;!--  --&gt;\n    &lt;!--  --&gt;\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_signal_generator_r7hex009/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vsignal_generator.cpp Vsignal_generator__Trace.cpp Vsignal_generator__Slow.cpp Vsignal_generator__Syms.cpp Vsignal_generator__Trace__Slow.cpp > Vsignal_generator__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vsignal_generator__ALL.o Vsignal_generator__ALL.cpp\nar -cr Vsignal_generator__ALL.a Vsignal_generator__ALL.o\nranlib Vsignal_generator__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vsignal_generator__ALL.a      -o Vsignal_generator\nmake[1]: Leaving directory '/tmp/comba_signal_generator_r7hex009/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_signal_generator_r245u2p5/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vsignal_generator.cpp Vsignal_generator__Trace.cpp Vsignal_generator__Slow.cpp Vsignal_generator__Syms.cpp Vsignal_generator__Trace__Slow.cpp > Vsignal_generator__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vsignal_generator__ALL.o Vsignal_generator__ALL.cpp\nar -cr Vsignal_generator__ALL.a Vsignal_generator__ALL.o\nranlib Vsignal_generator__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vsignal_generator__ALL.a      -o Vsignal_generator\nmake: Leaving directory '/tmp/comba_signal_generator_r245u2p5/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:# TODO N Failed at simtime N": 1,
-      "TB:Vsignal_generator: ../tb.cpp:N: void signal_generatorScb::writeOut(signal_generatorOutTx*): Assertion `tx->wave == N && \"TODO N Failed: Wave logic result of the Verilog module is incorrect\"' failed.": 3
+      "TB:Vsignal_generator: ../tb.cpp:N: void signal_generatorScb::writeOut(signal_generatorOutTx*): Assertion `tx->wave == N && \"TODO N Failed: Wave logic result of the Verilog module is incorrect\"' failed.": 1
+    },
+    "self_consistency": {
+      "samples_run": 4,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.8,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 89.44,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 33,
+          "elapsed_s": 25.48
+        },
+        {
+          "idx": 1,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 31,
+          "elapsed_s": 20.04
+        },
+        {
+          "idx": 2,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 40,
+          "elapsed_s": 30.29
+        },
+        {
+          "idx": 3,
+          "T": 0.8,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 32,
+          "elapsed_s": 13.63
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 2,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
     }
   }
 }

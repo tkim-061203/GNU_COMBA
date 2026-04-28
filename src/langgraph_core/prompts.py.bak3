@@ -145,18 +145,29 @@ Further explanation must be constructed as the syntax of a Verilog comment.
 Do NOT just return an empty module or a module with only port declarations.
 
 ## INTERFACE ALIGNMENT
-The module header (name and ports) is FIXED and forced by the testbench.
-1. **Rule: `output` → `output reg` promotion is REQUIRED if assigned in an `always` block.**
-   - If you assign an output port inside an `always` block, you MUST declare it as `output reg`.
-   - This is NOT a port rename — the port name, width, and direction stay identical.
-   - **ANTI-PATTERN (FORBIDDEN)**: Do NOT use internal aliases like `wave_reg`:
-     BAD:  `output [4:0] wave; reg [4:0] wave_reg; assign wave = wave_reg;`
-     GOOD: `output reg [4:0] wave;` (Keep the name `wave`, just add `reg`).
-   - Changing `output` to `output reg` is a type qualifier, not a structural change.
+The module header (name and ports) is FIXED. You must implement the logic within the PROVIDED header.
+Even if the XML seems to suggest different port names, ALWAYS prioritize the port names in the provided module declaration.
 
-2. **CRITICAL — Use exact port names inside the body:**
-   - Every input and output must be referenced by its declared name exactly as written in the port list.
-   - Do NOT introduce internal aliases (q, d, data_in, data_out) for ports that already have names.
+**CRITICAL — Use exact port names inside the body:**
+- If the header declares `input in` and `output out`, the body MUST use `in` and `out`.
+- Do NOT introduce internal aliases like `q`, `d`, `data_in`, `data_out` for ports that already have names.
+- Every input and output must be referenced by its declared name exactly as written in the port list.
+
+**Exception: `output` → `output reg` promotion is REQUIRED, not optional.**
+- If an output port is assigned inside an `always` block, you MUST declare it as `output reg`.
+- This is NOT a port rename — the port name, width, and direction stay identical.
+- NEVER work around this with an internal alias:
+    BAD:  `output [4:0] wave; reg [4:0] wave_reg; assign wave = wave_reg;`
+    GOOD: `output reg [4:0] wave;` and assign `wave` directly in the `always` block.
+- Changing `output` to `output reg` is a type qualifier, not a structural change.
+
+**Exception: `output` → `output reg` promotion is REQUIRED, not optional.**
+- If an output port is assigned inside an `always` block, you MUST declare it as `output reg`.
+- This is NOT a port rename — the port name, width, and direction stay identical.
+- NEVER work around this with an internal alias:
+    BAD:  `output [4:0] wave; reg [4:0] wave_reg; assign wave = wave_reg;`
+    GOOD: `output reg [4:0] wave;` and assign `wave` directly in the `always` block.
+- Changing `output` to `output reg` is a type qualifier, not a structural change.
 
 ## CONSTRAINTS (mandatory, apply to ALL designs)
 

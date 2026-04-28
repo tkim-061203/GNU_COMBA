@@ -1,6 +1,7 @@
 {
   "module_name": "calendar",
   "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "calendar",
     "description_type": "RTLLM.txt",
@@ -8,11 +9,53 @@
     "sc_trial": 1,
     "ts_trial": 1,
     "total_iter": 2,
-    "gvd": "module calendar(\n    input CLK,\n    input RST,\n    output reg [5:0] Hours,\n    output reg [5:0] Mins,\n    output reg [5:0] Secs\n);\n// Get current time\nwire [5:0] cur_segs = Secs;\nwire [5:0] cur_mins = Mins;\nwire [5:0] cur_hours = Hours;\n// Increment Segs\nwire [5:0] next_segs = (cur_segs == 59) ? 0 : cur_segs + 1;\n// Increment Mins if Segs == 59\nwire [5:0] next_mins = (cur_segs == 59) ? (cur_mins == 59 ? 0 : cur_mins + 1) : cur_mins;\n// Increment Hours if Segs == 59 and Mins == 59\nwire [5:0] next_hours = (cur_segs == 59 && cur_mins == 59) ? (cur_hours == 23 ? 0 : cur_hours + 1) : cur_hours;\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Secs <= 6'b0;\n    end else begin\n        Secs <= next_segs;\n    end\nend\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Mins <= 6'b0;\n    end else begin\n        Mins <= next_mins;\n    end\nend\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Hours <= 6'b0;\n    end else begin\n        Hours <= next_hours;\n    end\nend\nendmodule\n",
-    "xml_description": "<module id=\"calendar\">\n    <description>Implement a perpetual calendar.</description>\n    <ports>\n        <input id=\"CLK\">Clock input.</input>\n        <input id=\"RST\">Active high reset signal.</input>\n        <output id=\"Hours\" width_description=\"[5:0]\">Current hours.</output>\n        <output id=\"Mins\" width_description=\"[5:0]\">Current minutes.</output>\n        <output id=\"Secs\" width_description=\"[5:0]\">Current seconds.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"Secs\">Seconds counter.</parameter>\n        <parameter id=\"Mins\">Minutes counter.</parameter>\n        <parameter id=\"Hours\">Hours counter.</parameter>\n    </parameter_description>\n    <implementation>\n        Always block for updating the seconds value based on the clock and reset signals.\n        If the reset signal is active, set the seconds value to 0.\n        If the seconds value is 59, wrap around and set the seconds value to 0.\n        Otherwise, increment the seconds value by 1.\n        Always block for updating the minutes value based on the clock and reset signals.\n        If the reset signal is active, set the minutes value to 0.\n        If both the minutes and seconds values are 59, wrap around and set the minutes value to 0.\n        If the seconds value is 59, increment the minutes value by 1.\n        Otherwise, keep the minutes value unchanged.\n        Always block for updating the hours value based on the clock and reset signals.\n        If the reset signal is active, set the hours value to 0.\n        If the hours, minutes, and seconds values are all at their maximum, wrap around and set the hours value to 0.\n        If the minutes and seconds values are both 59, increment the hours value by 1.\n        Otherwise, keep the hours value unchanged.\n    </implementation>\n</module>",
+    "gvd": "module calendar\n(\n    input CLK,\n    input RST,\n    output reg [5:0] Hours,\n    output reg [5:0] Mins,\n    output reg [5:0] Secs\n);\nreg [5:0] Secs_next;\nreg [5:0] Mins_next;\nreg [5:0] Hours_next;\nalways @(posedge CLK or posedge RST) begin\n    if (RST)\n        Secs <= 6'd0;\n    else if (Secs == 6'd59)\n        Secs <= 6'd0;\n    else\n        Secs <= Secs + 1;\nend\nalways @(posedge CLK or posedge RST) begin\n    if (RST)\n        Mins <= 6'd0;\n    else if (Mins == 6'd59 && Secs == 6'd59)\n        Mins <= 6'd0;\n    else if (Secs == 6'd59)\n        Mins <= Mins + 1;\n    else\n        Mins <= Mins;\nend\nalways @(posedge CLK or posedge RST) begin\n    if (RST)\n        Hours <= 6'd0;\n    else if (Hours == 6'd23 && Mins == 6'd59 && Secs == 6'd59)\n        Hours <= 6'd0;\n    else if (Mins == 6'd59 && Secs == 6'd59)\n        Hours <= Hours + 1;\n    else\n        Hours <= Hours;\nend\nendmodule\n",
+    "xml_description": "<module id=\"calendar\">\n    <description>Implement a perpetual calendar with seconds, minutes, and hours in combinational logic.</description>\n    <ports>\n        <input id=\"CLK\">Clock input</input>\n        <input id=\"RST\">Active high reset signal</input>\n        <output id=\"Hours\" width_description=\"[5:0]\">6-bit output representing the current hours (0-23).</output>\n        <output id=\"Mins\" width_description=\"[5:0]\">6-bit output representing the current minutes (0-59).</output>\n        <output id=\"Secs\" width_description=\"[5:0]\">6-bit output representing the current seconds (0-59).</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"Secs\">Seconds counter.</parameter>\n        <parameter id=\"Mins\">Minutes counter.</parameter>\n        <parameter id=\"Hours\">Hours counter.</parameter>\n    </parameter_description>\n    <implementation>\n        <p>Reset the seconds counter (Secs) whenever the reset signal (RST) is active.</p>\n        <p>Increment the seconds counter (Secs) at each clock cycle, wrapping around to 0 when it reaches 59.</p>\n        <p>Reset the minutes counter (Mins) whenever the reset signal (RST) is active.</p>\n        <p>Increment the minutes counter (Mins) when both the seconds counter (Secs) reaches 59 and the minutes counter (Mins) is less than 59, wrapping around to 0 when it reaches 59.</p>\n        <p>Reset the hours counter (Hours) whenever the reset signal (RST) is active.</p>\n        <p>Increment the hours counter (Hours) when both the seconds counter (Secs) and minutes counter (Mins) reach 59, wrapping around to 0 when it reaches 23.</p>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_calendar_dknvdxi4/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcalendar.cpp Vcalendar__Trace.cpp Vcalendar__Slow.cpp Vcalendar__Syms.cpp Vcalendar__Trace__Slow.cpp > Vcalendar__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcalendar__ALL.o Vcalendar__ALL.cpp\nar -cr Vcalendar__ALL.a Vcalendar__ALL.o\nranlib Vcalendar__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcalendar__ALL.a      -o Vcalendar\nmake[1]: Leaving directory '/tmp/comba_calendar_dknvdxi4/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSED: calendar.v:9:11: Signal is not driven, nor used: 'Secs_next'\n                                : ... In instance calendar\n    9 | reg [5:0] Secs_next;\n      |           ^~~~~~~~~\n                 ... Use \"/* verilator lint_off UNUSED */\" and lint_on around source to disable this message.\n%Warning-UNUSED: calendar.v:10:11: Signal is not driven, nor used: 'Mins_next'\n                                 : ... In instance calendar\n   10 | reg [5:0] Mins_next;\n      |           ^~~~~~~~~\n%Warning-UNUSED: calendar.v:11:11: Signal is not driven, nor used: 'Hours_next'\n                                 : ... In instance calendar\n   11 | reg [5:0] Hours_next;\n      |           ^~~~~~~~~~\nmake: Entering directory '/tmp/comba_calendar_ooybhf0_/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcalendar.cpp Vcalendar__Trace.cpp Vcalendar__Slow.cpp Vcalendar__Syms.cpp Vcalendar__Trace__Slow.cpp > Vcalendar__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcalendar__ALL.o Vcalendar__ALL.cpp\nar -cr Vcalendar__ALL.a Vcalendar__ALL.o\nranlib Vcalendar__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcalendar__ALL.a      -o Vcalendar\nmake: Leaving directory '/tmp/comba_calendar_ooybhf0_/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {}
+    "edtm": {},
+    "self_consistency": {
+      "samples_run": 2,
+      "max_samples": 5,
+      "best_sample_idx": 1,
+      "best_temperature": 0.5,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 70.11,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 5,
+          "ts_trial": 5,
+          "iter": 10,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 38,
+          "elapsed_s": 51.59
+        },
+        {
+          "idx": 1,
+          "T": 0.5,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 40,
+          "elapsed_s": 18.52
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
   }
 }

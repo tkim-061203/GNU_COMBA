@@ -5,26 +5,26 @@
   "samples": {
     "module_name": "alu",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_ts",
-    "sc_trial": 5,
-    "ts_trial": 5,
-    "total_iter": 10,
-    "gvd": "module alu(\n    input [31:0] a,\n    input [31:0] b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero,\n    output carry,\n    output negative,\n    output overflow,\n    output flag\n);\n\n// Implement the ALU logic here\n\nendmodule\n",
-    "xml_description": "<module id=\"alu\">\n    <description>Implement a 32-bit ALU for a MIPS CPU.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[31:0]\">32-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[31:0]\">32-bit input operand B.</input>\n        <input id=\"aluc\" width_description=\"[5:0]\">6-bit ALU control.</input>\n        <output id=\"r\" width_description=\"[31:0]\">32-bit output R.</output>\n        <output id=\"zero\">Output ZERO.</output>\n        <output id=\"carry\">Output CARRY.</output>\n        <output id=\"negative\">Output NEGATIVE.</output>\n        <output id=\"overflow\">Output OVERFLOW.</output>\n        <output id=\"flag\">Output FLAG.</output>\n    </ports>\n    <parameter_description>\n        <enum id=\"ADD\" value=\"6'b100000\">ADD</enum>\n        <enum id=\"ADDU\" value=\"6'b100001\">ADDU</enum>\n        <enum id=\"SUB\" value=\"6'b100010\">SUB</enum>\n        <enum id=\"SUBU\" value=\"6'b100011\">SUBU</enum>\n        <enum id=\"AND\" value=\"6'b100100\">AND</enum>\n        <enum id=\"OR\" value=\"6'b100101\">OR</enum>\n        <enum id=\"XOR\" value=\"6'b100110\">XOR</enum>\n        <enum id=\"NOR\" value=\"6'b100111\">NOR</enum>\n        <enum id=\"SLT\" value=\"6'b101010\">SLT</enum>\n        <enum id=\"SLTU\" value=\"6'b101011\">SLTU</enum>\n        <enum id=\"SLL\" value=\"6'b000000\">SLL</enum>\n        <enum id=\"SRL\" value=\"6'b000010\">SRL</enum>\n        <enum id=\"SRA\" value=\"6'b000011\">SRA</enum>\n        <enum id=\"SLLV\" value=\"6'b000100\">SLLV</enum>\n        <enum id=\"SRLV\" value=\"6'b000110\">SRLV</enum>\n        <enum id=\"SRAV\" value=\"6'b000111\">SRAV</enum>\n        <enum id=\"LUI\" value=\"6'b001111\">LUI</enum>\n    </parameter_description>\n    <implementation>\n        The module uses parameters to define the control signals for various operations, such as ADD, SUB, AND, OR, etc. The module assigns the input operands to the signed wires and the output result (r) to the lower 32 bits of the register (res[31:0]). The flag output is determined based on the control signal (aluc) and is set to '1' when the operation is SLT or SLTU, and 'z' (high-impedance) otherwise. The zero output is set to '1' when the result is all zeros, and '0' otherwise. Inside the always block, a case statement is used to perform the appropriate operation based on the control signal (aluc). The result is assigned to the register (res) accordingly. For shift operations (SLL, SRL, SRA, SLLV, SRLV, SRAV), the shift amount is determined by the value of 'a' or 'a[4:0]'. For the LUI operation, the upper 16 bits of 'a' are concatenated with 16 zeros to form the result. If the control signal (aluc) does not match any defined operation, the result is assigned as 'z' (high-impedance).\n    </implementation>\nendmodule",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 1,
+    "total_iter": 3,
+    "gvd": "module alu(\n    input [31:0] a,\n    input [31:0] b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero,\n    output carry,\n    output negative,\n    output overflow,\n    output flag\n);\nparameter ADD = 6'b100000;\nparameter ADDU = 6'b100001;\nparameter SUB = 6'b100010;\nparameter SUBU = 6'b100011;\nparameter AND = 6'b100100;\nparameter OR = 6'b100101;\nparameter XOR = 6'b100110;\nparameter NOR = 6'b100111;\nparameter SLT = 6'b101010;\nparameter SLTU = 6'b101011;\nparameter SLL = 6'b000000;\nparameter SRL = 6'b000010;\nparameter SRA = 6'b000011;\nparameter SLLV = 6'b000100;\nparameter SRLV = 6'b000110;\nparameter SRAV = 6'b000111;\nparameter LUI = 6'b001111;\nwire signed [31:0] a_signed;\nwire signed [31:0] b_signed;\nwire signed [32:0] res;\nassign a_signed = $signed(a);\nassign b_signed = $signed(b);\nassign r = res[31:0];\nassign zero = (res[31:0] == {32{1'b0}}) ? 1'b1 : 1'b0;\nassign carry = (aluc == SUB) ? ((a>=b) ? 1'b0 : 1'b1) : ((res[32] == 1'b1) ? 1'b1 : 1'b0);\nassign negative = (res[31] == 1'b1) ? 1'b1 : 1'b0;\nassign overflow = (((aluc==ADD)||(aluc==ADDU))&&(a[31]==b[31])&&(a[31]!=res[31])) ? 1'b1 : 1'b0;\nassign flag = (aluc==SLT) ? (negative ^ overflow) :\n                  (aluc==SLTU) ? (a<b) ? 1'b1 : 1'b0 :\n                  1'b0;\nassign a_signed = $signed(a);\nassign b_signed = $signed(b);\nalways @(*) begin\n    case (aluc)\n        ADD: begin\n            res = a_signed + b_signed;\n        end\n        ADDU: begin\n            res = a + b;\n        end\n        SUB: begin\n            res = a_signed - b_signed;\n        end\n        SUBU: begin\n            res = a - b;\n        end\n        AND: begin\n            res = a & b;\n        end\n        OR: begin\n            res = a | b;\n        end\n        XOR: begin\n            res = a ^ b;\n        end\n        NOR: begin\n            res = ~(a | b);\n        end\n        SLT: begin\n            res = a_signed < b_signed;\n        end\n        SLTU: begin\n            res = a < b;\n        end\n        SLL: begin\n            res = a << b[4:0];\n        end\n        SRL: begin\n            res = a >> b[4:0];\n        end\n        SRA: begin\n            res = a_signed >>> b[4:0];\n        end\n        SLLV: begin\n            res = a << b[4:0];\n        end\n        SRLV: begin\n            res = a >> b[4:0];\n        end\n        SRAV: begin\n            res = a_signed >>> b[4:0];\n        end\n        LUI: begin\n            res = {a[15:0], 16'b0};\n        end\n        default: begin\n            res = {33{1'bz}};\n        end\n    endcase\nend\nendmodule\n",
+    "xml_description": "<module id=\"alu\">\n    <description>Implement an ALU for a 32-bit MIPS-ISA CPU.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[31:0]\"></input>\n        <input id=\"b\" width_description=\"[31:0]\"></input>\n        <input id=\"aluc\" width_description=\"[5:0]\"></input>\n        <output id=\"r\" width_description=\"[31:0]\"></output>\n        <output id=\"zero\"></output>\n        <output id=\"carry\"></output>\n        <output id=\"negative\"></output>\n        <output id=\"overflow\"></output>\n        <output id=\"flag\"></output>\n    </ports>\n    <parameter_description>\n        <enum id=\"ADD\" value=\"6'b100000\"></enum>\n        <enum id=\"ADDU\" value=\"6'b100001\"></enum>\n        <enum id=\"SUB\" value=\"6'b100010\"></enum>\n        <enum id=\"SUBU\" value=\"6'b100011\"></enum>\n        <enum id=\"AND\" value=\"6'b100100\"></enum>\n        <enum id=\"OR\" value=\"6'b100101\"></enum>\n        <enum id=\"XOR\" value=\"6'b100110\"></enum>\n        <enum id=\"NOR\" value=\"6'b100111\"></enum>\n        <enum id=\"SLT\" value=\"6'b101010\"></enum>\n        <enum id=\"SLTU\" value=\"6'b101011\"></enum>\n        <enum id=\"SLL\" value=\"6'b000000\"></enum>\n        <enum id=\"SRL\" value=\"6'b000010\"></enum>\n        <enum id=\"SRA\" value=\"6'b000011\"></enum>\n        <enum id=\"SLLV\" value=\"6'b000100\"></enum>\n        <enum id=\"SRLV\" value=\"6'b000110\"></enum>\n        <enum id=\"SRAV\" value=\"6'b000111\"></enum>\n        <enum id=\"LUI\" value=\"6'b001111\"></enum>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        <enum_use id=\"ADD\"></enum_use>\n        <enum_use id=\"ADDU\"></enum_use>\n        <enum_use id=\"SUB\"></enum_use>\n        <enum_use id=\"SUBU\"></enum_use>\n        <enum_use id=\"AND\"></enum_use>\n        <enum_use id=\"OR\"></enum_use>\n        <enum_use id=\"XOR\"></enum_use>\n        <enum_use id=\"NOR\"></enum_use>\n        <enum_use id=\"SLT\"></enum_use>\n        <enum_use id=\"SLTU\"></enum_use>\n        <enum_use id=\"SLL\"></enum_use>\n        <enum_use id=\"SRL\"></enum_use>\n        <enum_use id=\"SRA\"></enum_use>\n        <enum_use id=\"SLLV\"></enum_use>\n        <enum_use id=\"SRLV\"></enum_use>\n        <enum_use id=\"SRAV\"></enum_use>\n        <enum_use id=\"LUI\"></enum_use>\n        <wire id=\"res\" width_description=\"[32:0]\"></wire>\n        <wire id=\"a_signed\"></wire>\n        <wire id=\"b_signed\"></wire>\n    </logic_description>\n    <implementation>\n    assign zero = (res[31:0] == {32{1'b0}}) ? 1'b1 : 1'b0;\n    assign carry = (aluc == SUB) ? ((a>=b) ? 1'b0 : 1'b1) : ((res[32] == 1'b1) ? 1'b1 : 1'b0);\n    assign negative = (res[31] == 1'b1) ? 1'b1 : 1'b0;\n    assign overflow = (((aluc==ADD)||(aluc==ADDU))&&(a[31]==b[31])&&(a[31]!=res[31])) ? 1'b1 : 1'b0;\n    assign flag = (aluc==SLT) ? (negative ^ overflow) :\n                  (aluc==SLTU) ? (a<b) ? 1'b1 : 1'b0 :\n                  1'b0;\n    assign a_signed = $signed(a);\n    assign b_signed = $signed(b);\n    always @(*) begin\n        case (aluc)\n            ADD: begin\n                res = a_signed + b_signed;\n            end\n            ADDU: begin\n                res = a + b;\n            end\n            SUB: begin\n                res = a_signed - b_signed;\n            end\n            SUBU: begin\n                res = a - b;\n            end\n            AND: begin\n                res = a & b;\n            end\n            OR: begin\n                res = a | b;\n            end\n            XOR: begin\n                res = a ^ b;\n            end\n            NOR: begin\n                res = ~(a | b);\n            end\n            SLT: begin\n                res = a_signed < b_signed;\n            end\n            SLTU: begin\n                res = a < b;\n            end\n            SLL: begin\n                res = a << b[4:0];\n            end\n            SRL: begin\n                res = a >> b[4:0];\n            end\n            SRA: begin\n                res = a_signed >>> b[4:0];\n            end\n            SLLV: begin\n                res = a << b[4:0];\n            end\n            SRLV: begin\n                res = a >> b[4:0];\n            end\n            SRAV: begin\n                res = a_signed >>> b[4:0];\n            end\n            LUI: begin\n                res = {a[15:0], 16'b0};\n            end\n            default: begin\n                res = {33{1'bz}};\n            end\n        endcase\n    end\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSED: alu.v:2:18: Signal is not used: 'a'\n                           : ... In instance alu\n    2 |     input [31:0] a,\n      |                  ^\n                 ... Use \"/* verilator lint_off UNUSED */\" and lint_on around source to disable this message.\n%Warning-UNUSED: alu.v:3:18: Signal is not used: 'b'\n                           : ... In instance alu\n    3 |     input [31:0] b,\n      |                  ^\n%Warning-UNUSED: alu.v:4:17: Signal is not used: 'aluc'\n                           : ... In instance alu\n    4 |     input [5:0] aluc,\n      |                 ^~~~\n%Warning-UNDRIVEN: alu.v:5:19: Signal is not driven: 'r'\n                             : ... In instance alu\n    5 |     output [31:0] r,\n      |                   ^\n%Warning-UNDRIVEN: alu.v:6:12: Signal is not driven: 'zero'\n                             : ... In instance alu\n    6 |     output zero,\n      |            ^~~~\n%Warning-UNDRIVEN: alu.v:7:12: Signal is not driven: 'carry'\n                             : ... In instance alu\n    7 |     output carry,\n      |            ^~~~~\n%Warning-UNDRIVEN: alu.v:8:12: Signal is not driven: 'negative'\n                             : ... In instance alu\n    8 |     output negative,\n      |            ^~~~~~~~\n%Warning-UNDRIVEN: alu.v:9:12: Signal is not driven: 'overflow'\n                             : ... In instance alu\n    9 |     output overflow,\n      |            ^~~~~~~~\n%Warning-UNDRIVEN: alu.v:10:12: Signal is not driven: 'flag'\n                              : ... In instance alu\n   10 |     output flag\n      |            ^~~~\n\n[RUN]\nValu: ../tb.cpp:288: void aluScb::writeOut(aluOutTx*): Assertion `tx->r == (out_tx_ref.r & 0xffffffff) && tx->flag.carry == out_tx_ref.flag.carry && tx->flag.flag == out_tx_ref.flag.flag && tx->flag.negative == out_tx_ref.flag.negative && tx->flag.overflow == out_tx_ref.flag.overflow && tx->flag.zero == out_tx_ref.flag.zero && \"TODO 3 Failed: Operation logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 0\n# TODO 3 INPUT TRACE: in->a.a = 0x400d43df, in->b.b = 0x3dc6eca2, in->aluc = 0xe\n# TODO 3 OUTPUT TRACE: tx->flag.carry = 0x0, tx->flag.flag = 0x0, tx->flag.negative = 0x0, tx->flag.overflow = 0x0, tx->flag.zero = 0x0, tx->r = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: out_tx_ref.flag.carry = 0x0, out_tx_ref.flag.flag = 0x0, out_tx_ref.flag.negative = 0x0, out_tx_ref.flag.overflow = 0x0, out_tx_ref.flag.zero = 0x1, out_tx_ref.r = 0x0, out_tx_ref.r = 0x0\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: alu.v:48:32: Operator AND expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   48 |              (aluc == AND) ? a & b :\n      |                                ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: alu.v:48:32: Operator AND expects 33 bits on the RHS, but RHS's VARREF 'b' generates 32 bits.\n                           : ... In instance alu\n   48 |              (aluc == AND) ? a & b :\n      |                                ^\n%Warning-WIDTH: alu.v:49:31: Operator OR expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   49 |              (aluc == OR) ? a | b :\n      |                               ^\n%Warning-WIDTH: alu.v:49:31: Operator OR expects 33 bits on the RHS, but RHS's VARREF 'b' generates 32 bits.\n                           : ... In instance alu\n   49 |              (aluc == OR) ? a | b :\n      |                               ^\n%Warning-WIDTH: alu.v:50:32: Operator XOR expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   50 |              (aluc == XOR) ? a ^ b :\n      |                                ^\n%Warning-WIDTH: alu.v:50:32: Operator XOR expects 33 bits on the RHS, but RHS's VARREF 'b' generates 32 bits.\n                           : ... In instance alu\n   50 |              (aluc == XOR) ? a ^ b :\n      |                                ^\n%Warning-WIDTH: alu.v:51:34: Operator OR expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   51 |              (aluc == NOR) ? ~(a | b) :\n      |                                  ^\n%Warning-WIDTH: alu.v:51:34: Operator OR expects 33 bits on the RHS, but RHS's VARREF 'b' generates 32 bits.\n                           : ... In instance alu\n   51 |              (aluc == NOR) ? ~(a | b) :\n      |                                  ^\n%Warning-WIDTH: alu.v:52:28: Operator COND expects 33 bits on the Conditional True, but Conditional True's LTS generates 1 bits.\n                           : ... In instance alu\n   52 |              (aluc == SLT) ? a_signed < b_signed :\n      |                            ^\n%Warning-WIDTH: alu.v:53:29: Operator COND expects 33 bits on the Conditional True, but Conditional True's LT generates 1 bits.\n                           : ... In instance alu\n   53 |              (aluc == SLTU) ? a < b :\n      |                             ^\n%Warning-WIDTH: alu.v:54:32: Operator SHIFTL expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   54 |              (aluc == SLL) ? a << b[4:0] :\n      |                                ^~\n%Warning-WIDTH: alu.v:55:32: Operator SHIFTR expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   55 |              (aluc == SRL) ? a >> b[4:0] :\n      |                                ^~\n%Warning-WIDTH: alu.v:56:39: Operator SHIFTR expects 33 bits on the LHS, but LHS's VARREF 'a_signed' generates 32 bits.\n                           : ... In instance alu\n   56 |              (aluc == SRA) ? a_signed >>> b[4:0] :\n      |                                       ^~~\n%Warning-WIDTH: alu.v:57:33: Operator SHIFTL expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   57 |              (aluc == SLLV) ? a << b[4:0] :\n      |                                 ^~\n%Warning-WIDTH: alu.v:58:33: Operator SHIFTR expects 33 bits on the LHS, but LHS's VARREF 'a' generates 32 bits.\n                           : ... In instance alu\n   58 |              (aluc == SRLV) ? a >> b[4:0] :\n      |                                 ^~\n%Warning-WIDTH: alu.v:59:40: Operator SHIFTR expects 33 bits on the LHS, but LHS's VARREF 'a_signed' generates 32 bits.\n                           : ... In instance alu\n   59 |              (aluc == SRAV) ? a_signed >>> b[4:0] :\n      |                                        ^~~\n%Warning-WIDTH: alu.v:60:28: Operator COND expects 33 bits on the Conditional True, but Conditional True's REPLICATE generates 32 bits.\n                           : ... In instance alu\n   60 |              (aluc == LUI) ? {a[15:0], 16'b0} :\n      |                            ^\nmake: Entering directory '/tmp/comba_alu__s_7pg7l/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Valu.cpp Valu__Trace.cpp Valu__Slow.cpp Valu__Syms.cpp Valu__Trace__Slow.cpp > Valu__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Valu__ALL.o Valu__ALL.cpp\nar -cr Valu__ALL.a Valu__ALL.o\nranlib Valu__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Valu__ALL.a      -o Valu\nmake: Leaving directory '/tmp/comba_alu__s_7pg7l/obj_dir'\n\n[RUN]\nValu: ../tb.cpp:288: void aluScb::writeOut(aluOutTx*): Assertion `tx->r == (out_tx_ref.r & 0xffffffff) && tx->flag.carry == out_tx_ref.flag.carry && tx->flag.flag == out_tx_ref.flag.flag && tx->flag.negative == out_tx_ref.flag.negative && tx->flag.overflow == out_tx_ref.flag.overflow && tx->flag.zero == out_tx_ref.flag.zero && \"TODO 3 Failed: Operation logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 16\n# TODO 3 INPUT TRACE: in->a.a = 0x1e879ab4, in->b.b = 0xa33f1c0, in->aluc = 0x0\n# TODO 3 OUTPUT TRACE: tx->flag.carry = 0x0, tx->flag.flag = 0x0, tx->flag.negative = 0x0, tx->flag.overflow = 0x0, tx->flag.zero = 0x0, tx->r = 0x1e879ab4\n# TODO 3 REFERENCE OUTPUT TRACE: out_tx_ref.flag.carry = 0x0, out_tx_ref.flag.flag = 0x0, out_tx_ref.flag.negative = 0x0, out_tx_ref.flag.overflow = 0x0, out_tx_ref.flag.zero = 0x1, out_tx_ref.r = 0x0, out_tx_ref.r = 0x0\n",
     "error": null,
     "edtm": {
-      "TB:Valu: ../tb.cpp:N: void aluScb::writeOut(aluOutTx*): Assertion `tx->r == (out_tx_ref.r & Nxffffffff) && tx->flag.carry == out_tx_ref.flag.carry && tx->flag.flag == out_tx_ref.flag.flag && tx->flag.negative == out_tx_ref.flag.negative && tx->flag.overflow == out_tx_ref.flag.overflow && tx->flag.zero == out_tx_ref.flag.zero && \"TODO N Failed: Operation logic result of the Verilog module is incorrect\"' failed.": 5
+      "TopModule.sv:N: error: res is not a valid l-value in alu.": 1
     },
     "self_consistency": {
-      "samples_run": 5,
+      "samples_run": 3,
       "max_samples": 5,
-      "best_sample_idx": 4,
-      "best_temperature": 0.8,
-      "best_status": "fail_ts",
-      "early_exit": false,
-      "total_elapsed_s": 409.16,
+      "best_sample_idx": 2,
+      "best_temperature": 0.5,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 338.24,
       "all_samples": [
         {
           "idx": 0,
@@ -35,8 +35,8 @@
           "iter": 10,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 73,
-          "elapsed_s": 73.62
+          "gvd_lines": 77,
+          "elapsed_s": 134.36
         },
         {
           "idx": 1,
@@ -47,53 +47,29 @@
           "iter": 10,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 122,
-          "elapsed_s": 94.44
+          "gvd_lines": 160,
+          "elapsed_s": 145.62
         },
         {
           "idx": 2,
           "T": 0.5,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 1,
+          "iter": 3,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 53,
-          "elapsed_s": 63.88
-        },
-        {
-          "idx": 3,
-          "T": 0.8,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 63,
-          "elapsed_s": 105.81
-        },
-        {
-          "idx": 4,
-          "T": 0.8,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 15,
-          "elapsed_s": 71.4
+          "gvd_lines": 102,
+          "elapsed_s": 58.27
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 0,
-      "commits": 8,
+      "rollbacks": 1,
+      "commits": 1,
       "used_fallback": false,
-      "baseline_sc": 0,
-      "final_sc": 0
+      "baseline_sc": 18,
+      "final_sc": 18
     }
   }
 }

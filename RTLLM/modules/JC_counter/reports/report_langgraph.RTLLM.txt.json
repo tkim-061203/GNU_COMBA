@@ -6,16 +6,16 @@
     "module_name": "JC_counter",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 5,
-    "ts_trial": 5,
-    "total_iter": 10,
-    "gvd": "module JC_counter(\n    input clk,\n    input rst_n,\n    output [63:0] Q\n);\n\nreg [63:0] q_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        q_reg <= 64'b0000000000000000000000000000000000000000000000000000000000000000;\n    end\n    else begin\n        q_reg[63] <= ~q_reg[0];\n        q_reg[62:0] <= q_reg[63:1];\n    end\nend\n\nassign Q = q_reg;\n\nendmodule\n",
+    "sc_trial": 2,
+    "ts_trial": 1,
+    "total_iter": 3,
+    "gvd": "module JC_counter\n(\n    input clk,\n    input rst_n\n);\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        Q <= 64'b0;\n    end else begin\n        if (Q[0] == 1'b0) begin\n            Q <= {Q[63:1], 1'b1};\n        end else begin\n            Q <= {Q[63:1], 1'b0};\n        end\n    end\nend\nendmodule\n",
     "xml_description": "<module id=\"JC_counter\">\n    <description>Implement a 64-bit Johnson counter (torsional ring counter), and the state of the similar 4-bit Johnson counter example is as follows: 0000, 1000, 1100, 1110, 1111, 0111, 0011, 0001, 0000.</description>\n    <ports>\n        <input id=\"clk\">Clock.</input>\n        <input id=\"rst_n\">Active-low reset.</input>\n        <output id=\"Q\" width_description=\"[63:0]\">Current count value.</output>\n    </ports>\n    <implementation>Reset to 0. Increment if Q[0]=0, decrement if Q[0]=1.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSED: JC_counter.v:7:12: Bits of signal are not used: 'Q'[63]\n                                  : ... In instance JC_counter\n    7 | reg [63:0] Q;\n      |            ^\n                 ... Use \"/* verilator lint_off UNUSED */\" and lint_on around source to disable this message.\n../tb.cpp: In member function ‘void JC_counterOutMon::monitor()’:\n../tb.cpp:212:22: error: ‘class VJC_counter’ has no member named ‘Q’\n  212 |         tx->Q = dut->Q;\n      |                      ^\nmake: *** [VJC_counter.mk:59: tb.o] Error 1\nmake: *** Waiting for unfinished jobs....\n%Error: make -C obj_dir -f VJC_counter.mk -j exitted with 2\n%Error: Command Failed /usr/bin/verilator_bin --cc --exe --build -j --trace -Wall -Wno-fatal --top-module JC_counter JC_counter.v tb.cpp\nmake: Entering directory '/tmp/comba_JC_counter_jpiu9czb/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include VJC_counter.cpp VJC_counter__Trace.cpp VJC_counter__Slow.cpp VJC_counter__Syms.cpp VJC_counter__Trace__Slow.cpp > VJC_counter__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o VJC_counter__ALL.o VJC_counter__ALL.cpp\nar -cr VJC_counter__ALL.a VJC_counter__ALL.o\nranlib VJC_counter__ALL.a\nmake: Leaving directory '/tmp/comba_JC_counter_jpiu9czb/obj_dir'\n",
     "error": null,
     "edtm": {
-      "TB:VJC_counter: ../tb.cpp:N: void JC_counterScb::writeOut(JC_counterOutTx*): Assertion `tx->Q == out_tx_ref.Q && \"TODO N Failed: Counter Shifting logic result of the Verilog module is incorrect\"' failed.": 4
+      "TopModule.sv:N: error: Could not find variable ``Q'' in ``JC_counter''": 1
     },
     "self_consistency": {
       "samples_run": 1,
@@ -24,28 +24,28 @@
       "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
-      "total_elapsed_s": 24.79,
+      "total_elapsed_s": 12.94,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "pass",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
+          "sc_trial": 2,
+          "ts_trial": 1,
+          "iter": 3,
           "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 21,
-          "elapsed_s": 24.79
+          "tb_err": 2,
+          "gvd_lines": 17,
+          "elapsed_s": 12.94
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 0,
-      "commits": 8,
+      "rollbacks": 1,
+      "commits": 1,
       "used_fallback": false,
-      "baseline_sc": 0,
-      "final_sc": 0
+      "baseline_sc": 3,
+      "final_sc": 3
     }
   }
 }

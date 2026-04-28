@@ -6,95 +6,46 @@
     "module_name": "adder_16bit",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 3,
+    "sc_trial": 2,
     "ts_trial": 1,
-    "total_iter": 4,
-    "gvd": "module adder_16bit(\n    input [15:0] a,\n    input [15:0] b,\n    input cin,\n    output [15:0] y,\n    output cout\n);\n\nwire [7:0] s1, s2;\nwire cout1, cout2;\nwire [3:0] a1, a2, a3, a4, a5, a6, a7, a8;\nwire [3:0] b1, b2, b3, b4, b5, b6, b7, b8;\nwire cin1, cin2, cin3, cin4, cin5, cin6, cin7, cin8;\nwire cout6, cout7, cout8;\nwire [3:0] y1, y2, y3, y4, y5, y6, y7, y8;\nwire cout11, cout12, cout13, cout14, cout15, cout16, cout17, cout18;\n\nassign a1 = a[3:0];\nassign b1 = b[3:0];\nassign a2 = a[7:4];\nassign b2 = b[7:4];\nassign a3 = a[11:8];\nassign b3 = b[11:8];\nassign a4 = a[15:12];\nassign b4 = b[15:12];\nassign cin1 = cin;\nassign cin2 = cout1;\nassign cin3 = cout2;\nassign cin4 = cout3;\nassign cin5 = cout4;\nassign cin6 = cout5;\nassign cin7 = cout6;\nassign cin8 = cout7;\n\nadder_4bit adder1 (\n    .a(a1),\n    .b(b1),\n    .cin(cin1),\n    .y(y1),\n    .cout(cout1)\n);\n\nadder_4bit adder2 (\n    .a(a2),\n    .b(b2),\n    .cin(cin2),\n    .y(y2),\n    .cout(cout2)\n);\n\nadder_4bit adder3 (\n    .a(a3),\n    .b(b3),\n    .cin(cin3),\n    .y(y3),\n    .cout(cout3)\n);\n\nadder_4bit adder4 (\n    .a(a4),\n    .b(b4),\n    .cin(cin4),\n    .y(y4),\n    .cout(cout4)\n);\n\nassign a5 = a1[3:0];\nassign b5 = b1[3:0];\nassign a6 = a2[3:0];\nassign b6 = b2[3:0];\nassign a7 = a3[3:0];\nassign b7 = b3[3:0];\nassign a8 = a4[3:0];\nassign b8 = b4[3:0];\nassign cin6 = cout6;\nassign cin7 = cout7;\nassign cin8 = cout8;\n\nadder_4bit adder5 (\n    .a(a5),\n    .b(b5),\n    .cin(cin5),\n    .y(y5),\n    .cout(cout5)\n);\n\nadder_4bit adder6 (\n    .a(a6),\n    .b(b6),\n    .cin(cin6),\n    .y(y6),\n    .cout(cout6)\n);\n\nadder_4bit adder7 (\n    .a(a7),\n    .b(b7),\n    .cin(cin7),\n    .y(y7),\n    .cout(cout7)\n);\n\nadder_4bit adder8 (\n    .a(a8),\n    .b(b8),\n    .cin(cin8),\n    .y(y8),\n    .cout(cout8)\n);\n\nassign cout15 = cout13;\nassign y[15:12] = y4;\nassign y[11:8] = y3;\nassign y[7:4] = y2;\nassign y[3:0] = y1;\nassign cout = cout8;\n\nendmodule\n",
-    "xml_description": "<module id=\"adder_16bit\">\n    <description>Implement a module of a 16-bit full adder in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[15:0]\">16-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[15:0]\">16-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"y\" width_description=\"[15:0]\">16-bit output representing the sum of A and B.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>\n        <p>Design a module of a 16-bit full adder in combinational logic.</p>\n        <!-- Describe the implementation of the 16-bit full adder here. -->\n        <p>Use two 8-bit adders to implement the 16-bit full adder.</p>\n        <p>Note: The 16-bit full adder should be implemented using two 8-bit adders. Do not use any other logic.</p>\n    </implementation>\n</module>",
+    "total_iter": 3,
+    "gvd": "module adder_16bit\n(\n    input [15:0] a,\n    input [15:0] b,\n    input Cin,\n    output [15:0] y,\n    output Co\n);\n    wire [15:0] sum;\n    wire cout;\n\n    // Corrected behavioral logic\n    assign {cout, sum} = a + b + Cin;\n    assign y = sum;\n    assign Co = cout;\nendmodule\n",
+    "xml_description": "<module id=\"adder_16bit\">\n    <description>Implement a 16-bit full adder in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[15:0]\">16-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[15:0]\">16-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"sum\" width_description=\"[15:0]\">16-bit sum output.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>\n        <p>Design a 16-bit full adder.</p>\n        <p>Use a single assign statement to perform addition.</p>\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: adder_16bit.v:8:30: Operator ADD expects 17 bits on the RHS, but RHS's VARREF 'cin' generates 1 bits.\n                                  : ... In instance adder_16bit\n    8 |     assign {cout, y} = a + b + cin;\n      |                              ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n../tb.cpp: In member function ‘void adder_16bitInDrv::drive(adder_16bitInTx*)’:\n../tb.cpp:136:14: error: ‘class Vadder_16bit’ has no member named ‘Cin’; did you mean ‘cin’?\n  136 |         dut->Cin = tx->Cin;\n      |              ^~~\n      |              cin\n../tb.cpp: In member function ‘void adder_16bitInMon::monitor()’:\n../tb.cpp:163:24: error: ‘class Vadder_16bit’ has no member named ‘Cin’; did you mean ‘cin’?\n  163 |         tx->Cin = dut->Cin;\n      |                        ^~~\n      |                        cin\n../tb.cpp: In member function ‘void adder_16bitOutMon::monitor()’:\n../tb.cpp:188:23: error: ‘class Vadder_16bit’ has no member named ‘Co’\n  188 |         tx->Co = dut->Co;\n      |                       ^~\nmake[2]: *** [Vadder_16bit.mk:59: tb.o] Error 1\nmake[2]: *** Waiting for unfinished jobs....\n%Error: make -C obj_dir -f Vadder_16bit.mk -j exitted with 2\n%Error: Command Failed /usr/bin/verilator_bin --cc --exe --build -j --trace -Wall -Wno-fatal --top-module adder_16bit adder_16bit.v tb.cpp\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: adder_16bit.v:13:32: Operator ADD expects 17 bits on the RHS, but RHS's VARREF 'Cin' generates 1 bits.\n                                   : ... In instance adder_16bit\n   13 |     assign {cout, sum} = a + b + Cin;\n      |                                ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_adder_16bit_o7fjo_xt/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_16bit.cpp Vadder_16bit__Trace.cpp Vadder_16bit__Slow.cpp Vadder_16bit__Syms.cpp Vadder_16bit__Trace__Slow.cpp > Vadder_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_16bit__ALL.o Vadder_16bit__ALL.cpp\nar -cr Vadder_16bit__ALL.a Vadder_16bit__ALL.o\nranlib Vadder_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_16bit__ALL.a      -o Vadder_16bit\nmake: Leaving directory '/tmp/comba_adder_16bit_o7fjo_xt/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TopModule.sv:N: error: Unable to bind wire/reg/memory `cout3' in `adder_16bit'": 1,
-      "TopModule.sv:N: error: Unknown module type: adder_4bit": 1
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `cin' in `adder_16bit'": 1
     },
     "self_consistency": {
-      "samples_run": 5,
+      "samples_run": 1,
       "max_samples": 5,
-      "best_sample_idx": 4,
-      "best_temperature": 0.8,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
-      "total_elapsed_s": 242.46,
+      "total_elapsed_s": 10.81,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 2,
-          "gvd_lines": 14,
-          "elapsed_s": 57.05
-        },
-        {
-          "idx": 1,
-          "T": 0.5,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 2,
-          "gvd_lines": 31,
-          "elapsed_s": 45.6
-        },
-        {
-          "idx": 2,
-          "T": 0.5,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 2,
-          "gvd_lines": 15,
-          "elapsed_s": 59.44
-        },
-        {
-          "idx": 3,
-          "T": 0.8,
-          "status": "fail_ts",
-          "sc_trial": 5,
-          "ts_trial": 5,
-          "iter": 10,
-          "sc_err": 0,
-          "tb_err": 2,
-          "gvd_lines": 14,
-          "elapsed_s": 21.5
-        },
-        {
-          "idx": 4,
-          "T": 0.8,
           "status": "pass",
-          "sc_trial": 3,
+          "sc_trial": 2,
           "ts_trial": 1,
-          "iter": 4,
+          "iter": 3,
           "sc_err": 0,
-          "tb_err": 2,
-          "gvd_lines": 118,
-          "elapsed_s": 58.87
+          "tb_err": 0,
+          "gvd_lines": 16,
+          "elapsed_s": 10.81
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 1,
+      "rollbacks": 0,
       "commits": 2,
       "used_fallback": false,
-      "baseline_sc": 58,
-      "final_sc": 8
+      "baseline_sc": 2,
+      "final_sc": 0
     }
   }
 }

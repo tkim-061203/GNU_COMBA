@@ -235,6 +235,102 @@ class COMBAState(TypedDict):
     expected_header: Optional[str]
 
 
+def _synthesize_rtllm_header(text: str) -> Optional[str]:
+    """
+    Parse RTLLM.txt formatted descriptions to synthesize a module header.
+    Fixes case-sensitivity, naming mismatches, and extracts bit-widths.
+    """
+    if not text:
+        return None
+
+    # 1. Module Name
+    name_m = re.search(r'Module\s+name\s*[:：]\s*\n\s*(\w+)', text, re.I)
+    if not name_m:
+        name_m = re.search(r'Module\s+name\s*[:：]\s*(\w+)', text, re.I)
+    if not name_m:
+        return None
+    mod_name = name_m.group(1).strip()
+
+    # 2. Parameters (optional)
+    params = []
+    # Look for "Parameter:" section
+    param_sec_m = re.search(r'Parameter\s*[:：]\s*\n?((?:[ \t]+\w+\s*=\s*[^;\n]+;?\n?)+)', text, re.I)
+    if param_sec_m:
+        p_block = param_sec_m.group(1)
+        for p_line in p_block.splitlines():
+            p_match = re.search(r'(\w+)\s*=\s*([^;]+)', p_line)
+            if p_match:
+                p_name, p_val = p_match.group(1).strip(), p_match.group(2).strip()
+                params.append(f"    parameter {p_name} = {p_val}")
+
+    # 3. Port Sections
+    ports = []
+    for section_pat, direction in [
+        (r'(Input\s+ports|Inputs)', 'input'),
+        (r'(Output\s+ports|Outputs)', 'output')
+    ]:
+        sec_m = re.search(rf'{section_pat}\s*[:：]\s*\n((?:[ \t]+\S.*\n?)+)', text, re.I)
+        if not sec_m:
+            continue
+        
+        block = sec_m.group(2)
+        for line in block.splitlines():
+            line = line.strip()
+            if '：' in line:
+                parts = line.rsplit('：', 1)
+            elif ':' in line:
+                parts = line.rsplit(':', 1)
+            else:
+                continue
+                
+            port_decl = parts[0].strip()
+            port_desc = parts[1].strip() if len(parts) > 1 else ""
+
+            # 1. Check for width in name: "port_name [7:0]" or "port_name [WIDTH-1:0]"
+            # Range can contain letters/math: [WIDTH-1:0]
+            m = re.match(r'^([\w\d_]+)\s*\[([^\]]+:[^\]]+)\]$', port_decl)
+            if m:
+                p_name, p_width = m.group(1), m.group(2)
+                ports.append(f"    {direction} [{p_width}] {p_name}")
+            else:
+                # 2. Check for "N-bit" or "size N bits" in description
+                p_name = port_decl.split()[0]
+                width_m = re.search(r'(\d+)-bit|size\s+(\d+)\s+bits', port_desc, re.I)
+                
+                # Extract parameter names for heuristic matching
+                param_names = [p.split()[1] for p in params]
+                p_name_lower = p_name.lower()
+
+                if width_m:
+                    nbits_str = width_m.group(1) or width_m.group(2)
+                    nbits = int(nbits_str)
+                    if nbits > 1:
+                        ports.append(f"    {direction} [{nbits-1}:0] {p_name}")
+                    else:
+                        ports.append(f"    {direction} {p_name}")
+                elif "WIDTH" in param_names and "data" in p_name_lower:
+                    ports.append(f"    {direction} [WIDTH-1:0] {p_name}")
+                elif "DEPTH" in param_names and "addr" in p_name_lower:
+                    ports.append(f"    {direction} [$clog2(DEPTH)-1:0] {p_name}")
+                else:
+                    # 3. Simple name match
+                    m_simple = re.match(r'^([\w\d_]+)', port_decl)
+                    if m_simple:
+                        ports.append(f"    {direction} {m_simple.group(1)}")
+
+    # 4. Assemble
+    header_lines = [f"module {mod_name}"]
+    if params:
+        header_lines.append("#(")
+        header_lines.append(",\n".join(params))
+        header_lines.append(")")
+    header_lines.append("(")
+    header_lines.append(",\n".join(ports))
+    header_lines.append(");")
+    
+    return "\n".join(header_lines)
+
+
 def make_initial_state(
     nl_input: str = "",
     module_name: str = "",
@@ -244,9 +340,13 @@ def make_initial_state(
     """Create a fresh initial state with all fields zeroed."""
     expected_header = None
     if nl_input:
+        # Strategy 1: Look for formal Verilog header in the input (VerilogEval style)
         header_match = re.search(r'(module\s+\w+\s*\(.*?\)\s*;)', nl_input, re.DOTALL)
         if header_match:
             expected_header = header_match.group(1).strip()
+        else:
+            # Strategy 2: Synthesize from RTLLM.txt structured descriptions
+            expected_header = _synthesize_rtllm_header(nl_input)
 
     return COMBAState(
         nl_input=nl_input,
