@@ -1,62 +1,26 @@
 {
   "stats": {
-    "avg_pass_at_1": 44.230769230769226,
-    "avg_sc_pass_rate": 72.43589743589743,
-    "avg_syntax_fr": 73.07692307692307,
-    "avg_func_fr": 44.230769230769226,
+    "avg_pass_at_1": 49.358974358974365,
+    "avg_sc_pass_rate": 92.3076923076923,
+    "avg_syntax_fr": 93.58974358974359,
+    "avg_func_fr": 49.358974358974365,
     "total_problems": 156,
     "samples_per_problem": 1,
     "total_runs": 156,
     "total_sc_exceptions": 15,
     "total_sc_fixed": 15,
-    "total_tb_exceptions": 147,
-    "total_pass": 69,
-    "total_fail_sc": 43,
-    "total_fail_ts": 44,
+    "total_tb_exceptions": 146,
+    "total_pass": 77,
+    "total_fail_sc": 12,
+    "total_fail_ts": 67,
     "total_fail_extraction": 0,
     "total_timeouts": 0,
     "total_errors": 0,
-    "timestamp": "2026-04-28T18:46:44.307072"
+    "timestamp": "2026-04-28T22:24:41.407642"
   },
   "modules": [
     {
-      "Module": "Prob001_zero",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob005_notgate",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob006_vectorr",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob013_m2014_q4e",
+      "Module": "Prob012_xnorgate",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
       "Syntax FR": "0.00%",
@@ -80,18 +44,6 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob016_m2014_q4j",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
       "Module": "Prob021_mux256to1v",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
@@ -104,43 +56,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob027_fadd",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob035_count1to10",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob037_review2015_count1k",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob041_dff8r",
+      "Module": "Prob033_ece241_2014_q1c",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
       "Syntax FR": "0.00%",
@@ -164,139 +80,19 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob045_edgedetect2",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob048_m2014_q4c",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob049_m2014_q4b",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob057_kmap2",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob060_m2014_q4k",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob062_bugs_mux2",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
       "Module": "Prob069_truthtable1",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
+      "Syntax FR": "100.00%",
       "Func FR": "0.00%",
       "_p1": 0,
       "_pk": 0,
       "_sc": 0,
-      "_sfr": 0.0,
+      "_sfr": 1.0,
       "_ffr": 0.0
     },
     {
-      "Module": "Prob071_always_casez",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob078_dualedge",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob079_fsm3onehot",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob082_lfsr32",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob083_mt2015_q4b",
+      "Module": "Prob077_wire_decl",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
       "Syntax FR": "0.00%",
@@ -320,7 +116,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob089_ece241_2014_q5a",
+      "Module": "Prob094_gatesv",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
       "Syntax FR": "0.00%",
@@ -332,7 +128,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob090_circuit1",
+      "Module": "Prob101_circuit4",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
       "Syntax FR": "0.00%",
@@ -344,175 +140,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob093_ece241_2014_q3",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob095_review2015_fsmshift",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob096_review2015_fsmseq",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob097_mux9to1v",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob109_fsm1",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob122_kmap4",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob131_mt2015_q4",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob132_always_if2",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob133_2014_q3fsm",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob135_m2014_q6b",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob136_m2014_q6",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob140_fsm_hdlc",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob148_2013_q2afsm",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob149_ece241_2013_q4",
-      "pass@1": "0%",
-      "SC Pass Rate": "0%",
-      "Syntax FR": "0.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 0,
-      "_sfr": 0.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob150_review2015_fsmonehot",
+      "Module": "Prob102_circuit3",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
       "Syntax FR": "100.00%",
@@ -524,7 +152,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob155_lemmings4",
+      "Module": "Prob154_fsm_ps2data",
       "pass@1": "0%",
       "SC Pass Rate": "0%",
       "Syntax FR": "0.00%",
@@ -533,6 +161,42 @@
       "_pk": 0,
       "_sc": 0,
       "_sfr": 0.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob013_m2014_q4e",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob016_m2014_q4j",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob025_reduction",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
       "_ffr": 0.0
     },
     {
@@ -548,7 +212,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob033_ece241_2014_q1c",
+      "Module": "Prob043_vector5",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -560,7 +224,31 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob046_dff8p",
+      "Module": "Prob049_m2014_q4b",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob050_kmap1",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob051_gates4",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -596,6 +284,30 @@
       "_ffr": 0.0
     },
     {
+      "Module": "Prob057_kmap2",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob062_bugs_mux2",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
       "Module": "Prob063_review2015_shiftcount",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
@@ -620,7 +332,43 @@
       "_ffr": 0.0
     },
     {
+      "Module": "Prob068_countbcd",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
       "Module": "Prob070_ece241_2013_q2",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob071_always_casez",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob073_dff16e",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -644,7 +392,19 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob077_wire_decl",
+      "Module": "Prob078_dualedge",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob079_fsm3onehot",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -657,6 +417,18 @@
     },
     {
       "Module": "Prob080_timer",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob082_lfsr32",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -692,6 +464,42 @@
       "_ffr": 0.0
     },
     {
+      "Module": "Prob088_ece241_2014_q5b",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob089_ece241_2014_q5a",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob090_circuit1",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
       "Module": "Prob091_2012_q2b",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
@@ -716,7 +524,31 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob094_gatesv",
+      "Module": "Prob093_ece241_2014_q3",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob095_review2015_fsmshift",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob097_mux9to1v",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -752,18 +584,6 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob102_circuit3",
-      "pass@1": "0%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 0.0
-    },
-    {
       "Module": "Prob103_circuit2",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
@@ -777,6 +597,54 @@
     },
     {
       "Module": "Prob104_mt2015_muxdff",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob105_rotate100",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob107_fsm1s",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob108_rule90",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob109_fsm1",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -824,7 +692,31 @@
       "_ffr": 0.0
     },
     {
+      "Module": "Prob120_fsm3s",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
       "Module": "Prob121_2014_q3bfsm",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob122_kmap4",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -860,31 +752,31 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob128_fsm_ps2",
-      "pass@1": "0%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 0.0
-    },
-    {
-      "Module": "Prob129_ece241_2013_q8",
-      "pass@1": "0%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 0.0
-    },
-    {
       "Module": "Prob130_circuit5",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob131_mt2015_q4",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob133_2014_q3fsm",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -908,6 +800,30 @@
       "_ffr": 0.0
     },
     {
+      "Module": "Prob135_m2014_q6b",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
+      "Module": "Prob136_m2014_q6",
+      "pass@1": "0%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "0.00%",
+      "_p1": 0,
+      "_pk": 0,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 0.0
+    },
+    {
       "Module": "Prob137_fsm_serial",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
@@ -920,7 +836,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob138_2012_q2fsm",
+      "Module": "Prob139_2013_q2bfsm",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -932,7 +848,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob139_2013_q2bfsm",
+      "Module": "Prob140_fsm_hdlc",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1004,18 +920,6 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob151_review2015_fsm",
-      "pass@1": "0%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "0.00%",
-      "_p1": 0,
-      "_pk": 0,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 0.0
-    },
-    {
       "Module": "Prob152_lemmings3",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
@@ -1040,7 +944,7 @@
       "_ffr": 0.0
     },
     {
-      "Module": "Prob154_fsm_ps2data",
+      "Module": "Prob155_lemmings4",
       "pass@1": "0%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1062,6 +966,18 @@
       "_sc": 1,
       "_sfr": 1.0,
       "_ffr": 0.0
+    },
+    {
+      "Module": "Prob001_zero",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
     },
     {
       "Module": "Prob002_m2014_q4i",
@@ -1089,6 +1005,30 @@
     },
     {
       "Module": "Prob004_vector2",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob005_notgate",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob006_vectorr",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1149,18 +1089,6 @@
     },
     {
       "Module": "Prob011_norgate",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
-      "Module": "Prob012_xnorgate",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1268,7 +1196,7 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob025_reduction",
+      "Module": "Prob026_alwaysblock1",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1280,7 +1208,7 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob026_alwaysblock1",
+      "Module": "Prob027_fadd",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1352,7 +1280,31 @@
       "_ffr": 1.0
     },
     {
+      "Module": "Prob035_count1to10",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
       "Module": "Prob036_ringer",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob037_review2015_count1k",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1400,6 +1352,18 @@
       "_ffr": 1.0
     },
     {
+      "Module": "Prob041_dff8r",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
       "Module": "Prob042_vector4",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
@@ -1412,7 +1376,19 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob043_vector5",
+      "Module": "Prob045_edgedetect2",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob046_dff8p",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1436,19 +1412,7 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob050_kmap1",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
-      "Module": "Prob051_gates4",
+      "Module": "Prob048_m2014_q4c",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1520,6 +1484,18 @@
       "_ffr": 1.0
     },
     {
+      "Module": "Prob060_m2014_q4k",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
       "Module": "Prob061_2014_q4a",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
@@ -1568,31 +1544,7 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob068_countbcd",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
       "Module": "Prob072_thermostat",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
-      "Module": "Prob073_dff16e",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1640,6 +1592,18 @@
       "_ffr": 1.0
     },
     {
+      "Module": "Prob083_mt2015_q4b",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
       "Module": "Prob087_gates",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
@@ -1652,7 +1616,7 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob088_ece241_2014_q5b",
+      "Module": "Prob096_review2015_fsmseq",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1676,55 +1640,7 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob101_circuit4",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
-      "Module": "Prob105_rotate100",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
       "Module": "Prob106_always_nolatches",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
-      "Module": "Prob107_fsm1s",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
-      "Module": "Prob108_rule90",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",
@@ -1820,18 +1736,6 @@
       "_ffr": 1.0
     },
     {
-      "Module": "Prob120_fsm3s",
-      "pass@1": "100%",
-      "SC Pass Rate": "100%",
-      "Syntax FR": "100.00%",
-      "Func FR": "100.00%",
-      "_p1": 1,
-      "_pk": 1,
-      "_sc": 1,
-      "_sfr": 1.0,
-      "_ffr": 1.0
-    },
-    {
       "Module": "Prob123_bugs_addsubz",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
@@ -1868,6 +1772,54 @@
       "_ffr": 1.0
     },
     {
+      "Module": "Prob128_fsm_ps2",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob129_ece241_2013_q8",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob132_always_if2",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob138_2012_q2fsm",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
       "Module": "Prob142_lemmings2",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
@@ -1881,6 +1833,54 @@
     },
     {
       "Module": "Prob147_circuit10",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob148_2013_q2afsm",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob149_ece241_2013_q4",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob150_review2015_fsmonehot",
+      "pass@1": "100%",
+      "SC Pass Rate": "100%",
+      "Syntax FR": "100.00%",
+      "Func FR": "100.00%",
+      "_p1": 1,
+      "_pk": 1,
+      "_sc": 1,
+      "_sfr": 1.0,
+      "_ffr": 1.0
+    },
+    {
+      "Module": "Prob151_review2015_fsm",
       "pass@1": "100%",
       "SC Pass Rate": "100%",
       "Syntax FR": "100.00%",

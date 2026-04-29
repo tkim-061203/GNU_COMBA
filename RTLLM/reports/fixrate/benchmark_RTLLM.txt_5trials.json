@@ -3,20 +3,20 @@
     "num_trials": 5,
     "description_type": "RTLLM.txt",
     "num_modules": 29,
-    "timestamp": "2026-04-28T16:14:53.666811"
+    "timestamp": "2026-04-29T00:13:16.431061"
   },
   "global": {
-    "sc_pass_rate": 0.9724137931034484,
-    "tb_pass_rate": 0.6965517241379311,
+    "sc_pass_rate": 0.9241379310344826,
+    "tb_pass_rate": 0.6758620689655173,
     "syntax_fix_rate": 1.0,
-    "func_fix_rate": 0.7241379310344827
+    "func_fix_rate": 0.7517241379310345
   },
   "modules": {
-    "adder_32bit": {
-      "sc_pass_rate": 1.0,
+    "adder_pipe_64bit": {
+      "sc_pass_rate": 0.8,
       "tb_pass_rate": 0.0,
       "syntax_fr": 1.0,
-      "func_fr": 0.0
+      "func_fr": 0.2
     },
     "alu": {
       "sc_pass_rate": 1.0,
@@ -24,43 +24,49 @@
       "syntax_fr": 1.0,
       "func_fr": 0.0
     },
-    "freq_div": {
+    "fsm": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.0,
       "syntax_fr": 1.0,
       "func_fr": 0.0
     },
-    "pulse_detect": {
+    "asyn_fifo": {
+      "sc_pass_rate": 0.4,
+      "tb_pass_rate": 0.2,
+      "syntax_fr": 1.0,
+      "func_fr": 0.8
+    },
+    "accu": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.2,
       "syntax_fr": 1.0,
       "func_fr": 0.2
     },
-    "serial2parallel": {
+    "adder_32bit": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.2,
+      "syntax_fr": 1.0,
+      "func_fr": 0.2
+    },
+    "div_16bit": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.2,
+      "syntax_fr": 1.0,
+      "func_fr": 0.2
+    },
+    "freq_div": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.2,
+      "syntax_fr": 1.0,
+      "func_fr": 0.2
+    },
+    "multi_pipe_4bit": {
       "sc_pass_rate": 0.4,
       "tb_pass_rate": 0.4,
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
-    "adder_pipe_64bit": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.4,
-      "syntax_fr": 1.0,
-      "func_fr": 0.4
-    },
-    "asyn_fifo": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.4,
-      "syntax_fr": 1.0,
-      "func_fr": 0.4
-    },
-    "div_16bit": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.4,
-      "syntax_fr": 1.0,
-      "func_fr": 0.4
-    },
-    "fsm": {
+    "pulse_detect": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.4,
       "syntax_fr": 1.0,
@@ -72,41 +78,29 @@
       "syntax_fr": 1.0,
       "func_fr": 0.8
     },
-    "accu": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.6,
+    "JC_counter": {
+      "sc_pass_rate": 0.8,
+      "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
-      "func_fr": 0.6
+      "func_fr": 1.0
     },
-    "parallel2serial": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.6,
+    "serial2parallel": {
+      "sc_pass_rate": 0.8,
+      "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
-      "func_fr": 0.6
+      "func_fr": 1.0
     },
     "traffic_light": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.6,
+      "sc_pass_rate": 0.8,
+      "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
-      "func_fr": 0.6
+      "func_fr": 1.0
     },
     "div_8bit": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
       "func_fr": 0.8
-    },
-    "multi_pipe_4bit": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.8,
-      "syntax_fr": 1.0,
-      "func_fr": 0.8
-    },
-    "JC_counter": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 1.0,
-      "syntax_fr": 1.0,
-      "func_fr": 1.0
     },
     "RAM": {
       "sc_pass_rate": 1.0,
@@ -151,6 +145,12 @@
       "func_fr": 1.0
     },
     "multi_8bit": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "parallel2serial": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,

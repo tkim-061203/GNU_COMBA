@@ -5,26 +5,23 @@
   "samples": {
     "module_name": "asyn_fifo",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_ts",
-    "sc_trial": 10,
-    "ts_trial": 10,
-    "total_iter": 20,
-    "gvd": "module asyn_fifo\n#(\n    parameter WIDTH = 8,\n    parameter DEPTH = 16\n)\n(\n    input wclk,\n    input rclk,\n    input wrstn,\n    input rrstn,\n    input winc,\n    input rinc,\n    input [WIDTH-1:0] wdata,\n    output reg wfull,\n    output reg rempty,\n    output reg [WIDTH-1:0] rdata\n);\nparameter\nparameter\ninput\ninput\ninput\ninput\ninput\ninput\ninput\noutput\noutput\noutput\nparameter\nparameter\ninput\ninput\ninput\ninput\ninput\ninput\ninput\noutput\noutput\noutput\nlocalparam\nreg\nwire\nwire\nwire\nwire\nreg\nreg\n// ... Fill behavioral code here ...\nendmodule\n",
-    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Implement an asynchronous FIFO, FIFO bit width and depth can be configured(parameter DEPTH = 16, parameter WIDTH = 8).</description>\n    <ports>\n        <input id=\"wclk\">Write clock.</input>\n        <input id=\"rclk\">Read clock.</input>\n        <input id=\"wrstn\">Write reset.</input>\n        <input id=\"rrstn\">Read reset.</input>\n        <input id=\"winc\">Write increment.</input>\n        <input id=\"rinc\">Read increment.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data.</input>\n        <output id=\"wfull\">Write full.</output>\n        <output id=\"rempty\">Read empty.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">Data width of FIFO.</parameter>\n        <parameter id=\"DEPTH\">Depth of FIFO.</parameter>\n    </parameter_description>\n    <implementation>\n    <para>1. Instantiate dual-port RAM as a submodule.</para>\n    <para>2. Use waddr, raddr to access dual-port RAM.</para>\n    <para>3. Use wclk to control the write operation of the dual-port RAM.</para>\n    <para>4. Use rclk to control the read operation of the dual-port RAM.</para>\n    <para>5. Use wenc to enable the write operation of the dual-port RAM.</para>\n    <para>6. Use wdata to provide data to the dual-port RAM.</para>\n    <para>7. Use renc to enable the read operation of the dual-port RAM.</para>\n    <para>8. Use rdata to get data from the dual-port RAM.</para>\n    <para>9. Use wptr to control the write pointer of the FIFO.</para>\n    <para>10. Use rptr to control the read pointer of the FIFO.</para>\n    <para>11. Use wptr_buff to get the previous write pointer.</para>\n    <para>12. Use rptr_buff to get the previous read pointer.</para>\n    <para>13. Use wfull to indicate the FIFO is full.</para>\n    <para>14. Use rempty to indicate the FIFO is empty.</para>\n    <para>15. Use waddr_bin to get the write address.</para>\n    <para>16. Use raddr_bin to get the read address.</para>\n    <para>17. Use waddr to get the write address for dual-port RAM.</para>\n    <para>18. Use raddr to get the read address for dual-port RAM.</para>\n    </implementation>\n    <task>\n    <para>1. Write data to the FIFO when winc is high and wfull is low.</para>\n    <para>2. Read data from the FIFO when rinc is high and rempty is low.</para>\n    <para>3. Write and read data at the same time when winc and rinc are high and wfull and rempty are low.</para>\n    <para>4. Write data when winc is high and wfull is high, the data will be stored in the FIFO when the next rinc is high and wfull is low.</para>\n    <para>5. Read data when rinc is high and rempty is high, the data will be output when the next winc is high and wfull is low.</para>\n    </task>\n</module>",
-    "sc_log": "TopModule.sv:19: syntax error\nI give up.\n",
-    "tb_log": "[COMPILE verilator+cpp]\n%Error: asyn_fifo.v:19:1: syntax error, unexpected parameter, expecting IDENTIFIER or randomize\n   19 | parameter\n      | ^~~~~~~~~\n%Error: Cannot continue\n",
+    "final_status": "fail_sc",
+    "sc_trial": 0,
+    "ts_trial": 0,
+    "total_iter": 0,
+    "gvd": null,
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Implement an asynchronous FIFO, FIFO bit width and depth can be configured(parameter DEPTH = 16, parameter WIDTH = 8).</description>\n    <ports>\n        <input id=\"wclk\">Write clock.</input>\n        <input id=\"rclk\">Read clock.</input>\n        <input id=\"wrstn\">Write reset.</input>\n        <input id=\"rrstn\">Read reset.</input>\n        <input id=\"winc\">Write increment.</input>\n        <input id=\"rinc\">Read increment.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data.</input>\n        <output id=\"wfull\">Write full.</output>\n        <output id=\"rempty\">Read empty.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">Data width of FIFO.</parameter>\n        <parameter id=\"DEPTH\">Depth of FIFO.</parameter>\n    </parameter_description>\n    <implementation>\n    <para>1. Instantiate dual-port RAM as a submodule.</para>\n    <para>2. Use waddr, raddr to access dual-port RAM.</para>\n    <para>3. Use wenc, wdata to write data to dual-port RAM.</para>\n    <para>4. Use renc, raddr to read data from dual-port RAM.</para>\n    <para>5. Use wptr, rptr to manage write and read pointers.</para>\n    <para>6. Use wptr_buff, rptr_buff to manage write and read pointers.</para>\n    <para>7. Use wfull, rempty to manage write and read full/empty signals.</para>\n    <para>8. Use wptr_gray, rptr_gray to manage write and read Gray code.</para>\n    <para>9. Use winc, rinc to manage write and read increment signals.</para>\n    <para>10. Use wclk, rclk to manage write and read clock signals.</para>\n    <para>11. Use wrstn, rrstn to manage write and read reset signals.</para>\n    <para>12. Use wdata to manage write data.</para>\n    <para>13. Use rdata to manage read data.</para>\n    <para>14. Use wfull to manage write full signal.</para>\n    <para>15. Use rempty to manage read empty signal.</para>\n    </implementation>\n</module>",
+    "sc_log": null,
+    "tb_log": null,
     "error": null,
-    "edtm": {
-      "TB:Verilator compilation failed": 5,
-      "TB:Vasyn_fifo: ../tb.cpp:N: void asyn_fifoScb::writeOut(asyn_fifoOutTx*): Assertion `tx->rempty == NxN && tx->wfull == NxN && \"TODO N Failed: Reset logic result of the Verilog module is incorrect\"' failed.": 5
-    },
+    "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
-      "rollbacks": 1,
-      "commits": 17,
+      "rollbacks": 0,
+      "commits": 0,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": -1,
       "final_sc": 0
     }
   }

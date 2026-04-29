@@ -911,8 +911,9 @@ class COMBANodes:
                 if ref_name:
                     ref_src = os.path.join(dataset_dir, ref_name)
                     ref_dst = os.path.join(work_dir, ref_name)
-                    if os.path.isfile(ref_src) and not os.path.isfile(ref_dst):
-                        shutil.copy2(ref_src, ref_dst)
+                    if os.path.isfile(ref_src):
+                        if not os.path.isfile(ref_dst):
+                            shutil.copy2(ref_src, ref_dst)
                         sv_files.append(ref_name)
             except Exception as e:
                 return None, self._tb_error_state(state, f"copy error: {e}", "testbench copy failed")

@@ -293,7 +293,7 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
   
   ```bash
   ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
-                     --with-temperature=0 --with-samples=1 --with-examples=0 \
+                     --with-temperature=0 --with-samples=1 --with-examples=1 \
                      --with-model-manual=http://localhost:8000/v1 \
                      --with-model-submanual=http://localhost:8001/v1 \
                      --with-task=code-complete-iccad2023 --with-quiet=True
