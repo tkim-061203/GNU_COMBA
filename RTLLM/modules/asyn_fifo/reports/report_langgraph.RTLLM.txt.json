@@ -5,26 +5,24 @@
   "samples": {
     "module_name": "asyn_fifo",
     "description_type": "RTLLM.txt",
-    "final_status": "pass",
-    "sc_trial": 2,
-    "ts_trial": 1,
-    "total_iter": 3,
-    "gvd": "module asyn_fifo\n#(\n    parameter WIDTH = 8,\n    parameter DEPTH = 16\n)\n(\n    input wclk,\n    input rclk,\n    input wrstn,\n    input rrstn,\n    input winc,\n    input rinc,\n    input [WIDTH-1:0] wdata:\n); \n    \n    parameter WIDTH = 8;\n    parameter DEPTH = 16;\n    \n    reg [3:0] waddr_bin; \n    reg [3:0] raddr_bin; \n    reg [3:0] wptr; \n    reg [3:0] rptr; \n    reg [3:0] wptr_buff; \n    reg [3:0] rptr_buff; \n    wire [3:0] wptr_syn; \n    wire [3:0] rptr_syn; \n    wire [3:0] wptr_gray; \n    wire [3:0] rptr_gray; \n    wire wfull_comb; \n    wire rempty_comb; \n    \n    dual_port_RAM #(DEPTH, WIDTH) dual_port_ram (\n        .wclk(wclk),\n        .wenc(winc),\n        .waddr(waddr_bin),\n        .wdata(wdata),\n        .rclk(rclk),\n        .renc(rinc),\n        .raddr(raddr_bin),\n        .rdata(rdata)\n    );\n    \n    always @(posedge wclk or negedge wrstn) begin\n        if (~wrstn) begin\n            waddr_bin <= 4'd0;\n        end else if (winc) begin\n            waddr_bin <= waddr_bin + 1;\n        end\n    end\n    \n    always @(posedge rclk or negedge rrstn) begin\n        if (~rrstn) begin\n            raddr_bin <= 4'd0;\n        end else if (rinc) begin\n            raddr_bin <= raddr_bin + 1;\n        end\n    end\n    \n    assign wptr_gray[3] = wptr[3];\n    assign wptr_gray[2] = wptr[3] ^ wptr[2];\n    assign wptr_gray[1] = wptr[2] ^ wptr[1];\n    assign wptr_gray[0] = wptr[1] ^ wptr[0];\n    assign rptr_gray[3] = rptr[3];\n    assign rptr_gray[2] = rptr[3] ^ rptr[2];\n    assign rptr_gray[1] = rptr[2] ^ rptr[1];\n    assign rptr_gray[0] = rptr[1] ^ rptr[0];\n    \n    always @(posedge wclk or negedge wrstn) begin\n        if (~wrstn) begin\n            wptr_buff <= 4'd0;\n        end else begin\n            wptr_buff <= wptr_syn;\n        end\n    end\n    \n    always @(posedge rclk or negedge rrstn) begin\n        if (~rrstn) begin\n            rptr_buff <= 4'd0;\n        end else begin\n            rptr_buff <= rptr_syn;\n        end\n    end\n    \n    assign rptr_syn = rptr_buff;\n    assign wptr_syn = wptr_buff;\n    \n    assign wfull_comb = (wptr == {~rptr_syn[3], rptr_syn[2:0]});\n    assign rempty_comb = (rptr == wptr_syn);\n    assign wfull = wfull_comb;\n    assign rempty = rempty_comb;\n    \n    always @(posedge wclk or negedge wrstn) begin\n        if (~wrstn) begin\n            wptr <= 4'd0;\n        end else begin\n            if (winc && ~wfull_comb) begin\n                wptr <= wptr + 1;\n            end\n        end\n    end\n    always @(posedge rclk or negedge rrstn) begin\n        if (~rrstn) begin\n            rptr <= 4'd0;\n        end else begin\n            if (rinc && ~rempty_comb) begin\n                rptr <= rptr + 1;\n            end\n        end\n    end\nendmodule\n",
-    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Implement an asynchronous FIFO, FIFO bit width and depth can be configured(parameter DEPTH = 16, parameter WIDTH = 8).</description>\n    <ports>\n        <input id=\"wclk\">Write clock.</input>\n        <input id=\"rclk\">Read clock.</input>\n        <input id=\"wrstn\">Write reset.</input>\n        <input id=\"rrstn\">Read reset.</input>\n        <input id=\"winc\">Write increment.</input>\n        <input id=\"rinc\">Read increment.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data.</input>\n        <output id=\"wfull\">Write full.</output>\n        <output id=\"rempty\">Read empty.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">Data width.</parameter>\n        <parameter id=\"DEPTH\">FIFO depth.</parameter>\n    </parameter_description>\n    <implementation>\n    <para>1. Instantiate dual-port RAM as a submodule.</para>\n    <para>2. Use the first 4 bits of the Gray code as a read/write pointer for a FIFO with depth 16.</para>\n    <para>3. Use the lower 3 bits of the address as the write or read address.</para>\n    <para>4. Use the 4-bit Gray code to determine the full or empty condition.</para>\n    <para>5. Use the read pointer to read data from the FIFO.</para>\n    </implementation>\n</module>",
-    "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-DECLFILENAME: asyn_fifo.v:1:8: Filename 'asyn_fifo' does not match MODULE name: 'dual_port_RAM'\n    1 | module dual_port_RAM #(\n      |        ^~~~~~~~~~~~~\n                       ... Use \"/* verilator lint_off DECLFILENAME */\" and lint_on around source to disable this message.\n%Error: Specified --top-module 'asyn_fifo' was not found in design.\n%Error: Exiting due to 1 error(s)\n",
+    "final_status": "fail_sc",
+    "sc_trial": 0,
+    "ts_trial": 0,
+    "total_iter": 0,
+    "gvd": null,
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Implement an asynchronous FIFO, FIFO bit width and depth can be configured(parameter DEPTH = 16, parameter WIDTH = 8).</description>\n    <ports>\n        <input id=\"wclk\">Write clock.</input>\n        <input id=\"rclk\">Read clock.</input>\n        <input id=\"wrstn\">Write reset.</input>\n        <input id=\"rrstn\">Read reset.</input>\n        <input id=\"winc\">Write increment.</input>\n        <input id=\"rinc\">Read increment.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data.</input>\n        <output id=\"wfull\">Write full.</output>\n        <output id=\"rempty\">Read empty.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">Data width of FIFO.</parameter>\n        <parameter id=\"DEPTH\">Depth of FIFO.</parameter>\n    </parameter_description>\n    <implementation>\n    <para>1. Instantiate dual-port RAM as a submodule.</para>\n    <para>2. Use waddr, raddr to control read and write address.</para>\n    <para>3. Use wenc, renc to control read and write enable.</para>\n    <para>4. Use wdata to control write data.</para>\n    <para>5. Use rdata to output read data.</para>\n    </implementation>\n</module>",
+    "sc_log": null,
+    "tb_log": null,
     "error": null,
-    "edtm": {
-      "TopModule.sv:N: syntax error": 1
-    },
+    "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
-      "rollbacks": 1,
-      "commits": 1,
+      "rollbacks": 0,
+      "commits": 0,
       "used_fallback": false,
-      "baseline_sc": 2,
-      "final_sc": 2
+      "baseline_sc": -1,
+      "final_sc": 0
     }
   }
 }

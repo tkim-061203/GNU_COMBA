@@ -433,63 +433,6 @@ def aggregate(sample_results: dict, problems: list, num_samples: int):
 
 
 # ═══════════════════════════════════════════════════════════════
-# EXPORT
-# ═══════════════════════════════════════════════════════════════
-def export(rows, df, stats, out_dir, desc_type, num_samples):
-    rep = os.path.join(out_dir, "reports")
-    os.makedirs(rep, exist_ok=True)
-    base = f"benchmark_{desc_type}_{num_samples}samples"
-
-    # JSON (schema parallel to benchmark_langgraph)
-    summary_json = os.path.join(rep, f"summary_langgraph.{desc_type}.json")
-    with open(summary_json, "w") as f:
-        json.dump({"stats": stats, "modules": rows}, f, indent=2, default=str)
-
-    # CSV
-    df_clean = df.drop(columns=[c for c in df.columns if c.startswith("_")])
-    df_clean.to_csv(os.path.join(rep, f"{base}.csv"), index=False)
-
-    # Markdown
-    md = [
-        f"# LangGraph Benchmark — desc={desc_type}, samples/problem={num_samples}",
-        "",
-        f"- **Total problems:** {stats['total_problems']}",
-        f"- **Total runs:** {stats['total_runs']}",
-        f"- **pass@1:** {stats['avg_pass_at_1']:.2f}%",
-        f"- **pass@{num_samples}:** {stats[f'avg_pass_at_{num_samples}']:.2f}%",
-        f"- **SC Pass Rate:** {stats['avg_sc_pass_rate']:.2f}%",
-        f"- **Syntax FR:** {stats['avg_syntax_fr']:.2f}%",
-        f"- **Func FR:** {stats['avg_func_fr']:.2f}%",
-        f"- **Total SC exceptions:** {stats['total_sc_exceptions']} "
-        f"(fixed: {stats['total_sc_fixed']})",
-        f"- **Total TB exceptions:** {stats['total_tb_exceptions']}",
-        f"- **Status breakdown:** "
-        f"pass={stats.get('total_pass', 0)} | "
-        f"fail_sc={stats.get('total_fail_sc', 0)} | "
-        f"fail_ts={stats.get('total_fail_ts', 0)} | "
-        f"fail_extraction={stats.get('total_fail_extraction', 0)} | "
-        f"timeout={stats.get('total_timeouts', 0)} | "
-        f"error={stats.get('total_errors', 0)}",
-        f"- **Timestamp:** {stats['timestamp']}",
-        "",
-        "## Per-module results (hard problems first)",
-        "",
-    ]
-    try:
-        md.append(df_clean.to_markdown(index=False))
-    except Exception:
-        # Fallback if `tabulate` is not installed
-        md.append(df_clean.to_string(index=False))
-
-    with open(os.path.join(rep, f"{base}.md"), "w") as f:
-        f.write("\n".join(md))
-
-    print(f"\n📄 JSON: {summary_json}")
-    print(f"📊 CSV : {os.path.join(rep, f'{base}.csv')}")
-    print(f"📝 MD  : {os.path.join(rep, f'{base}.md')}")
-
-
-# ═══════════════════════════════════════════════════════════════
 # Legacy sv-iv-analyze (backward compat with VE official scripts)
 # ═══════════════════════════════════════════════════════════════
 def _run_legacy_analyze(out_dir: str):
@@ -653,7 +596,6 @@ def main():
     # ── Aggregate from dumped per-sample JSONs ──
     sample_results = collect_samples(opts.output_dir, problems, opts.samples)
     rows, df, stats = aggregate(sample_results, problems, opts.samples)
-    export(rows, df, stats, opts.output_dir, opts.desc_type, opts.samples)
 
     print(
         f"\n=== pass@1: {stats['avg_pass_at_1']:.2f}%"
