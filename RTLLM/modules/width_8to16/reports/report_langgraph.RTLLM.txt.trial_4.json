@@ -5,26 +5,23 @@
   "samples": {
     "module_name": "width_8to16",
     "description_type": "RTLLM.txt",
-    "final_status": "pass",
-    "sc_trial": 5,
-    "ts_trial": 5,
-    "total_iter": 10,
-    "gvd": "module width_8to16\n(\n    input clk,\n    input rst_n,\n    input valid_in,\n    input [7:0] data_in,\n    output reg valid_out,\n    output reg [15:0] data_out\n);\n\nreg [7:0] data_lock;\nreg flag;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data_out <= 0;\n        valid_out <= 0;\n        data_lock <= 0;\n        flag <= 0;\n    end\n    else begin\n        if (valid_in) begin\n            if (flag) begin\n                data_out <= {data_lock, data_in};\n                valid_out <= 1;\n                flag <= 0;\n            end\n            else begin\n                data_lock <= data_in;\n                flag <= 1;\n                valid_out <= 0;\n            end\n        end\n        else begin\n            valid_out <= 0;\n        end\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"width_8to16\">\n    <description>Converts 8-bit data to 16-bit data.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"valid_in\">Input signal indicating valid data.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data.</input>\n        <output id=\"valid_out\">Output signal indicating valid data.</output>\n        <output id=\"data_out\" width_description=\"[15:0]\">16-bit output data.</output>\n    </ports>\n    <parameter_description>Parameters: <br> \n    </parameter_description>\n    <logic_description> \n        <reg>type</reg=sequential_logic> type=\"reg\" id=\"data_lock\" width_description=\"[7:0]\">8-bit register to temporarily store the first valid data.</output>\n        <reg>type</reg=sequential_logic> type=\"reg\" id=\"flag\">Flag signal to indicate the first valid data has been received.</output>\n    </logic_description>\n    <implementation>\n    The <b>data_out</b> is implemented as a sequential logic block. It concatenates the contents of the <b>data_lock</b> register (8 bits) and the <b>data_in</b> register (8 bits) to form a 16-bit output when the input data is valid and the flag signal is active. The first valid data is temporarily stored in the <b>data_lock</b> register, and when the second valid data is input, they are concatenated to produce the output <b>valid_out</b> and <b>data_out</b>. The <b>data_lock</b> register is cleared when the reset signal is active, indicated by the condition <i>!rst_n</i>. The flag signal is set to 1 when the first valid data is received and is used to control the concatenation of the data inputs.\n    </implementation>\n</module>",
-    "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_width_8to16_0odq9a7o/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vwidth_8to16.cpp Vwidth_8to16__Trace.cpp Vwidth_8to16__Slow.cpp Vwidth_8to16__Syms.cpp Vwidth_8to16__Trace__Slow.cpp > Vwidth_8to16__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vwidth_8to16__ALL.o Vwidth_8to16__ALL.cpp\nar -cr Vwidth_8to16__ALL.a Vwidth_8to16__ALL.o\nranlib Vwidth_8to16__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vwidth_8to16__ALL.a      -o Vwidth_8to16\nmake[1]: Leaving directory '/tmp/comba_width_8to16_0odq9a7o/obj_dir'\n\n[RUN]\n",
+    "final_status": "fail_sc",
+    "sc_trial": 0,
+    "ts_trial": 0,
+    "total_iter": 0,
+    "gvd": null,
+    "xml_description": "```xml\n<module id=\"width_8to16\">\n    <description>Converts 8-bit data input to 16-bit data output with synchronization and validity indication.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"valid_in\">Input signal indicating the validity of the input data.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data to be converted.</input>\n        <output id=\"valid_out\">Output signal indicating the validity of the output data.</output>\n        <output id=\"data_out\" width_description=\"[15:0]\">16-bit output data resulting from the width conversion.</output>\n    </ports>\n    <logic_description type=\"sequential_logic\">\n        <register id=\"data_out\" width=\"16\" description=\"16-bit output data resulting from the width conversion.\"/>\n        <register id=\"flag\" width=\"1\" description=\"Flag signal to indicate if the second valid data has been received.\"/>\n        <register id=\"data_lock\" width=\"8\" description=\"Register to store the first valid data input until the second valid data arrives.\"/>\n    </logic_description>\n    <implementation>\n        Always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                data_out <= 16'h0;\n                flag <= 1'b0;\n                data_lock <= 8'h0;\n            end else begin\n                if (valid_in && !flag) begin\n                    data_lock <= data_in;\n                    flag <= 1'b1;\n                end else if (valid_in && flag) begin\n                    data_out <= {data_lock, data_in};\n                    flag <= 1'b0;\n                end\n            end\n        end\n    </implementation>\n</module>\n```",
+    "sc_log": null,
+    "tb_log": null,
     "error": null,
-    "edtm": {
-      "TB:# TODO N Failed at simtime N": 1,
-      "TB:Vwidth_NtoN: ../tb.cpp:N: void width_NtoNScb::writeOut(width_NtoNOutTx*): Assertion `tx->data_out == NxN && tx->valid_out == NxN && \"TODO N Failed: Reset logic result of the Verilog module is incorrect\"' failed.": 3
-    },
+    "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 8,
+      "commits": 0,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": -1,
       "final_sc": 0
     }
   }

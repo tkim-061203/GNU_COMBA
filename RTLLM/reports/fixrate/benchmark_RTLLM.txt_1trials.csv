@@ -1,0 +1,4 @@
+Module,Syntax Pass Rate,TB Pass Rate,Syntax FR,Func FR
+synchronizer,0%,0%,100.00%,100.00%
+div_16bit,0%,0%,100.00%,100.00%
+alu,100%,0%,100.00%,0.00%

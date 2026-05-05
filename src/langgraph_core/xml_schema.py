@@ -106,18 +106,21 @@ class Modules(RootXmlModel, tag="modules"):
 # Validation Functions
 # ──────────────────────────────────────────────────────────────
 
+# Module-level regex: fences with optional language tag, anywhere in text.
+_FENCE_RE = re.compile(r"```[a-zA-Z]*\s*\n?|```", re.MULTILINE)
+
 def _clean_xml(xml_text: str) -> str:
-    """Strip markdown fences and whitespace from XML text."""
+    """Strip markdown fences and whitespace from XML text.
+
+    Handles: ``` , ```xml , ```verilog , inline fences, leading/trailing.
+    """
     text = xml_text.strip()
-
-    # Remove ```xml ... ``` wrappers
-    if text.startswith("```"):
-        lines = text.split("\n")
-        text = "\n".join(
-            line for line in lines
-            if not line.strip().startswith("```")
-        )
-
+    # Prefer extracting content between first fence pair if both exist.
+    fences = list(_FENCE_RE.finditer(text))
+    if len(fences) >= 2:
+        text = text[fences[0].end():fences[-1].start()]
+    else:
+        text = _FENCE_RE.sub("", text)
     return text.strip()
 
 

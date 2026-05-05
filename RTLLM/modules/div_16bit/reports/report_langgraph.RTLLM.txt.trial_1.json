@@ -5,25 +5,23 @@
   "samples": {
     "module_name": "div_16bit",
     "description_type": "RTLLM.txt",
-    "final_status": "pass",
-    "sc_trial": 2,
-    "ts_trial": 2,
-    "total_iter": 4,
-    "gvd": "module div_16bit\n(\n    input [15:0] A,\n    input [7:0] B,\n    output reg [15:0] result,\n    output reg [15:0] odd\n);\n\n    reg [15:0] dividend;\n    reg [7:0] divisor;\n    reg [15:0] remainder;\n    reg [15:0] quotient;\n    reg [4:0] i;\n\n    always @(*) begin\n        dividend = A;\n        divisor = B;\n        remainder = 0;\n        quotient = 0;\n\n        for (i = 0; i < 16; i = i + 1) begin\n            remainder = {remainder[14:0], dividend[15]};\n            dividend = {dividend[14:0], 1'b0};\n\n            if (remainder >= divisor) begin\n                remainder = remainder - divisor;\n                quotient = {quotient[14:0], 1'b1};\n            end else begin\n                quotient = {quotient[14:0], 1'b0};\n            end\n        end\n\n        result = quotient;\n        odd = remainder;\n    end\n\nendmodule\n",
-    "xml_description": "<module id=\"div_16bit\">\n    <description>Implement a 16-bit divider module, the dividend is 16-bit and the divider is 8-bit in combinational logic. Extract the higher bits of the dividend, matching the bit width of the divisor. Compare these bits with the divisor: if the dividend bits are greater, set the quotient to 1, otherwise set it to 0, and use the difference as the remainder. Concatenate the remainder with the highest remaining 1-bit of the dividend, and repeat the process until all dividend bits are processed.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[15:0]\">16-bit dividend.</input>\n        <input id=\"B\" width_description=\"[7:0]\">8-bit divisor.</input>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit quotient.</output>\n        <output id=\"odd\" width_description=\"[15:0]\">16-bit remainder.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\" value=\"16\">Bit width of the dividend and quotient.</parameter>\n        <parameter id=\"DIV_WIDTH\" value=\"8\">Bit width of the divisor.</parameter>\n    </parameter_description>\n    <implementation>Implement a 16-bit divider module, the dividend is 16-bit and the divider is 8-bit in combinational logic. Extract the higher bits of the dividend, matching the bit width of the divisor. Compare these bits with the divisor: if the dividend bits are greater, set the quotient to 1, otherwise set it to 0, and use the difference as the remainder. Concatenate the remainder with the highest remaining 1-bit of the dividend, and repeat the process until all dividend bits are processed.</implementation>\n</module>",
-    "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: div_16bit.v:26:39: Operator SUB expects 16 bits on the RHS, but RHS's VARREF 'divisor' generates 8 bits.\n                                 : ... In instance div_16bit\n   26 |                 remainder = remainder - divisor;\n      |                                       ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: div_16bit.v:25:27: Operator GTE expects 16 bits on the RHS, but RHS's VARREF 'divisor' generates 8 bits.\n                                 : ... In instance div_16bit\n   25 |             if (remainder >= divisor) begin\n      |                           ^~\nmake[1]: Entering directory '/tmp/comba_div_16bit_0r3zhu38/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vdiv_16bit.cpp Vdiv_16bit__Trace.cpp Vdiv_16bit__Slow.cpp Vdiv_16bit__Syms.cpp Vdiv_16bit__Trace__Slow.cpp > Vdiv_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vdiv_16bit__ALL.o Vdiv_16bit__ALL.cpp\nar -cr Vdiv_16bit__ALL.a Vdiv_16bit__ALL.o\nranlib Vdiv_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vdiv_16bit__ALL.a      -o Vdiv_16bit\nmake[1]: Leaving directory '/tmp/comba_div_16bit_0r3zhu38/obj_dir'\n\n[RUN]\n",
+    "final_status": "fail_sc",
+    "sc_trial": 0,
+    "ts_trial": 0,
+    "total_iter": 0,
+    "gvd": null,
+    "xml_description": "```xml\n<module id=\"div_16bit\">\n    <description>Divide a 16-bit dividend by an 8-bit divisor in combinational logic.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[15:0]\">16-bit dividend.</input>\n        <input id=\"B\" width_description=\"[7:0]\">8-bit divisor.</input>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit quotient.</output>\n        <output id=\"odd\" width_description=\"[15:0]\">16-bit remainder.</output>\n    </ports>\n    <implementation>Performs 16-bit division using combinational logic.</implementation>\n</module>\n```",
+    "sc_log": null,
+    "tb_log": null,
     "error": null,
-    "edtm": {
-      "TB:Vdiv_Nbit: ../tb.cpp:N: void div_NbitScb::writeOut(div_NbitOutTx*): Assertion `(tx->result == quotient) && (tx->odd == remainer) && \"TODO N Failed: Division logic result of the Verilog module is incorrect\"' failed.": 1
-    },
+    "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 2,
+      "commits": 0,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": -1,
       "final_sc": 0
     }
   }

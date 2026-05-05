@@ -180,8 +180,12 @@ def _build_header_from_xml(xml_text: str) -> Optional[str]:
 # ──────────────────────────────────────────────────────────────
 class COMBAState(TypedDict):
     # ── Input/Output ──
+# ── Input/Output ──
     nl_input: str
     xml_description: Optional[str]
+    xml_valid: Optional[bool]          # None=not-checked, True=valid, False=invalid
+    xml_retry_count: int               # converter retries used
+    xml_retry_limit: int               # converter retry budget (default 2)
     module_name: Optional[str]
     benchmark_id: Optional[str]
 
@@ -358,6 +362,9 @@ def make_initial_state(
     return COMBAState(
         nl_input=nl_input,
         xml_description=None,
+        xml_valid=None,
+        xml_retry_count=0,
+        xml_retry_limit=2,
         module_name=module_name or None,
         gvd=None,
         sgvd=None,
@@ -420,13 +427,16 @@ class COMBANodes:
     # Node 1: Converter — NL → XML
     # ──────────────────────────────────────────────────────────
     def node_converter(self, state: COMBAState) -> dict:
-        """Convert natural language description to COMBA XML format."""
+        """Convert NL → COMBA XML, validate, set xml_valid for state machine."""
         cprint("\n" + "=" * 60)
-        cprint("🔄 NODE: Converter (NL → XML)")
+        cprint(f"🔄 NODE: Converter (NL → XML) "
+               f"[attempt {state.get('xml_retry_count', 0) + 1}]")
         cprint("=" * 60)
 
-        if state.get("xml_description"):
-            cprint("[SKIP] XML already present.")
+        # Skip only if user supplied valid XML up-front (xml_valid != False).
+        # If xml_valid is False we are in a retry loop — DO NOT skip.
+        if state.get("xml_description") and state.get("xml_valid") is not False:
+            cprint("[SKIP] Valid XML already present.")
             return {}
 
         result = converterPromptTemplate.invoke({
@@ -436,22 +446,43 @@ class COMBANodes:
         response = self._llm.invoke(result)
         xml_text = response.content.strip()
 
-        if xml_text.startswith("```"):
-            lines = xml_text.split("\n")
-            xml_text = "\n".join(
-                line for line in lines
-                if not line.strip().startswith("```")
-            )
+        # Validate via shared xml_schema helper (no LLM fix loop here —
+        # retry is at graph level via route_after_converter).
+        try:
+            from xml_schema import validate_xml, _clean_xml
+            cleaned_xml = _clean_xml(xml_text)
+            ok, module, err = validate_xml(cleaned_xml, max_retries=0, llm=None)
+            xml_text = cleaned_xml # Use cleaned XML in state
+        except ImportError:
+            cprint("  [WARN] xml_schema unavailable — falling back to regex check.")
+            # Inline fence stripping (fallback when pydantic_xml not installed)
+            xml_text = re.sub(r'```(?:xml|verilog|sv|systemverilog)?\s*\n?|```', '', xml_text, flags=re.I).strip()
+            m = re.search(r'<module\s+id="([^"]+)"', xml_text)
+            ok, module, err = (m is not None), None, ("no <module id=> tag" if not m else None)
 
-        match = re.search(r'<module\s+id="([^"]+)"', xml_text)
-        xml_mod_name = match.group(1) if match else "unknown"
+        # Module name extraction (works for both ok and !ok paths)
+        if ok and module is not None:
+            xml_mod_name = module.id
+        else:
+            m2 = re.search(r'<module\s+id="([^"]+)"', xml_text)
+            xml_mod_name = m2.group(1) if m2 else "unknown"
 
-        anchored_name = state.get("module_name") or "(none)"
-        cprint(f"  ✅ Generated XML for module: {xml_mod_name} (anchored: {anchored_name})")
+        if ok:
+            cprint(f"  ✅ XML valid — module: {xml_mod_name}")
+        else:
+            cprint(f"  ⚠️  XML invalid: {err}")
 
-        updates = {"xml_description": xml_text}
+        updates = {
+            "xml_description": xml_text,
+            "xml_valid": ok,
+        }
 
-        # Set module_name from XML if state doesn't have one
+        if not ok:
+            # Bump retry counter; route_after_converter decides next hop.
+            updates["xml_retry_count"] = state.get("xml_retry_count", 0) + 1
+            return updates
+
+        # ── Valid path: keep existing side-effects ──
         if not state.get("module_name") and xml_mod_name != "unknown":
             updates["module_name"] = xml_mod_name
 
@@ -476,9 +507,24 @@ class COMBANodes:
         xml_desc = state.get("xml_description")
 
         if xml_desc and xml_desc != "(Bypassed XML; Using TXT mode)":
-            combined_input = f"Original Specification:\n{nl_input}\n\nXML Representation:\n{xml_desc}"
+            # Strip any residual markdown fences from the XML description
+            xml_desc_clean = re.sub(r'```(?:xml|verilog|sv|systemverilog)?\s*\n?|```', '', xml_desc, flags=re.I).strip()
+            combined_input = f"Original Specification:\n{nl_input}\n\nXML Representation:\n{xml_desc_clean}"
         else:
             combined_input = f"Original Specification:\n{nl_input}"
+
+        # If this is a sanitizer retry, inject the retry feedback so the LLM
+        # knows what went wrong (e.g. "No Verilog module found")
+        sanitize_result = state.get("sanitize_result") or {}
+        retry_prompt = sanitize_result.get("retry_prompt")
+        if retry_prompt and state.get("_sanitize_retry_count", 0) > 0:
+            combined_input += (
+                f"\n\n⚠️ PREVIOUS ATTEMPT FAILED: {retry_prompt}\n"
+                "You MUST output the COMPLETE Verilog module from 'module' to 'endmodule', "
+                "including ALL internal logic (always blocks, assigns, etc). "
+                "Do NOT output only the port declarations."
+            )
+            cprint(f"  📎 Injected retry feedback: {retry_prompt[:60]}...")
 
         result = generatorPromptTemplate.invoke({
             "user_input": combined_input,
@@ -488,6 +534,10 @@ class COMBANodes:
         raw_output = response.content.strip()
 
         cprint(f"  ✅ LLM returned {len(raw_output.splitlines())} lines")
+        if len(raw_output.splitlines()) < 15:
+            cprint(f"  ⚠️  SHORT OUTPUT — dumping raw:")
+            for i, line in enumerate(raw_output.splitlines()):
+                cprint(f"    [{i+1}] {line}")
 
         mgr = state.get("multi_attempt_mgr")
         if mgr is None:
@@ -533,6 +583,17 @@ class COMBANodes:
         if result.needs_retry:
             updates["_sanitize_retry_count"] = retry_count + 1
             cprint(f"  🔄 Needs retry ({retry_count + 1}/2): {result.retry_prompt[:60]}...")
+            
+            # ── LOGGING: Save raw output for debugging ──
+            work_dir = state.get("work_dir")
+            if work_dir:
+                try:
+                    log_file = os.path.join(work_dir, f"raw_output_sanitize_retry_{retry_count + 1}.txt")
+                    with open(log_file, "w") as f:
+                        f.write(raw)
+                    cprint(f"  📝 Saved raw output to {os.path.basename(log_file)}")
+                except Exception as e:
+                    cprint(f"  ⚠️  Failed to save log: {e}")
         else:
             code = result.code or ""
             if code and not code.endswith("\n"):
@@ -1509,6 +1570,29 @@ def end_max_iter(state: COMBAState) -> dict:
 # 5. Build Graph
 # ──────────────────────────────────────────────────────────────
 
+# ──────────────────────────────────────────────────────────────
+# Converter conditional routing (XML retry state machine)
+# ──────────────────────────────────────────────────────────────
+def route_after_converter(state: COMBAState) -> str:
+    """Branch on XML validity. Bounded retry, then fail-fast."""
+    if state.get("xml_valid") is False:
+        retries = state.get("xml_retry_count", 0)
+        limit = state.get("xml_retry_limit", 2)
+        if retries < limit:
+            cprint(f"  ↻ Retrying converter ({retries}/{limit})")
+            return "node_converter"
+        cprint(f"  ✗ XML retry budget exhausted ({retries}/{limit})")
+        return "end_fail_xml"
+    return "node_generator"
+
+
+def end_fail_xml(state: COMBAState) -> dict:
+    """Terminal: XML validation could not produce a parseable description."""
+    cprint(f"\n❌ PIPELINE FAILED: XML validation exhausted "
+           f"({state.get('xml_retry_count', 0)} retries)")
+    return _terminal_with_fallback(state, "fail_xml", "sc")
+
+
 def build_comba_graph(llm):
     """
     Build the full COMBA verification pipeline v4 as a LangGraph.
@@ -1558,10 +1642,19 @@ def build_comba_graph(llm):
     builder.add_node("end_fail_sc", end_fail_sc)
     builder.add_node("end_fail_ts", end_fail_ts)
     builder.add_node("end_max_iter", end_max_iter)
+    builder.add_node("end_fail_xml", end_fail_xml)
 
     # ── Linear edges ──
     builder.add_edge(START, "node_converter")
-    builder.add_edge("node_converter", "node_generator")
+    builder.add_conditional_edges(
+        "node_converter",
+        route_after_converter,
+        {
+            "node_converter": "node_converter",
+            "node_generator": "node_generator",
+            "end_fail_xml":   "end_fail_xml",
+        },
+    )
     builder.add_edge("node_generator", "node_sanitizer")
     builder.add_edge("node_debugger", "node_sanitizer")
     builder.add_edge("node_syntax_check", "node_guard_sc")
@@ -1572,6 +1665,7 @@ def build_comba_graph(llm):
     builder.add_edge("end_fail_sc", END)
     builder.add_edge("end_fail_ts", END)
     builder.add_edge("end_max_iter", END)
+    builder.add_edge("end_fail_xml", END)
 
     # ── Conditional edges (5 routing decisions) ──
 

@@ -466,22 +466,44 @@ class MultiAttemptManager:
         header_match = re.search(r'(module\s+' + re.escape(module_name) + r'\s*[\s\S]*?;)', gvd)
         header = header_match.group(1) if header_match else f"module {module_name}(...);"
 
-        return (
-            "CRITICAL: Multiple previous attempts to fix this module have ALL FAILED.\n"
-            "You MUST completely rethink your approach.\n\n"
-            f"Module: {module_name}\n"
-            f"Task: {task_desc}\n\n"
-            "REQUIRED HEADER (Ports are FIXED and matching the testbench):\n"
-            f"```verilog\n{header}\n```\n\n"
-            f"The current logic has a persistent {error_type} error:\n"
-            f"  {error_desc}\n\n"
-            "DO NOT make incremental changes. Instead:\n"
-            "1. Re-read the task description carefully\n"
-            "2. Design a different architectural approach\n"
-            "3. Write a clean implementation using the FIXED header above\n\n"
-            f"Output the COMPLETE module '{module_name}' from 'module' to 'endmodule'.\n"
+        arch_hint = ""
+        m_lower = module_name.lower()
+        if "synchronizer" in m_lower:
+            arch_hint = "DESIGN HINT: For synchronizers, ensure you use multiple flops (2-stage or 3-stage) to move signals between clock domains. Use the specified enable signal correctly in the destination domain logic."
+        elif "alu" in m_lower:
+            arch_hint = "DESIGN HINT: For ALUs, ensure all arithmetic flags (Zero, Overflow, Carry, Negative) are calculated correctly. Zero flag is '1' ONLY if the result is 0. Overflow occurs for signed addition/subtraction if the sign of the result is incorrect."
+        elif "div" in m_lower:
+            arch_hint = "DESIGN HINT: For dividers, ensure the implementation handles the entire division bit-by-bit (using a loop for combinational or multiple cycles for sequential) and correctly sets the quotient and remainder."
+
+        parts = [
+            "CRITICAL: Multiple previous attempts to fix this module have ALL FAILED.",
+            "You MUST completely rethink your approach.",
+            "",
+            f"Module: {module_name}",
+            f"Task: {task_desc}",
+            "",
+            "REQUIRED HEADER (Ports are FIXED and matching the testbench):",
+            f"```verilog\n{header}\n```",
+            "",
+            f"The current logic has a persistent {error_type} error:",
+            f"  {error_desc}",
+            "",
+        ]
+        
+        if arch_hint:
+            parts.extend([arch_hint, ""])
+            
+        parts.extend([
+            "DO NOT make incremental changes. Instead:",
+            "1. Re-read the task description carefully",
+            "2. Design a different architectural approach",
+            "3. Write a clean implementation using the FIXED header above",
+            "",
+            f"Output the COMPLETE module '{module_name}' from 'module' to 'endmodule'.",
             "Output ONLY Verilog code, no explanation."
-        )
+        ])
+
+        return "\n".join(parts)
 
     def _skeleton_prompt(self, module_name, gvd, task_desc):
         """Extract port declaration from current GVD and ask LLM to fill logic."""
