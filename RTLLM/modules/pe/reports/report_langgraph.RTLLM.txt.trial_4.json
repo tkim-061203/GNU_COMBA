@@ -5,21 +5,23 @@
   "samples": {
     "module_name": "pe",
     "description_type": "RTLLM.txt",
-    "final_status": "pass",
-    "sc_trial": 1,
-    "ts_trial": 1,
-    "total_iter": 2,
-    "gvd": "module pe\n(\n    input clk,\n    input rst,\n    input [31:0] a,\n    input [31:0] b,\n    output reg [31:0] c\n);\n    always @(posedge clk or posedge rst) begin\n        if (rst)\n            c <= 32'd0;\n        else\n            c <= c + (a * b);\n    end\nendmodule\n",
-    "xml_description": "```xml\n<module id=\"pe\">\n    <description>Parallel Multiplier-Accumulator (MAC) PE</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst\">Reset signal. Active-high reset.</input>\n        <input id=\"a\" width_description=\"[31:0]\">32-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[31:0]\">32-bit input operand B.</input>\n        <output id=\"c\" width_description=\"[31:0]\">32-bit output representing the accumulated result.</output>\n    </ports>\n    <logic_description type=\"sequential_logic\">\n        <register id=\"c\" width=\"32\" reset_value=\"0\" update_on_rising_edge_of_clk=\"true\" update_condition=\"!rst\" update_expression=\"c + (a * b)\" />\n    </logic_description>\n    <implementation>Multiplies inputs a and b, accumulating the result in register c on each clock cycle, resetting to zero if rst is asserted.</implementation>\n</module>\n```",
+    "final_status": "fail_ts",
+    "sc_trial": 10,
+    "ts_trial": 10,
+    "total_iter": 20,
+    "gvd": "module pe(\n    input clk, input rst, input [31:0] a, input [31:0] b,\n    output reg [31:0] c\n);\n    reg [31:0] product;\n    always @(posedge clk or posedge rst) begin\n        if (rst) begin\n            c <= 32'b0;\n        end else begin\n            product <= a * b;\n            c <= c + product;\n        end\n    end\nendmodule\n",
+    "xml_description": "<module id=\"pe\">\n    <description>Implement a Multiplying Accumulator for 32-bit integers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst\">Reset signal. Active-high reset.</input>\n        <input id=\"a\" width_description=\"[31:0]\">32-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[31:0]\">32-bit input operand B.</input>\n        <output id=\"c\" width_description=\"[31:0]\">32-bit output representing the accumulated result.</output>\n    </ports>\n    <implementation>Multiplies inputs a and b, accumulating the result in register c on each clock cycle. Resets to 0 on reset signal.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_pe_esk0oeke/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpe.cpp Vpe__Trace.cpp Vpe__Slow.cpp Vpe__Syms.cpp Vpe__Trace__Slow.cpp > Vpe__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpe__ALL.o Vpe__ALL.cpp\nar -cr Vpe__ALL.a Vpe__ALL.o\nranlib Vpe__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpe__ALL.a      -o Vpe\nmake[1]: Leaving directory '/tmp/comba_pe_esk0oeke/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_pe_1zcqdca5/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpe.cpp Vpe__Trace.cpp Vpe__Slow.cpp Vpe__Syms.cpp Vpe__Trace__Slow.cpp > Vpe__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpe__ALL.o Vpe__ALL.cpp\nar -cr Vpe__ALL.a Vpe__ALL.o\nranlib Vpe__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpe__ALL.a      -o Vpe\nmake[1]: Leaving directory '/tmp/comba_pe_1zcqdca5/obj_dir'\n\n[RUN]\nVpe: ../tb.cpp:187: void peScb::writeOut(peOutTx*): Assertion `tx->c == out_tx_ref.c && \"TODO 3 Failed: Operation logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 8\n# TODO 3 INPUT TRACE: in->a = 0x29fcb47d, in->b = 0x350b7a32, in->rst = 0x0\n# TODO 3 OUTPUT TRACE: tx->c = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: out_tx_ref.c = 0x43bdd26a\n",
     "error": null,
-    "edtm": {},
+    "edtm": {
+      "TB:Vpe: ../tb.cpp:N: void peScb::writeOut(peOutTx*): Assertion `tx->c == out_tx_ref.c && \"TODO N Failed: Operation logic result of the Verilog module is incorrect\"' failed.": 10
+    },
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 0,
+      "commits": 18,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

@@ -5,26 +5,26 @@
   "samples": {
     "module_name": "serial2parallel",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_sc",
-    "sc_trial": 10,
-    "ts_trial": 0,
+    "final_status": "pass",
+    "sc_trial": 5,
+    "ts_trial": 5,
     "total_iter": 10,
-    "gvd": "module serial2parallel\n(\n    input clk,\n    input rst_n,\n    input din_serial,\n    input din_valid,\n    output reg dout_parallel,\n    output reg dout_valid\n);\n    reg [3:0] cnt;\n    \n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            cnt <= 4'b0;\n            dout_parallel <= 8'b0;\n            dout_valid <= 1'b0;\n        end else begin\n            if (din_valid) begin\n                if (cnt == 4'd7) begin\n                    dout_parallel <= {din_serial, dout_parallel[7:1]};\n                    dout_valid <= 1'b1;\n                    cnt <= 4'b0;\n                end else begin\n                    dout_parallel <= {din_serial, dout_parallel[7:1]};\n                    dout_valid <= 1'b0;\n                    cnt <= cnt + 1;\n                end\n            end\n        end\n    end\nendmodule\n",
-    "xml_description": "```xml\n<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <constant id=\"WIDTH\" value=\"8\">Width of the parallel output data.</constant>\n        <constant id=\"CNT_WIDTH\" value=\"4\">Width of the counter.</constant>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        <reg id=\"cnt\" width=\"4\">4-bit counter to track the number of received serial inputs.</reg>\n        <reg id=\"dout_parallel\" width=\"8\">8-bit parallel output data.</reg>\n        <reg id=\"dout_valid\">Validity signal for the output data.</reg>\n    </logic_description>\n    <implementation>\n        Always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt <= 4'b0;\n                dout_parallel <= 8'b0;\n                dout_valid <= 1'b0;\n            end else begin\n                if (din_valid) begin\n                    if (cnt == 4'd7) begin\n                        dout_parallel <= {dout_parallel[6:0], din_serial};\n                        dout_valid <= 1'b1;\n                        cnt <= 4'b0;\n                    end else begin\n                        dout_parallel <= {dout_parallel[6:0], din_serial};\n                        dout_valid <= 1'b0;\n                        cnt <= cnt + 1;\n                    end\n                end\n            end\n        end\n    </implementation>\n</module>\n```",
-    "sc_log": "TopModule.sv:20: error: can not select part of scalar: dout_parallel\nTopModule.sv:24: error: can not select part of scalar: dout_parallel\n2 error(s) during elaboration.\n",
-    "tb_log": null,
+    "gvd": "module serial2parallel(\n    input clk, input rst_n, input din_serial, input din_valid,\n    output reg [7:0] dout_parallel, output reg dout_valid\n);\n\nreg [3:0] cnt;\nreg [7:0] data_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        cnt <= 4'b0;\n        data_reg <= 8'b0;\n        dout_parallel <= 8'b0;\n        dout_valid <= 1'b0;\n    end\n    else if (din_valid) begin\n        data_reg <= {data_reg[6:0], din_serial};\n        cnt <= cnt + 4'b1;\n        if (cnt == 4'b1111) begin\n            dout_parallel <= data_reg;\n            dout_valid <= 1'b1;\n        end\n        else begin\n            dout_valid <= 1'b0;\n        end\n    end\n    else begin\n        dout_valid <= 1'b0;\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"din_serial\">Serial input data (single bit).</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <implementation>\n        The module converts serial input data into parallel output data. \n        On each rising edge of the clock, if rst_n is active, it resets the counter and output signals. \n        When din_valid is asserted, it captures the incoming serial data and shifts it into dout_parallel. \n        After receiving 8 bits of serial data, dout_valid is set to indicate that the parallel output is valid.\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_serial2parallel_gg6d3ooc/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel__Trace.cpp Vserial2parallel__Slow.cpp Vserial2parallel__Syms.cpp Vserial2parallel__Trace__Slow.cpp > Vserial2parallel__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\nar -cr Vserial2parallel__ALL.a Vserial2parallel__ALL.o\nranlib Vserial2parallel__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vserial2parallel__ALL.a      -o Vserial2parallel\nmake[1]: Leaving directory '/tmp/comba_serial2parallel_gg6d3ooc/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TopModule.sv:N: error: can not select part of scalar: dout_parallel": 10
+      "TB:VserialNparallel: ../tb.cpp:N: void serialNparallelScb::writeOut(serialNparallelOutTx*): Assertion `tx->dout_parallel == out_tx_ref.dout_parallel && \"TODO N Failed: Parallel logic result of the Verilog module is incorrect\"' failed.": 4
     },
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 9,
+      "commits": 8,
       "used_fallback": false,
-      "baseline_sc": 2,
-      "final_sc": 2
+      "baseline_sc": 0,
+      "final_sc": 0
     }
   }
 }

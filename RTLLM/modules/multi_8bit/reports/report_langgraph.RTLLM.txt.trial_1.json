@@ -5,14 +5,14 @@
   "samples": {
     "module_name": "multi_8bit",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_sc",
-    "sc_trial": 0,
-    "ts_trial": 0,
-    "total_iter": 0,
-    "gvd": null,
-    "xml_description": "```xml\n<module id=\"multi_8bit\">\n    <description>Multiplies two 8-bit operands A and B using the shift-and-add method.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[7:0]\">First 8-bit input operand (multiplicand).</input>\n        <input id=\"B\" width_description=\"[7:0]\">Second 8-bit input operand (multiplier).</input>\n        <output id=\"product\" width_description=\"[15:0]\">16-bit output representing the product of A and B.</output>\n    </ports>\n    <implementation>Performs multiplication of A and B using the shift-and-add method.</implementation>\n</module>\n```",
-    "sc_log": null,
-    "tb_log": null,
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_8bit(\n    input [7:0] A, B,\n    output reg [15:0] product\n);\n    integer i;\n    always @(*) begin\n        product = 16'b0;\n        for (i = 0; i < 8; i = i + 1) begin\n            if (B[i]) begin\n                product = product + (A << i);\n            end\n        end\n    end\nendmodule\n",
+    "xml_description": "<module id=\"multi_8bit\">\n    <description>Implement an 8-bit multiplier using shifting and adding operations.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[7:0]\">First 8-bit input operand (multiplicand).</input>\n        <input id=\"B\" width_description=\"[7:0]\">Second 8-bit input operand (multiplier).</input>\n        <output id=\"product\" width_description=\"[15:0]\">16-bit output representing the product of A and B.</output>\n    </ports>\n    <implementation>\n        Multiplies two 8-bit operands using the shift-and-add method.\n        - Iteratively adds the multiplicand (A) to the product based on the current bit of the multiplier (B).\n        - Shifts the multiplicand left after each addition.\n        - Continues until all bits of the multiplier have been processed.\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: multi_8bit.v:10:40: Operator SHIFTL expects 16 bits on the LHS, but LHS's VARREF 'A' generates 8 bits.\n                                  : ... In instance multi_8bit\n   10 |                 product = product + (A << i);\n      |                                        ^~\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\nmake[1]: Entering directory '/tmp/comba_multi_8bit_36eqj8mx/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_8bit.cpp Vmulti_8bit__Trace.cpp Vmulti_8bit__Slow.cpp Vmulti_8bit__Syms.cpp Vmulti_8bit__Trace__Slow.cpp > Vmulti_8bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vmulti_8bit__ALL.o Vmulti_8bit__ALL.cpp\nar -cr Vmulti_8bit__ALL.a Vmulti_8bit__ALL.o\nranlib Vmulti_8bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vmulti_8bit__ALL.a      -o Vmulti_8bit\nmake[1]: Leaving directory '/tmp/comba_multi_8bit_36eqj8mx/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {},
     "failure_type": "",
@@ -21,7 +21,7 @@
       "rollbacks": 0,
       "commits": 0,
       "used_fallback": false,
-      "baseline_sc": -1,
+      "baseline_sc": 0,
       "final_sc": 0
     }
   }

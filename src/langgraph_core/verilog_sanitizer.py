@@ -219,6 +219,22 @@ def sanitize(
             used_module_indices.add(candidate.start())
 
     if not blocks:
+        # ── Check for header-only truncation ──
+        # The LLM may have produced a valid module header but stopped before the body
+        header_match = re.search(r'(module\s+\w+\s*(?:\([^)]*\)|#\([^)]*\)\s*\([^)]*\))\s*;)', code, re.S)
+        if header_match:
+            partial_header = header_match.group(1).strip()
+            return SanitizeResult(
+                code=None,
+                needs_retry=True,
+                retry_prompt=(
+                    f"TRUNCATED OUTPUT DETECTED. You only produced the module header:\n"
+                    f"```\n{partial_header}\n```\n"
+                    f"Continue from this header. Output the COMPLETE module including "
+                    f"ALL internal logic (reg declarations, always blocks, assign statements) "
+                    f"and 'endmodule'. Start your output with:\n{partial_header}"
+                )
+            )
         return SanitizeResult(
             code=None, 
             needs_retry=True, 
@@ -266,11 +282,102 @@ def sanitize(
         if auto_fixed:
             warnings.append("Auto-repaired: Promoted output ports to 'reg' for always-block assignments.")
 
+    # ── [S8b] Auto-Repair: Missing endcase ──
+    # The LLM frequently drops 'endcase' after case blocks, causing persistent
+    # syntax errors. Count case vs endcase and insert missing ones.
+    case_count = len(re.findall(r'\bcase[zx]?\s*\(', code))
+    endcase_count = len(re.findall(r'\bendcase\b', code))
+    if case_count > endcase_count:
+        missing = case_count - endcase_count
+
+        def _fix_endcase(code_text):
+            """Replace bare 'end' with 'endcase' when it closes an unclosed case block."""
+            lines = code_text.splitlines()
+            output = []
+            # Stack tracks what we're inside: 'begin' or 'case'
+            stack = []
+            for line in lines:
+                s = line.strip()
+                # Push 'case' onto stack when we see a case statement
+                if re.search(r'\bcase[zx]?\s*\(', s):
+                    stack.append('case')
+                # Push 'begin' onto stack
+                for _ in re.findall(r'\bbegin\b', s):
+                    stack.append('begin')
+                # Handle endcase — pop the matching 'case'
+                if re.search(r'\bendcase\b', s):
+                    # Pop until we find 'case'
+                    while stack and stack[-1] != 'case':
+                        stack.pop()
+                    if stack:
+                        stack.pop()  # pop the 'case'
+                    output.append(line)
+                    continue
+                # Handle 'end' — check if it should be 'endcase'
+                if re.match(r'\s*end\s*$', line):
+                    if stack and stack[-1] == 'case':
+                        # This 'end' closes a case block — replace with 'endcase'
+                        indent = line[:len(line) - len(line.lstrip())]
+                        output.append(f'{indent}endcase')
+                        stack.pop()
+                        continue
+                    elif stack and stack[-1] == 'begin':
+                        stack.pop()
+                # Handle 'end' with stuff after it (like 'end else begin')
+                elif re.match(r'\s*end\b', s) and not s.startswith('endmodule') and not s.startswith('endcase') and not s.startswith('endfunction') and not s.startswith('endtask'):
+                    if stack and stack[-1] == 'begin':
+                        stack.pop()
+                output.append(line)
+            return '\n'.join(output)
+
+        new_code = _fix_endcase(code)
+        if new_code != code:
+            code = new_code
+            auto_fixed = True
+            warnings.append(f"Auto-repaired: Inserted {missing} missing 'endcase' keyword(s).")
+
+    # ── [S8c] Auto-Repair: Missing end ──
+    # The LLM frequently drops 'end' before new top-level blocks or endmodule.
+    # Count begin vs end keywords and insert missing ones.
+    def _fix_missing_end(code_text):
+        lines = code_text.splitlines()
+        output = []
+        begin_count = 0
+        end_count = 0
+        
+        for line in lines:
+            s = line.strip()
+            
+            is_top_level = re.match(r'^\s*(always|assign|initial|endmodule|module)\b', line)
+            missing_ends = begin_count - end_count
+            
+            if is_top_level and missing_ends > 0:
+                indent = line[:len(line) - len(line.lstrip())]
+                for _ in range(missing_ends):
+                    output.append(f"{indent}end // Auto-repaired")
+                begin_count = 0
+                end_count = 0
+                
+            begin_count += len(re.findall(r'\bbegin\b', s))
+            end_count += len(re.findall(r'\bend\b', s))
+            
+            output.append(line)
+            
+        return '\n'.join(output)
+
+    new_code = _fix_missing_end(code)
+    if new_code != code:
+        code = new_code
+        auto_fixed = True
+        warnings.append("Auto-repaired: Inserted missing 'end' keyword(s).")
+
+
     return SanitizeResult(
         code=code, 
         warnings=warnings,
         auto_fixed=auto_fixed
     )
+
 
 def fix_header(code: str, expected_header: str) -> str:
     """Force replace the module declaration with the expected one."""

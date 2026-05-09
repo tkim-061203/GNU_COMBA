@@ -320,10 +320,8 @@ def main():
 		inputprompt: list[str] = []
 		inputArgs = []
 		appendInstruction = """
-You generate the required Verilog code only.
-The Verilog code must contain one of keywords performing logic operations, such as \"always\", \"and\", \"assign\", \"not\", \"nand\", \"nor\", \"or\", \"xnor\", \"xor\", or \"display\".
-Further explanation must be construct as the syntax of Verilog comment."""
-# Don't make further explanation or Verilog comment in the code"""
+You generate the required Verilog code only. Provide only the Verilog module code. Do not provide any additional explanation or commentary."""
+		# Don't make further explanation or Verilog comment in the code"""
 		for example_i in range(examples):
 		# for example in examples_icl:
 			example = examples_icl[example_i]
@@ -406,9 +404,9 @@ Further explanation must be construct as the syntax of Verilog comment."""
 					module_definition, module_output_code, _, _, all_comment_ranges = module_extraction(resp_for_extraction)
 					# print(module_output_code)
 					resp = '\n'.join(module_output_code)
-				except:
+				except Exception as e:
 					module_extraction_success = False
-					print("module_extraction fail: ", problemPromptFileName)
+					print(f"module_extraction fail: {problemPromptFileName} - {str(e)}")
 				
 				#
 				if (not module_extraction_success) and (resp_statistic["completion_tokens"] == max_tokens):

@@ -208,6 +208,7 @@ class MultiAttemptManager:
         log_content: str,
         custom_vector: str = "",
         task_description: str = "",
+        category: str = "simple",
     ) -> str:
         """Build escalating EDP (Exception-Debugging Prompt) for syntax fix."""
 
@@ -229,13 +230,16 @@ class MultiAttemptManager:
 
         elif level == EscalationLevel.L2_HINT:
             prev = self.history[error_key][-1]
-            mod_hint = ""
-            best_match_len = 0
-            for key, hint_text in CATEGORY_HINTS.items():
-                if re.search(rf'\b{re.escape(key)}\b', module_name.lower()):
-                    if len(key) > best_match_len:
-                        mod_hint = hint_text
-                        best_match_len = len(key)
+            
+            # Prioritize detected category, fallback to name-based regex
+            mod_hint = CATEGORY_HINTS.get(category, "")
+            if not mod_hint or category == "simple":
+                best_match_len = 0
+                for key, hint_text in CATEGORY_HINTS.items():
+                    if re.search(rf'\b{re.escape(key)}\b', module_name.lower()):
+                        if len(key) > best_match_len:
+                            mod_hint = hint_text
+                            best_match_len = len(key)
             
             # Extract error-specific hints
             err_hint = ""
@@ -269,6 +273,7 @@ class MultiAttemptManager:
         error_key: str,
         module_name: str,
         gvd: str,
+        category: str = "simple",
     ) -> str:
         """Build escalating TDP (Testbench-Debugging Prompt) for functional fix."""
 
@@ -308,13 +313,16 @@ class MultiAttemptManager:
 
         elif level == EscalationLevel.L2_HINT:
             prev = self.history[error_key][-1]
-            mod_hint = ""
-            best_match_len = 0
-            for key, hint_text in CATEGORY_HINTS.items():
-                if re.search(rf'\b{re.escape(key)}\b', module_name.lower()):
-                    if len(key) > best_match_len:
-                        mod_hint = hint_text
-                        best_match_len = len(key)
+            
+            # Prioritize detected category, fallback to name-based regex
+            mod_hint = CATEGORY_HINTS.get(category, "")
+            if not mod_hint or category == "simple":
+                best_match_len = 0
+                for key, hint_text in CATEGORY_HINTS.items():
+                    if re.search(rf'\b{re.escape(key)}\b', module_name.lower()):
+                        if len(key) > best_match_len:
+                            mod_hint = hint_text
+                            best_match_len = len(key)
             
             # Extract error-specific hints from failure_content
             err_hint = ""

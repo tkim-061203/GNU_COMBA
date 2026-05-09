@@ -5,23 +5,25 @@
   "samples": {
     "module_name": "serial2parallel",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_sc",
-    "sc_trial": 0,
-    "ts_trial": 0,
-    "total_iter": 0,
-    "gvd": null,
-    "xml_description": "<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <state name=\"RESET\">Reset state.</state>\n        <state name=\"COUNTING\">Counting state.</state>\n        <constant name=\"DATA_WIDTH\">8</constant>\n        <constant name=\"CNT_WIDTH\">4</constant>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        <reg id=\"cnt\" width=\"4\">4-bit counter to track the number of received serial inputs.</reg>\n        <reg id=\"dout_parallel\" width=\"8\">8-bit parallel output data.</reg>\n        <reg id=\"dout_valid\">Valid output signal for the parallel data.</reg>\n    </logic_description>\n    <implementation>\n        Always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt <= 4'b0;\n                dout_parallel <= 8'b0;\n                dout_valid <= 1'b0;\n            end else begin\n                if (din_valid) begin\n                    if (cnt == 4'd7) begin\n                        dout_parallel <= {din_serial, dout_parallel[7:1]};\n                        dout_valid <= 1'b1;\n                        cnt <= 4'b0;\n                    end else begin\n                        dout_parallel <= {din_serial, dout_parallel[7:1]};\n                        dout_valid <= 1'b0;\n                        cnt <= cnt + 1;\n                    end\n                end\n            end\n        end\n    </implementation>\n</module>",
-    "sc_log": null,
-    "tb_log": null,
+    "final_status": "pass",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module serial2parallel(\n    input clk, input rst_n, input din_serial, input din_valid,\n    output reg [7:0] dout_parallel, output reg dout_valid\n);\n    reg [3:0] cnt;\n    reg [7:0] temp_data;\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            cnt <= 4'b0000;\n            temp_data <= 8'b0;\n            dout_parallel <= 8'b0;\n            dout_valid <= 1'b0;\n        end else begin\n            if (din_valid) begin\n                temp_data <= {temp_data[6:0], din_serial};\n                cnt <= cnt + 4'b0001;\n                if (cnt == 4'b1000) begin\n                    dout_parallel <= temp_data;\n                    dout_valid <= 1'b1;\n                end else begin\n                    dout_valid <= 1'b0;\n                end\n            end else begin\n                dout_valid <= 1'b0;\n            end\n        end\n    end\nendmodule\n",
+    "xml_description": "<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"din_serial\">Serial input data (single bit).</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <implementation>\n        The module utilizes a 4-bit counter (cnt) to keep track of the number of serial input data bits received.\n        Every eight din_serial inputs, dout_parallel will output.\n        When all 8 serial data bits have been received, the valid output signal is set to 1,\n        indicating that the parallel output data is valid. Otherwise, the valid output signal is set to 0,\n        indicating that the parallel output data is not valid.\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_serial2parallel_livvn75e/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel__Trace.cpp Vserial2parallel__Slow.cpp Vserial2parallel__Syms.cpp Vserial2parallel__Trace__Slow.cpp > Vserial2parallel__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\nar -cr Vserial2parallel__ALL.a Vserial2parallel__ALL.o\nranlib Vserial2parallel__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vserial2parallel__ALL.a      -o Vserial2parallel\nmake[1]: Leaving directory '/tmp/comba_serial2parallel_livvn75e/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {},
+    "edtm": {
+      "TB:VserialNparallel: ../tb.cpp:N: void serialNparallelScb::writeOut(serialNparallelOutTx*): Assertion `tx->dout_parallel == out_tx_ref.dout_parallel && \"TODO N Failed: Parallel logic result of the Verilog module is incorrect\"' failed.": 5
+    },
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 0,
+      "commits": 10,
       "used_fallback": false,
-      "baseline_sc": -1,
+      "baseline_sc": 0,
       "final_sc": 0
     }
   }

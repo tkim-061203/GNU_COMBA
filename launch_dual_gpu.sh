@@ -21,12 +21,12 @@ export VLLM_TORCH_COMPILE_LEVEL=0
 
 
 # ── Config ──
-GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_v1_1_lora_r1024}"
-MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger_v2}"
+GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/outputs_lora_r1024_v2/checkpoint-14500}"
+MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger}"
 PORT_GEN=8000
 PORT_DBG=8001
 MAX_MODEL_LEN=32768
-GPU_MEM=0.92
+GPU_MEM=0.99
 CACHE_DIR="../../hf_model_cache"
 DTYPE="bfloat16"
 LOG_DIR="./logs"

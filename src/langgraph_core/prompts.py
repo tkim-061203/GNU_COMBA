@@ -268,6 +268,76 @@ generatorPromptTemplate = ChatPromptTemplate([
 
 
 # ══════════════════════════════════════════════════════════════
+# 2b. CLASSIFIER: Problem Category Detection
+# ══════════════════════════════════════════════════════════════
+
+CLASSIFIER_SYSTEM_PROMPT = """\
+Classify this Verilog design specification into exactly ONE category.
+Return ONLY the category name, nothing else.
+
+Categories:
+- simple: basic gates, muxes, DFFs, counters, simple arithmetic, wire assignments, basic always blocks
+- fsm: finite state machines, sequence detectors, protocol controllers, state transition tables, Moore/Mealy machines
+- kmap: Karnaugh maps, truth tables, SOP/POS minimization, don't-care conditions, boolean simplification
+- shift_logic: LFSRs, barrel shifters, rotate operations, bit manipulation, CRC, shift registers
+- circuit_trace: reverse-engineering gate-level netlists, identifying circuit function from gate connections, circuit diagrams
+"""
+
+classifierPromptTemplate = ChatPromptTemplate([
+    ("system", CLASSIFIER_SYSTEM_PROMPT),
+    ("user", "{spec}"),
+])
+
+# Category-specific reasoning suffixes appended to the generator prompt
+CATEGORY_SUFFIXES = {
+    "simple": "",  # No extra guidance needed — already near 100%
+    "fsm": """\
+
+## CATEGORY-SPECIFIC: FSM Reasoning Strategy
+Before writing Verilog, you MUST mentally construct the state transition table:
+1. List ALL states explicitly (S0, S1, S2, ...) with their encoding
+2. For EACH (state, input_combination) pair, determine the next_state and outputs
+3. Verify: every state has a transition for EVERY input combination (no missing cases)
+4. Use a two-always-block pattern: one for state register (sequential), one for next-state+output logic (combinational)
+5. ALWAYS include 'default' in case statements
+6. ALWAYS include 'endcase' after every case block
+""",
+    "kmap": """\
+
+## CATEGORY-SPECIFIC: K-map / Truth Table Strategy
+Before writing Verilog, you MUST:
+1. Extract the complete truth table from the specification
+2. Write the canonical SOP (Sum of Products) or POS (Product of Sums) expression
+3. Simplify using K-map groupings or boolean algebra
+4. Write the simplified expression as 'assign' statements
+5. Double-check: verify your expression matches ALL rows of the truth table
+6. Use don't-care conditions (x) if specified — they can be 0 or 1
+""",
+    "shift_logic": """\
+
+## CATEGORY-SPECIFIC: Shift/LFSR Strategy
+Before writing Verilog, you MUST:
+1. Identify the shift register polynomial or pattern
+2. For LFSRs: identify tap positions and XOR feedback connections
+3. Use Verilog shift operators (<<, >>, >>>) — NOT concatenation-based shifts
+4. For barrel shifters: use indexed part-select (signal[offset +: WIDTH])
+5. For rotate: use concatenation {signal, signal} then select the right window
+""",
+    "circuit_trace": """\
+
+## CATEGORY-SPECIFIC: Circuit Tracing Strategy
+Before writing Verilog, you MUST:
+1. Trace the signal flow gate-by-gate from inputs to outputs
+2. Label every intermediate wire with its boolean expression
+3. Build the complete boolean expression for each output
+4. Write 'assign' statements for each output using the derived expressions
+5. Verify: check that the gate types (AND, OR, XOR, NOT, etc.) match the spec exactly
+""",
+}
+
+
+
+# ══════════════════════════════════════════════════════════════
 # 3. EDP: Syntax Error Fix
 # ══════════════════════════════════════════════════════════════
 

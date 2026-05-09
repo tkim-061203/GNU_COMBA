@@ -5,23 +5,25 @@
   "samples": {
     "module_name": "serial2parallel",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_sc",
-    "sc_trial": 0,
-    "ts_trial": 0,
-    "total_iter": 0,
-    "gvd": null,
-    "xml_description": "```xml\n<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <constant name=\"WIDTH\" value=\"8\">Width of the parallel output data.</constant>\n        <constant name=\"CNT_WIDTH\" value=\"4\">Width of the counter.</constant>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        <reg id=\"cnt\" width=\"4\">4-bit counter to track the number of received serial inputs.</reg>\n        <reg id=\"dout_parallel\" width=\"8\">8-bit parallel output data.</reg>\n        <reg id=\"dout_valid\">Validity signal for the output data.</reg>\n    </logic_description>\n    <implementation>\n        Always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt <= 4'b0;\n                dout_parallel <= 8'b0;\n                dout_valid <= 1'b0;\n            end else begin\n                if (din_valid) begin\n                    if (cnt == 4'd7) begin\n                        dout_parallel <= {din_serial, dout_parallel[7:1]};\n                        dout_valid <= 1'b1;\n                    end else begin\n                        dout_parallel <= {din_serial, dout_parallel[7:1]};\n                        dout_valid <= 1'b0;\n                    end\n                    cnt <= cnt + 1'b1;\n                end\n            end\n        end\n    </implementation>\n</module>\n```",
-    "sc_log": null,
-    "tb_log": null,
+    "final_status": "pass",
+    "sc_trial": 5,
+    "ts_trial": 5,
+    "total_iter": 10,
+    "gvd": "module serial2parallel(\n    input clk, input rst_n, input din_serial, input din_valid,\n    output reg [7:0] dout_parallel, output reg dout_valid\n);\n    reg [3:0] cnt;\n    reg [7:0] temp_data;\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            cnt <= 0;\n            temp_data <= 0;\n            dout_parallel <= 0;\n            dout_valid <= 0;\n        end else begin\n            if (din_valid) begin\n                temp_data[7] <= din_serial;\n                temp_data <= {temp_data[6:0], din_serial};\n                cnt <= cnt + 1;\n                if (cnt == 4'b111) begin\n                    dout_parallel <= temp_data;\n                    dout_valid <= 1;\n                end else begin\n                    dout_valid <= 0;\n                end\n            end else begin\n                dout_valid <= 0;\n            end\n        end\n    end\nendmodule\n",
+    "xml_description": "<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"din_serial\">Serial input data (single bit).</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <implementation>\n        The module converts serial input data into parallel output data. \n        On each rising edge of the clock, if rst_n is active, it resets the counter and output data. \n        When din_valid is asserted, it shifts the incoming serial data into dout_parallel and increments the counter. \n        Once 8 bits have been collected, dout_valid is set to indicate valid output data.\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_serial2parallel_ui2tx5m9/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel__Trace.cpp Vserial2parallel__Slow.cpp Vserial2parallel__Syms.cpp Vserial2parallel__Trace__Slow.cpp > Vserial2parallel__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\nar -cr Vserial2parallel__ALL.a Vserial2parallel__ALL.o\nranlib Vserial2parallel__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vserial2parallel__ALL.a      -o Vserial2parallel\nmake[1]: Leaving directory '/tmp/comba_serial2parallel_ui2tx5m9/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {},
+    "edtm": {
+      "TB:Verilator compilation failed": 4
+    },
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 0,
+      "commits": 8,
       "used_fallback": false,
-      "baseline_sc": -1,
+      "baseline_sc": 0,
       "final_sc": 0
     }
   }

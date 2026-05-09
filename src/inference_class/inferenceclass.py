@@ -124,8 +124,7 @@ class OpenAiInferenceClient(GeneralInferenceClass):
 				max_tokens=self.max_tokens, 
 				temperature=self.temperature,
 				top_p=self.top_p,
-				
-				# stop=self.tokenizer.eos_token,
+				stop=["endmodule"],
 			)
 		except openai.OpenAIError as e:
 			# openai exceptions (e.g. APIStatusError) are not picklable by dill/multiprocess
@@ -133,7 +132,12 @@ class OpenAiInferenceClient(GeneralInferenceClass):
 			# Convert to a plain RuntimeError so the worker can relay it to the main process.
 			raise RuntimeError(f"OpenAI API error: {type(e).__name__}: {e}") from None
 
-		return (response.choices[0].message.content, 
+		content = response.choices[0].message.content
+		if response.choices[0].finish_reason == "stop":
+			if "module" in content and "endmodule" not in content:
+				content += "\nendmodule"
+
+		return (content, 
 		  {"completion_tokens": response.usage.completion_tokens,
 		 	"prompt_tokens": response.usage.prompt_tokens,
 		   "total_tokens": response.usage.total_tokens})

@@ -14,6 +14,7 @@
 # Remove all default implicit rules since they can cause subtle bugs
 # and they just make things run slower
 .SUFFIXES:
+SHELL := /bin/bash
 % : %,v
 % : RCS/%,v
 % : RCS/%
