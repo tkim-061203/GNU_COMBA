@@ -348,7 +348,7 @@ def sanitize(
         for line in lines:
             s = line.strip()
             
-            is_top_level = re.match(r'^\s*(always|assign|initial|endmodule|module)\b', line)
+            is_top_level = re.match(r'^\s*(always|initial|endmodule|module)\b', line)
             missing_ends = begin_count - end_count
             
             if is_top_level and missing_ends > 0:

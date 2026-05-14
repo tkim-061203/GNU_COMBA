@@ -5,23 +5,23 @@
   "samples": {
     "module_name": "pe",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_ts",
-    "sc_trial": 10,
-    "ts_trial": 10,
-    "total_iter": 20,
-    "gvd": "module pe(\n    input clk, input rst, input [31:0] a, input [31:0] b,\n    output reg [31:0] c\n);\n    reg [31:0] product;\n    always @(posedge clk or posedge rst) begin\n        if (rst) begin\n            c <= 32'b0;\n        end else begin\n            product <= a * b;\n            c <= c + product;\n        end\n    end\nendmodule\n",
-    "xml_description": "<module id=\"pe\">\n    <description>Implement a Multiplying Accumulator for 32-bit integers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst\">Reset signal. Active-high reset.</input>\n        <input id=\"a\" width_description=\"[31:0]\">32-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[31:0]\">32-bit input operand B.</input>\n        <output id=\"c\" width_description=\"[31:0]\">32-bit output representing the accumulated result.</output>\n    </ports>\n    <implementation>Multiplies inputs a and b, accumulating the result in register c on each clock cycle. Resets to 0 on reset signal.</implementation>\n</module>",
+    "final_status": "pass",
+    "sc_trial": 3,
+    "ts_trial": 3,
+    "total_iter": 6,
+    "gvd": "module pe (\n    input clk,\n    input rst,\n    input [31:0] a,\n    input [31:0] b,\n    output reg [31:0] c\n);\n\n    always @(posedge clk or posedge rst) begin\n        if (rst) begin\n            c <= 32'h0;\n        end else begin\n            c <= c + a * b;\n        end\n    end\n\nendmodule\n",
+    "xml_description": "<module id=\"pe\">\n    <description>Implement a Multiplying Accumulator for 32bit integer. In the MAC_PE, there is a register that stores the partial sum (the intermediate accumulation result), and in each cycle, the result of “a multiplied by b” will be accumulated in this register, and the “c” shows the value of the register.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst\">Reset signal. Defined as 1 for reset and 0 for reset signal inactive.</input>\n        <input id=\"a\" width_description=\"[31:0]\">32-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[31:0]\">32-bit input operand B.</input>\n        <output id=\"c\" width_description=\"[31:0]\">32-bit output representing the accumulated result.</output>\n    </ports>\n    <implementation>The module implements a parallel multiplier and accumulator using registers and an always block. It multiplies the input operands and accumulates the result into an output register.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_pe_1zcqdca5/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpe.cpp Vpe__Trace.cpp Vpe__Slow.cpp Vpe__Syms.cpp Vpe__Trace__Slow.cpp > Vpe__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpe__ALL.o Vpe__ALL.cpp\nar -cr Vpe__ALL.a Vpe__ALL.o\nranlib Vpe__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpe__ALL.a      -o Vpe\nmake[1]: Leaving directory '/tmp/comba_pe_1zcqdca5/obj_dir'\n\n[RUN]\nVpe: ../tb.cpp:187: void peScb::writeOut(peOutTx*): Assertion `tx->c == out_tx_ref.c && \"TODO 3 Failed: Operation logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 8\n# TODO 3 INPUT TRACE: in->a = 0x29fcb47d, in->b = 0x350b7a32, in->rst = 0x0\n# TODO 3 OUTPUT TRACE: tx->c = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: out_tx_ref.c = 0x43bdd26a\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_pe_kh1zkaag/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpe.cpp Vpe__Trace.cpp Vpe__Slow.cpp Vpe__Syms.cpp Vpe__Trace__Slow.cpp > Vpe__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpe__ALL.o Vpe__ALL.cpp\nar -cr Vpe__ALL.a Vpe__ALL.o\nranlib Vpe__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpe__ALL.a      -o Vpe\nmake[1]: Leaving directory '/tmp/comba_pe_kh1zkaag/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:Vpe: ../tb.cpp:N: void peScb::writeOut(peOutTx*): Assertion `tx->c == out_tx_ref.c && \"TODO N Failed: Operation logic result of the Verilog module is incorrect\"' failed.": 10
+      "TB:Vpe: ../tb.cpp:N: void peScb::writeOut(peOutTx*): Assertion `tx->c == out_tx_ref.c && \"TODO N Failed: Operation logic result of the Verilog module is incorrect\"' failed.": 2
     },
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 18,
+      "commits": 4,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

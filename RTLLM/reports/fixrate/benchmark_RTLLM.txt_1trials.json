@@ -1,0 +1,28 @@
+{
+  "config": {
+    "num_trials": 1,
+    "description_type": "RTLLM.txt",
+    "num_modules": 2,
+    "timestamp": "2026-05-12T10:30:21.425983"
+  },
+  "global": {
+    "sc_pass_rate": 0.0,
+    "tb_pass_rate": 0.0,
+    "syntax_fix_rate": 1.0,
+    "func_fix_rate": 1.0
+  },
+  "modules": {
+    "multi_pipe_8bit": {
+      "sc_pass_rate": 0.0,
+      "tb_pass_rate": 0.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "adder_32bit": {
+      "sc_pass_rate": 0.0,
+      "tb_pass_rate": 0.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    }
+  }
+}

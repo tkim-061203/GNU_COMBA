@@ -110,15 +110,13 @@ def run_trials(modules_dir: str, description_type: str, num_trials: int,
 
         # Build command
         if filter_designs:
-            module_paths = " ".join(
-                os.path.join(modules_dir, d) for d in filter_designs
-            )
+            module_paths = [os.path.join(modules_dir, d) for d in filter_designs]
         else:
-            module_paths = f"{modules_dir}/*"
+            module_paths = [f"{modules_dir}/*"]
 
         cmd = [
-            sys.executable, "run.py", "langgraph",
-            module_paths,
+            sys.executable, "run.py", "langgraph"
+        ] + module_paths + [
             "--descriptiontype", description_type
         ]
 

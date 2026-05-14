@@ -5,25 +5,26 @@
   "samples": {
     "module_name": "adder_32bit",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_sc",
-    "sc_trial": 10,
-    "ts_trial": 0,
-    "total_iter": 10,
-    "gvd": "module adder_32bit(\n    input [32:1] A,\n    input [32:1] B,\n    output [32:1] S,\n    output C32\n);\n\nwire [15:0] P1, G1, P2, G2;\nwire C1, C2;\n\ngenvar i;\n    for (i = 0; i < 16; i = i + 1) begin : gen_prop_signals\n        end // Auto-repaired\n        assign P1[i] = A[i+1] ^ B[i+1];\n        assign G1[i] = A[i+1] & B[i+1];\n    end\n\nwire [15:0] S1;\nwire C1_out;\nwire C1_in = 1'b0;\nwire [1:0] cla1_carry;\nassign cla1_carry[0] = C1_in;\nassign C1 = cla1_carry[1];\n\n    for (i = 0; i < 16; i = i + 1) begin : gen_prop_signals2\n        assign P2[i] = A[i+17] ^ B[i+17];\n        assign G2[i] = A[i+17] & B[i+17];\n    end\n\nwire [15:0] S2;\nwire C2_out;\nassign C2_in = C1;\nassign cla2_carry[0] = C2_in;\nassign C32 = cla2_carry[1];\n\nassign S[16:1] = S1;\nassign S[32:17] = S2;\n\nendmodule\n",
-    "xml_description": "<module id=\"adder_32bit\">\n    <description>Implement a 32-bit carry-lookahead adder using the Carry-Lookahead Adder (CLA) architecture.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[32:1]\">32-bit input operand A.</input>\n        <input id=\"B\" width_description=\"[32:1]\">32-bit input operand B.</input>\n        <output id=\"S\" width_description=\"[32:1]\">32-bit output representing the sum of A and B.</output>\n        <output id=\"C32\">Carry-out output.</output>\n    </ports>\n    <implementation>Divide the 32-bit adder into two 16-bit blocks for parallel processing. Each block computes partial sums and carries using CLA logic. Combine results to produce final outputs.</implementation>\n</module>",
-    "sc_log": "TopModule.sv:16: syntax error\nTopModule.sv:18: error: Invalid module item.\n",
-    "tb_log": null,
+    "final_status": "pass",
+    "sc_trial": 4,
+    "ts_trial": 1,
+    "total_iter": 5,
+    "gvd": "module adder_32bit (\n    input [32:1] A,\n    input [32:1] B,\n    output [32:1] S,\n    output C32\n);\n\nwire [32:0] carry;\n\nassign carry[0] = 1'b0;\nassign C32 = carry[32];\n\ngenvar i;\n    for (i = 1; i < 32; i = i + 1) begin\n        end // Auto-repaired\n        assign {carry[i], S[i]} = A[i] + B[i] + carry[i-1];\n    end\n\nassign {carry[32], S[32]} = A[32] + B[32] + carry[31];\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_32bit\">\n    <description>Implement a carry-lookahead 32-bit adder that uses the Carry-Lookahead Adder (CLA) architecture.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[32:1]\">32-bit input operand A.</input>\n        <input id=\"B\" width_description=\"[32:1]\">32-bit input operand B.</input>\n        <output id=\"S\" width_description=\"[32:1]\">32-bit output representing the sum of A and B.</output>\n        <output id=\"C32\">Carry-out output.</output>\n    </ports>\n    <implementation>Uses two 16-bit CLA blocks to perform addition.</implementation>\n</module>",
+    "sc_log": "TopModule.sv:17: syntax error\nI give up.\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Error: adder_32bit.v:17:5: syntax error, unexpected end\n   17 |     end\n      |     ^~~\n%Error: Cannot continue\n",
     "error": null,
     "edtm": {
-      "TopModule.sv:N: syntax error": 10
+      "TopModule.sv:N: error: Unknown module type: cla_block": 1,
+      "TopModule.sv:N: syntax error": 2
     },
     "failure_type": "",
     "vcd_status": "",
     "guard_summary": {
       "rollbacks": 1,
-      "commits": 8,
+      "commits": 3,
       "used_fallback": false,
-      "baseline_sc": 3,
+      "baseline_sc": 2,
       "final_sc": 1
     }
   }

@@ -1,0 +1,3 @@
+Module,Syntax Pass Rate,TB Pass Rate,Syntax FR,Func FR
+multi_pipe_8bit,0%,0%,100.00%,100.00%
+adder_32bit,0%,0%,100.00%,100.00%

@@ -9,9 +9,9 @@
     "sc_trial": 10,
     "ts_trial": 0,
     "total_iter": 10,
-    "gvd": "module adder_32bit (\n    input [31:0] A,\n    input [31:0] B,\n    output [31:0] S,\n    output C32\n);\n\nwire [16:0] C;\n\ngenvar i;\n    for (i = 0; i < 16; i = i + 1) begin : cla16\n        end // Auto-repaired\n        assign C[i+1] = (A[i] & B[i]) | (A[i] ^ B[i]) & C[i];\n        assign S[i] = A[i] ^ B[i] ^ C[i];\n    end\n\nassign C[17] = (A[16] & B[16]) | (A[16] ^ B[16]) & C[16];\nassign S[16] = A[16] ^ B[16] ^ C[16];\n\nassign C32 = C[17];\nassign S[31:17] = A[31:17] ^ B[31:17] ^ C[16:0];\n\nendmodule\n",
-    "xml_description": "<module id=\"adder_32bit\">\n    <description>Implement a 32-bit carry-lookahead adder using the Carry-Lookahead Adder (CLA) architecture.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[32:1]\">32-bit input operand A.</input>\n        <input id=\"B\" width_description=\"[32:1]\">32-bit input operand B.</input>\n        <output id=\"S\" width_description=\"[32:1]\">32-bit output representing the sum of A and B.</output>\n        <output id=\"C32\">Carry-out output.</output>\n    </ports>\n    <implementation>\n        // Implementing the 32-bit adder using two 16-bit CLA blocks\n        // Instantiate the first 16-bit CLA block for bits [15:1]\n        <cla_block id=\"cla16_1\" A=\"A[16:1]\" B=\"B[16:1]\" Cin=\"0\" Cout=\"C16\" Sum=\"S[16:1]\"/>\n        \n        // Instantiate the second 16-bit CLA block for bits [32:17]\n        <cla_block id=\"cla16_2\" A=\"A[32:17]\" B=\"B[32:17]\" Cin=\"C16\" Cout=\"C32\" Sum=\"S[32:17]\"/>\n    </implementation>\n</module>",
-    "sc_log": "TopModule.sv:15: syntax error\nTopModule.sv:17: error: Invalid module item.\n",
+    "gvd": "module adder_32bit (\n    input [31:0] A,\n    input [31:0] B,\n    output [31:0] S,\n    output C32\n);\n\nwire [31:0] P;\nwire [31:0] G;\nwire [32:0] C;\n\nassign P = A ^ B;\nassign G = A & B;\nassign C[0] = 1'b0;\nassign C[32] = C[31];\n\ngenvar i;\n    for (i = 0; i < 32; i = i + 1) begin: cla_block\n        end // Auto-repaired\n        assign C[i+1] = G[i] | (P[i] & C[i]);\n    end\n\nassign S = P ^ C[31:0];\nassign C32 = C[32];\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_32bit\">\n    <description>Implement a carry-lookahead 32-bit adder that uses the Carry-Lookahead Adder (CLA) architecture.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[32:1]\">32-bit input operand A.</input>\n        <input id=\"B\" width_description=\"[32:1]\">32-bit input operand B.</input>\n        <output id=\"S\" width_description=\"[32:1]\">32-bit output representing the sum of A and B.</output>\n        <output id=\"C32\">Carry-out output.</output>\n    </ports>\n    <implementation>Implement a carry-lookahead 32-bit adder that uses the Carry-Lookahead Adder (CLA) architecture.</implementation>\n</module>",
+    "sc_log": "TopModule.sv:21: syntax error\nTopModule.sv:23: error: Invalid module item.\n",
     "tb_log": null,
     "error": null,
     "edtm": {
@@ -23,7 +23,7 @@
       "rollbacks": 0,
       "commits": 9,
       "used_fallback": false,
-      "baseline_sc": 1,
+      "baseline_sc": 2,
       "final_sc": 1
     }
   }
