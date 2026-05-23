@@ -19,7 +19,7 @@ from comba_pipeline import (
     COMBANodes,
     build_comba_graph,
     make_initial_state,
-    MAX_SC_TRIALS,
+    MAX_SYNTAX_TRIALS,
     MAX_TS_TRIALS,
     MAX_TOTAL_ITER,
     EDTM_MAX_RETRIES,
@@ -43,6 +43,9 @@ from stub_llm import (
 )
 from comba_pipeline import _count_iverilog_errors, _normalize_error_key
 from fsm_patch import route_after_classify_tb
+
+import comba_pipeline
+comba_pipeline.TS_SIMULATOR = "iverilog"
 
 
 
@@ -186,10 +189,19 @@ class TestRoutingFunctions:
         assert route_after_ts(state) == "end_pass"
 
     # ── Classify TB routing (v5) ──
-    def test_route_after_classify_tb_fsm(self):
+    def test_route_after_classify_tb_fsm_with_vcd(self, tmp_path):
+        import os
         state = make_initial_state()
         state["failure_type"] = "fsm_state_error"
+        state["work_dir"] = str(tmp_path)
+        with open(os.path.join(tmp_path, "test.vcd"), "w") as f:
+            f.write("dummy VCD")
         assert route_after_classify_tb(state) == "node_vcd_analyzer"
+
+    def test_route_after_classify_tb_fsm_no_vcd(self):
+        state = make_initial_state()
+        state["failure_type"] = "fsm_state_error"
+        assert route_after_classify_tb(state) == "node_ted_tb"
 
     def test_route_after_classify_tb_comb(self):
         state = make_initial_state()
@@ -211,7 +223,7 @@ class TestRoutingFunctions:
         # For tests, we mock it.
         state = make_initial_state()
         state["dataset_dir"] = "/tmp"
-        state["sc_trial"] = MAX_SC_TRIALS
+        state["sc_trial"] = MAX_SYNTAX_TRIALS
         state["sc_exception"] = "adder_8bit.sv:8: error: some error"
         assert route_after_ted_syntax(state) == "end_fail_sc"
 
@@ -602,12 +614,14 @@ class TestE2EGraph:
         assert result["sc_trial"] == 2
 
     def test_sc_iteration_limit(self):
-        """SC always fails → hits MAX_SC_TRIALS → fail_sc."""
+        """SC always fails → hits MAX_SYNTAX_TRIALS → fail_sc."""
         llm = create_always_buggy_stub_llm()
-        sc_results = [SC_ERROR_RESULT] * (MAX_SC_TRIALS + 5)
-        result = self._run_graph(llm, sc_results=sc_results)
+        sc_results = [SC_ERROR_RESULT] * (MAX_SYNTAX_TRIALS + 5)
+        with patch("comba_pipeline.EDTM_MAX_RETRIES", 99):
+            with patch("comba_pipeline.MultiAttemptManager.should_give_up", return_value=False):
+                result = self._run_graph(llm, sc_results=sc_results)
         assert result["final_status"] == "fail_sc"
-        assert result["sc_trial"] >= MAX_SC_TRIALS
+        assert result["sc_trial"] >= MAX_SYNTAX_TRIALS
 
     def test_graph_compiles_and_has_correct_nodes(self):
         """Verify the graph structure is correct."""

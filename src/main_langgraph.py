@@ -70,7 +70,7 @@ def parse_cmdline():
     p.add_argument("--model-submanual", type=str, default="http://localhost:8001/v1",
                    help="Debugger LLM endpoint")
     p.add_argument("-p", "--provider", type=str, default="openai")
-    p.add_argument("-n", "--max-tokens", type=int, default=2048)
+    p.add_argument("-n", "--max-tokens", type=int, default=4096)
     p.add_argument("-P", "--top-p", type=float, default=0.95)
     p.add_argument("-x", "--examples", type=int, default=0)
     p.add_argument("-r", "--revision", type=str, default=None)

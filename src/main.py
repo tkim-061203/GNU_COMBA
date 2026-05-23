@@ -37,7 +37,7 @@ def parse_cmdline():
 	p.add_argument( "-s", "--samples",	type=int,   default=1 )
 	p.add_argument( "-h", "--help",		action="store_true" )
 	p.add_argument( "-p", "--provider",	   type=str,   default="llamacpp")
-	p.add_argument( "-n", "--max-tokens",  type=int,   default=2048 )
+	p.add_argument( "-n", "--max-tokens",  type=int,   default=4096 )
 	p.add_argument( "-t", "--temperature", type=float, default=0.85 )
 	p.add_argument( "-m", "--model",	   type=str,   default="gpt-3.5-turbo" )
 	p.add_argument( "-P", "--top-p",	   type=float, default=0.95 )

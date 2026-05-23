@@ -1,0 +1,22 @@
+{
+  "config": {
+    "num_trials": 1,
+    "description_type": "txt",
+    "num_modules": 1,
+    "timestamp": "2026-05-22T22:59:55.848483"
+  },
+  "global": {
+    "sc_pass_rate": 1.0,
+    "tb_pass_rate": 1.0,
+    "syntax_fix_rate": 1.0,
+    "func_fix_rate": 1.0
+  },
+  "modules": {
+    "adder_8bit": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    }
+  }
+}

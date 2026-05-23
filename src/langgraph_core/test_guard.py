@@ -41,6 +41,9 @@ from stub_llm import (
     FIXED_VERILOG,
 )
 
+import comba_pipeline
+comba_pipeline.TS_SIMULATOR = "iverilog"
+
 
 # ──────────────────────────────────────────────────────────────
 # Helpers
@@ -397,6 +400,7 @@ class TestGuardE2E:
 
     def _run_with_mocks(self, llm, sc_results, tb_results=None):
         """Run pipeline with sequential mocked subprocess returns."""
+        import os
         graph = build_comba_graph(llm)
         state = make_initial_state(nl_input="Design an 8-bit adder")
         state["dataset_dir"] = "/tmp"
@@ -410,9 +414,16 @@ class TestGuardE2E:
                 return next(sc_iter, CLEAN_SC)
             return next(tb_iter, TB_PASS)
 
+        original_isfile = os.path.isfile
+        def mock_isfile(path):
+            if "test.sv" in path or "tb.sv" in path or "tb.v" in path:
+                return True
+            return original_isfile(path)
+
         with patch("comba_pipeline.subprocess.run", side_effect=mock_run):
             with patch("comba_pipeline.shutil.copy2"):
-                return graph.invoke(state, {"recursion_limit": 200})
+                with patch("os.path.isfile", side_effect=mock_isfile):
+                    return graph.invoke(state, {"recursion_limit": 200})
 
     def test_e2e_baseline_captured_on_first_sc(self):
         """First SC run after generator → baseline_sc_count locked."""

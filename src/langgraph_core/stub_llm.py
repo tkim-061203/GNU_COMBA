@@ -90,21 +90,11 @@ module adder_8bit(
 endmodule
 """
 
-# Use json.dumps() to guarantee correct JSON escaping of newlines
-DEBUGGER_PATCH_FIXED = json.dumps({
-    "buggy_code": "assign result = a + b + cin;",
-    "correct_code": "wire [8:0] result;\n    assign result = a + b + cin;"
-})
+DEBUGGER_PATCH_FIXED = FIXED_VERILOG
 
-DEBUGGER_PATCH_BUGGY = json.dumps({
-    "buggy_code": "assign result = a + b + cin;",
-    "correct_code": "assign result = a + b + cin;"
-})
+DEBUGGER_PATCH_BUGGY = BUGGY_VERILOG
 
-DEBUGGER_PATCH_WORSE = json.dumps({
-    "buggy_code": "assign result = a + b + cin;",
-    "correct_code": "assign result = a + b + cin;\n    assign sum = unknown_signal;\n    assign cout = another_undeclared;"
-})
+DEBUGGER_PATCH_WORSE = WORSE_VERILOG
 
 
 # ──────────────────────────────────────────────────────────────
@@ -143,15 +133,15 @@ class StubLLM(BaseChatModel):
         ).lower()
 
         # Determine which response to return
-        # Order matters: check debugger/EDP/TDP first (most specific), then generator, then converter
-        if ("syntax debugging" in full_text or "functional debugging" in full_text
+        # Order matters: check generator and converter first to avoid false-positive debugger matches from warnings/hints in generator instructions.
+        if "verilog code generator" in full_text or "generate complete" in full_text or "professional verilog rtl code generator" in full_text:
+            response_key = "generator"
+        elif "specification converter" in full_text or "convert the user" in full_text or "hardware design specification converter" in full_text:
+            response_key = "converter"
+        elif ("syntax debugging" in full_text or "functional debugging" in full_text
                 or "debugger" in full_text or ("fix" in full_text and "error" in full_text)
                 or "json patch" in full_text or "buggy_code" in full_text):
             response_key = "debugger"
-        elif "verilog code generator" in full_text or "generate complete" in full_text:
-            response_key = "generator"
-        elif "specification converter" in full_text or "convert the user" in full_text:
-            response_key = "converter"
         else:
             response_key = "default"
 

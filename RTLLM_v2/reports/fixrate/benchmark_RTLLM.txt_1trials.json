@@ -1,0 +1,28 @@
+{
+  "config": {
+    "num_trials": 1,
+    "description_type": "RTLLM.txt",
+    "num_modules": 2,
+    "timestamp": "2026-05-22T17:39:48.257942"
+  },
+  "global": {
+    "sc_pass_rate": 0.0,
+    "tb_pass_rate": 0.0,
+    "syntax_fix_rate": 0.0,
+    "func_fix_rate": 0.0
+  },
+  "modules": {
+    "freq_div": {
+      "sc_pass_rate": 0.0,
+      "tb_pass_rate": 0.0,
+      "syntax_fr": 0.0,
+      "func_fr": 0.0
+    },
+    "fsm": {
+      "sc_pass_rate": 0.0,
+      "tb_pass_rate": 0.0,
+      "syntax_fr": 0.0,
+      "func_fr": 0.0
+    }
+  }
+}

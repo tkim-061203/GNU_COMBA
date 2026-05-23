@@ -48,6 +48,7 @@ LANGGRAPH_SAMPLES := 1
 TS_SIMULATOR     := iverilog
 SC_ENV            := SC=$(SC)
 RTLLM_REPORTS_DIR := RTLLM/modules
+RTLLM_V2_REPORTS_DIR := RTLLM_v2/modules
 VEVAL_REPORTS_DIR := verilogeval_outputs
 
 VEVAL_V1_DIR      := $(src_dir)/ext/verilog-eval/dataset_code-complete-iccad2023
@@ -58,8 +59,9 @@ VEVAL_V2_DIR      := $(src_dir)/ext/verilog-eval/dataset_spec-to-rtl
 .PHONY: default jupyterlab verilog-eval \
         data-flow gen-flow-configs \
         synthesis extract filter langgraph langgraph-flow \
-        RTLLM RTLLM-iverilog RTLLM-auto VerilogEval-bench \
-        analyze-syntax analyze-syntax-rtllm analyze-syntax-veval analyze-enum \
+        RTLLM RTLLM-iverilog RTLLM-auto \
+        RTLLM_v2 RTLLM_v2-iverilog RTLLM_v2-auto VerilogEval-bench \
+        analyze-syntax analyze-syntax-rtllm analyze-syntax-rtllm-v2 analyze-syntax-veval analyze-enum \
         check-verilator check-analyzers clean-flow clean help
 
 default:
@@ -90,6 +92,21 @@ RTLLM-auto:
 	@echo "=== Running benchmark for RTLLM dataset (auto-pick, SC=$(SC)) ==="
 	$(SC_ENV) COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
 	@$(MAKE) -s analyze-syntax-rtllm
+
+RTLLM_v2:
+	@echo "=== Running benchmark for RTLLM_v2 dataset (sim: verilator, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5
+	@$(MAKE) -s analyze-syntax-rtllm-v2
+
+RTLLM_v2-iverilog:
+	@echo "=== Running benchmark for RTLLM_v2 dataset (sim: iverilog, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=iverilog conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5
+	@$(MAKE) -s analyze-syntax-rtllm-v2
+
+RTLLM_v2-auto:
+	@echo "=== Running benchmark for RTLLM_v2 dataset (auto-pick, SC=$(SC)) ==="
+	$(SC_ENV) COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5
+	@$(MAKE) -s analyze-syntax-rtllm-v2
 
 VerilogEval-bench:
 	@echo "=== Running benchmark for VerilogEval dataset (sim: $(TS_SIMULATOR), SC=$(SC)) ==="
@@ -192,7 +209,7 @@ clean-flow:
 # ── Post-benchmark analyzers ───────────────────────────────────────────────
 # `analyze-syntax` runs only if SC was enabled for the previous benchmark.
 # It silently no-ops on legacy reports lacking self_consistency metadata.
-analyze-syntax: analyze-syntax-rtllm analyze-syntax-veval
+analyze-syntax: analyze-syntax-rtllm analyze-syntax-rtllm-v2 analyze-syntax-veval
 
 analyze-syntax-rtllm:
 	@if [ "$(SC)" = "1" ] && [ -d "$(RTLLM_REPORTS_DIR)" ]; then \
@@ -200,6 +217,14 @@ analyze-syntax-rtllm:
 		echo "=== Self-Consistency Analysis: RTLLM ==="; \
 		python3 analyze_self_consistency.py $(RTLLM_REPORTS_DIR) \
 			--out reports/analyze_syntax_rtllm.json || true; \
+	fi
+
+analyze-syntax-rtllm-v2:
+	@if [ "$(SC)" = "1" ] && [ -d "$(RTLLM_V2_REPORTS_DIR)" ]; then \
+		echo ""; \
+		echo "=== Self-Consistency Analysis: RTLLM_v2 ==="; \
+		python3 analyze_self_consistency.py $(RTLLM_V2_REPORTS_DIR) \
+			--out reports/analyze_syntax_rtllm_v2.json || true; \
 	fi
 
 analyze-syntax-veval:

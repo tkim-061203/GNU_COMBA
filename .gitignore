@@ -41,5 +41,8 @@ RTLLM/modules/*
 RTLLM/modules/*/*
 !RTLLM/modules/*/reports/
 
+RTLLM_v2/modules/*
+RTLLM_v2/modules/*/*
+
 .env
 

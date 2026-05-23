@@ -5,24 +5,23 @@
   "samples": {
     "module_name": "div_16bit",
     "description_type": "RTLLM.txt",
-    "final_status": "fail_ts",
-    "sc_trial": 10,
-    "ts_trial": 10,
-    "total_iter": 20,
-    "gvd": "module div_16bit(\n    input [15:0] A,\n    input [7:0] B,\n    output reg [15:0] result,\n    output reg [15:0] odd\n);\n\nalways @(A or B) begin\n    \n    reg [15:0] a_reg = A;\n    reg [7:0] b_reg = B;\n\n    for (int i = 0; i < 16; i++) begin\n        \n        a_reg = {a_reg[14:0], 1'b0};\n\n        int diff = a_reg[15:8] - b_reg;\n        if (diff >= 0) begin\n            \n            result[i] = 1'b1;\n            \n            a_reg[15:8] = diff;\n        end else begin\n            \n            result[i] = 1'b0;\n            \n            a_reg[15:8] = a_reg[15:8] + b_reg;\n        end\n    end\n\n    odd = a_reg;\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"div_16bit\">\n    <description>Implement a 16-bit divider module with 16-bit dividend and 8-bit divisor in combinational logic.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[15:0]\">16-bit dividend input.</input>\n        <input id=\"B\" width_description=\"[7:0]\">8-bit divisor input.</input>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit quotient output.</output>\n        <output id=\"odd\" width_description=\"[15:0]\">16-bit remainder output.</output>\n    </ports>\n    <implementation>\n        Always block triggered by changes in inputs A and B.\n        Updates a_reg and b_reg with the values of A and B, respectively.\n        \n        Always block triggered by changes in inputs A and B.\n        Compares the extracted bits of a_reg with b_reg.\n        Sets the corresponding bit of result to 1 if a_reg is greater than or equal to b_reg,\n        otherwise sets it to 0.\n        Uses the difference as the new value of a_reg for the next iteration.\n        Concatenates the remainder with the highest remaining 1-bit of a_reg.\n        Repeats the process until all dividend bits are processed.\n    </implementation>\n</module>",
-    "sc_log": "TopModule.sv:10: warning: Static variable initialization requires explicit lifetime in this context.\nTopModule.sv:11: warning: Static variable initialization requires explicit lifetime in this context.\nTopModule.sv:17: syntax error\nTopModule.sv:17: Syntax in assignment statement l-value.\n",
-    "tb_log": "[COMPILE verilator+cpp]\n%Error: div_16bit.v:17:13: syntax error, unexpected IDENTIFIER, expecting \"'{\"\n   17 |         int diff = a_reg[15:8] - b_reg;\n      |             ^~~~\n%Error: Exiting due to 1 error(s)\n",
+    "final_status": "pass",
+    "sc_trial": 3,
+    "ts_trial": 3,
+    "total_iter": 6,
+    "gvd": "module div_16bit (\n    input wire [15:0] A,\n    input wire [7:0] B,\n    output reg [15:0] result,\n    output wire [15:0] odd\n);\n\n    reg [15:0] dividend;\n    reg [7:0] divisor;\n    reg [15:0] remainder;\n\n    always @(A, B) begin\n        dividend = A;\n        divisor = B;\n        remainder = 0;\n        result = 0;\n\n        for (int i = 15; i >= 0; i--) begin\n            remainder = {remainder[14:0], dividend[i]};\n            if (remainder >= divisor) begin\n                remainder = remainder - divisor;\n                result[i] = 1'b1;\n            end\n        end\n    end\n\n    assign odd = remainder;\n\nendmodule\n",
+    "xml_description": "<module id=\"div_16bit\">\n    <description>Implement a 16-bit divider module with 16-bit dividend and 8-bit divisor in combinational logic.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[15:0]\">16-bit dividend input.</input>\n        <input id=\"B\" width_description=\"[7:0]\">8-bit divisor input.</input>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit quotient output.</output>\n        <output id=\"odd\" width_description=\"[15:0]\">16-bit remainder output.</output>\n    </ports>\n    <implementation>\n        Always block 1: Update a_reg and b_reg with the values of A and B.\n        Always block 2: Perform division operation based on the updated values of a_reg and b_reg.\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: div_16bit.v:21:39: Operator SUB expects 16 bits on the RHS, but RHS's VARREF 'divisor' generates 8 bits.\n                                 : ... In instance div_16bit\n   21 |                 remainder = remainder - divisor;\n      |                                       ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: div_16bit.v:20:27: Operator GTE expects 16 bits on the RHS, but RHS's VARREF 'divisor' generates 8 bits.\n                                 : ... In instance div_16bit\n   20 |             if (remainder >= divisor) begin\n      |                           ^~\nmake[1]: Entering directory '/tmp/comba_div_16bit_2kx_gma3/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vdiv_16bit.cpp Vdiv_16bit__Trace.cpp Vdiv_16bit__Slow.cpp Vdiv_16bit__Syms.cpp Vdiv_16bit__Trace__Slow.cpp > Vdiv_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vdiv_16bit__ALL.o Vdiv_16bit__ALL.cpp\nar -cr Vdiv_16bit__ALL.a Vdiv_16bit__ALL.o\nranlib Vdiv_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vdiv_16bit__ALL.a      -o Vdiv_16bit\nmake[1]: Leaving directory '/tmp/comba_div_16bit_2kx_gma3/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:Vdiv_Nbit: ../tb.cpp:N: void div_NbitScb::writeOut(div_NbitOutTx*): Assertion `(tx->result == quotient) && (tx->odd == remainer) && \"TODO N Failed: Division logic result of the Verilog module is incorrect\"' failed.": 7,
-      "TB:Verilator compilation failed": 3
+      "TB:fsm_state_error::3::": 2
     },
-    "failure_type": "",
-    "vcd_status": "",
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 18,
+      "commits": 4,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

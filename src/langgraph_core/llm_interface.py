@@ -51,7 +51,7 @@ class COMBALlm(BaseChatModel):
     model_base: str = Field(default="generator")
     model_debugger: str = Field(default="debugger")
     temperature: float = Field(default=0.1)
-    max_tokens: int = Field(default=2048)
+    max_tokens: int = Field(default=4096)
     timeout: float = Field(default=120.0)
     max_retries_llm: int = Field(default=3)
 

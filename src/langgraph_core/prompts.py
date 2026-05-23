@@ -162,12 +162,14 @@ The module header (name and ports) is FIXED and forced by the testbench.
 
 ### R1: SELF-CONTAINED — no external sub-modules
 - ALL logic must reside in a SINGLE file.
-- If the spec mentions "instances of X", "sub-components", "hierarchical":
-  → implement equivalent logic INLINE with operators (+, -, &, |, ^, ~, <<, >>).
+- If the spec or XML mentions "instances of X", "sub-components", "hierarchical", or uses an `<instance>` tag:
+  → DO NOT write a module instantiation.
+  → Implement the equivalent logic INLINE. For example, if it's a RAM instance, declare a memory array (`reg [WIDTH-1:0] mem [0:DEPTH-1];`) and write the read/write logic inline.
 - NEVER instantiate a module unless you also provide its full definition.
 
 ### R2: ASSIGNMENT DISCIPLINE & OUTPUT DECLARATIONS
-- Outputs ASSIGNED in `always` blocks MUST be declared `output reg` (not plain `output`).
+- Outputs ASSIGNED in `always` blocks MUST be declared `output reg` (or `output logic`).
+  - This is the #1 cause of syntax errors! Double-check every single output port. If it appears on the left side of `=` or `<=` inside an `always` block, it MUST have the `reg` keyword.
   - Plain `output` is a wire — assigning a wire inside `always` is ILLEGAL in Verilog.
   - Correct:   `output reg [3:0] count`
   - Incorrect: `output [3:0] count` (when count appears in `always @(posedge clk) count <= ...`)
@@ -185,8 +187,10 @@ The module header (name and ports) is FIXED and forced by the testbench.
   → AMOUNT (shift count)       = `a[4:0]`
   → ALWAYS use `<<`, `>>`, `>>>` operators. NEVER implement shift via concatenation.
   → `{{a[31:0], a[31:0]}}` or `{{b[0], a[31:1]}}` style is WRONG for shifts.
-- Load-upper-immediate (LUI): source operand is `a` (NOT `b`).
-  → `res = {{a[15:0], 16'b0}};`
+- Load-upper-immediate (LUI): source operand is **`a`** (the first operand), NEVER `b`.
+  → CORRECT:   `LUI: res = {{a[15:0], 16'b0}};`
+  → FORBIDDEN: `LUI: res = {{b[15:0], 16'b0}};`  ← This is the #1 ALU bug — DO NOT do this.
+  → Reason: in MIPS LUI rt, imm, the immediate is encoded into the `a` operand by convention used by this benchmark's testbenches.
 - Arithmetic right shift (generic): `$signed(value) >>> amount`.
 
 ### R5: COMBINATIONAL MULTI-STEP ALGORITHMS
@@ -232,6 +236,89 @@ The module header (name and ports) is FIXED and forced by the testbench.
 - If a TB compile error mentions a port not in the XML (e.g., dut->clock when
   XML defines `clk`), the testbench is buggy — do NOT add that port.
   Keep the GVD ports matching the XML spec.
+
+### R10: STRICT VERILOG SYNTAX
+- ALL `always`, `if`, and `else` blocks with multiple statements MUST be enclosed in `begin` and `end`.
+- ALL `case` statements MUST be closed with `endcase`.
+- EVERY `module` MUST be closed with `endmodule`.
+- DO NOT mix `posedge` and `negedge` of the same signal in a sensitivity list.
+- DO NOT declare variables inside an `always` block (unless it's a named block). Declare them at the module level.
+- Ensure all parentheses `()` and square brackets `[]` are balanced.
+
+### R11: LOGIC & FUNCTIONAL CORRECTNESS
+- RESET POLARITY & TYPE: Carefully check if reset is active-high (`rst`) or active-low (`rst_n`). Also note if it's synchronous or asynchronous.
+- NO LATCHES: In combinational `always @(*)` blocks, assign a default value to EVERY output at the top of the block, or ensure EVERY `if/else` and `case` branch assigns a value. Unwanted latches are a major cause of functional failure.
+- SIGNED MATH: If the problem requires signed arithmetic, explicitly declare signals as `signed` or use `$signed()`.
+- CARRY / OVERFLOW: To compute carry-out, zero-extend the operands by 1 bit (e.g. `wire [N:0] sum = {{1'b0, a}} + {{1'b0, b}};`).
+- STATE MACHINE INITIALIZATION: All registers MUST be initialized inside the reset condition, NOT using `initial` blocks (unless explicitly requested).
+- FSM OUTPUTS: For Mealy FSMs, the output depends on the current state AND the current input. You MUST use a combinational `assign` statement for the output. DO NOT put the output in the `always @(posedge clk)` block (which delays it by 1 cycle) unless requested.
+- COUNTER RESET VALUES: Pay close attention to the requested reset value of counters. Do NOT blindly reset to 0 if the spec says "reset to 10" or "reset to 12:00" (which means 8'h12 for BCD).
+
+### R12: ADVANCED PATTERN RULES
+- KARNAUGH MAPS (K-MAP):
+  * K-map columns and rows use GRAY CODE order: 00, 01, 11, 10 (NOT binary 00, 01, 10, 11).
+  * If labels are `ab` on top and `cd` on left: column index gives (a,b), row index gives (c,d).
+  * To read cell at row=`cd`=10 col=`ab`=11: that means a=1,b=1,c=1,d=0 → index `{{a,b,c,d}}` = 4'b1110.
+  * SAFEST APPROACH: Enumerate all 16 minterms using a `case({{a,b,c,d}})` statement. Read each cell one by one from the grid. Do NOT try to simplify with SOP/POS — just list all 16 cases explicitly.
+  * For K-maps with `x[1]x[2]` on top and `x[3]x[4]` on left, x[1] is MSB of column pair, x[2] is LSB of column pair, etc.
+  * d (don't-care) entries: you may set them to 0 or 1 — choose whichever simplifies logic.
+- GALOIS LFSR (shift right):
+  * Shifting RIGHT means bits move from higher index to lower index: `q[i] <= q[i+1]`.
+  * The MSB (`q[N-1]`) wraps around and receives the feedback bit: `q[N-1] <= q[0]`.
+  * A tap at 1-indexed position P means bit `q[P-1]` gets XORed with feedback: `q[P-1] <= q[P] ^ q[0]`.
+  * The highest tap (position N, i.e. the MSB itself) is just `q[N-1] <= q[0]` (no q[N] exists).
+  * Example 5-bit LFSR, taps at 5,3: `q[4]<=q[0]; q[3]<=q[4]; q[2]<=q[3]^q[0]; q[1]<=q[2]; q[0]<=q[1];`
+  * DO NOT confuse with Fibonacci LFSR (which XORs taps to produce feedback for bit 0).
+- CELLULAR AUTOMATA (Rule 90, Rule 110):
+  * Rule N: convert N to 8-bit binary. This gives the output for each 3-bit neighborhood (left, center, right) from 111 down to 000.
+  * Rule 110 = 8'b01101110: neighborhood 111→0, 110→1, 101→1, 100→0, 011→1, 010→1, 001→1, 000→0.
+  * Rule 90 = 8'b01011010: simply `next[i] = left ^ right` (XOR of neighbors).
+  * Implement as: `for each bit i, compute {{left,center,right}}` then use case or lookup.
+  * Boundaries: assume q[-1]=0 and q[N]=0 (off).
+- ONE-HOT FSM: When the problem says the state encoding is one-hot, each state variable bit IS a state. Use `state[0]` for state A, `state[1]` for state B, etc. Transition logic: `next_state[j] = (state[i] & condition_i_to_j) | ...` for all transitions into state j.
+- BCD COUNTERS: BCD digits use 4 bits per decimal digit. `8'h12` means tens=1, units=2. When incrementing BCD: if units reaches 9, reset to 0 and increment tens. Do NOT do binary addition on BCD values (e.g. `8'h09 + 1 = 8'h0A` is WRONG in BCD, it should be `8'h10`).
+- CIRCUIT FROM WAVEFORM: When asked to determine a circuit from simulation waveforms, first build a truth table from the waveform data, then implement the logic. For sequential circuits, identify the flip-flop type (D, JK, T) and the combinational logic feeding it.
+
+### R13: COMBINATIONAL OUTPUT PORTS THAT MIRROR INTERNAL STATE
+- If a spec says "the output X is assigned/equal to internal signal Y" (e.g. "assign clock = cnt"), implement it with **continuous assignment** (`assign`), NOT inside an `always @(posedge clk)` block.
+  → CORRECT:   `output [7:0] clock; ... assign clock = cnt;`
+  → FORBIDDEN: `output reg [7:0] clock; ... always @(posedge clk) clock <= cnt;`
+- Reason: Wrapping the mirror in `always @(posedge clk)` delays the output by 1 cycle, AND the value at reset is 0 (the default) instead of the actual reset value of the internal reg — a silent off-by-one + reset-value bug.
+- Test for this pattern: if the only thing happening to an output is "X = Y" where Y is a `reg`, use `assign`. Reserve `output reg` only for outputs that have their own distinct sequential logic.
+
+### R14: PREDICTIVE COMPARISON FOR COUNTER WRAP / DIRECTION CHANGE
+- When a counter must wrap or change direction at boundary N (e.g. wave goes 0→1→...→31→30→...→0→1...):
+  → Compare against `N-1` BEFORE incrementing, not against `N` after.
+  → CORRECT (up-counter wrap at 31):
+      `always @(posedge clk) begin
+         if (count == 5'd30) state <= 1; // arrive at 31 next cycle, then switch
+         count <= count + 1;
+       end`
+  → BUGGY (off-by-one): `if (count == 5'd31) state <= 1; count <= count + 1;`
+       This makes the direction change happen ONE cycle late, so the output
+       overshoots the boundary by one tick.
+- Same rule for down-counters: compare against `1` before decrementing to 0,
+  not against `0` after.
+
+### R15: RESET VALUE FIDELITY (NON-ZERO RESETS)
+- Read the spec carefully: counters and FSMs often reset to a NON-ZERO value
+  (e.g. "cnt is 10 decimal on reset", "minutes reset to 12:00").
+- The reset value applies to the INTERNAL register AND any combinational output
+  that mirrors it.
+  → If `assign clock = cnt;` and reset says `cnt <= 8'd10;`, then `clock` is
+     also 10 immediately on reset — that is automatic.
+  → If you instead made `clock` a separate `reg`, you must ALSO set
+     `clock <= 8'd10` in the reset branch.
+
+### R16: OUTPUT TIMING — MEALY vs MOORE vs DELAYED
+- Moore output (depends only on state, registered): assign inside the same
+  sequential `always` as the state register, OR use `assign out = (state == S);`.
+- Mealy output (depends on state AND input, combinational): MUST be a
+  continuous `assign` or live in `always @(*)`. Putting a Mealy output in
+  `always @(posedge clk)` delays it by 1 cycle — common bug.
+- "Delayed by 1 cycle" output (spec uses `p_red`, `p_green` style intermediate):
+  if the spec explicitly defines a `reg` like `p_X` then `X <= p_X;` in clocked
+  block, follow it EXACTLY — do NOT collapse the intermediate.
 
 ## XML → Verilog Mapping
 - Module name = `<module id>`, ports = `<input id>` / `<output id>`.
@@ -371,6 +458,10 @@ Fix the TOPMOST iverilog error. Return the complete corrected code only.
 - "Index ... is out of range"
   → A generate/for loop accesses an index beyond the declared port width.
   → Fix: tighten loop bounds to match the port declaration ([H:L] means H down to L).
+- "syntax error" (near endmodule or generally)
+  → You likely forgot an `end` for a `begin`, or an `endcase` for a `case`. Check block closures.
+- "mixed clock edges"
+  → Do not mix `posedge` and `negedge` of the same signal.
 
 ## Rules
 1. Fix ONLY the topmost error. Cascading errors resolve automatically.
@@ -422,13 +513,15 @@ Return the complete corrected code only.
 3. Check these common root causes:
    - Operand swap: value vs amount in shifts, dividend vs divisor, a vs b.
    - Off-by-one: counter boundary (== N-1 vs == N), pipeline latency.
-   - Reset polarity: check if rst_n is active-low (if(!rst_n)) or active-high.
+   - Cycle Delay Mismatch (Output is late/early by 1 clock): You likely registered a signal (`always @(posedge clk)`) that should be combinational (`assign`), or vice-versa. Mealy FSM outputs MUST be combinational.
+   - Reset Logic & Values: check active-low vs active-high (`!rst_n` vs `rst`), and synchronous vs asynchronous. Check if counter resets to 0 or another specific value (e.g., 10).
+   - Unwanted Latches: A combinational `always @(*)` block failed to assign a value in all branches. ADD DEFAULT ASSIGNMENTS.
    - Accumulator output timing: emit result AFTER including current input.
    - Incomplete iteration: combinational algorithm must process ALL bits/steps.
    - Unused inputs: every declared port must affect logic per the spec.
    - FSM transition error: verify each state's next-state matches the spec.
    - Wrong operator: + vs -, & vs &&, | vs ||, >> vs >>>.
-   - Width truncation: intermediate result too narrow, losing upper bits.
+   - Width truncation/Carry: intermediate result too narrow, losing upper bits. Use zero-extension for carry.
 4. Preserve module interface exactly. NEVER add or rename ports.
 5. No markdown fences. Code only.
 
@@ -449,6 +542,82 @@ If the SC log contains a warning like "Signal is not used: 'X'" and X is an INPU
   → Clear `res_valid` when `res_ready` is asserted.
   → Do NOT use `res_ready` as an l-value (it is an input from the testbench).
 - Default values: In combinational logic, always assign a default 0 (or wires to GND) for outputs. NEVER used high-impedance 'z' unless building a tri-state buffer.
+
+### P4: K-map / Truth Table mismatches (many mismatches in small sample count)
+- If nearly ALL samples fail: the boolean expression is likely WRONG. Re-derive from scratch.
+- K-map uses GRAY CODE column/row order (00,01,11,10), NOT binary order.
+- SAFEST FIX: Replace SOP/POS with an explicit `case({{a,b,c,d}})` listing all 16 minterms.
+
+### P5: LFSR all-wrong (199000+ mismatches)
+- Galois LFSR shifts RIGHT: `q[i] <= q[i+1]`, MSB wraps: `q[N-1] <= q[0]`.
+- Tap at position P means `q[P-1] <= q[P] ^ q[0]`.
+- If the code shifts LEFT (`q[i] <= q[i-1]`) or uses Fibonacci feedback (`q[0] <= XOR of taps`), it is WRONG.
+
+### P6: Cellular Automata (Rule 90, Rule 110)
+- Must apply the rule to ALL 512 (or N) cells simultaneously each clock cycle.
+- Rule 110 truth table: 111→0, 110→1, 101→1, 100→0, 011→1, 010→1, 001→1, 000→0.
+- Rule 90: `next[i] = q[i-1] ^ q[i+1]` (XOR of left and right neighbors only).
+- Boundaries: q[-1]=0, q[N]=0.
+
+### P7: One-hot FSM encoding
+- In one-hot encoding: state[0]=A, state[1]=B, state[2]=C, etc.
+- Transition: `next_state[j] = (state[i] & cond) | ...` for each transition into j.
+- Output: `out = state[k]` for Moore, or `out = state[k] & input_cond` for Mealy.
+- Do NOT use binary-encoded states (3'b001, 3'b010) when the problem says one-hot.
+
+### P8: OFF-BY-ONE AT COUNTER BOUNDARY (output exceeds expected by 1 tick)
+Symptom: OUTPUT = N+1 when REFERENCE = N at the cycle right before a wrap/turn,
+then OUTPUT lags by one for the next cycle (e.g., wave=0x0 vs 0x1f; next cycle
+wave=0x1f vs 0x1e).
+Root cause: the code compares the counter AFTER incrementing it.
+Fix: compare against `N-1` BEFORE the increment, so the direction flip happens
+in the same cycle the counter reaches `N`.
+  BAD : `wave <= wave + 1; if (wave == 5'd31) state <= 1;`
+  GOOD: `if (wave == 5'd30) state <= 1; wave <= wave + 1;`
+(For down-counters: compare to 1 before decrementing to 0.)
+
+### P9: COMBINATIONAL OUTPUT WRAPPED IN always @(posedge clk)
+Symptom: an output port (e.g., `clock`, `data_out`) is 0 at reset when the
+reference expects a non-zero value, AND the output lags the internal register
+by exactly one cycle.
+Root cause: `output reg X; always @(posedge clk) X <= Y;` where the spec says
+"X is assigned to Y" (combinational mirror).
+Fix: change to `output X;` and `assign X = Y;`. This makes X immediately
+reflect the reset value of Y and removes the 1-cycle latency.
+
+### P10: RESET POLARITY OR RESET-VALUE BUG
+Symptom: at `rst_n=0` the output is non-zero when expected 0, OR the output
+is 0 when the spec says reset to a specific value (e.g. 10 for traffic_light's
+`cnt`/`clock`, or 8'h12 for a clock counter).
+Fix steps:
+1. Confirm reset polarity: spec says "active-low" → use `if (!rst_n)`.
+2. Confirm reset value matches the spec EXACTLY (not just 0).
+3. Ensure outputs are assigned in BOTH branches of the reset (no latches).
+4. For asynchronous reset, sensitivity list must include `negedge rst_n`.
+
+### P11: MISSING begin/end CAUSES UNCONDITIONAL ASSIGN
+Symptom: a reset or guard is ignored — `q` updates to data every cycle even
+when `r` (reset) is high.
+Root cause: `if (r) q <= 1'b0; q <= d;` — without `begin..end`, only the first
+statement is conditional; the second runs every cycle and overwrites.
+Fix: wrap multi-statement bodies in `begin..end`, OR delete the wrong
+assignment if it was a typo:
+  `if (r) q <= 1'b0; else q <= d;`
+
+### P12: MUX / GATE OPERAND SWAP
+Symptom: output is `~expected` or the opposite of every input combination, OR
+the output matches one input perfectly and never the other.
+Fix: verify operand order — `if (sel) out=a; else out=b;` vs the spec's
+"when sel=1 select b". Read the spec's truth table for sel=0 and sel=1
+separately and match each branch.
+
+### P13: VECTOR CONCATENATION ORDER
+Symptom: all four outputs of a vector splitter (w/x/y/z) are wrong; a single
+output is right but others shifted by N bits.
+Fix: Verilog concat `{a, b, c}` puts `a` in the MSBs. If spec says
+"w is the top byte of {f,e,d,c,b,a}+2'b00", then
+  `{w,x,y,z} = {f,e,d,c,b,a,2'b00};` — verify the bit position of each output.
+Re-derive bit indices from scratch; do NOT trust the previous slice numbers.
 """
 
 TDP_USER_PROMPT = """\
@@ -485,6 +654,35 @@ _TDP_PATTERNS = {
     "counter_mismatch": re.compile(
         r"clock\s*=\s*0x([0-9a-f]+).*?REFERENCE.*?clock\s*=\s*0x([0-9a-f]+)", re.I
     ),
+    # P2-bis: LUI uses 'b' instead of 'a' (the most common ALU bug).
+    # Match either the symbolic LUI label OR the literal opcode 6'b001111
+    # OR the bare result shape {b[15:0], 16'b0} (the unique bug signature).
+    "lui_wrong_src": re.compile(
+        r"(?:"
+        r"\bLUI\b\s*:?\s*(?:begin\s*)?\w*\s*=\s*\{\s*b\s*\[\s*15\s*:\s*0\s*\]"
+        r"|"
+        r"6'b001111\s*:\s*(?:begin\s*)?\w*\s*=\s*\{\s*b\s*\[\s*15\s*:\s*0\s*\]"
+        r"|"
+        r"=\s*\{\s*b\s*\[\s*15\s*:\s*0\s*\]\s*,\s*16'(?:b0+|h0+|d0)\s*\}"
+        r")",
+        re.I,
+    ),
+    # P9: combinational output (e.g. `clock` mirroring `cnt`) wrapped in always @(posedge clk)
+    "comb_output_in_clocked": re.compile(
+        r"always\s*@\s*\(\s*posedge\s+\w+(?:\s+or\s+\w+edge\s+\w+)?\s*\)\s*"
+        r"begin[^}]*?\b(\w+)\s*<=\s*(\w+)\s*;[^}]*?end",
+        re.I,
+    ),
+    # P11: `if (X) Y <= ...; Z <= ...;` without begin/end — missing guard scope
+    "missing_begin": re.compile(
+        r"\bif\s*\([^)]+\)\s*\w+\s*<=\s*[^;]+;\s*\w+\s*<=",
+        re.I,
+    ),
+    # P10: reset-value mismatch — output is 0 but expected non-zero on rst
+    "reset_value_mismatch": re.compile(
+        r"in->\s*rst[_n]*\s*=\s*0x0.*?(?:OUTPUT|tx->).*?=\s*0x0+\s*,.*?REFERENCE.*?=\s*0x[1-9a-f]",
+        re.I | re.S,
+    ),
 }
 
 _TDP_HINTS = {
@@ -503,7 +701,117 @@ _TDP_HINTS = {
         "The counter output differs from reference by a fixed amount.\n"
         "Check reload values and transition boundaries.\n"
     ),
+    "lui_wrong_src": (
+        "\n## HINT: LUI uses WRONG source operand\n"
+        "Detected `LUI: res = {{b[15:0], 16'b0}};` in the code.\n"
+        "This is the #1 ALU bug — LUI source MUST be `a`, NOT `b`.\n"
+        "Fix: `LUI: res = {{a[15:0], 16'b0}};`\n"
+    ),
+    "comb_output_in_clocked": (
+        "\n## HINT: Combinational output wrapped in clocked block (P9)\n"
+        "An output that should mirror an internal register combinationally is\n"
+        "instead assigned inside `always @(posedge clk)`. This delays the output\n"
+        "by 1 cycle AND makes it 0 at reset instead of the reg's reset value.\n"
+        "Fix: declare the output as plain `output` (not `output reg`) and use\n"
+        "  `assign <output> = <internal_reg>;`  outside any always block.\n"
+    ),
+    "missing_begin": (
+        "\n## HINT: Missing begin/end (P11)\n"
+        "Detected `if (...) X <= ...; Y <= ...;` without `begin..end`.\n"
+        "Without the block, only the FIRST statement is guarded; the second\n"
+        "runs every cycle and overwrites the reset/conditional value.\n"
+        "Fix: wrap multi-statement bodies in `begin..end`.\n"
+    ),
+    "reset_value_mismatch": (
+        "\n## HINT: Reset value mismatch (P10)\n"
+        "At reset, the output is 0 but the reference expects a non-zero value.\n"
+        "Either the reset branch is missing an explicit assignment, OR the spec\n"
+        "requires the counter to reset to a specific non-zero value (e.g. 10,\n"
+        "8'h12 for 12:00). Re-read the spec's reset condition for each output.\n"
+    ),
+    "off_by_one": (
+        "\n## HINT: Off-by-one at counter boundary (P8)\n"
+        "Symptom matches OUTPUT exceeding REFERENCE by 1 at the wrap point.\n"
+        "Compare the counter to `N-1` BEFORE incrementing, not to `N` after.\n"
+        "Example up-counter wrap at 31:\n"
+        "  GOOD: `if (count == 5'd30) state <= 1; count <= count + 1;`\n"
+        "  BAD : `count <= count + 1; if (count == 5'd31) state <= 1;`\n"
+    ),
 }
+
+
+def _detect_off_by_one(debug_traces: str) -> bool:
+    """Detect the off-by-one wrap symptom from trace deltas.
+
+    Looks for OUTPUT and REFERENCE pairs that differ by exactly 1 in hex
+    near a wrap boundary (e.g., tx=0x0 vs ref=0x1f then tx=0x1f vs ref=0x1e).
+    """
+    pairs = re.findall(
+        r"(?:OUTPUT|tx->)\s*\w+\s*=\s*0x([0-9a-f]+).*?REFERENCE.*?=\s*0x([0-9a-f]+)",
+        debug_traces or "",
+        re.I | re.S,
+    )
+    if len(pairs) < 2:
+        return False
+    deltas = []
+    for a_hex, b_hex in pairs[:4]:
+        try:
+            a, b = int(a_hex, 16), int(b_hex, 16)
+            deltas.append(a - b)
+        except ValueError:
+            continue
+    # Off-by-one signature: at least one pair differs by exactly +/-1 OR
+    # by a wrap-amount (e.g. +/- N where one was at boundary).
+    return any(abs(d) == 1 for d in deltas) and len(set(deltas)) > 1
+
+
+def detect_tdp_hints(
+    verilog_code: str = "",
+    debug_traces: str = "",
+    sc_log: str = "",
+) -> str:
+    """Run all TDP pattern detectors and return the combined hint text.
+
+    This is called from both `build_tdp_prompt` (legacy) and from
+    `MultiAttemptManager.build_ts_prompt` (current pipeline path), so that
+    pattern-based hints fire regardless of which code path builds the prompt.
+    """
+    hints = []
+
+    # P1: unused port (from SC log warning)
+    m = _TDP_PATTERNS["unused_port"].search(sc_log or "")
+    if m:
+        hints.append(_TDP_HINTS["unused_port"].format(port=m.group(1)))
+
+    # P2: shift as concatenation
+    if _TDP_PATTERNS["shift_concat"].search(verilog_code or ""):
+        hints.append(_TDP_HINTS["shift_concat"])
+
+    # P2-bis: LUI using wrong source operand (b instead of a)
+    if _TDP_PATTERNS["lui_wrong_src"].search(verilog_code or ""):
+        hints.append(_TDP_HINTS["lui_wrong_src"])
+
+    # P3: counter mismatch
+    if _TDP_PATTERNS["counter_mismatch"].search(debug_traces or ""):
+        hints.append(_TDP_HINTS["counter_mismatch"])
+
+    # P8: off-by-one at wrap boundary (heuristic on trace deltas)
+    if _detect_off_by_one(debug_traces or ""):
+        hints.append(_TDP_HINTS["off_by_one"])
+
+    # P9: combinational output wrapped in clocked block
+    if _TDP_PATTERNS["comb_output_in_clocked"].search(verilog_code or ""):
+        hints.append(_TDP_HINTS["comb_output_in_clocked"])
+
+    # P10: reset-value mismatch (output is 0 at reset but expected non-zero)
+    if _TDP_PATTERNS["reset_value_mismatch"].search(debug_traces or ""):
+        hints.append(_TDP_HINTS["reset_value_mismatch"])
+
+    # P11: missing begin/end
+    if _TDP_PATTERNS["missing_begin"].search(verilog_code or ""):
+        hints.append(_TDP_HINTS["missing_begin"])
+
+    return "".join(hints)
 
 
 def build_tdp_prompt(
@@ -514,20 +822,11 @@ def build_tdp_prompt(
     ts_trial: int = 1, max_ts_trials: int = 5,
 ) -> list[dict]:
     """Build TDP messages with pattern-aware hint injection."""
-    system = TDP_SYSTEM_PROMPT
-
-    # P1: unused port
-    m = _TDP_PATTERNS["unused_port"].search(sc_log)
-    if m:
-        system += _TDP_HINTS["unused_port"].format(port=m.group(1))
-
-    # P2: shift as concatenation
-    if _TDP_PATTERNS["shift_concat"].search(verilog_code):
-        system += _TDP_HINTS["shift_concat"]
-
-    # P3: counter mismatch
-    if _TDP_PATTERNS["counter_mismatch"].search(debug_traces):
-        system += _TDP_HINTS["counter_mismatch"]
+    system = TDP_SYSTEM_PROMPT + detect_tdp_hints(
+        verilog_code=verilog_code,
+        debug_traces=debug_traces,
+        sc_log=sc_log,
+    )
 
     user = TDP_USER_PROMPT.format(
         module_name=module_name, verilog_code=verilog_code,

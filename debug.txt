@@ -1,3 +1,0 @@
-"--model=codellama:7b-instruct" "--examples=4" "--task=code-complete-iccad2023" "--temperature=0.85" "--top-p=0.95" "--base-url=http://localhost:11434" --verbose --output Prob001_zero/Prob001_zero_sample01.sv ../ext/verilog-eval/dataset_code-complete-iccad2023/Prob001_zero_prompt.txt
-
-Prob001_zero/Prob001_zero_sample01_response.txt

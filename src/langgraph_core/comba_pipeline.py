@@ -37,10 +37,8 @@ import tempfile
 from typing import Optional
 from typing_extensions import TypedDict
 
-COMBA_QUIET = os.environ.get("COMBA_QUIET", "0") == "1"
-
 def cprint(*args, **kwargs):
-    if not COMBA_QUIET:
+    if os.environ.get("COMBA_QUIET", "0") != "1":
         print(*args, **kwargs)
 
 from langgraph.graph import StateGraph, START, END
@@ -63,6 +61,7 @@ from multi_attempt import (
     MultiAttemptManager,
     DebugPhase,
     EscalationLevel,
+    CATEGORY_HINTS,
 )
 from verilog_sanitizer import sanitize as verilog_sanitize
 
@@ -94,7 +93,7 @@ VERILATOR_TS_FLAGS = [
 #   "iverilog" — always use Icarus Verilog (default, fastest)
 #   "verilator" — always use Verilator (better for SV, slower compile)
 #   "auto"     — RTLLM dataset → verilator, VerilogEval → iverilog
-TS_SIMULATOR = os.environ.get("COMBA_TS_SIMULATOR", "iverilog").lower()
+TS_SIMULATOR = os.environ.get("COMBA_TS_SIMULATOR", "auto").lower()
 
 # VerilogEval: task_description max chars sent to debugger
 _MAX_TASK_DESC_CHARS = 400
@@ -244,6 +243,13 @@ class COMBAState(TypedDict):
     dataset_dir: Optional[str]
     work_dir: Optional[str]
     expected_header: Optional[str]
+    helper_modules_code: Optional[dict]
+
+    # ── VCD / Classification / Keys ──
+    failure_type: Optional[str]
+    vcd_hint: Optional[str]
+    vcd_status: Optional[str]
+    current_error_key: Optional[str]
 
 
 def _synthesize_rtllm_header(text: str) -> Optional[str]:
@@ -352,7 +358,11 @@ def make_initial_state(
     expected_header = None
     if nl_input:
         # Strategy 1: Look for formal Verilog header in the input (VerilogEval style)
-        header_match = re.search(r'(module\s+\w+\s*\(.*?\)\s*;)', nl_input, re.DOTALL)
+        header_match = None
+        if module_name:
+            header_match = re.search(rf'(module\s+{re.escape(module_name)}\b\s*(?:#\s*\(.*?\))?\s*\(.*?\)\s*;)', nl_input, re.DOTALL)
+        if not header_match:
+            header_match = re.search(r'(module\s+\w+\s*(?:#\s*\(.*?\))?\s*\(.*?\)\s*;)', nl_input, re.DOTALL)
         if header_match:
             expected_header = header_match.group(1).strip()
         else:
@@ -526,6 +536,26 @@ class COMBANodes:
             )
             cprint(f"  📎 Injected retry feedback: {retry_prompt[:60]}...")
 
+        # Inject category-specific design hint if available
+        module_name = state.get("module_name", "")
+        hint = None
+        if module_name:
+            hint = CATEGORY_HINTS.get(module_name)
+            if not hint:
+                best_match_len = 0
+                for key, hint_text in CATEGORY_HINTS.items():
+                    if key in module_name:
+                        if len(key) > best_match_len:
+                            hint = hint_text
+                            best_match_len = len(key)
+        if hint:
+            combined_input += (
+                f"\n\n💡 DESIGN GUIDELINES FOR {module_name}:\n"
+                f"{hint}\n"
+                "Please follow the above guidelines strictly in your design."
+            )
+            cprint(f"  💡 Injected initial design hint for {module_name}")
+
         result = generatorPromptTemplate.invoke({
             "user_input": combined_input,
             "conversation": [],
@@ -568,11 +598,16 @@ class COMBANodes:
         result = verilog_sanitize(
             raw,
             expected_header=state.get("expected_header"),
+            expected_module_name=state.get("module_name"),
         )
+
+        needs_retry = result.needs_retry
+        if needs_retry and retry_count >= 2:
+            needs_retry = False
 
         sanitize_dict = {
             "code": result.code,
-            "needs_retry": result.needs_retry,
+            "needs_retry": needs_retry,
             "retry_prompt": result.retry_prompt,
             "warnings": result.warnings,
             "auto_fixed": result.auto_fixed,
@@ -580,7 +615,7 @@ class COMBANodes:
 
         updates = {"sanitize_result": sanitize_dict}
 
-        if result.needs_retry:
+        if needs_retry:
             updates["_sanitize_retry_count"] = retry_count + 1
             cprint(f"  🔄 Needs retry ({retry_count + 1}/2): {result.retry_prompt[:60]}...")
             
@@ -596,6 +631,17 @@ class COMBANodes:
                     cprint(f"  ⚠️  Failed to save log: {e}")
         else:
             code = result.code or ""
+            # Append helper modules if any and not already present in the code
+            helpers = state.get("helper_modules_code")
+            if code and helpers:
+                helpers_to_append = []
+                for h_name, h_code in helpers.items():
+                    if not re.search(r'\bmodule\s+' + re.escape(h_name) + r'\b', code):
+                        helpers_to_append.append(h_code)
+                if helpers_to_append:
+                    code_clean = code.strip()
+                    code = code_clean + "\n\n" + "\n\n".join(helpers_to_append) + "\n"
+                    cprint(f"  📦 Appended {len(helpers_to_append)} helper module(s) from verified source")
             if code and not code.endswith("\n"):
                 code += "\n"
             updates["gvd"] = code
@@ -763,6 +809,7 @@ class COMBANodes:
             "edp": edp,
             "edtm": edtm,
             "phase": "sc",
+            "current_error_key": sig,
         }
 
     # ──────────────────────────────────────────────────────────
@@ -798,7 +845,9 @@ class COMBANodes:
             "guard_prev_tb_failure": state.get("tb_failure"),
         }
 
-        error_key = _normalize_error_key(error_desc.split('\n')[0])
+        error_key = state.get("current_error_key")
+        if not error_key:
+            error_key = _normalize_error_key(error_desc.split('\n')[0])
         esc_level = mgr.get_escalation_level(error_key)
         cprint(f"  📊 Escalation: L{esc_level} for key: {error_key[:60]}")
 
@@ -967,6 +1016,20 @@ class COMBANodes:
             try:
                 if not os.path.isfile(tb_dst):
                     shutil.copy2(tb_src, tb_dst)
+                
+                # Patch unpacked array initialization in copied testbench if needed
+                if tb_name.endswith(('.v', '.sv')):
+                    try:
+                        with open(tb_dst, "r", encoding="utf-8", errors="ignore") as f:
+                            content = f.read()
+                        patched_content = self._patch_testbench_content(content)
+                        if patched_content != content:
+                            with open(tb_dst, "w", encoding="utf-8") as f:
+                                f.write(patched_content)
+                            cprint(f"  🔧 Patched testbench unpacked array initialization in: {tb_name}")
+                    except Exception as pe:
+                        cprint(f"  ⚠️ Warning: failed to patch testbench {tb_name}: {pe}")
+
                 sv_files.append(tb_name)
 
                 if ref_name:
@@ -987,15 +1050,92 @@ class COMBANodes:
                 "no testbench found",
             )
 
-        # Write current GVD as TopModule.sv (rename module to TopModule for VE)
-        top_module_code = re.sub(
-            r'module\s+[a-zA-Z0-9_]+', 'module TopModule', gvd, count=1, flags=re.MULTILINE,
-        )
+        # Write current GVD as TopModule.sv (rename module to TopModule ONLY for VE, i.e. when not RTLLM)
+        is_rtllm = self._is_rtllm_dataset(dataset_dir)
+        if is_rtllm:
+            top_module_code = gvd
+        else:
+            top_module_code = re.sub(
+                r'module\s+[a-zA-Z0-9_]+', 'module TopModule', gvd, count=1, flags=re.MULTILINE,
+            )
         top_module_dst = os.path.join(work_dir, "TopModule.sv")
         with open(top_module_dst, "w", encoding="utf-8") as f:
             f.write(top_module_code)
 
         return ["TopModule.sv"] + sv_files, None
+
+    def _patch_testbench_content(self, content: str) -> str:
+        # Find patterns like: reg [7:0] data [0:9] = {8'b00000001, ...};
+        pattern = r'\b(reg|wire)\s*(\[[^\]]+\])?\s*(\w+)\s*\[\s*(\d+)\s*:\s*(\d+)\s*\]\s*=\s*\{([^}]+)\}\s*;'
+        
+        def repl(match):
+            dtype = match.group(1)
+            r1 = match.group(2) or ""
+            name = match.group(3)
+            start_idx = int(match.group(4))
+            end_idx = int(match.group(5))
+            elements_str = match.group(6)
+            
+            elements = [e.strip() for e in elements_str.split(',') if e.strip()]
+            
+            if start_idx <= end_idx:
+                indices = list(range(start_idx, end_idx + 1))
+            else:
+                indices = list(range(start_idx, end_idx - 1, -1))
+                
+            decl = f"{dtype} {r1} {name} [{start_idx}:{end_idx}];"
+            
+            assignments = []
+            for i, val in zip(indices, elements):
+                assignments.append(f"        {name}[{i}] = {val};")
+                
+            initial_block = "    initial begin\n" + "\n".join(assignments) + "\n    end"
+            return f"{decl}\n{initial_block}"
+            
+        content = re.sub(pattern, repl, content)
+        if "break;" in content:
+            content = content.replace("repeat (17) begin", "repeat (17) begin : loop_block")
+            content = content.replace("break;", "disable loop_block;")
+        return content
+
+    def _find_top_module(self, sv_files: list[str], work_dir: str) -> str:
+        """Find the top-level testbench module name from the copied testbench files."""
+        candidates = []
+        for fname in sv_files:
+            if fname == "TopModule.sv":
+                continue
+            fpath = os.path.join(work_dir, fname)
+            if os.path.exists(fpath):
+                try:
+                    with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                    # Strip comments
+                    clean_content = re.sub(r'//.*', '', content)
+                    clean_content = re.sub(r'/\*.*?\*/', '', clean_content, flags=re.DOTALL)
+                    matches = re.findall(r'\bmodule\s+([a-zA-Z0-9_]+)', clean_content)
+                    for m in matches:
+                        if m != "TopModule":
+                            candidates.append(m)
+                except Exception:
+                    pass
+
+        if not candidates:
+            return "tb"
+
+        def get_score(name: str) -> int:
+            name_lower = name.lower()
+            if name_lower in ("tb", "testbench"):
+                return 100
+            if name_lower.endswith("_tb") or name_lower.endswith("_testbench") or name_lower.endswith("_test"):
+                return 90
+            if "tb" in name_lower or "testbench" in name_lower or "test" in name_lower:
+                return 80
+            if name in ("stimulus_gen", "RefModule"):
+                return 10
+            return 50
+
+        candidates.sort(key=get_score, reverse=True)
+        return candidates[0]
 
     # ──────────────────────────────────────────────────────────
     # SV testbench via iverilog (default for VerilogEval)
@@ -1009,8 +1149,9 @@ class COMBANodes:
         if err:
             return err
 
+        top = self._find_top_module(sv_files, work_dir)
         binary_out = f"{module_name}.vvp"
-        comp_cmd = ["iverilog"] + IVERILOG_TS_FLAGS + ["-s", "tb", "-o", binary_out] + sv_files
+        comp_cmd = ["iverilog"] + IVERILOG_TS_FLAGS + ["-s", top, "-o", binary_out] + sv_files
 
         tb_log_parts = []
         try:
@@ -1061,8 +1202,8 @@ class COMBANodes:
         if err:
             return err
 
-        # Find tb top: try 'tb' first (common), fallback to first non-TopModule SV
-        top = "tb"
+        # Find tb top
+        top = self._find_top_module(sv_files, work_dir)
 
         cmd = ["verilator"] + VERILATOR_TS_FLAGS + ["--top-module", top] + sv_files
 
@@ -1074,6 +1215,9 @@ class COMBANodes:
             tb_log_parts.append(f"[COMPILE verilator]\n{r1.stderr}{r1.stdout}")
 
             if r1.returncode != 0:
+                if "Invalid option: --binary" in r1.stderr:
+                    cprint("  [WARN] Verilator does not support --binary (needs Verilator >= 5.0). Falling back to iverilog.")
+                    return self._run_sv_iverilog(state)
                 tb_log_parts.append("[COMPILE FAILED]")
                 first_err = ""
                 for line in r1.stderr.splitlines():
@@ -1162,11 +1306,16 @@ class COMBANodes:
             if any(k in run_section.lower() for k in fail_keywords):
                 failure = "Testbench failed"
 
+        # If success keyword is expected but missing, set simulation failure
+        if expect_passed_keyword and not failure:
+            if not ("passed" in tb_log.lower() or "mismatches: 0" in tb_log.lower()):
+                failure = "Testbench did not print 'passed' or 'mismatches: 0'"
+
         status_msg = "PASS ✅" if not failure else f"FAIL: {failure[:60]}"
         cprint(f"  TB result: {status_msg}")
 
         if expect_passed_keyword:
-            final_status = "pass" if failure is None and "passed" in tb_log.lower() else None
+            final_status = "pass" if failure is None and ("passed" in tb_log.lower() or "mismatches: 0" in tb_log.lower()) else None
         else:
             final_status = "pass" if failure is None else None
 
@@ -1204,6 +1353,24 @@ class COMBANodes:
 
         tb_cpp_dst = os.path.join(work_dir, "tb.cpp")
         shutil.copy2(tb_cpp_path, tb_cpp_dst)
+
+        # Patch Verilator 5 wide-port `.m_storage[` accesses to standard array `[` accesses
+        if os.path.exists(tb_cpp_dst):
+            try:
+                with open(tb_cpp_dst, "r", encoding="utf-8") as f:
+                    content = f.read()
+                mutated = False
+                if ".m_storage[" in content:
+                    content = content.replace(".m_storage[", "[")
+                    mutated = True
+                if "tx->C32 << 32" in content:
+                    content = content.replace("tx->C32 << 32", "((uint64_t)tx->C32 << 32)")
+                    mutated = True
+                if mutated:
+                    with open(tb_cpp_dst, "w", encoding="utf-8") as f:
+                        f.write(content)
+            except Exception as e:
+                pass
 
         cmd = [
             "verilator", "--cc", "--exe", "--build", "-j",
@@ -1276,7 +1443,7 @@ class COMBANodes:
         cand_sc = state.get("sc_exception_count", 0)
         prev_gvd = state.get("guard_prev_gvd")
 
-        critical_tb = (prev_tb is None and cand_tb is not None)
+        critical_tb = (prev_sc == 0 and prev_tb is None and cand_tb is not None)
         critical_sc = (prev_sc == 0 and cand_sc > 0)
 
         if (critical_tb or critical_sc) and prev_gvd:
@@ -1466,7 +1633,9 @@ def route_after_ted_syntax(state: COMBAState) -> str:
     # MultiAttemptManager give-up check
     mgr = state.get("multi_attempt_mgr")
     if mgr is not None:
-        error_key = _normalize_error_key(state.get("sc_exception") or "")
+        error_key = state.get("current_error_key")
+        if not error_key:
+            error_key = _normalize_error_key(state.get("sc_exception") or "")
         if mgr.should_give_up(error_key):
             cprint(f"  ⛔ MultiAttempt: giving up on error_key: {error_key[:50]}")
             return "end_fail_sc"
@@ -1486,8 +1655,10 @@ def route_after_ted_tb(state: COMBAState) -> str:
 
     mgr = state.get("multi_attempt_mgr")
     if mgr is not None:
-        tb_failure = state.get("tb_failure") or ""
-        error_key = _normalize_error_key(tb_failure)
+        error_key = state.get("current_error_key")
+        if not error_key:
+            tb_failure = state.get("tb_failure") or ""
+            error_key = _normalize_error_key(tb_failure)
         if mgr.should_give_up(error_key):
             cprint(f"  ⛔ MultiAttempt: giving up on TB error: {error_key[:50]}")
             return "end_fail_ts"

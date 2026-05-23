@@ -415,9 +415,11 @@ def main():
                     help="Specific design names (default: all)")
     p.add_argument("--output-dir", default="reports/fixrate",
                     help="Output directory (default: reports/fixrate)")
-    p.add_argument("--dataset", choices=["rtllm", "verilogeval"], default=None,
-                    help="Preset dataset configuration (rtllm or verilogeval)")
+    p.add_argument("--dataset", choices=["rtllm", "rtllm_v2", "verilogeval"], default=None,
+                    help="Preset dataset configuration (rtllm, rtllm_v2, or verilogeval)")
     args = p.parse_args()
+
+    os.environ["COMBA_QUIET"] = "1"
 
     modules_dir = args.modules_dir
     description_type = args.descriptiontype
@@ -425,11 +427,15 @@ def main():
     output_dir = args.output_dir
 
     # Dataset presets
-    if args.dataset == "rtllm":
-        modules_dir = "RTLLM/modules"
-        output_dir = "RTLLM/reports/fixrate"
+    if args.dataset in ("rtllm", "rtllm_v2"):
+        if args.dataset == "rtllm":
+            modules_dir = "RTLLM/modules"
+            output_dir = "RTLLM/reports/fixrate"
+        else:
+            modules_dir = "RTLLM_v2/modules"
+            output_dir = "RTLLM_v2/reports/fixrate"
         # For RTLLM, default to RTLLM.txt if no specific type was requested
-        if args.descriptiontype == "txt":
+        if args.dataset == "rtllm" and args.descriptiontype == "txt":
             description_type = "RTLLM.txt"
     elif args.dataset == "verilogeval":
         modules_dir = "modules"

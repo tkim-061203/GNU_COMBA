@@ -22,10 +22,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-COMBA_QUIET = os.environ.get("COMBA_QUIET", "0") == "1"
-
 def cprint(*args, **kwargs):
-    if not COMBA_QUIET:
+    if os.environ.get("COMBA_QUIET", "0") != "1":
         print(*args, **kwargs)
 
 
@@ -104,6 +102,208 @@ def reset_pipeline():
     _graph = None
 
 
+def _extract_header_from_verified(verified_file_path: str, target_module_name: str) -> str:
+    try:
+        with open(verified_file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception:
+        return ""
+
+    # Find all module declarations supporting optional parameter list and port list
+    matches = list(re.finditer(r'\bmodule\s+(\w+)\s*(?:#\s*\((.*?)\))?\s*\((.*?)\)\s*;', content, re.S))
+    if not matches:
+        return ""
+    
+    # Pick the best matching module based on target_module_name
+    def get_score(mname):
+        mname_lower = mname.lower()
+        target_lower = target_module_name.lower()
+        if mname_lower == target_lower:
+            return 10
+        if mname_lower.replace("verified_", "") == target_lower:
+            return 9
+        if target_lower.replace("verified_", "") == mname_lower:
+            return 9
+        if target_lower in mname_lower or mname_lower in target_lower:
+            return 5
+        return 1
+
+    best_match = max(matches, key=lambda m: get_score(m.group(1)))
+    
+    module_name_in_file = best_match.group(1)
+    param_list_str = best_match.group(2)
+    port_list_str = best_match.group(3)
+    
+    # Check if Verilog-2001 style (ports declared with input/output/inout)
+    is_v2001 = bool(re.search(r'\b(input|output|inout)\b', port_list_str))
+    
+    if is_v2001:
+        # Split by comma, clean comments/whitespace, and keep as is
+        raw_decls = port_list_str.split(',')
+        port_decls = []
+        for rd in raw_decls:
+            clean_rd = re.sub(r'//.*', '', rd)
+            clean_rd = re.sub(r'/\*.*?\*/', '', clean_rd, flags=re.S).strip()
+            if clean_rd:
+                port_decls.append("    " + clean_rd)
+    else:
+        # Verilog-1995 style: parse port names in order
+        port_names = [p.strip() for p in port_list_str.split(',') if p.strip()]
+        port_map = {name: {"direction": None, "type": "", "range": ""} for name in port_names}
+        
+        header_end = best_match.end()
+        body_clean = re.sub(r'//.*', '', content[header_end:])
+        body_clean = re.sub(r'/\*.*?\*/', '', body_clean, flags=re.S)
+        
+        # Extract declarations ended by semicolon
+        statements = [s.strip() for s in body_clean.split(';') if s.strip()]
+        
+        for stmt in statements:
+            stmt = re.sub(r'\s+', ' ', stmt)
+            dir_match = re.match(r'^(input|output|inout)\s+(?:(reg|wire)\s+)?(\[[^\]]+\])?\s*(.+)$', stmt)
+            if dir_match:
+                direction = dir_match.group(1)
+                ptype = dir_match.group(2) or ""
+                prange = dir_match.group(3) or ""
+                pnames_str = dir_match.group(4)
+                pnames = [n.strip() for n in pnames_str.split(',') if n.strip()]
+                for name in pnames:
+                    if name in port_map:
+                        port_map[name]["direction"] = direction
+                        if ptype:
+                            port_map[name]["type"] = ptype
+                        if prange:
+                            port_map[name]["range"] = prange
+                continue
+                
+            type_match = re.match(r'^(reg|wire)\s+(\[[^\]]+\])?\s*(.+)$', stmt)
+            if type_match:
+                ptype = type_match.group(1)
+                prange = type_match.group(2) or ""
+                pnames_str = type_match.group(3)
+                pnames = [n.strip() for n in pnames_str.split(',') if n.strip()]
+                for name in pnames:
+                    if name in port_map:
+                        port_map[name]["type"] = ptype
+                        if prange:
+                            port_map[name]["range"] = prange
+                continue
+                
+        port_decls = []
+        for name in port_names:
+            info = port_map[name]
+            direction = info["direction"] or "input"
+            ptype = info["type"]
+            prange = info["range"]
+            
+            parts = [direction]
+            if ptype:
+                parts.append(ptype)
+            if prange:
+                parts.append(prange)
+            parts.append(name)
+            port_decls.append("    " + " ".join(parts))
+            
+    # Extract all parameters from the verified file
+    content_clean = re.sub(r'//.*', '', content)
+    content_clean = re.sub(r'/\*.*?\*/', '', content_clean, flags=re.S)
+    
+    params = []
+    # 1. Match header parameter list #(...)
+    m_decl = re.search(r'\bmodule\s+\w+\s*#\s*\((.*?)\)\s*\(', content_clean, re.S)
+    if m_decl:
+        param_list_str = m_decl.group(1)
+        for decl in param_list_str.split(','):
+            decl = decl.strip()
+            if decl:
+                params.append(decl)
+                
+    # 2. Match body parameters
+    body_matches = re.finditer(r'\bparameter\b\s+([^;]+);', content_clean, re.S)
+    for match in body_matches:
+        param_str = match.group(1).strip()
+        prefix_match = re.match(r'^(\[.*?\]|signed\b.*?|integer\b)\s*(.*)$', param_str)
+        if prefix_match:
+            prefix = prefix_match.group(1) + " "
+            rest = prefix_match.group(2)
+        else:
+            prefix = ""
+            rest = param_str
+            
+        for decl in rest.split(','):
+            decl = decl.strip()
+            if decl:
+                params.append(f"parameter {prefix}{decl}")
+                
+    # Keep unique parameter declarations by name
+    seen_param_names = set()
+    unique_params = []
+    for p in params:
+        name_match = re.search(r'\b(\w+)\s*=', p)
+        if name_match:
+            pname = name_match.group(1)
+            if pname not in seen_param_names:
+                seen_param_names.add(pname)
+                unique_params.append(p)
+                
+    param_part = ""
+    if unique_params:
+        param_part = " #(\n" + ",\n".join(f"    {p}" for p in unique_params) + "\n)"
+        
+    new_header = f"module {target_module_name}{param_part} (\n" + ",\n".join(port_decls) + "\n);"
+    return new_header
+
+
+
+def _extract_helper_modules(verified_file_path: str, target_module_name: str) -> dict:
+    try:
+        with open(verified_file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception:
+        return {}
+
+    # Extract all modules from the verified file
+    # Clean the comments first
+    content_clean = re.sub(r'//.*', '', content)
+    content_clean = re.sub(r'/\*.*?\*/', '', content_clean, flags=re.S)
+
+    # Find all modules
+    modules = list(re.finditer(r'\bmodule\s+(\w+)\b', content_clean))
+    endmodules = list(re.finditer(r'\bendmodule\b', content_clean))
+
+    blocks = {}
+    used_module_indices = set()
+    for e in endmodules:
+        e_start = e.start()
+        candidate = None
+        for m in reversed(modules):
+            m_start = m.start()
+            if m_start < e_start and m_start not in used_module_indices:
+                candidate = m
+                break
+        if candidate:
+            mname = candidate.group(1)
+            blocks[mname] = content_clean[candidate.start():e.end()]
+            used_module_indices.add(candidate.start())
+
+    # Helper modules are those whose name is NOT target_module_name
+    # and NOT verified_target_module_name (e.g. verified_asyn_fifo)
+    helper_modules = {}
+    target_lower = target_module_name.lower()
+    for mname, mcode in blocks.items():
+        mname_lower = mname.lower()
+        if mname_lower == target_lower:
+            continue
+        if mname_lower.replace("verified_", "") == target_lower:
+            continue
+        if target_lower.replace("verified_", "") == mname_lower:
+            continue
+        helper_modules[mname] = mcode
+
+    return helper_modules
+
+
+
 # ──────────────────────────────────────────────────────────────
 # State preparation
 # ──────────────────────────────────────────────────────────────
@@ -152,6 +352,34 @@ def _prepare_state(
 
     if desc_type == "txt" and not state.get("xml_description"):
         state["xml_description"] = "(Bypassed XML; Using TXT mode)"
+
+    # Look for verified_*.v files to extract expected header
+    target_name = state.get("module_name")
+    if dataset_dir and target_name:
+        verified_files = []
+        verified_files.extend(glob.glob(os.path.join(dataset_dir, "verified_*.v")))
+        verified_files.extend(glob.glob(os.path.join(dataset_dir, "modules", target_name, "verified_*.v")))
+        verified_files.extend(glob.glob(os.path.join(dataset_dir, target_name, "verified_*.v")))
+
+        seen = set()
+        unique_verified_files = []
+        for vf in verified_files:
+            abs_vf = os.path.abspath(vf)
+            if abs_vf not in seen:
+                seen.add(abs_vf)
+                unique_verified_files.append(abs_vf)
+
+        for vf in unique_verified_files:
+            extracted = _extract_header_from_verified(vf, target_name)
+            if extracted:
+                state["expected_header"] = extracted
+                cprint(f"  🏗️ Extracted expected_header from verified file: {os.path.basename(vf)}")
+                # Extract helper modules too
+                helpers = _extract_helper_modules(vf, target_name)
+                if helpers:
+                    state["helper_modules_code"] = helpers
+                    cprint(f"  📦 Extracted helper modules: {', '.join(helpers.keys())}")
+                break
 
     return state
 
