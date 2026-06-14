@@ -1,7 +1,7 @@
 {
   "module_name": "adder_8bit",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": false,
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "adder_8bit",
     "description_type": "RTLLM.txt",
@@ -12,11 +12,34 @@
     "gvd": "module adder_8bit (\n    input [7:0] a,\n    b,\n    input cin,\n    output [7:0] sum,\n    output cout\n);\n    \n    assign {cout, sum} = a + b + cin;\nendmodule\n\nmodule full_adder (input a, b, cin, output sum, cout);\n    assign {cout, sum} = a + b + cin;\nendmodule\n",
     "xml_description": "<module id=\"adder_8bit\">\n    <description>Implement an 8-bit adder with bit-level adders in combinational logic.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[7:0]\">8-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[7:0]\">8-bit input operand B.</input>\n        <input id=\"cin\">Carry-in input.</input>\n        <output id=\"sum\" width_description=\"[7:0]\">8-bit sum output.</output>\n        <output id=\"cout\">Carry-out output.</output>\n    </ports>\n    <implementation>Uses full adders to perform addition.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-DECLFILENAME: adder_8bit.v:12:8: Filename 'adder_8bit' does not match MODULE name: 'full_adder'\n   12 | module full_adder (input a, b, cin, output sum, cout);\n      |        ^~~~~~~~~~\n                       ... Use \"/* verilator lint_off DECLFILENAME */\" and lint_on around source to disable this message.\n%Warning-WIDTH: adder_8bit.v:9:32: Operator ADD expects 9 bits on the RHS, but RHS's VARREF 'cin' generates 1 bits.\n                                 : ... In instance adder_8bit\n    9 |     assign {cout, sum} = a + b + cin;\n      |                                ^\nmake[1]: Entering directory '/tmp/comba_adder_8bit_pc2_h762/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_8bit.cpp Vadder_8bit__Trace.cpp Vadder_8bit__Slow.cpp Vadder_8bit__Syms.cpp Vadder_8bit__Trace__Slow.cpp > Vadder_8bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_8bit__ALL.o Vadder_8bit__ALL.cpp\nar -cr Vadder_8bit__ALL.a Vadder_8bit__ALL.o\nranlib Vadder_8bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_8bit__ALL.a      -o Vadder_8bit\nmake[1]: Leaving directory '/tmp/comba_adder_8bit_pc2_h762/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-DECLFILENAME: adder_8bit.v:12:8: Filename 'adder_8bit' does not match MODULE name: 'full_adder'\n   12 | module full_adder (input a, b, cin, output sum, cout);\n      |        ^~~~~~~~~~\n                       ... Use \"/* verilator lint_off DECLFILENAME */\" and lint_on around source to disable this message.\n%Warning-WIDTH: adder_8bit.v:9:32: Operator ADD expects 9 bits on the RHS, but RHS's VARREF 'cin' generates 1 bits.\n                                 : ... In instance adder_8bit\n    9 |     assign {cout, sum} = a + b + cin;\n      |                                ^\nmake[2]: Entering directory '/tmp/comba_adder_8bit_ezv7g25g/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vadder_8bit.cpp Vadder_8bit__Trace.cpp Vadder_8bit__Slow.cpp Vadder_8bit__Syms.cpp Vadder_8bit__Trace__Slow.cpp > Vadder_8bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vadder_8bit__ALL.o Vadder_8bit__ALL.cpp\nar -cr Vadder_8bit__ALL.a Vadder_8bit__ALL.o\nranlib Vadder_8bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vadder_8bit__ALL.a      -o Vadder_8bit\nmake[2]: Leaving directory '/tmp/comba_adder_8bit_ezv7g25g/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {},
     "failure_type": "",
     "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 20,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 5.61,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 14,
+          "elapsed_s": 5.61
+        }
+      ]
+    },
     "guard_summary": {
       "rollbacks": 0,
       "commits": 0,

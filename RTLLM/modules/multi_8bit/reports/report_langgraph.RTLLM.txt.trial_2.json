@@ -1,29 +1,52 @@
 {
   "module_name": "multi_8bit",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": false,
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "multi_8bit",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
     "sc_trial": 2,
-    "ts_trial": 2,
-    "total_iter": 4,
-    "gvd": "module multi_8bit (\n    input [7:0] A,\n    input [7:0] B,\n    output reg [15:0] product\n);\n\nreg [15:0] partial_product;\nreg [3:0] shift_count;\n\nalways @(*) begin\n    partial_product = 0;\n    shift_count = 0;\n\n    for (int i = 0; i < 8; i++) begin\n        if (B[i]) begin\n            partial_product = partial_product + (A << shift_count);\n        end\n        shift_count = shift_count + 1;\n    end\n\n    product = partial_product;\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"multi_8bit\">\n    <description>Implement an 8-bit multiplier using shifting and adding operations.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[7:0]\">First 8-bit input operand (multiplicand).</input>\n        <input id=\"B\" width_description=\"[7:0]\">Second 8-bit input operand (multiplier).</input>\n        <output id=\"product\" width_description=\"[15:0]\">16-bit output representing the product of A and B.</output>\n    </ports>\n    <implementation>\n        Multiplier operates using the shift-and-add method.\n        - Iteratively processes each bit of the multiplier (B).\n        - Adds the multiplicand (A) to the product if the current bit of B is 1.\n        - Shifts the multiplicand left by one bit after each addition.\n        - Continues until all bits of B have been processed.\n        Final product is stored in the output port.\n    </implementation>\n</module>",
+    "ts_trial": 1,
+    "total_iter": 3,
+    "gvd": "module multi_8bit (\n    input [7:0] A,\n    input [7:0] B,\n    output reg [15:0] product\n);\n\n    reg [15:0] product_reg;\n    reg [7:0] multiplicand;\n    reg [7:0] multiplier;\n    integer i;\n\n    always @(*) begin\n        multiplicand = A;\n        multiplier = B;\n        product_reg = 16'd0;\n\n        for (i = 0; i < 8; i = i + 1) begin\n            if (multiplier[i]) begin\n                product_reg = product_reg + (multiplicand << i);\n            end\n        end\n\n        product = product_reg;\n    end\n\nendmodule\n",
+    "xml_description": "<module id=\"multi_8bit\">\n    <description>Multiplies two 8-bit operands using a shift-and-add approach.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[7:0]\">First 8-bit input operand (multiplicand).</input>\n        <input id=\"B\" width_description=\"[7:0]\">Second 8-bit input operand (multiplier).</input>\n        <output id=\"product\" width_description=\"[15:0]\">16-bit output representing the product of A and B.</output>\n    </ports>\n    <implementation>\n        // Initialize variables\n        integer i;\n        reg [15:0] product_reg = 16'd0; // Register to hold the product\n        reg [7:0] multiplicand = 8'd0;   // Register to hold the multiplicand\n        reg [7:0] multiplier = 8'd0;     // Register to hold the multiplier\n        \n        // Assign input values to local variables\n        always @(posedge clk) begin\n            multiplicand <= A;\n            multiplier <= B;\n        end\n        \n        // Perform multiplication operation\n        always @(posedge clk) begin\n            if (i < 8) begin\n                if (multiplier[i]) begin\n                    product_reg <= product_reg + (multiplicand << i);\n                end\n                i <= i + 1;\n            end else begin\n                i <= 0;\n            end\n        end\n        \n        // Output the final product\n        assign product = product_reg;\n        \n    </implementation>\n    \n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: multi_8bit.v:16:52: Operator SHIFTL expects 16 bits on the LHS, but LHS's VARREF 'A' generates 8 bits.\n                                  : ... In instance multi_8bit\n   16 |             partial_product = partial_product + (A << shift_count);\n      |                                                    ^~\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\nmake[1]: Entering directory '/tmp/comba_multi_8bit_ok3np56h/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_8bit.cpp Vmulti_8bit__Trace.cpp Vmulti_8bit__Slow.cpp Vmulti_8bit__Syms.cpp Vmulti_8bit__Trace__Slow.cpp > Vmulti_8bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vmulti_8bit__ALL.o Vmulti_8bit__ALL.cpp\nar -cr Vmulti_8bit__ALL.a Vmulti_8bit__ALL.o\nranlib Vmulti_8bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vmulti_8bit__ALL.a      -o Vmulti_8bit\nmake[1]: Leaving directory '/tmp/comba_multi_8bit_ok3np56h/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: multi_8bit.v:19:59: Operator SHIFTL expects 16 bits on the LHS, but LHS's VARREF 'multiplicand' generates 8 bits.\n                                  : ... In instance multi_8bit\n   19 |                 product_reg = product_reg + (multiplicand << i);\n      |                                                           ^~\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\nmake[2]: Entering directory '/tmp/comba_multi_8bit_hda6ocsq/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_8bit.cpp Vmulti_8bit__Trace.cpp Vmulti_8bit__Slow.cpp Vmulti_8bit__Syms.cpp Vmulti_8bit__Trace__Slow.cpp > Vmulti_8bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vmulti_8bit__ALL.o Vmulti_8bit__ALL.cpp\nar -cr Vmulti_8bit__ALL.a Vmulti_8bit__ALL.o\nranlib Vmulti_8bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vmulti_8bit__ALL.a      -o Vmulti_8bit\nmake[2]: Leaving directory '/tmp/comba_multi_8bit_hda6ocsq/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:combinational_mismatch::3::logic": 1
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `clk' in `multi_8bit'": 1
     },
-    "failure_type": "combinational_mismatch",
+    "failure_type": "",
     "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 20,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 15.24,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 1,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 26,
+          "elapsed_s": 15.24
+        }
+      ]
+    },
     "guard_summary": {
       "rollbacks": 0,
       "commits": 2,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": 4,
       "final_sc": 0
     }
   }

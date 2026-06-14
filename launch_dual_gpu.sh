@@ -19,16 +19,17 @@ set -euo pipefail
 export VLLM_USE_V1=0
 export VLLM_TORCH_COMPILE_LEVEL=0
 #/home/nntkim/Downloads/outputs_lora_r1024_v2/checkpoint-14500
-#/home/nntkim/Downloads/model_v1_1_lora_r712
+#/home/nntkim/Downloads/model_debugger
+#/home/nntkim/Downloads/model_qwen_debugger_v1_merged
 # ── Config ──
-GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/outputs_lora_r1024_v2/checkpoint-14500}"
+GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_qwen_generator_0-15_e1_v1_merged}"
 MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger}"
 PORT_GEN=8000
 PORT_DBG=8001
 MAX_MODEL_LEN=32768
-GPU_MEM=0.8
+GPU_MEM=0.85
 CACHE_DIR="../../hf_model_cache"
-DTYPE="bfloat16"
+DTYPE="float16"
 LOG_DIR="./logs"
 
 # ── Parse Args ──
@@ -110,13 +111,29 @@ tail_logs() {
 start_dual() {
     if [[ ! -d "$MERGED_MODEL" ]]; then
         echo "❌ Merged model not found: $MERGED_MODEL"
-        echo "   Run: llamafactory-cli export your_config.yaml"
         exit 1
     fi
 
+    # ── Dynamic Precision Auto-Detection ──
+    if [[ "$GENERATED_MODEL" == *"_4bit"* ]]; then
+        GEN_FLAGS="--quantization gptq"
+        GEN_INFO="4-bit GPTQ quantized"
+    else
+        GEN_FLAGS="--dtype $DTYPE"
+        GEN_INFO="bfloat16"
+    fi
+
+    if [[ "$MERGED_MODEL" == *"_4bit"* ]]; then
+        DBG_FLAGS="--quantization gptq_marlin --dtype float16"   # ← changed
+        DBG_INFO="4-bit GPTQ quantized"
+    else
+        DBG_FLAGS="--dtype $DTYPE"
+        DBG_INFO="bfloat16"
+    fi
+
     echo "📋 Configuration:"
-    echo "   GPU 0: $GENERATED_MODEL"
-    echo "   GPU 1: $MERGED_MODEL"
+    echo "   GPU 0: $GENERATED_MODEL ($GEN_INFO)"
+    echo "   GPU 1: $MERGED_MODEL ($DBG_INFO)"
     echo ""
 
     mkdir -p $LOG_DIR
@@ -127,7 +144,7 @@ start_dual() {
         --model $GENERATED_MODEL \
         --download-dir $CACHE_DIR \
         --served-model-name generator \
-        --dtype $DTYPE \
+        $GEN_FLAGS \
         --enforce-eager \
         --disable-log-stats \
         --max-model-len $MAX_MODEL_LEN \
@@ -144,7 +161,7 @@ start_dual() {
     CUDA_VISIBLE_DEVICES=1 VLLM_USE_V1=0 VLLM_TORCH_COMPILE_LEVEL=0 python -m vllm.entrypoints.openai.api_server \
         --model $MERGED_MODEL \
         --served-model-name debugger \
-        --dtype $DTYPE \
+        $DBG_FLAGS \
         --max-model-len $MAX_MODEL_LEN \
         --gpu-memory-utilization $GPU_MEM \
         --port $PORT_DBG \
@@ -163,12 +180,10 @@ start_dual() {
     echo "📝 Streaming logs while waiting (will stop once ready):"
     echo "--------------------------------------------------------"
     
-    # Start tailing logs in the background
     tail -n 0 -f $LOG_DIR/vllm_gpu0_generator.log $LOG_DIR/vllm_gpu1_debugger.log &
     TAIL_PID=$!
     
-    # Cleanup tail process on exit
-    trap "kill $TAIL_PID 2>/dev/null || true" EXIT
+    trap "kill $TAIL_PID 2>/dev/null || true" EXIT INT
 
     for PORT in $PORT_GEN $PORT_DBG; do
         LABEL="Generator"; [[ $PORT == $PORT_DBG ]] && LABEL="Debugger"
@@ -182,9 +197,8 @@ start_dual() {
         done
     done
 
-    # Kill background tail process
     kill $TAIL_PID 2>/dev/null || true
-    trap - EXIT # Clear trap
+    trap - EXIT INT
 
     echo "--------------------------------------------------------"
     echo ""

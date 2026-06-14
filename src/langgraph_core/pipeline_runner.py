@@ -430,7 +430,7 @@ def run_pipeline_sync(
         nl_input, module_name, xml_description,
         dataset_dir, benchmark_id, work_dir, desc_type,
     )
-    config = {"recursion_limit": 100}
+    config = {"recursion_limit": 300}
     return graph.invoke(state, config)
 
 
@@ -448,7 +448,7 @@ def run_pipeline_streaming(
     """
     _, graph = get_pipeline(llm)
     state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id)
-    config = {"recursion_limit": 100}
+    config = {"recursion_limit": 300}
 
     for event in graph.stream(state, config):
         for node_name, state_update in event.items():
@@ -494,7 +494,7 @@ def _run_one_module(
         dataset_dir=sample_dataset_dir,
         desc_type=description_type,
     )
-    config = {"recursion_limit": 100}
+    config = {"recursion_limit": 300}
     return graph.invoke(state, config)
 
 

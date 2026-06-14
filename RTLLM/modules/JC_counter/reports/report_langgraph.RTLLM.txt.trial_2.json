@@ -1,27 +1,48 @@
 {
   "module_name": "JC_counter",
   "description_type": "RTLLM.txt",
-  "self_consistency_enabled": false,
+  "self_consistency_enabled": true,
   "samples": {
     "module_name": "JC_counter",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 2,
-    "ts_trial": 2,
-    "total_iter": 4,
-    "gvd": "module JC_counter (\n    input                clk,\n    input                rst_n,\n    output reg [63:0]     Q\n);\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        Q <= 64'b0;\n    end\n    else begin\n        if (Q[0] == 1'b0) begin\n            Q <= {1'b1, Q[63:1]};\n        end\n        else begin\n            Q <= {1'b0, Q[63:1]};\n        end\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"JC_counter\">\n    <description>Implement a 64-bit Johnson counter with specific state transitions.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal to initialize the counter.</input>\n        <output id=\"Q\" width_description=\"[63:0]\">64-bit register representing the current count value.</output>\n    </ports>\n    <implementation>\n        On every rising edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the counter value is updated.\n        If the reset signal (rst_n) is low, indicating a reset condition, the counter value (Q) is set to 0.\n        Otherwise, if the least significant bit (Q[0]) is 0, the counter increments by shifting the current value (Q[63:1]) to the right and appending a 1 at the most significant bit position.\n        If the least significant bit (Q[0]) is 1, the counter decrements by shifting the current value (Q[63:1]) to the right and appending a 0 at the most significant bit position.\n    </implementation>\n</module>",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module JC_counter (\n    input                clk,\n    input                rst_n,\n    output reg [63:0]     Q\n);\n\nalways @(posedge clk or negedge rst_n) begin\n    \n    if (~rst_n) begin\n        Q <= 64'b0;\n    end else begin\n        \n        if (Q[0] == 1'b0) begin\n            Q <= {1'b1, Q[63:1]};\n        end else begin\n            \n            Q <= {1'b0, Q[63:1]};\n        end\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"JC_counter\">\n    <description>64-bit Johnson Counter</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal to initialize the counter.</input>\n        <output id=\"Q\" width_description=\"[63:0]\">64-bit register representing the current count value.</output>\n    </ports>\n    <implementation>On every rising edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the counter value is updated. If the reset signal (rst_n) is low, indicating a reset condition, the counter value (Q) is set to 0. Otherwise, if the least significant bit (Q[0]) is 0, the counter increments by shifting the current value (Q[63:1]) to the right and appending a 1 at the most significant bit position. If the least significant bit (Q[0]) is 1, the counter decrements by shifting the current value (Q[63:1]) to the right and appending a 0 at the most significant bit position.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_JC_counter_tsqx17m1/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include VJC_counter.cpp VJC_counter__Trace.cpp VJC_counter__Slow.cpp VJC_counter__Syms.cpp VJC_counter__Trace__Slow.cpp > VJC_counter__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o VJC_counter__ALL.o VJC_counter__ALL.cpp\nar -cr VJC_counter__ALL.a VJC_counter__ALL.o\nranlib VJC_counter__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o VJC_counter__ALL.a      -o VJC_counter\nmake[1]: Leaving directory '/tmp/comba_JC_counter_tsqx17m1/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[2]: Entering directory '/tmp/comba_JC_counter_3gpmgz2x/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include VJC_counter.cpp VJC_counter__Trace.cpp VJC_counter__Slow.cpp VJC_counter__Syms.cpp VJC_counter__Trace__Slow.cpp > VJC_counter__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o VJC_counter__ALL.o VJC_counter__ALL.cpp\nar -cr VJC_counter__ALL.a VJC_counter__ALL.o\nranlib VJC_counter__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o VJC_counter__ALL.a      -o VJC_counter\nmake[2]: Leaving directory '/tmp/comba_JC_counter_3gpmgz2x/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {
-      "TB:fsm_state_error::3::": 1
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 20,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "total_elapsed_s": 10.03,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 21,
+          "elapsed_s": 10.03
+        }
+      ]
     },
-    "failure_type": "fsm_state_error",
-    "vcd_status": "ok",
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 2,
+      "commits": 0,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

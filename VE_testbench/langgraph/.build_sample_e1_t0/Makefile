@@ -46,7 +46,7 @@ LANGGRAPH_MODULES := verilogeval/*
 LANGGRAPH_DESC    := xml
 LANGGRAPH_SAMPLES := 1
 TS_SIMULATOR     := iverilog
-SC_ENV            := SC=$(SC)
+SC_ENV            := SC=$(SC) COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=20
 RTLLM_REPORTS_DIR := RTLLM/modules
 RTLLM_V2_REPORTS_DIR := RTLLM_v2/modules
 VEVAL_REPORTS_DIR := verilogeval_outputs
@@ -79,53 +79,67 @@ verilog-eval:
 		--with-model-manual=http://localhost:8000/v1
 
 RTLLM:
+	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM dataset (sim: verilator, SC=$(SC)) ==="
-	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	$(SC_ENV) COMBA_SELF_CONSISTENCY=1 COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm
 
 RTLLM-iverilog:
+	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM dataset (sim: iverilog, SC=$(SC)) ==="
 	$(SC_ENV) COMBA_TS_SIMULATOR=iverilog conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm
 
 RTLLM-auto:
+	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM dataset (auto-pick, SC=$(SC)) ==="
 	$(SC_ENV) COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm
 
 RTLLM_v2:
+	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM_v2 dataset (sim: verilator, SC=$(SC)) ==="
 	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5
+	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm-v2
 
 RTLLM_v2-iverilog:
+	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM_v2 dataset (sim: iverilog, SC=$(SC)) ==="
 	$(SC_ENV) COMBA_TS_SIMULATOR=iverilog conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5
+	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm-v2
 
 RTLLM_v2-auto:
+	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM_v2 dataset (auto-pick, SC=$(SC)) ==="
 	$(SC_ENV) COMBA_TS_SIMULATOR=auto conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5
+	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm-v2
 
 VerilogEval-bench:
+	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for VerilogEval dataset (sim: $(TS_SIMULATOR), SC=$(SC)) ==="
 	$(SC_ENV) COMBA_TS_SIMULATOR=$(TS_SIMULATOR) conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset verilogeval --trials 5
+	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-veval
 
 langgraph:
 	@echo "=== Running LangGraph Inference: VerilogEval V1 (Parallel) ==="
-	$(SC_ENV) COMBA_MAX_SAMPLES=5 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
+	SC=$(SC) COMBA_SELF_CONSISTENCY=1 COMBA_PIPELINE_TIMEOUT=600 COMBA_MAX_SAMPLES=20 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
 		--model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 \
-		--jobs 10 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
-		--dataset-dir $(VEVAL_V1_DIR)
+		--jobs 5 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
+		--dataset-dir $(VEVAL_V1_DIR) --samples=1
 
 langgraph-veval-v2:
 	@echo "=== Running LangGraph Inference: VerilogEval V2 (Parallel) ==="
-	$(SC_ENV) COMBA_MAX_SAMPLES=5 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
+	SC=$(SC) COMBA_SELF_CONSISTENCY=1 COMBA_PIPELINE_TIMEOUT=600 COMBA_MAX_SAMPLES=20 $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
 		--model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 \
-		--jobs 10 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
-		--dataset-dir $(VEVAL_V2_DIR)
+		--jobs 5 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
+		--dataset-dir $(VEVAL_V2_DIR) --samples=1
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).

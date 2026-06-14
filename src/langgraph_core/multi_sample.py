@@ -239,7 +239,7 @@ def run_with_self_consistency(
     desc_type: Optional[str] = None,
     *,
     max_samples: int = DEFAULT_MAX_SAMPLES,
-    temperature_schedule: Tuple[float, ...] = DEFAULT_TEMPERATURES,
+    temperature_schedule: Optional[Tuple[float, ...]] = None,
     early_exit: bool = DEFAULT_EARLY_EXIT,
     wall_budget_s: float = DEFAULT_WALL_BUDGET_S,
 ) -> dict:
@@ -251,6 +251,23 @@ def run_with_self_consistency(
     """
     # Lazy import to avoid circular deps
     from pipeline_runner import run_pipeline_sync
+
+    if temperature_schedule is None:
+        base_T = 0.8
+        if llm is not None and hasattr(llm, "temperature"):
+            base_T = llm.temperature
+        
+        # Build dynamic temperature schedule:
+        # Sample 0 is 0.0 (deterministic baseline) if COMBA_SC_START_ZERO=1,
+        # otherwise we use base_T.
+        start_zero = os.getenv("COMBA_SC_START_ZERO", "0") == "1"
+        if base_T > 0.0:
+            if start_zero:
+                temperature_schedule = (0.0,) + (base_T,) * (max(1, max_samples) - 1)
+            else:
+                temperature_schedule = (base_T,) * max(1, max_samples)
+        else:
+            temperature_schedule = (0.0,) * max(1, max_samples)
 
     samples: List[SampleResult] = []
     t_start = time.time()

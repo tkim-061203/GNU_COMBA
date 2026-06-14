@@ -195,9 +195,9 @@ AC_MSG_NOTICE([using self-consistency: ${self_consistency}])
 #-------------------------------------------------------------------------
 
 AC_ARG_WITH(max-samples,
-  AS_HELP_STRING([--with-max-samples],[Max samples for self-consistency (default: 5)]),
+  AS_HELP_STRING([--with-max-samples],[Max samples for self-consistency (default: 20)]),
   [max_samples="${with_max_samples}"],
-  [max_samples="5"])
+  [max_samples="20"])
 
 AC_SUBST([max_samples])
 AC_MSG_NOTICE([using max samples: ${max_samples}])
