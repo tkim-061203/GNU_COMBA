@@ -59,6 +59,10 @@ DIVERSITY_HINTS = (
 
 DIVERSITY_ENABLED = os.getenv("COMBA_DIVERSITY_HINTS", "1") == "1"
 
+# Cross-sample memory: feed the previous failed sample's topmost error into the
+# next sample's GENERATOR prompt ("avoid repeating X"). Gate with COMBA_SC_MEMORY=0.
+MEMORY_ENABLED = os.getenv("COMBA_SC_MEMORY", "1") == "1"
+
 # Status → numeric rank for scoring (higher = better)
 STATUS_RANK = {
     "pass":             100,
@@ -224,6 +228,36 @@ def _build_sample_result(
     )
 
 
+def _build_temperature_schedule(max_samples: int) -> Tuple[float, ...]:
+    """
+    Static diversity ramp from DEFAULT_TEMPERATURES, sliced/padded to
+    `max_samples`. Sample 0 is always 0.0 (deterministic baseline); samples
+    1..N-1 ramp up for diversity.
+
+    Replaces the old dynamic logic that, when base_T>0 and COMBA_SC_START_ZERO=0,
+    collapsed every sample to a single shared temperature (no baseline, no ramp).
+    """
+    n = max(1, max_samples)
+    ramp = DEFAULT_TEMPERATURES
+    sched = ramp[:n] if n <= len(ramp) else ramp + (ramp[-1],) * (n - len(ramp))
+    return (0.0,) + tuple(sched[1:])
+
+
+def _extract_error_memory(state: dict) -> Optional[str]:
+    """
+    Concise 'what went wrong' summary from a FAILED sample's state, to feed the
+    next sample's generator. Prefers the topmost SC error, then the TB/SC
+    feedback prompts. Returns None for a passing/empty state; output truncated.
+    """
+    if not state or state.get("final_status") == "pass":
+        return None
+    for key in ("sc_exception", "tdp", "edp"):
+        val = state.get(key)
+        if val and isinstance(val, str) and val.strip():
+            return val.strip().splitlines()[0][:200]
+    return None
+
+
 # ──────────────────────────────────────────────────────────────
 # Main entry point
 # ──────────────────────────────────────────────────────────────
@@ -253,24 +287,11 @@ def run_with_self_consistency(
     from pipeline_runner import run_pipeline_sync
 
     if temperature_schedule is None:
-        base_T = 0.8
-        if llm is not None and hasattr(llm, "temperature"):
-            base_T = llm.temperature
-        
-        # Build dynamic temperature schedule:
-        # Sample 0 is 0.0 (deterministic baseline) if COMBA_SC_START_ZERO=1,
-        # otherwise we use base_T.
-        start_zero = os.getenv("COMBA_SC_START_ZERO", "0") == "1"
-        if base_T > 0.0:
-            if start_zero:
-                temperature_schedule = (0.0,) + (base_T,) * (max(1, max_samples) - 1)
-            else:
-                temperature_schedule = (base_T,) * max(1, max_samples)
-        else:
-            temperature_schedule = (0.0,) * max(1, max_samples)
+        temperature_schedule = _build_temperature_schedule(max_samples)
 
     samples: List[SampleResult] = []
     t_start = time.time()
+    error_memory: Optional[str] = None  # topmost error from previous failed sample
 
     for idx in range(max(1, max_samples)):
         # ── pick temperature ──
@@ -289,6 +310,13 @@ def run_with_self_consistency(
         hint = None
         if DIVERSITY_ENABLED and idx > 0 and idx < len(DIVERSITY_HINTS):
             hint = DIVERSITY_HINTS[idx]
+        # ── cross-sample memory: warn about the previous attempt's failure ──
+        if MEMORY_ENABLED and idx > 0 and error_memory:
+            mem = (
+                f"PREVIOUS ATTEMPT FAILED WITH: {error_memory}\n"
+                f"Do not repeat this error; fix the root cause."
+            )
+            hint = (hint + "\n\n" + mem) if hint else mem
         original_call = _install_diversity_hint(llm, hint) if hint else None
 
         t0 = time.time()
@@ -317,6 +345,12 @@ def run_with_self_consistency(
         if hint:
             result.state["_diversity_hint"] = hint
         samples.append(result)
+
+        # ── remember this failure for the next sample's generator ──
+        if result.final_status != "pass":
+            new_mem = _extract_error_memory(state)
+            if new_mem:
+                error_memory = new_mem
 
         logger.info(
             f"[multi_sample] {module_name or 'module'} sample {idx} "
@@ -460,5 +494,32 @@ if __name__ == "__main__":
     last = captured[-1][1]
     assert "DIVERSITY HINT" not in last[0]["content"], "after restore, no injection"
     print(f"  test 8 OK: _restore_call cleanly reverts patch")
+
+    # Test 9: temperature schedule = static ramp, idx0=0.0 (Phase 1)
+    assert _build_temperature_schedule(5) == (0.0, 0.5, 0.5, 0.8, 0.8), _build_temperature_schedule(5)
+    assert _build_temperature_schedule(1) == (0.0,), _build_temperature_schedule(1)
+    assert _build_temperature_schedule(10) == (0.0, 0.5, 0.5, 0.8, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0), _build_temperature_schedule(10)
+    print(f"  test 9 OK: temperature schedule ramp (idx0=0.0, sliced/padded)")
+
+    # Test 10: cross-sample error memory extraction + injection (Phase 2a)
+    assert _extract_error_memory({"final_status": "pass"}) is None
+    assert _extract_error_memory({}) is None
+    _mem = _extract_error_memory(
+        {"final_status": "fail_sc", "sc_exception": "syntax error: unexpected 'reg'\nmore"}
+    )
+    assert _mem == "syntax error: unexpected 'reg'", _mem
+    _cap = []
+    class MockLLMMem:
+        temperature = 0.1
+        def _call(self, messages, client_mode, temperature, max_tokens, **kw):
+            _cap.append((client_mode, list(messages))); return "ok"
+    _llm = MockLLMMem()
+    _o = _install_diversity_hint(_llm, f"PREVIOUS ATTEMPT FAILED WITH: {_mem}")
+    _llm._call([{"role": "system", "content": "gen"}], client_mode="base", temperature=0.5, max_tokens=10)
+    _llm._call([{"role": "system", "content": "dbg"}], client_mode="debugger", temperature=0.5, max_tokens=10)
+    _restore_call(_llm, _o)
+    assert "PREVIOUS ATTEMPT FAILED" in _cap[0][1][0]["content"], "memory must reach generator"
+    assert "PREVIOUS ATTEMPT FAILED" not in _cap[1][1][0]["content"], "memory must NOT reach debugger"
+    print(f"  test 10 OK: error-memory extracted + injected into generator only")
 
     print("\n✅ All self-tests passed")
