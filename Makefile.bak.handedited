@@ -1,13 +1,13 @@
 JUPYTER_ARGS='--ip 0.0.0.0 --no-browser'
 QUIET=@
-src_dir           := $(abspath ../../..)
+src_dir           := $(abspath .)
 scripts_dir       := $(src_dir)/src
 flow_src_dir      := $(scripts_dir)/flow_src
 flow_inputs_dir   := $(flow_src_dir)/inputs
 
 # ── Pipeline 2: LLM inference ──────────────────────────────────────────────
-GENERATE_FLAGS = --samples=20 --examples=0 --provider=openai \
-                 --max-tokens=4096 --temperature=0.8 \
+GENERATE_FLAGS = --samples=1 --examples=0 --provider=llamacpp \
+                 --max-tokens=2048 --temperature=0.85 \
                  --model=manual_Mistral_7B
 
 # Convert quiet config to flag
@@ -21,9 +21,9 @@ endif
 # ── Pipeline 1: Data-flow parameters ──────────────────────────────────────
 YOSYS_PATH        := /home/share/oss-cad-suite/bin/yosys
 TEMP_DIR          := /tmp
-TRAIN_DATASET_DIR := TrainDataset
-CELL_RANGE_START  := 0
-CELL_RANGE_STOP   := 5
+TRAIN_DATASET_DIR := src/TrainDataset
+CELL_RANGE_START  := 6
+CELL_RANGE_STOP   := 10
 EXTRACT_RANGES    := None
 FLOW_STEPS        := synthesis,extract,filter
 
@@ -45,13 +45,19 @@ LANGGRAPH_DIR     := /home/nntkim/GNU_COMBA/src/langgraph_core
 LANGGRAPH_MODULES := verilogeval/*
 LANGGRAPH_DESC    := xml
 LANGGRAPH_SAMPLES := 1
-LANGGRAPH_JOBS    := 10
 TS_SIMULATOR     := iverilog
-SC_ENV            := SC=$(SC) COMBA_SELF_CONSISTENCY=$(SC) COMBA_MAX_SAMPLES=10 COMBA_PIPELINE_TIMEOUT=600 COMBA_WALL_BUDGET=1200
+SC_ENV            := SC=$(SC) COMBA_SELF_CONSISTENCY=$(SC) COMBA_MAX_SAMPLES=10 COMBA_PIPELINE_TIMEOUT=600
 RTLLM_REPORTS_DIR := RTLLM/modules
 RTLLM_V2_REPORTS_DIR := RTLLM_v2/modules
 VEVAL_REPORTS_DIR := verilogeval_outputs
 
+ifeq ($(SC),1)
+  LANGGRAPH_SC_FLAG := COMBA_SELF_CONSISTENCY=1
+  LANGGRAPH_SAMPLES_OVERRIDE := --samples=1
+else
+  LANGGRAPH_SC_FLAG := COMBA_SELF_CONSISTENCY=0
+  LANGGRAPH_SAMPLES_OVERRIDE :=
+endif
 
 VEVAL_V1_DIR      := $(src_dir)/ext/verilog-eval/dataset_code-complete-iccad2023
 VEVAL_V2_DIR      := $(src_dir)/ext/verilog-eval/dataset_spec-to-rtl
@@ -61,8 +67,8 @@ VEVAL_V2_DIR      := $(src_dir)/ext/verilog-eval/dataset_spec-to-rtl
 .PHONY: default jupyterlab verilog-eval \
         data-flow gen-flow-configs \
         synthesis extract filter langgraph langgraph-flow \
-        all_RTLLM RTLLM \
-        RTLLM_v2 \
+        all_RTLLM RTLLM RTLLM-iverilog RTLLM-auto \
+        RTLLM_v2 RTLLM_v2-iverilog RTLLM_v2-auto VerilogEval-bench \
         analyze-syntax analyze-syntax-rtllm analyze-syntax-rtllm-v2 analyze-syntax-veval analyze-enum \
         check-verilator check-analyzers clean-flow clean help
 
@@ -77,8 +83,8 @@ verilog-eval:
 	cp config.log config.log.old
 	$(src_dir)/ext/verilog-eval/configure \
 		--with-model=manual_Mistral_7B --with-task=code-complete-iccad2023 \
-		--with-samples=20 --with-examples=0 \
-		--with-model-manual=http://localhost:8000/v1
+		--with-samples=1 --with-examples=0 \
+		--with-model-manual=True
 
 all_RTLLM:
 	$(MAKE) RTLLM
@@ -102,9 +108,9 @@ RTLLM_v2:
 langgraph:
 	@echo "=== Running LangGraph Inference: VerilogEval V1 (Parallel) ==="
 	$(SC_ENV) $(scripts_dir)/main_langgraph.py ${GENERATE_FLAGS} \
-		--model-manual=http://localhost:8000/v1 --model-submanual=http://localhost:8001/v1 \
-		--jobs $(LANGGRAPH_JOBS) $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
-		--dataset-dir $(VEVAL_V1_DIR)
+		--model-manual=True --model-submanual=True \
+		--jobs 5 $(LANGGRAPH_QUIET) --desc-type $(LANGGRAPH_DESC) \
+		--dataset-dir $(VEVAL_V1_DIR) $(LANGGRAPH_SAMPLES_OVERRIDE)
 
 # ── Pipeline 1: full data-flow ─────────────────────────────────────────────
 ## Runs all steps declared in FLOW_STEPS (synthesis, extract, filter).
@@ -225,6 +231,7 @@ help:
 	@echo "  data-flow      Run full Pipeline 1 (steps: $(FLOW_STEPS))"
 	@echo "  langgraph-flow    Run Pipeline 3 (LangGraph)"
 	@echo "  langgraph         Run LangGraph on VerilogEval V1 (Parallel)"
+	@echo "  langgraph-veval-v2 Run LangGraph on VerilogEval V2 (Parallel)"
 	@echo "  synthesis      Run synthesis step only"
 	@echo "  extract        Run extract step only"
 	@echo "  filter         Run filter step only"
@@ -234,12 +241,13 @@ help:
 	@echo "Benchmark targets (Pipeline 3):"
 	@echo "  all_RTLLM         Run both RTLLM and RTLLM_v2 benchmarks"
 	@echo "  RTLLM             Run RTLLM benchmark (simulator: verilator)"
-	@echo "  RTLLM_v2          Run RTLLM_v2 benchmark (simulator: verilator)"
+	@echo "  RTLLM-iverilog    Run RTLLM benchmark (simulator: iverilog)"
+	@echo "  RTLLM-auto        Run RTLLM benchmark (auto-pick simulator)"
+	@echo "  VerilogEval-bench Run VerilogEval benchmark (default: $(TS_SIMULATOR))"
 	@echo ""
 	@echo "Analyzer targets (auto-run after benchmarks when SC=1):"
 	@echo "  analyze-syntax        Analyze self-consistency for both benchmarks"
 	@echo "  analyze-syntax-rtllm  Analyze RTLLM SC reports → reports/analyze_syntax_rtllm.json"
-	@echo "  analyze-syntax-rtllm-v2  Analyze RTLLM_v2 SC reports → reports/analyze_syntax_rtllm_v2.json"
 	@echo "  analyze-syntax-veval  Analyze VerilogEval SC reports → reports/analyze_syntax_veval.json"
 	@echo "  analyze-enum          Detect enum/port mismatch issues in RTLLM"
 	@echo ""
@@ -256,5 +264,4 @@ help:
 	@echo "  LANGGRAPH_MODULES           (default: $(LANGGRAPH_MODULES))"
 	@echo "  LANGGRAPH_DESC              (default: $(LANGGRAPH_DESC))"
 	@echo "  LANGGRAPH_SAMPLES           (default: $(LANGGRAPH_SAMPLES))"
-	@echo "  LANGGRAPH_JOBS              (default: $(LANGGRAPH_JOBS))  [--with-jobs]"
 	@echo ""

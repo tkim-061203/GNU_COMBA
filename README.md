@@ -193,7 +193,7 @@ Used for processing Verilog codebases to extract specific modules based on compl
                       --with-model-submanual=http://localhost:8001/v1 \
                       --with-task=code-complete-iccad2023
    ```
-3. **Run LangGraph inference** (spawns 20 parallel workers):
+3. **Run LangGraph inference** (spawns 10 parallel workers by default; tune with `--with-jobs`):
    ```bash
    make langgraph
    ```
@@ -210,6 +210,7 @@ Used for processing Verilog codebases to extract specific modules based on compl
 - `--with-description-type`: (Batch mode) Specify `xml` or `txt` for processing design descriptions.
 - `--with-self-consistency`: Enable Best-of-N multi-sampling (default: 0).
 - `--with-max-samples`: Max samples for self-consistency (default: 5).
+- `--with-jobs`: Parallel worker processes for LangGraph inference (default: 10). Note: Best-of-N candidates run *sequentially* inside each worker, so effective concurrency = jobs.
 
 > [!IMPORTANT]
 > **TXT Description Mode:** When using `LANGGRAPH_DESC=txt` (or `--desc-type txt`), the pipeline skips the XML conversion stage and passes the raw text specification directly to the generator. This is useful for benchmarks where the LLM performs better on raw problem statements.
@@ -237,7 +238,7 @@ RTLLM modules use C++ testbenches and require **Verilator** for simulation inste
    This command executes Pipeline 3 on the RTLLM dataset (found in `RTLLM/modules`) with 5 trials per design and saves aggregated reports to `RTLLM/reports/fixrate`.
 
    > [!NOTE]
-   > **Estimated Runtime**: Completion typically takes **20–40 minutes** for the full suite (30 designs × 5 trials) when using the default 20 parallel workers.
+   > **Estimated Runtime**: Completion typically takes **20–40 minutes** for the full suite (30 designs × 5 trials) when using the default 10 parallel workers.
 
 3. **Targeted Testing**:
    To test specific designs or change trial counts:
@@ -267,17 +268,17 @@ Common setup configurations use the `eX_tY` naming convention (e: examples, t: t
   ```bash
   ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
-- **`e0_t8`**: Zero-shot without examples + Temperature 0.8 (generates 20 samples).
+- **`e0_t8`**: Zero-shot without examples + Temperature 0.8 (generates 10 samples).
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=10 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
 - **`e1_t0`**: One-shot with 1 example + Greedy Search.
   ```bash
   ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
-- **`e1_t8`**: One-shot with 1 example + Temperature 0.8 (generates 20 samples).
+- **`e1_t8`**: One-shot with 1 example + Temperature 0.8 (generates 10 samples).
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=10 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
 
 
@@ -289,19 +290,46 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 - **Iverilog Simulation**: Uses `iverilog` and `vvp` to provide precise functional feedback to the debugger agent.
 - **Dual GPU Routing**: Explicitly declare the Debugger URL (`--with-model-submanual`) to route tasks correctly between the two GPUs.
 
-- **Dual GPU LangGraph**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001.
-  
+- **Dual GPU LangGraph**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001. All configs below enable **Coordinated Best-of-N** via `--with-self-consistency=1 --with-max-samples=5` (N=5 candidates per run).
+
+  > [!WARNING]
+  > **High Resource Consumption with pass@k × Best-of-N**: The samples override has been removed. If you configure `--with-samples=20` and `--with-self-consistency=1 --with-max-samples=5`, the benchmark will run 20 independent trials per problem, and each trial will internally attempt up to 5 candidates. This results in up to `156 × 20 × 5 = 15,600` possible generations, which requires significant time and API credit. To run plain pass@k sampling instead (e.g. pass@20 without Best-of-N), configure with `--with-self-consistency=0` or run `make langgraph SC=0`.
+
+  **`e0_t0`** — temp 0, examples 0. Default `make langgraph` → Best-of-5 (1 run/problem):
   ```bash
   ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
-                     --with-temperature=0 --with-samples=1 --with-examples=1 \
+                     --with-temperature=0 --with-samples=1 --with-examples=0 \
+                     --with-self-consistency=1 --with-max-samples=5 \
                      --with-model-manual=http://localhost:8000/v1 \
                      --with-model-submanual=http://localhost:8001/v1 \
                      --with-task=code-complete-iccad2023 --with-quiet=True
   ```
 
+  **`e0_t8`** — temp 0.8, examples 0. Default `make langgraph` → pass@20 × Best-of-5 (up to 100 runs/problem, 15,600 total generations). Run `make langgraph SC=0` to get plain pass@20:
+  ```bash
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+                     --with-temperature=0.8 --with-samples=20 --with-examples=0 \
+                     --with-self-consistency=1 --with-max-samples=5 \
+                     --with-model-manual=http://localhost:8000/v1 \
+                     --with-model-submanual=http://localhost:8001/v1 \
+                     --with-task=code-complete-iccad2023 --with-quiet=True
+  ```
+
+  **`e1_t0`** — temp 0, examples 1. Default `make langgraph` → Best-of-5 (1 run/problem):
+  ```bash
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+                     --with-temperature=0 --with-samples=1 --with-examples=1 \
+                     --with-self-consistency=1 --with-max-samples=5 \
+                     --with-model-manual=http://localhost:8000/v1 \
+                     --with-model-submanual=http://localhost:8001/v1 \
+                     --with-task=code-complete-iccad2023 --with-quiet=True
+  ```
+
+  **`e1_t8`** — temp 0.8, examples 1. Default `make langgraph` → pass@20 × Best-of-5 (up to 100 runs/problem, 15,600 total generations). Run `make langgraph SC=0` to get plain pass@20:
   ```bash
   ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0.8 --with-samples=20 --with-examples=1 \
+                     --with-self-consistency=1 --with-max-samples=5 \
                      --with-model-manual=http://localhost:8000/v1 \
                      --with-model-submanual=http://localhost:8001/v1 \
                      --with-task=code-complete-iccad2023 --with-quiet=True
@@ -341,9 +369,9 @@ You can serve the base model and debugger model locally on a dual-GPU setup usin
 
 ### Inference & Benchmarks
 - **`make langgraph`**: Run Pipeline 3 (LangGraph) on the **VerilogEval V1** dataset. This is the main target for spec-to-RTL agentic inference.
-- **`make langgraph-veval-v2`**: Run Pipeline 3 on the **VerilogEval V2** (spec-to-rtl) dataset.
 - **`make RTLLM`**: Run Pipeline 3 on the **RTLLM** dataset (uses Verilator by default).
-- **`make VerilogEval-bench`**: Run the legacy benchmark script for VerilogEval (calls `benchmark_langgraph.py`).
+- **`make RTLLM_v2`**: Run Pipeline 3 on the **RTLLM_v2** dataset (uses Verilator by default).
+- **`make all_RTLLM`**: Run both RTLLM and RTLLM_v2 benchmarks.
 - **`make default`**: Run standard non-agentic LLM inference (Pipeline 2).
 
 ### Data Preparation (Pipeline 1)

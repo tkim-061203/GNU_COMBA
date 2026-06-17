@@ -625,6 +625,7 @@ cell_range_start
 train_dataset_dir
 temp_dir
 yosys_path
+jobs
 max_samples
 self_consistency
 description_type
@@ -697,6 +698,7 @@ with_quiet
 with_description_type
 with_self_consistency
 with_max_samples
+with_jobs
 with_yosys_path
 with_temp_dir
 with_train_dataset_dir
@@ -1342,8 +1344,10 @@ Optional Packages:
                           (default: True)
   --with-description-type Input description type for Pipeline 3 (xml or txt,
                           default: xml)
-  --with-self-consistency Enable Best-of-N multi-sampling (default: 0)
+  --with-self-consistency Enable Best-of-N multi-sampling (default: 1)
   --with-max-samples      Max samples for self-consistency (default: 5)
+  --with-jobs             Parallel worker processes for LangGraph inference
+                          (default: 10)
   --with-yosys-path       Path to yosys binary for synthesis
   --with-temp-dir         Temp directory prefix for Yosys synthesis jobs
   --with-train-dataset-dir
@@ -2038,7 +2042,7 @@ if test ${with_self_consistency+y}
 then :
   withval=$with_self_consistency; self_consistency="${with_self_consistency}"
 else $as_nop
-  self_consistency="0"
+  self_consistency="1"
 fi
 
 
@@ -2063,6 +2067,24 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: using max samples: ${max_samples}" >&5
 printf "%s\n" "$as_me: using max samples: ${max_samples}" >&6;}
+
+#-------------------------------------------------------------------------
+# --with-jobs
+#-------------------------------------------------------------------------
+
+
+# Check whether --with-jobs was given.
+if test ${with_jobs+y}
+then :
+  withval=$with_jobs; jobs="${with_jobs}"
+else $as_nop
+  jobs="10"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: using jobs: ${jobs}" >&5
+printf "%s\n" "$as_me: using jobs: ${jobs}" >&6;}
 
 #-------------------------------------------------------------------------
 # --with-revision

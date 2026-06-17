@@ -441,13 +441,17 @@ def run_pipeline_streaming(
     llm=None,
     dataset_dir: Optional[str] = None,
     benchmark_id: Optional[str] = None,
+    work_dir: Optional[str] = None,
+    desc_type: str = "xml",
 ) -> Iterator[Tuple[str, dict]]:
     """
     Run COMBA pipeline, yielding (node_name, state_update) per step.
     Streaming mode does NOT support self-consistency (single-pass only).
     """
     _, graph = get_pipeline(llm)
-    state = _prepare_state(nl_input, module_name, xml_description, dataset_dir, benchmark_id)
+    state = _prepare_state(
+        nl_input, module_name, xml_description, dataset_dir, benchmark_id, work_dir, desc_type
+    )
     config = {"recursion_limit": 300}
 
     for event in graph.stream(state, config):

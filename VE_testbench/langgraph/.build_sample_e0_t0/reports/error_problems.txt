@@ -19,7 +19,6 @@ Prob113_2012_q1g              [00/01](  0%)  0.00 R
 Prob116_m2014_q3              [00/01](  0%)  0.00 R                       
 Prob117_circuit9              [00/01](  0%)  0.00 R                       
 Prob124_rule110               [00/01](  0%)  0.00 R                       
-Prob128_fsm_ps2               [00/01](  0%)  0.00 R                       
 Prob133_2014_q3fsm            [00/01](  0%)  0.00 R                       
 Prob134_2014_q3c              [00/01](  0%)  0.00 R                       
 Prob135_m2014_q6b             [00/01](  0%)  0.00 R                       
@@ -28,7 +27,6 @@ Prob139_2013_q2bfsm           [00/01](  0%)  0.00 R
 Prob140_fsm_hdlc              [00/01](  0%)  0.00 R                       
 Prob141_count_clock           [00/01](  0%)  0.00 T                       
 Prob143_fsm_onehot            [00/01](  0%)  0.00 R                       
-Prob144_conwaylife            [00/01](  0%)  0.00 R                       
 Prob145_circuit8              [00/01](  0%)  0.00 R                       
 Prob146_fsm_serialdata        [00/01](  0%)  0.00 R                       
 Prob147_circuit10             [00/01](  0%)  0.00 R                       

@@ -242,27 +242,144 @@ async def chat_completions(request: ChatCompletionRequest):
             final_state = {}
 
             try:
-                # Run pipeline in thread pool to avoid blocking async
-                def _stream_sync():
-                    results = []
-                    for node_name, state_update in run_pipeline_streaming(user_message):
-                        results.append((node_name, state_update))
-                    return results
+                sc_active = os.environ.get("COMBA_SELF_CONSISTENCY", "0") == "1"
 
-                events = await loop.run_in_executor(_executor, _stream_sync)
+                if sc_active:
+                    from multi_sample import (
+                        _set_temperature,
+                        _restore_temperature,
+                        _install_diversity_hint,
+                        _restore_call,
+                        _build_sample_result,
+                        DIVERSITY_ENABLED,
+                        DIVERSITY_HINTS,
+                    )
 
-                # Stream each node event
-                for node_name, state_update in events:
-                    final_state.update(state_update)
-                    text = format_node_event(node_name, state_update, final_state)
-                    if text:
-                        yield make_sse_chunk(completion_id, text)
-                        await asyncio.sleep(0.01)  # tiny delay for UI responsiveness
+                    max_samples = int(os.environ.get("COMBA_MAX_SAMPLES", "10"))
+                    early_exit = os.environ.get("COMBA_EARLY_EXIT", "1") == "1"
 
-                # Send final formatted output
-                final_output = format_final_output(final_state)
-                if final_output:
-                    yield make_sse_chunk(completion_id, final_output)
+                    llm = create_llm()
+                    base_T = getattr(llm, "temperature", 0.8) or 0.8
+                    start_zero = os.environ.get("COMBA_SC_START_ZERO", "0") == "1"
+                    if base_T > 0.0:
+                        if start_zero:
+                            temperature_schedule = (0.0,) + (base_T,) * (max(1, max_samples) - 1)
+                        else:
+                            temperature_schedule = (base_T,) * max(1, max_samples)
+                    else:
+                        temperature_schedule = (0.0,) * max(1, max_samples)
+
+                    samples = []
+                    best_sample_state = {}
+                    best_sample_score = None
+                    best_sample_idx = 0
+
+                    for idx in range(max(1, max_samples)):
+                        T = temperature_schedule[min(idx, len(temperature_schedule) - 1)]
+                        sample_work_dir = f"/tmp/comba_api_server__s{idx}_{uuid.uuid4().hex[:6]}"
+                        os.makedirs(sample_work_dir, exist_ok=True)
+
+                        yield make_sse_chunk(
+                            completion_id,
+                            f"📝 **Best-of-N Candidate {idx+1}/{max_samples}** (T={T})...\n\n"
+                        )
+                        await asyncio.sleep(0.01)
+
+                        def _stream_sample_sync(t_val, hint_val):
+                            prev_T = _set_temperature(llm, t_val)
+                            original_call = _install_diversity_hint(llm, hint_val) if hint_val else None
+
+                            try:
+                                results = []
+                                for node_name, state_update in run_pipeline_streaming(
+                                    nl_input=user_message,
+                                    llm=llm,
+                                    work_dir=sample_work_dir,
+                                ):
+                                    results.append((node_name, state_update))
+                                return results, prev_T, original_call
+                            except Exception as e:
+                                _restore_temperature(llm, prev_T)
+                                _restore_call(llm, original_call)
+                                raise e
+
+                        hint = None
+                        if DIVERSITY_ENABLED and idx > 0 and idx < len(DIVERSITY_HINTS):
+                            hint = DIVERSITY_HINTS[idx]
+
+                        t0 = time.time()
+                        events, prev_T, original_call = await loop.run_in_executor(
+                            _executor, lambda: _stream_sample_sync(T, hint)
+                        )
+
+                        _restore_temperature(llm, prev_T)
+                        _restore_call(llm, original_call)
+
+                        elapsed = time.time() - t0
+
+                        # Accumulate state for this candidate
+                        sample_state = {}
+                        for node_name, state_update in events:
+                            sample_state.update(state_update)
+                            text = format_node_event(node_name, state_update, sample_state)
+                            if text:
+                                yield make_sse_chunk(completion_id, f"  {text}")
+                                await asyncio.sleep(0.01)
+
+                        result = _build_sample_result(idx, T, sample_state, elapsed)
+                        samples.append(result)
+
+                        if best_sample_score is None or result.score > best_sample_score:
+                            best_sample_score = result.score
+                            best_sample_state = dict(sample_state)
+                            best_sample_idx = idx
+
+                        status = result.final_status
+                        emoji = "✅" if status == "pass" else "❌"
+                        yield make_sse_chunk(
+                            completion_id,
+                            f"🏁 **Candidate {idx+1} Result:** `{status}` {emoji}\n\n"
+                        )
+                        await asyncio.sleep(0.01)
+
+                        if early_exit and status == "pass":
+                            yield make_sse_chunk(
+                                completion_id,
+                                f"🌟 **Early exit:** Candidate {idx+1} passed successfully!\n\n"
+                            )
+                            break
+
+                    best_sample_state["self_consistency"] = {
+                        "samples_run": len(samples),
+                        "max_samples": max_samples,
+                        "best_sample_idx": best_sample_idx,
+                        "all_samples": [s.summary() for s in samples],
+                    }
+
+                    final_output = format_final_output(best_sample_state)
+                    if final_output:
+                        yield make_sse_chunk(completion_id, final_output)
+
+                else:
+                    # Run single-pass pipeline in thread pool
+                    def _stream_sync():
+                        results = []
+                        for node_name, state_update in run_pipeline_streaming(user_message):
+                            results.append((node_name, state_update))
+                        return results
+
+                    events = await loop.run_in_executor(_executor, _stream_sync)
+
+                    for node_name, state_update in events:
+                        final_state.update(state_update)
+                        text = format_node_event(node_name, state_update, final_state)
+                        if text:
+                            yield make_sse_chunk(completion_id, text)
+                            await asyncio.sleep(0.01)
+
+                    final_output = format_final_output(final_state)
+                    if final_output:
+                        yield make_sse_chunk(completion_id, final_output)
 
             except Exception as e:
                 error_msg = f"\n❌ Pipeline error:\n```\n{str(e)}\n```\n"

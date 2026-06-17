@@ -126,7 +126,7 @@ Prob124_rule110               [00/01](  0%)  0.00 R
 Prob125_kmap3                 [01/01](100%)  0.00 .                       
 Prob126_circuit6              [01/01](100%)  0.00 .                       
 Prob127_lemmings1             [01/01](100%)  0.00 .                       
-Prob128_fsm_ps2               [00/01](  0%)  0.00 R                       
+Prob128_fsm_ps2               [01/01](100%)  0.00 .                       
 Prob129_ece241_2013_q8        [01/01](100%)  0.00 .                       
 Prob130_circuit5              [01/01](100%)  0.00 .                       
 Prob131_mt2015_q4             [01/01](100%)  0.00 .                       
@@ -142,7 +142,7 @@ Prob140_fsm_hdlc              [00/01](  0%)  0.00 R
 Prob141_count_clock           [00/01](  0%)  0.00 T                       
 Prob142_lemmings2             [01/01](100%)  0.00 .                       
 Prob143_fsm_onehot            [00/01](  0%)  0.00 R                       
-Prob144_conwaylife            [00/01](  0%)  0.00 R                       
+Prob144_conwaylife            [01/01](100%)  0.00 .                       
 Prob145_circuit8              [00/01](  0%)  0.00 R                       
 Prob146_fsm_serialdata        [00/01](  0%)  0.00 R                       
 Prob147_circuit10             [00/01](  0%)  0.00 R                       
@@ -156,7 +156,7 @@ Prob154_fsm_ps2data           [00/01](  0%)  0.00 R
 Prob155_lemmings4             [00/01](  0%)  0.00 R                       
 Prob156_review2015_fancytimer [00/01](  0%)  0.00 T                       
 
-pass_rate             =      73.72
+pass_rate             =      75.00
 avg_gini_simpson_idx  =       0.00
 total_prompt_tokens   =          0
 total_resp_tokens     =          0

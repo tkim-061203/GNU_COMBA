@@ -183,9 +183,9 @@ AC_MSG_NOTICE([using description type: ${description_type}])
 #-------------------------------------------------------------------------
 
 AC_ARG_WITH(self-consistency,
-  AS_HELP_STRING([--with-self-consistency],[Enable Best-of-N multi-sampling (default: 0)]),
+  AS_HELP_STRING([--with-self-consistency],[Enable Best-of-N multi-sampling (default: 1)]),
   [self_consistency="${with_self_consistency}"],
-  [self_consistency="0"])
+  [self_consistency="1"])
 
 AC_SUBST([self_consistency])
 AC_MSG_NOTICE([using self-consistency: ${self_consistency}])
@@ -195,12 +195,24 @@ AC_MSG_NOTICE([using self-consistency: ${self_consistency}])
 #-------------------------------------------------------------------------
 
 AC_ARG_WITH(max-samples,
-  AS_HELP_STRING([--with-max-samples],[Max samples for self-consistency (default: 20)]),
+  AS_HELP_STRING([--with-max-samples],[Max samples for self-consistency (default: 5)]),
   [max_samples="${with_max_samples}"],
-  [max_samples="20"])
+  [max_samples="5"])
 
 AC_SUBST([max_samples])
 AC_MSG_NOTICE([using max samples: ${max_samples}])
+
+#-------------------------------------------------------------------------
+# --with-jobs
+#-------------------------------------------------------------------------
+
+AC_ARG_WITH(jobs,
+  AS_HELP_STRING([--with-jobs],[Parallel worker processes for LangGraph inference (default: 10)]),
+  [jobs="${with_jobs}"],
+  [jobs="10"])
+
+AC_SUBST([jobs])
+AC_MSG_NOTICE([using jobs: ${jobs}])
 
 #-------------------------------------------------------------------------
 # --with-revision

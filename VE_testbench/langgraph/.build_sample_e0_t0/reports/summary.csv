@@ -125,7 +125,7 @@ Prob124_rule110,0,1,0.0,R
 Prob125_kmap3,1,1,1.0,.
 Prob126_circuit6,1,1,1.0,.
 Prob127_lemmings1,1,1,1.0,.
-Prob128_fsm_ps2,0,1,0.0,R
+Prob128_fsm_ps2,1,1,1.0,.
 Prob129_ece241_2013_q8,1,1,1.0,.
 Prob130_circuit5,1,1,1.0,.
 Prob131_mt2015_q4,1,1,1.0,.
@@ -141,7 +141,7 @@ Prob140_fsm_hdlc,0,1,0.0,R
 Prob141_count_clock,0,1,0.0,T
 Prob142_lemmings2,1,1,1.0,.
 Prob143_fsm_onehot,0,1,0.0,R
-Prob144_conwaylife,0,1,0.0,R
+Prob144_conwaylife,1,1,1.0,.
 Prob145_circuit8,0,1,0.0,R
 Prob146_fsm_serialdata,0,1,0.0,R
 Prob147_circuit10,0,1,0.0,R
