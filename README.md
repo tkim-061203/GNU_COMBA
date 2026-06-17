@@ -72,7 +72,7 @@ graph TD
 
 - **Isolated Execution**: Every sample runs in an independent, isolated `work_dir`, preventing file collisions and race conditions during parallel execution.
 - **Precise Error Parsing**: Standardized `iverilog` parsing filters out warnings and non-critical noise, allowing agents to focus exclusively on syntax errors.
-- **Hierarchical Self-Consistency**: Multi-sample Best-of-N strategy. Tier 1 (deterministic) for speed, Tier 2 (diverse sampling with hints) for robustness.
+- **Coordinated Best-of-N**: Multi-sample Best-of-N strategy. Sample 0 is a deterministic greedy anchor (T=0); samples 1..N-1 ramp upward from the configured `--with-temperature` for diversity (t0 stays in a low band, t8 explores a high band). Optional cross-sample memory feeds the previous failure into the next attempt, and optional functional voting selects the largest cluster of behaviorally-equivalent candidates within the best status tier.
 - **Token Efficiency**: Automated truncation of task descriptions in the debugger node to minimize context window overhead and save tokens.
 - **Description Flexibility**: Support for raw `.txt` input, bypassing the XML converter for users who prefer direct text-to-Verilog generation.
 
@@ -208,9 +208,19 @@ Used for processing Verilog codebases to extract specific modules based on compl
 - `--with-max_token`: Limit for the generated Verilog code output.
 - `--with-quiet`: Only show progress bar during LangGraph inference (default: True).
 - `--with-description-type`: (Batch mode) Specify `xml` or `txt` for processing design descriptions.
-- `--with-self-consistency`: Enable Best-of-N multi-sampling (default: 0).
+- `--with-self-consistency`: Enable Best-of-N multi-sampling (default: 1). Disable per-run with `make langgraph SC=0`.
 - `--with-max-samples`: Max samples for self-consistency (default: 5).
 - `--with-jobs`: Parallel worker processes for LangGraph inference (default: 10). Note: Best-of-N candidates run *sequentially* inside each worker, so effective concurrency = jobs.
+
+> [!NOTE]
+> **Best-of-N runtime tuning (env flags).** These override the Coordinated Best-of-N behavior at run time without reconfiguring:
+> - `COMBA_MAX_SAMPLES` (default 5): N candidates per run.
+> - `COMBA_SC_MEMORY` (default 0): set `=1` to feed the previous failed sample's top error into the next sample's generator prompt. Off until validated by A/B.
+> - `COMBA_SC_VOTE` (default 0): set `=1` to pick the largest cluster of functionally-equivalent candidates (within the best status tier) instead of plain best-score selection.
+> - `COMBA_EARLY_EXIT` (default 1): stop as soon as a sample passes.
+> - `COMBA_WALL_BUDGET` (default 1200s): per-problem wall-clock cap.
+>
+> The per-sample temperature schedule is anchored to `--with-temperature`: sample 0 is always `0.0` (greedy), samples 1..N-1 ramp up `+0.1` each from the configured base (capped at `1.2`).
 
 > [!IMPORTANT]
 > **TXT Description Mode:** When using `LANGGRAPH_DESC=txt` (or `--desc-type txt`), the pipeline skips the XML conversion stage and passes the raw text specification directly to the generator. This is useful for benchmarks where the LLM performs better on raw problem statements.
@@ -410,4 +420,4 @@ make jupyterlab
 
 ---
 Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
-Version: 2.4.0
+Version: 2.6.0
