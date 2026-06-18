@@ -12,19 +12,20 @@
     "gvd": "module counter_12 (\n    input rst_n,\n    input clk,\n    input valid_count,\n    output reg [3:0] out\n);\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n)\n            out <= 4'b0000;\n        else if (valid_count) begin\n            if (out == 4'd11) out <= 4'b0000; else out <= out + 1;\n        end\n    end\nendmodule\n",
     "xml_description": "<module id=\"counter_12\">\n    <description>Counter from 4 'b0000 to 4' d11. The counting can be controlled by the input signal valid_count. That is, the count is paused if valid_count is 0.</description>\n    <ports>\n        <input id=\"rst_n\">Reset signal (active low)</input>\n        <input id=\"clk\">Clock signal</input>\n        <input id=\"valid_count\">Signal to enable counting</input>\n        <output id=\"out\" width_description=\"[3:0]\">Current count</output>\n    </ports>\n    <implementation>\n        // If reset is active, set count to 0\n        if (~rst_n) begin\n            out <= 4'b0000;\n        end else if (valid_count == 1) begin\n            // If count is maximum, wrap around to 0\n            if (out == 4'd11) begin\n                out <= 4'b0000;\n            end else begin\n                // Otherwise, increment count\n                out <= out + 1;\n            end\n        end\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[2]: Entering directory '/tmp/comba_counter_12_yewuchus/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcounter_12.cpp Vcounter_12__Trace.cpp Vcounter_12__Slow.cpp Vcounter_12__Syms.cpp Vcounter_12__Trace__Slow.cpp > Vcounter_12__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcounter_12__ALL.o Vcounter_12__ALL.cpp\nar -cr Vcounter_12__ALL.a Vcounter_12__ALL.o\nranlib Vcounter_12__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcounter_12__ALL.a      -o Vcounter_12\nmake[2]: Leaving directory '/tmp/comba_counter_12_yewuchus/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_counter_12_zn34xqkz/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcounter_12.cpp Vcounter_12__Trace.cpp Vcounter_12__Slow.cpp Vcounter_12__Syms.cpp Vcounter_12__Trace__Slow.cpp > Vcounter_12__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcounter_12__ALL.o Vcounter_12__ALL.cpp\nar -cr Vcounter_12__ALL.a Vcounter_12__ALL.o\nranlib Vcounter_12__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcounter_12__ALL.a      -o Vcounter_12\nmake[1]: Leaving directory '/tmp/comba_counter_12_zn34xqkz/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "self_consistency": {
       "samples_run": 1,
-      "max_samples": 20,
+      "max_samples": 8,
       "best_sample_idx": 0,
       "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
-      "total_elapsed_s": 8.48,
+      "vote_enabled": false,
+      "total_elapsed_s": 9.33,
       "all_samples": [
         {
           "idx": 0,
@@ -36,7 +37,7 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 14,
-          "elapsed_s": 8.48
+          "elapsed_s": 9.33
         }
       ]
     },

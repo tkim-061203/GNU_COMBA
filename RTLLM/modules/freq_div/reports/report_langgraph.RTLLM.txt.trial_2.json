@@ -9,10 +9,10 @@
     "sc_trial": 4,
     "ts_trial": 4,
     "total_iter": 8,
-    "gvd": "module freq_div (\n    input CLK_in,\n    output reg CLK_50,\n    output reg CLK_10,\n    output reg CLK_1,\n    input RST\n);\n\n    reg [3:0] cnt_10;\n    reg [6:0] cnt_100;\n\n    always @(posedge CLK_in or posedge RST) begin\n        if (RST) begin\n            CLK_50 <= 1'b0;\n            cnt_10 <= 4'b0000;\n            cnt_100 <= 7'b0000000;\n            CLK_10 <= 1'b0;\n            CLK_1 <= 1'b0;\n        end\n        else begin\n            \n            CLK_50 <= ~CLK_50;\n\n            if (cnt_10 == 4'd9) begin\n                CLK_10 <= ~CLK_10;\n                cnt_10 <= 4'b0000;\n            end\n            else begin\n                cnt_10 <= cnt_10 + 4'd1;\n            end\n\n            if (cnt_100 == 7'd99) begin\n                CLK_1 <= ~CLK_1;\n                cnt_100 <= 7'b0000000;\n            end\n            else begin\n                cnt_100 <= cnt_100 + 7'd1;\n            end\n        end\n    end\n\nendmodule\n",
-    "xml_description": "<module id=\"freq_div\">\n    <description>A frequency divider for dividing the input clock frequency by 2, 10, and 100.</description>\n    <ports>\n        <input id=\"CLK_in\">Input clock signal.</input>\n        <input id=\"RST\">Reset signal.</input>\n        <output id=\"CLK_50\">Output clock signal with a frequency of CLK_in divided by 2.</output>\n        <output id=\"CLK_10\">Output clock signal with a frequency of CLK_in divided by 10.</output>\n        <output id=\"CLK_1\">Output clock signal with a frequency of CLK_in divided by 100.</output>\n    </ports>\n    <implementation>\n        // Counter for generating CLK_50\n        reg [1:0] cnt_50;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_50 <= 2'd0;\n            end else begin\n                cnt_50 <= ~cnt_50;\n            end\n        end\n        \n        // Counter for generating CLK_10\n        reg [2:0] cnt_10;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_10 <= 3'd0;\n            end else if (cnt_10 == 3'd4) begin\n                cnt_10 <= 3'd0;\n            end else begin\n                cnt_10 <= cnt_10 + 3'd1;\n            end\n        end\n        \n        // Counter for generating CLK_1\n        reg [6:0] cnt_100;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_100 <= 7'd0;\n            end else if (cnt_100 == 7'd49) begin\n                cnt_100 <= 7'd0;\n            end else begin\n                cnt_100 <= cnt_100 + 7'd1;\n            end\n        end\n        \n        // Assigning output clocks based on counters\n        assign CLK_50 = cnt_50[1];\n        assign CLK_10 = cnt_10[2];\n        assign CLK_1 = cnt_100[6];\n    </implementation>\n</module>",
+    "gvd": "module freq_div (\n    input CLK_in,\n    output reg CLK_50,\n    output reg CLK_10,\n    output reg CLK_1,\n    input RST\n);\n\n    reg [3:0] cnt_10;\n    reg [6:0] cnt_100;\n\n    always @(posedge CLK_in or posedge RST) begin\n        if (RST) begin\n            CLK_50 <= 1'b0;\n            CLK_10 <= 1'b0;\n            CLK_1 <= 1'b0;\n            cnt_10 <= 4'd0;\n            cnt_100 <= 7'd0;\n        end\n        else begin\n            \n            CLK_50 <= ~CLK_50;\n\n            if (cnt_10 == 4'd9) begin\n                cnt_10 <= 4'd0;\n                CLK_10 <= ~CLK_10;\n            end\n            else begin\n                cnt_10 <= cnt_10 + 1;\n            end\n\n            if (cnt_100 == 7'd99) begin\n                cnt_100 <= 7'd0;\n                CLK_1 <= ~CLK_1;\n            end\n            else begin\n                cnt_100 <= cnt_100 + 1;\n            end\n        end\n    end\n\nendmodule\n",
+    "xml_description": "<module id=\"freq_div\">\n    <description>A frequency divider for dividing the input clock frequency of 100MHz signal into 3 different clock frequencies: 50MHz, 10MHz, and 1MHz.</description>\n    <ports>\n        <input id=\"CLK_in\">Input clock signal.</input>\n        <input id=\"RST\">Reset signal.</input>\n        <output id=\"CLK_50\">Output clock signal with a frequency of CLK_in divided by 2.</output>\n        <output id=\"CLK_10\">Output clock signal with a frequency of CLK_in divided by 10.</output>\n        <output id=\"CLK_1\">Output clock signal with a frequency of CLK_in divided by 100.</output>\n    </ports>\n    <implementation>\n        // Counter for generating CLK_50\n        reg [0:0] cnt_50;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_50 <= 1'b0;\n            end else begin\n                cnt_50 <= ~cnt_50;\n            end\n        end\n        \n        // Counter for generating CLK_10\n        reg [2:0] cnt_10;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_10 <= 3'd0;\n            end else if (cnt_10 == 3'd4) begin\n                cnt_10 <= 3'd0;\n            end else begin\n                cnt_10 <= cnt_10 + 1;\n            end\n        end\n        \n        // Counter for generating CLK_1\n        reg [6:0] cnt_100;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_100 <= 7'd0;\n            end else if (cnt_100 == 7'd49) begin\n                cnt_100 <= 7'd0;\n            end else begin\n                cnt_100 <= cnt_100 + 1;\n            end\n        end\n        \n        // Assigning output clocks based on counters\n        assign CLK_50 = cnt_50[0];\n        assign CLK_10 = cnt_10[2];\n        assign CLK_1 = cnt_100[6];\n        \n    </implementation>\n    \n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[2]: Entering directory '/tmp/comba_freq_div_tfmej9t0/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_div.cpp Vfreq_div__Trace.cpp Vfreq_div__Slow.cpp Vfreq_div__Syms.cpp Vfreq_div__Trace__Slow.cpp > Vfreq_div__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vfreq_div__ALL.o Vfreq_div__ALL.cpp\nar -cr Vfreq_div__ALL.a Vfreq_div__ALL.o\nranlib Vfreq_div__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vfreq_div__ALL.a      -o Vfreq_div\nmake[2]: Leaving directory '/tmp/comba_freq_div_tfmej9t0/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_freq_div_spo7uxk0/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_div.cpp Vfreq_div__Trace.cpp Vfreq_div__Slow.cpp Vfreq_div__Syms.cpp Vfreq_div__Trace__Slow.cpp > Vfreq_div__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vfreq_div__ALL.o Vfreq_div__ALL.cpp\nar -cr Vfreq_div__ALL.a Vfreq_div__ALL.o\nranlib Vfreq_div__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vfreq_div__ALL.a      -o Vfreq_div\nmake[1]: Leaving directory '/tmp/comba_freq_div_spo7uxk0/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
       "TB:fsm_state_error::3::": 3
@@ -20,13 +20,14 @@
     "failure_type": "fsm_state_error",
     "vcd_status": "ok",
     "self_consistency": {
-      "samples_run": 2,
-      "max_samples": 20,
-      "best_sample_idx": 1,
-      "best_temperature": 0.5,
+      "samples_run": 5,
+      "max_samples": 8,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
       "best_status": "pass",
       "early_exit": true,
-      "total_elapsed_s": 88.64,
+      "vote_enabled": false,
+      "total_elapsed_s": 293.84,
       "all_samples": [
         {
           "idx": 0,
@@ -38,11 +39,47 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 54,
-          "elapsed_s": 50.52
+          "elapsed_s": 60.88
         },
         {
           "idx": 1,
-          "T": 0.5,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 53,
+          "elapsed_s": 63.32
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 54,
+          "elapsed_s": 64.64
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 54,
+          "elapsed_s": 58.25
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
           "status": "pass",
           "sc_trial": 4,
           "ts_trial": 4,
@@ -50,13 +87,13 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 42,
-          "elapsed_s": 38.12
+          "elapsed_s": 46.76
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 0,
-      "commits": 6,
+      "rollbacks": 1,
+      "commits": 5,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

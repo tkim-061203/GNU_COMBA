@@ -8,7 +8,7 @@ flow_inputs_dir   := $(flow_src_dir)/inputs
 # ── Pipeline 2: LLM inference ──────────────────────────────────────────────
 GENERATE_FLAGS = --samples=20 --examples=0 --provider=openai \
                  --max-tokens=4096 --temperature=0.8 \
-                 --model=manual_Mistral_7B
+                 --model=generator
 
 # Convert quiet config to flag
 QUIET_VAL=True
@@ -47,7 +47,7 @@ LANGGRAPH_DESC    := xml
 LANGGRAPH_SAMPLES := 1
 LANGGRAPH_JOBS    := 10
 TS_SIMULATOR     := iverilog
-SC_ENV            := SC=$(SC) COMBA_SELF_CONSISTENCY=$(SC) COMBA_MAX_SAMPLES=10 COMBA_PIPELINE_TIMEOUT=600 COMBA_WALL_BUDGET=1200
+SC_ENV            := SC=$(SC) COMBA_SELF_CONSISTENCY=$(SC) COMBA_MAX_SAMPLES=5 COMBA_PIPELINE_TIMEOUT=600 COMBA_WALL_BUDGET=1200
 RTLLM_REPORTS_DIR := RTLLM/modules
 RTLLM_V2_REPORTS_DIR := RTLLM_v2/modules
 VEVAL_REPORTS_DIR := verilogeval_outputs
@@ -76,7 +76,7 @@ jupyterlab:
 verilog-eval:
 	cp config.log config.log.old
 	$(src_dir)/ext/verilog-eval/configure \
-		--with-model=manual_Mistral_7B --with-task=code-complete-iccad2023 \
+		--with-model=generator --with-task=code-complete-iccad2023 \
 		--with-samples=20 --with-examples=0 \
 		--with-model-manual=http://localhost:8000/v1
 

@@ -65,13 +65,13 @@ Prob064_vector3,1,1,1.0,.
 Prob065_7420,1,1,1.0,.
 Prob066_edgecapture,0,1,0.0,R
 Prob067_countslow,1,1,1.0,.
-Prob068_countbcd,0,1,0.0,R
+Prob068_countbcd,1,1,1.0,.
 Prob069_truthtable1,1,1,1.0,.
 Prob070_ece241_2013_q2,0,1,0.0,R
 Prob071_always_casez,1,1,1.0,.
 Prob072_thermostat,1,1,1.0,.
 Prob073_dff16e,1,1,1.0,.
-Prob074_ece241_2014_q4,0,1,0.0,R
+Prob074_ece241_2014_q4,1,1,1.0,.
 Prob075_counter_2bc,1,1,1.0,.
 Prob076_always_case,1,1,1.0,.
 Prob077_wire_decl,1,1,1.0,.
@@ -99,7 +99,7 @@ Prob098_circuit7,1,1,1.0,.
 Prob099_m2014_q6c,1,1,1.0,.
 Prob100_fsm3comb,1,1,1.0,.
 Prob101_circuit4,1,1,1.0,.
-Prob102_circuit3,0,1,0.0,R
+Prob102_circuit3,1,1,1.0,.
 Prob103_circuit2,1,1,1.0,.
 Prob104_mt2015_muxdff,0,1,0.0,R
 Prob105_rotate100,1,1,1.0,.
@@ -125,7 +125,7 @@ Prob124_rule110,0,1,0.0,R
 Prob125_kmap3,1,1,1.0,.
 Prob126_circuit6,1,1,1.0,.
 Prob127_lemmings1,1,1,1.0,.
-Prob128_fsm_ps2,0,1,0.0,R
+Prob128_fsm_ps2,1,1,1.0,.
 Prob129_ece241_2013_q8,1,1,1.0,.
 Prob130_circuit5,1,1,1.0,.
 Prob131_mt2015_q4,1,1,1.0,.
@@ -141,7 +141,7 @@ Prob140_fsm_hdlc,0,1,0.0,R
 Prob141_count_clock,0,1,0.0,T
 Prob142_lemmings2,1,1,1.0,.
 Prob143_fsm_onehot,0,1,0.0,R
-Prob144_conwaylife,0,1,0.0,R
+Prob144_conwaylife,1,1,1.0,.
 Prob145_circuit8,0,1,0.0,R
 Prob146_fsm_serialdata,0,1,0.0,R
 Prob147_circuit10,0,1,0.0,R

@@ -12,19 +12,20 @@
     "gvd": "module right_shifter (\n    input clk,\n    output reg [7:0] q,\n    input d\n);\n    initial begin\n        q = 8'b0;\n    end\n    \n    always @(posedge clk) begin\n        q <= (q >> 1);\n        q[7] <= d;\n    end\nendmodule\n",
     "xml_description": "<module id=\"right_shifter\">\n    <description>Right shifter module that performs an 8-bit right shift on a 1-bit input.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"d\">Input signal to be right-shifted.</input>\n        <output id=\"q\">Output signal representing the result of the right shift operation.</output>\n    </ports>\n    <implementation>Initialize q register to 0. On each rising edge of the clock, shift the contents of q to the right by one bit and insert the new input bit d into the most significant position of the register.</implementation>\n    \n    <logic_description type=\"sequential_logic\">\n        <reg id=\"q\" width_description=\"[7:0]\">Register to store the shifted values.</reg>\n        \n        <initial>\n            <assign value=\"0\">Initial value of q is set to 0.</assign>\n        </initial>\n        \n        <always @(\"posedge clk\")>\n            <assign value=\"(q >> 1)\">Shift the contents of q to the right by one bit.</assign>\n            <assign value=\"d\">Insert the new input bit d into the most significant position of the register.</assign>\n        </always>\n    </logic_description>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[2]: Entering directory '/tmp/comba_right_shifter_jib8w3j2/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vright_shifter.cpp Vright_shifter__Trace.cpp Vright_shifter__Slow.cpp Vright_shifter__Syms.cpp Vright_shifter__Trace__Slow.cpp > Vright_shifter__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vright_shifter__ALL.o Vright_shifter__ALL.cpp\nar -cr Vright_shifter__ALL.a Vright_shifter__ALL.o\nranlib Vright_shifter__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vright_shifter__ALL.a      -o Vright_shifter\nmake[2]: Leaving directory '/tmp/comba_right_shifter_jib8w3j2/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_right_shifter_u5kogm06/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vright_shifter.cpp Vright_shifter__Trace.cpp Vright_shifter__Slow.cpp Vright_shifter__Syms.cpp Vright_shifter__Trace__Slow.cpp > Vright_shifter__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vright_shifter__ALL.o Vright_shifter__ALL.cpp\nar -cr Vright_shifter__ALL.a Vright_shifter__ALL.o\nranlib Vright_shifter__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vright_shifter__ALL.a      -o Vright_shifter\nmake[1]: Leaving directory '/tmp/comba_right_shifter_u5kogm06/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "self_consistency": {
       "samples_run": 1,
-      "max_samples": 20,
+      "max_samples": 8,
       "best_sample_idx": 0,
       "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
-      "total_elapsed_s": 7.92,
+      "vote_enabled": false,
+      "total_elapsed_s": 9.52,
       "all_samples": [
         {
           "idx": 0,
@@ -36,7 +37,7 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 14,
-          "elapsed_s": 7.92
+          "elapsed_s": 9.52
         }
       ]
     },

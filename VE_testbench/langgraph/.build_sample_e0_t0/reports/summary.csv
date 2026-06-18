@@ -42,7 +42,7 @@ Prob041_dff8r,1,1,1.0,.
 Prob042_vector4,1,1,1.0,.
 Prob043_vector5,1,1,1.0,.
 Prob044_vectorgates,1,1,1.0,.
-Prob045_edgedetect2,0,1,0.0,R
+Prob045_edgedetect2,1,1,1.0,.
 Prob046_dff8p,1,1,1.0,.
 Prob047_dff8ar,1,1,1.0,.
 Prob048_m2014_q4c,1,1,1.0,.
@@ -65,7 +65,7 @@ Prob064_vector3,1,1,1.0,.
 Prob065_7420,1,1,1.0,.
 Prob066_edgecapture,0,1,0.0,R
 Prob067_countslow,1,1,1.0,.
-Prob068_countbcd,0,1,0.0,R
+Prob068_countbcd,1,1,1.0,.
 Prob069_truthtable1,1,1,1.0,.
 Prob070_ece241_2013_q2,0,1,0.0,R
 Prob071_always_casez,1,1,1.0,.
@@ -93,13 +93,13 @@ Prob092_gatesv100,1,1,1.0,.
 Prob093_ece241_2014_q3,0,1,0.0,R
 Prob094_gatesv,1,1,1.0,.
 Prob095_review2015_fsmshift,0,1,0.0,R
-Prob096_review2015_fsmseq,0,1,0.0,R
+Prob096_review2015_fsmseq,1,1,1.0,.
 Prob097_mux9to1v,1,1,1.0,.
 Prob098_circuit7,1,1,1.0,.
 Prob099_m2014_q6c,1,1,1.0,.
 Prob100_fsm3comb,1,1,1.0,.
 Prob101_circuit4,1,1,1.0,.
-Prob102_circuit3,0,1,0.0,R
+Prob102_circuit3,1,1,1.0,.
 Prob103_circuit2,1,1,1.0,.
 Prob104_mt2015_muxdff,0,1,0.0,R
 Prob105_rotate100,1,1,1.0,.
@@ -122,7 +122,7 @@ Prob121_2014_q3bfsm,1,1,1.0,.
 Prob122_kmap4,1,1,1.0,.
 Prob123_bugs_addsubz,1,1,1.0,.
 Prob124_rule110,0,1,0.0,R
-Prob125_kmap3,1,1,1.0,.
+Prob125_kmap3,0,1,0.0,R
 Prob126_circuit6,1,1,1.0,.
 Prob127_lemmings1,1,1,1.0,.
 Prob128_fsm_ps2,1,1,1.0,.
@@ -131,7 +131,7 @@ Prob130_circuit5,1,1,1.0,.
 Prob131_mt2015_q4,1,1,1.0,.
 Prob132_always_if2,1,1,1.0,.
 Prob133_2014_q3fsm,0,1,0.0,R
-Prob134_2014_q3c,0,1,0.0,R
+Prob134_2014_q3c,1,1,1.0,.
 Prob135_m2014_q6b,0,1,0.0,R
 Prob136_m2014_q6,1,1,1.0,.
 Prob137_fsm_serial,0,1,0.0,R

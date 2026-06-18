@@ -43,7 +43,7 @@ Prob041_dff8r                 [01/01](100%)  0.00 .
 Prob042_vector4               [01/01](100%)  0.00 .                       
 Prob043_vector5               [01/01](100%)  0.00 .                       
 Prob044_vectorgates           [01/01](100%)  0.00 .                       
-Prob045_edgedetect2           [00/01](  0%)  0.00 R                       
+Prob045_edgedetect2           [01/01](100%)  0.00 .                       
 Prob046_dff8p                 [01/01](100%)  0.00 .                       
 Prob047_dff8ar                [01/01](100%)  0.00 .                       
 Prob048_m2014_q4c             [01/01](100%)  0.00 .                       
@@ -66,7 +66,7 @@ Prob064_vector3               [01/01](100%)  0.00 .
 Prob065_7420                  [01/01](100%)  0.00 .                       
 Prob066_edgecapture           [00/01](  0%)  0.00 R                       
 Prob067_countslow             [01/01](100%)  0.00 .                       
-Prob068_countbcd              [00/01](  0%)  0.00 R                       
+Prob068_countbcd              [01/01](100%)  0.00 .                       
 Prob069_truthtable1           [01/01](100%)  0.00 .                       
 Prob070_ece241_2013_q2        [00/01](  0%)  0.00 R                       
 Prob071_always_casez          [01/01](100%)  0.00 .                       
@@ -94,13 +94,13 @@ Prob092_gatesv100             [01/01](100%)  0.00 .
 Prob093_ece241_2014_q3        [00/01](  0%)  0.00 R                       
 Prob094_gatesv                [01/01](100%)  0.00 .                       
 Prob095_review2015_fsmshift   [00/01](  0%)  0.00 R                       
-Prob096_review2015_fsmseq     [00/01](  0%)  0.00 R                       
+Prob096_review2015_fsmseq     [01/01](100%)  0.00 .                       
 Prob097_mux9to1v              [01/01](100%)  0.00 .                       
 Prob098_circuit7              [01/01](100%)  0.00 .                       
 Prob099_m2014_q6c             [01/01](100%)  0.00 .                       
 Prob100_fsm3comb              [01/01](100%)  0.00 .                       
 Prob101_circuit4              [01/01](100%)  0.00 .                       
-Prob102_circuit3              [00/01](  0%)  0.00 R                       
+Prob102_circuit3              [01/01](100%)  0.00 .                       
 Prob103_circuit2              [01/01](100%)  0.00 .                       
 Prob104_mt2015_muxdff         [00/01](  0%)  0.00 R                       
 Prob105_rotate100             [01/01](100%)  0.00 .                       
@@ -123,7 +123,7 @@ Prob121_2014_q3bfsm           [01/01](100%)  0.00 .
 Prob122_kmap4                 [01/01](100%)  0.00 .                       
 Prob123_bugs_addsubz          [01/01](100%)  0.00 .                       
 Prob124_rule110               [00/01](  0%)  0.00 R                       
-Prob125_kmap3                 [01/01](100%)  0.00 .                       
+Prob125_kmap3                 [00/01](  0%)  0.00 R                       
 Prob126_circuit6              [01/01](100%)  0.00 .                       
 Prob127_lemmings1             [01/01](100%)  0.00 .                       
 Prob128_fsm_ps2               [01/01](100%)  0.00 .                       
@@ -132,7 +132,7 @@ Prob130_circuit5              [01/01](100%)  0.00 .
 Prob131_mt2015_q4             [01/01](100%)  0.00 .                       
 Prob132_always_if2            [01/01](100%)  0.00 .                       
 Prob133_2014_q3fsm            [00/01](  0%)  0.00 R                       
-Prob134_2014_q3c              [00/01](  0%)  0.00 R                       
+Prob134_2014_q3c              [01/01](100%)  0.00 .                       
 Prob135_m2014_q6b             [00/01](  0%)  0.00 R                       
 Prob136_m2014_q6              [01/01](100%)  0.00 .                       
 Prob137_fsm_serial            [00/01](  0%)  0.00 R                       
@@ -156,7 +156,7 @@ Prob154_fsm_ps2data           [00/01](  0%)  0.00 R
 Prob155_lemmings4             [00/01](  0%)  0.00 R                       
 Prob156_review2015_fancytimer [00/01](  0%)  0.00 T                       
 
-pass_rate             =      75.00
+pass_rate             =      77.56
 avg_gini_simpson_idx  =       0.00
 total_prompt_tokens   =          0
 total_resp_tokens     =          0

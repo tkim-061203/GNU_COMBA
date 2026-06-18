@@ -9,22 +9,23 @@
     "sc_trial": 1,
     "ts_trial": 1,
     "total_iter": 2,
-    "gvd": "module pulse_detect #(\n    parameter s0 = 2'b00,\n    parameter s1 = 2'b01,\n    parameter s2 = 2'b10,\n    parameter s3 = 2'b11\n) (\n    input clk,\n    input rst_n,\n    input data_in,\n    output reg data_out\n);\nreg [2:0] state;\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        state <= 3'b000;\n        data_out <= 1'b0;\n    end \n    else begin\n        case(state)\n            3'b000: begin\n                if(data_in == 1'b1) state <= 3'b001; else state <= 3'b000;\n            end\n            \n            3'b001: begin\n                if(data_in == 1'b0) state <= 3'b010; else state <= 3'b001;\n            end\n            \n            3'b010: begin\n                if(data_in == 1'b1) state <= 3'b011; else state <= 3'b000;\n            end\n            \n            3'b011: begin\n                if(data_in == 1'b0) state <= 3'b100; else state <= 3'b001;\n            end\n            \n            3'b100: begin\n                if(data_in == 1'b1) state <= 3'b010; else state <= 3'b000;\n            end\n            \n            default: begin\n                state <= 3'b000;\n            end\n        endcase\n        \n        if((state == 3'b011) && (data_in == 1'b0))\n            data_out <= 1'b1;\n            data_out <= 1'b0;\n    end\nend\nendmodule\n",
-    "xml_description": "<module id=\"pulse_detect\">\n    <description>Pulse Detection Unit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"data_in\">One-bit input signal.</input>\n        <output id=\"data_out\">Output signal indicating the presence of pulses.</output>\n    </ports>\n    <parameter_description>\n        <!-- Define any necessary parameters here -->\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        // Declare any necessary registers or variables here\n    </logic_description>\n    <implementation>\n// State machine for detecting pulses\nreg [2:0] state;\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        state <= 3'd0;\n        data_out <= 1'b0;\n    end else begin\n        case(state)\n            3'd0: begin\n                if(data_in == 1'b1) begin\n                    state <= 3'd1;\n                end\n            end\n            3'd1: begin\n                if(data_in == 1'b0) begin\n                    state <= 3'd2;\n                end\n            end\n            3'd2: begin\n                if(data_in == 1'b1) begin\n                    state <= 3'd3;\n                end\n            end\n            3'd3: begin\n                if(data_in == 1'b0) begin\n                    state <= 3'd4;\n                end\n            end\n            3'd4: begin\n                if(data_in == 1'b1) begin\n                    state <= 3'd5;\n                end\n            end\n            3'd5: begin\n                data_out <= 1'b1;\n                if(data_in == 1'b0) begin\n                    state <= 3'd0;\n                end\n            end\n            default: state <= 3'd0;\n        endcase\n    end\nend\n    </implementation>\n    \n</module>",
+    "gvd": "module pulse_detect #(\n    parameter s0 = 2'b00,\n    parameter s1 = 2'b01,\n    parameter s2 = 2'b10,\n    parameter s3 = 2'b11\n) (\n    input clk,\n    input rst_n,\n    input data_in,\n    output reg data_out\n);\n\nparameter IDLE = 3'b000;\nparameter PULSE_START = 3'b001;\nparameter PULSE_END = 3'b010;\n\nreg [2:0] state;\n\nreg [2:0] next_state;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        state <= IDLE;\n    end else begin\n        state <= next_state;\n    end\nend\n\nalways @(*) begin\n    case(state)\n        IDLE: begin\n            if (data_in == 1'b1 && ~data_in) begin\n                next_state = PULSE_START;\n            end else begin\n                next_state = IDLE;\n            end\n        end\n        PULSE_START: begin\n            if (~data_in) begin\n                next_state = PULSE_END;\n            end else begin\n                next_state = PULSE_START;\n            end\n        end\n        PULSE_END: begin\n            if (data_in) begin\n                next_state = IDLE;\n            end else begin\n                next_state = PULSE_END;\n            end\n        end\n        default: next_state = IDLE;\n    endcase\nend\n\nalways @(*) begin\n    if ((state == PULSE_END) && (data_in == 1'b0)) begin\n        data_out = 1'b1;\n    end else begin\n        data_out = 1'b0;\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"pulse_detect\">\n    <description>Pulse detection module for detecting rising edges in data_in.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"data_in\">One-bit input signal.</input>\n        <output id=\"data_out\">Output signal indicating the presence of pulses.</output>\n    </ports>\n    <parameter_description>\n        <state id=\"IDLE\">Initial state.</state>\n        <state id=\"PULSE_START\">State indicating the start of a pulse.</state>\n        <state id=\"PULSE_END\">State indicating the end of a pulse.</state>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        <reg id=\"state\" width_description=\"[2:0]\">Register to store the current state.</reg>\n        <wire id=\"next_state\">Next state for the state machine.</wire>\n        <always @(*) begin\n            case(state)\n                IDLE: begin\n                    if(data_in == 1'b1 && ~data_in_prev) begin\n                        next_state = PULSE_START;\n                    end else begin\n                        next_state = IDLE;\n                    end\n                end\n                PULSE_START: begin\n                    if(~data_in) begin\n                        next_state = PULSE_END;\n                    end else begin\n                        next_state = PULSE_START;\n                    end\n                end\n                PULSE_END: begin\n                    if(data_in) begin\n                        next_state = IDLE;\n                    end else begin\n                        next_state = PULSE_END;\n                    end\n                end\n                default: next_state = IDLE;\n            endcase\n        end\n        \n        always @(posedge clk or negedge rst_n) begin\n            if(~rst_n) begin\n                state <= IDLE;\n            end else begin\n                state <= next_state;\n            end\n        end\n    </logic_description>\n    <implementation>\n        Always block triggered on the positive edge of the clk signal and the negative edge of the rst_n signal.\n        \n        In the reset condition (~rst_n), initialize the state register to the IDLE state and set the data_out output to 0, indicating no pulse detected.\n        \n        For each state, determine the next state based on the current state and the values of data_in and data_in_prev.\n        \n        Update the state register with the next state during the positive edge of the clk signal.\n        \n        Set data_out to 1 if the current state is PULSE_END, indicating the end of a pulse, otherwise set it to 0.\n    </implementation>\n    \n    <task id=\"reset_task\">\n        <description>Task to reset the state register and data_out output.</description>\n        <step>Set state register to IDLE state.</step>\n        <step>Set data_out output to 0.</step>\n    </task>\n    \n    <task id=\"update_state_task\">\n        <description>Task to update the state register based on the current state and inputs.</description>\n        <step>Check the current state and inputs to determine the next state.</step>\n        <step>Update the state register with the next state.</step>\n    </task>\n    \n    <task id=\"set_data_out_task\">\n        <description>Task to set the data_out output based on the current state.</description>\n        <step>Check the current state to determine the value of data_out.</step>\n        <step>Set data_out output accordingly.</step>\n    </task>\n    \n    <task id=\"main_task\">\n        <description>Main task to control the operation of the pulse detect module.</description>\n        <step>Trigger the reset_task when rst_n is low.</step>\n        <step>Trigger the update_state_task on the positive edge of clk.</step>\n        <step>Trigger the set_data_out_task on the positive edge of clk.</step>\n    </main_task>\nendmodule",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[2]: Entering directory '/tmp/comba_pulse_detect_jy7nzvio/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpulse_detect.cpp Vpulse_detect__Trace.cpp Vpulse_detect__Slow.cpp Vpulse_detect__Syms.cpp Vpulse_detect__Trace__Slow.cpp > Vpulse_detect__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpulse_detect__ALL.o Vpulse_detect__ALL.cpp\nar -cr Vpulse_detect__ALL.a Vpulse_detect__ALL.o\nranlib Vpulse_detect__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpulse_detect__ALL.a      -o Vpulse_detect\nmake[2]: Leaving directory '/tmp/comba_pulse_detect_jy7nzvio/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_pulse_detect_ho_cyaht/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpulse_detect.cpp Vpulse_detect__Trace.cpp Vpulse_detect__Slow.cpp Vpulse_detect__Syms.cpp Vpulse_detect__Trace__Slow.cpp > Vpulse_detect__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpulse_detect__ALL.o Vpulse_detect__ALL.cpp\nar -cr Vpulse_detect__ALL.a Vpulse_detect__ALL.o\nranlib Vpulse_detect__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpulse_detect__ALL.a      -o Vpulse_detect\nmake[1]: Leaving directory '/tmp/comba_pulse_detect_ho_cyaht/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "self_consistency": {
       "samples_run": 5,
-      "max_samples": 20,
+      "max_samples": 8,
       "best_sample_idx": 4,
-      "best_temperature": 0.8,
+      "best_temperature": 0.4,
       "best_status": "pass",
       "early_exit": true,
-      "total_elapsed_s": 307.89,
+      "vote_enabled": false,
+      "total_elapsed_s": 268.03,
       "all_samples": [
         {
           "idx": 0,
@@ -36,55 +37,55 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 58,
-          "elapsed_s": 50.25
+          "elapsed_s": 55.1
         },
         {
           "idx": 1,
-          "T": 0.5,
+          "T": 0.1,
           "status": "fail_ts",
-          "sc_trial": 10,
-          "ts_trial": 10,
-          "iter": 20,
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 55,
-          "elapsed_s": 73.55
+          "gvd_lines": 58,
+          "elapsed_s": 52.83
         },
         {
           "idx": 2,
-          "T": 0.5,
+          "T": 0.2,
           "status": "fail_ts",
-          "sc_trial": 10,
-          "ts_trial": 10,
-          "iter": 20,
+          "sc_trial": 9,
+          "ts_trial": 9,
+          "iter": 18,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 62,
-          "elapsed_s": 75.05
+          "gvd_lines": 58,
+          "elapsed_s": 75.2
         },
         {
           "idx": 3,
-          "T": 0.8,
+          "T": 0.3,
           "status": "fail_ts",
-          "sc_trial": 10,
-          "ts_trial": 9,
-          "iter": 19,
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 51,
-          "elapsed_s": 91.82
+          "gvd_lines": 63,
+          "elapsed_s": 58.85
         },
         {
           "idx": 4,
-          "T": 0.8,
+          "T": 0.4,
           "status": "pass",
           "sc_trial": 1,
           "ts_trial": 1,
           "iter": 2,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 50,
-          "elapsed_s": 17.22
+          "gvd_lines": 63,
+          "elapsed_s": 26.05
         }
       ]
     },
