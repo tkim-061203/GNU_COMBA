@@ -87,14 +87,14 @@ all_RTLLM:
 RTLLM:
 	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM dataset (sim: verilator, SC=$(SC)) ==="
-	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5
+	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5 --jobs $(LANGGRAPH_JOBS)
 	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm
 
 RTLLM_v2:
 	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM_v2 dataset (sim: verilator, SC=$(SC)) ==="
-	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5
+	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5 --jobs $(LANGGRAPH_JOBS)
 	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm-v2
 

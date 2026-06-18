@@ -150,6 +150,9 @@ parser_langgraph.add_argument(
 parser_langgraph.add_argument(
     "--datasetdir", default=None, help="Dataset directory for testbench lookups", type=str
 )
+parser_langgraph.add_argument(
+    "--jobs", default=1, help="Parallel worker processes for the module batch", type=int
+)
 
 def createmodule():
     modulename = input("Module name: ")
@@ -528,6 +531,7 @@ def runLangGraphFlow(
     descriptionType: str = "xml",
     samples: int = 1,
     datasetDir: typing.Optional[str] = None,
+    jobs: int = 1,
 ):
     """
     Run the full COMBA v2 pi`peline (LangGraph) on each module.
@@ -541,6 +545,7 @@ def runLangGraphFlow(
         description_type=descriptionType,
         samples=samples,
         dataset_dir=datasetDir,
+        jobs=jobs,
     )
 
 
@@ -571,6 +576,7 @@ if __name__ == "__main__":
                 descriptionType=args.descriptiontype,
                 samples=args.samples,
                 datasetDir=args.datasetdir,
+                jobs=args.jobs,
             )
         # case Commands.RAG.value:
         #     ragCreate(args.ragfile)

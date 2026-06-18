@@ -95,7 +95,8 @@ def calc_fr_trial(sample: dict) -> tuple[float, float]:
 
 def run_trials(modules_dir: str, description_type: str, num_trials: int,
                summary_file: str, all_modules: list[str],
-               filter_designs: list[str] | None = None) -> dict:
+               filter_designs: list[str] | None = None,
+               jobs: int = 1) -> dict:
     """Run N trials via subprocess, return trial_results dict."""
     trial_results = {}  # trial_idx -> {module_name -> report}
 
@@ -117,7 +118,8 @@ def run_trials(modules_dir: str, description_type: str, num_trials: int,
         cmd = [
             sys.executable, "run.py", "langgraph"
         ] + module_paths + [
-            "--descriptiontype", description_type
+            "--descriptiontype", description_type,
+            "--jobs", str(jobs),
         ]
 
         print(f"  🚀 Executing: {' '.join(cmd)}")
@@ -417,6 +419,8 @@ def main():
                     help="Output directory (default: reports/fixrate)")
     p.add_argument("--dataset", choices=["rtllm", "rtllm_v2", "verilogeval"], default=None,
                     help="Preset dataset configuration (rtllm, rtllm_v2, or verilogeval)")
+    p.add_argument("--jobs", type=int, default=1,
+                    help="Parallel worker processes for the module batch (default: 1)")
     args = p.parse_args()
 
     os.environ["COMBA_QUIET"] = "1"
@@ -466,7 +470,8 @@ def main():
     trial_results = run_trials(
         modules_dir, description_type, num_trials,
         summary_file, all_modules,
-        filter_designs=args.designs
+        filter_designs=args.designs,
+        jobs=args.jobs,
     )
 
     # ── Step 2: Aggregate ──

@@ -502,21 +502,148 @@ def _run_one_module(
     return graph.invoke(state, config)
 
 
+def _batch_worker_init():
+    """Pool initializer: each worker process builds its OWN pipeline (fresh
+    LLM client + compiled graph) from env, so nothing unforkable is shared."""
+    reset_pipeline()
+    get_pipeline()  # llm=None -> create_llm() from env
+
+
+def _process_one_module(task: tuple) -> tuple:
+    """Worker unit: run one module (all its samples), write its report, and
+    return (module_name, report_data). Returns (module_name, None) when the
+    description file is missing. Used by both the sequential and parallel paths.
+    """
+    (module_path, idx, total, description_type, samples, dataset_dir, sc_active) = task
+    module_name = os.path.basename(module_path)
+    pipeline_llm, graph = get_pipeline()  # worker-local cached pipeline
+
+    cprint(f"\n{'═' * 60}")
+    cprint(f"  [{idx}/{total}] Module: {module_name}")
+    cprint(f"{'═' * 60}")
+
+    if description_type == "xml":
+        desc_file = os.path.join(module_path, "design_description.xml")
+    elif description_type == "txt":
+        desc_file = os.path.join(module_path, "design_description.txt")
+    else:
+        desc_file = os.path.join(module_path, f"design_description.{description_type}")
+
+    if not os.path.isfile(desc_file):
+        cprint(f"  ⚠️ Description file not found: {desc_file}, skipping")
+        return (module_name, None)
+
+    with open(desc_file, "r", encoding="utf-8") as f:
+        description = f.read()
+
+    cprint(f"\n[MODULE {idx}] {module_name}")
+    sample_results = []
+
+    for sample_idx in range(1, samples + 1):
+        if samples > 1:
+            cprint(f"  ── Trial {sample_idx}/{samples} ──")
+
+        sample_dataset_dir = dataset_dir
+        if not sample_dataset_dir and "RTLLM" in module_path:
+            sample_dataset_dir = module_path
+
+        try:
+            final = _run_one_module(
+                description=description,
+                module_name=module_name,
+                description_type=description_type,
+                sample_dataset_dir=sample_dataset_dir,
+                pipeline_llm=pipeline_llm,
+                graph=graph,
+            )
+
+            result = {
+                "module_name": module_name,
+                "description_type": description_type,
+                "final_status": final.get("final_status", "unknown"),
+                "sc_trial": final.get("sc_trial", 0),
+                "ts_trial": final.get("ts_trial", 0),
+                "total_iter": final.get("total_iter", 0),
+                "gvd": final.get("gvd", ""),
+                "xml_description": final.get("xml_description", ""),
+                "sc_log": final.get("sc_log", ""),
+                "tb_log": final.get("tb_log", ""),
+                "error": final.get("error"),
+                "edtm": final.get("edtm", {}),
+                "failure_type": final.get("failure_type", ""),
+                "vcd_status": final.get("vcd_status", ""),
+            }
+
+            # Preserve SC metadata for analyze_self_consistency.py
+            if "self_consistency" in final:
+                result["self_consistency"] = final["self_consistency"]
+            # Preserve guard summary
+            if "guard_summary" in final:
+                result["guard_summary"] = final["guard_summary"]
+
+            status = result["final_status"]
+            emoji = "🎉" if status == "pass" else "❌"
+
+            sc_meta = result.get("self_consistency")
+            if sc_meta:
+                cprint(
+                    f"  {emoji} Result: {status} | SC:{result['sc_trial']} "
+                    f"TS:{result['ts_trial']} | "
+                    f"BoN: {sc_meta['samples_run']}/{sc_meta['max_samples']} "
+                    f"(best=s{sc_meta['best_sample_idx']})"
+                )
+            else:
+                cprint(f"  {emoji} Result: {status} | SC:{result['sc_trial']} TS:{result['ts_trial']}")
+
+        except Exception as e:
+            result = {
+                "module_name": module_name,
+                "description_type": description_type,
+                "final_status": "error",
+                "error": str(e),
+                "sc_trial": 0, "ts_trial": 0, "total_iter": 0,
+                "gvd": "", "xml_description": "", "sc_log": "", "tb_log": "",
+            }
+            cprint(f"  ❌ Pipeline error: {e}")
+
+        sample_results.append(result)
+
+    reports_dir = os.path.join(module_path, "reports")
+    os.makedirs(reports_dir, exist_ok=True)
+
+    report_path = os.path.join(reports_dir, f"report_langgraph.{description_type}.json")
+    report_data = {
+        "module_name": module_name,
+        "description_type": description_type,
+        "self_consistency_enabled": sc_active,
+        "samples": sample_results if samples > 1 else sample_results[0],
+    }
+
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report_data, f, indent=2, ensure_ascii=False)
+
+    cprint(f"  📄 Report saved: {report_path}")
+    return (module_name, report_data)
+
+
 def run_pipeline_batch(
     module_paths: List[str],
     description_type: str = "xml",
     samples: int = 1,
     llm=None,
     dataset_dir: Optional[str] = None,
+    jobs: int = 1,
 ) -> dict:
     """
     Run COMBA pipeline on multiple modules (evaluation mode).
 
     Auto-dispatches to multi_sample.run_with_self_consistency when
     COMBA_SELF_CONSISTENCY=1 is set in env.
-    """
-    from comba_pipeline import make_initial_state
 
+    `jobs` > 1 runs modules across a multiprocess Pool (each worker builds its
+    own LLM + graph). Parallelism applies only when `llm` is None (so workers
+    can build from env); an explicit `llm` forces sequential execution.
+    """
     resolved_paths = []
     for mp in module_paths:
         resolved_paths.extend(glob.glob(mp))
@@ -527,123 +654,39 @@ def run_pipeline_batch(
         cprint("[COMBA] No modules found matching given paths")
         return {}
 
-    pipeline_llm, graph = get_pipeline(llm)
     sc_active = _is_sc_enabled()
+    jobs = max(1, int(jobs))
+    use_parallel = jobs > 1 and total > 1 and llm is None
     cprint(
         f"[COMBA] Batch: {total} modules × {samples} sample(s) "
-        f"| SC={'ON' if sc_active else 'OFF'}"
+        f"| SC={'ON' if sc_active else 'OFF'} | jobs={jobs if use_parallel else 1}"
     )
 
     all_results = {}
+    tasks = [
+        (module_path, idx, total, description_type, samples, dataset_dir, sc_active)
+        for idx, module_path in enumerate(module_norm_paths, 1)
+    ]
 
-    for idx, module_path in enumerate(module_norm_paths, 1):
-        module_name = os.path.basename(module_path)
-        cprint(f"\n{'═' * 60}")
-        cprint(f"  [{idx}/{total}] Module: {module_name}")
-        cprint(f"{'═' * 60}")
-
-        if description_type == "xml":
-            desc_file = os.path.join(module_path, "design_description.xml")
-        elif description_type == "txt":
-            desc_file = os.path.join(module_path, "design_description.txt")
-        else:
-            desc_file = os.path.join(module_path, f"design_description.{description_type}")
-
-        if not os.path.isfile(desc_file):
-            cprint(f"  ⚠️ Description file not found: {desc_file}, skipping")
-            continue
-
-        with open(desc_file, "r", encoding="utf-8") as f:
-            description = f.read()
-
-        cprint(f"\n[MODULE {idx}] {module_name}")
-        sample_results = []
-
-        for sample_idx in range(1, samples + 1):
-            if samples > 1:
-                cprint(f"  ── Trial {sample_idx}/{samples} ──")
-
-            sample_dataset_dir = dataset_dir
-            if not sample_dataset_dir and "RTLLM" in module_path:
-                sample_dataset_dir = module_path
-
-            try:
-                final = _run_one_module(
-                    description=description,
-                    module_name=module_name,
-                    description_type=description_type,
-                    sample_dataset_dir=sample_dataset_dir,
-                    pipeline_llm=pipeline_llm,
-                    graph=graph,
-                )
-
-                result = {
-                    "module_name": module_name,
-                    "description_type": description_type,
-                    "final_status": final.get("final_status", "unknown"),
-                    "sc_trial": final.get("sc_trial", 0),
-                    "ts_trial": final.get("ts_trial", 0),
-                    "total_iter": final.get("total_iter", 0),
-                    "gvd": final.get("gvd", ""),
-                    "xml_description": final.get("xml_description", ""),
-                    "sc_log": final.get("sc_log", ""),
-                    "tb_log": final.get("tb_log", ""),
-                    "error": final.get("error"),
-                    "edtm": final.get("edtm", {}),
-                    "failure_type": final.get("failure_type", ""),
-                    "vcd_status": final.get("vcd_status", ""),
-                }
-
-                # Preserve SC metadata for analyze_self_consistency.py
-                if "self_consistency" in final:
-                    result["self_consistency"] = final["self_consistency"]
-                # Preserve guard summary
-                if "guard_summary" in final:
-                    result["guard_summary"] = final["guard_summary"]
-
-                status = result["final_status"]
-                emoji = "🎉" if status == "pass" else "❌"
-
-                sc_meta = result.get("self_consistency")
-                if sc_meta:
-                    cprint(
-                        f"  {emoji} Result: {status} | SC:{result['sc_trial']} "
-                        f"TS:{result['ts_trial']} | "
-                        f"BoN: {sc_meta['samples_run']}/{sc_meta['max_samples']} "
-                        f"(best=s{sc_meta['best_sample_idx']})"
-                    )
-                else:
-                    cprint(f"  {emoji} Result: {status} | SC:{result['sc_trial']} TS:{result['ts_trial']}")
-
-            except Exception as e:
-                result = {
-                    "module_name": module_name,
-                    "description_type": description_type,
-                    "final_status": "error",
-                    "error": str(e),
-                    "sc_trial": 0, "ts_trial": 0, "total_iter": 0,
-                    "gvd": "", "xml_description": "", "sc_log": "", "tb_log": "",
-                }
-                cprint(f"  ❌ Pipeline error: {e}")
-
-            sample_results.append(result)
-
-        reports_dir = os.path.join(module_path, "reports")
-        os.makedirs(reports_dir, exist_ok=True)
-
-        report_path = os.path.join(reports_dir, f"report_langgraph.{description_type}.json")
-        report_data = {
-            "module_name": module_name,
-            "description_type": description_type,
-            "self_consistency_enabled": sc_active,
-            "samples": sample_results if samples > 1 else sample_results[0],
-        }
-
-        with open(report_path, "w", encoding="utf-8") as f:
-            json.dump(report_data, f, indent=2, ensure_ascii=False)
-
-        cprint(f"  📄 Report saved: {report_path}")
-        all_results[module_name] = report_data
+    if use_parallel:
+        try:
+            from multiprocess import Pool          # dill-based (matches main_langgraph)
+        except ImportError:
+            from multiprocessing import Pool        # stdlib fallback
+        nproc = min(jobs, total)
+        cprint(f"[COMBA] Parallel batch: {nproc} worker process(es)")
+        with Pool(processes=nproc, initializer=_batch_worker_init) as pool:
+            for module_name, report_data in pool.imap_unordered(_process_one_module, tasks):
+                if report_data is not None:
+                    all_results[module_name] = report_data
+    else:
+        # Sequential: build the pipeline once in this process (honors an
+        # explicit `llm` if provided).
+        get_pipeline(llm)
+        for task in tasks:
+            module_name, report_data = _process_one_module(task)
+            if report_data is not None:
+                all_results[module_name] = report_data
 
     cprint(f"\n{'═' * 60}")
     cprint("  SUMMARY")
