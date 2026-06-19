@@ -39,6 +39,12 @@ from pipeline_runner import (
 
 load_dotenv()
 
+# Interactive hosting (Open WebUI) has no golden testbench, so skip functional
+# TB-simulation once syntax is verified instead of LLM-generating a speculative
+# testbench. Batch eval (which ships golden testbenches) is unaffected.
+# Override by exporting COMBA_SKIP_TB_IF_NO_GOLDEN=0 before launch.
+os.environ.setdefault("COMBA_SKIP_TB_IF_NO_GOLDEN", "1")
+
 COMBA_MODEL_NAME = "comba-verilog-pipeline"
 
 # Thread pool for running synchronous LangGraph in async context
@@ -221,6 +227,35 @@ class ChatCompletionResponse(BaseModel):
     usage: Usage = Usage()
 
 
+# ──────────────────────────────────────────────────────────────
+# Open WebUI background-task handling
+# ──────────────────────────────────────────────────────────────
+# Open WebUI wraps its automatic helper prompts (chat title, tags,
+# follow-up suggestions, autocomplete, retrieval query generation, …)
+# in a "### Task:" template and POSTs them to the same model endpoint.
+# These are NOT Verilog design requests: running them through the COMBA
+# pipeline fails XML validation, spams the logs, and returns an error
+# block the UI can't parse. Detect and forward them straight to the base
+# model instead.
+
+def is_owui_task_request(messages: List[ChatMessage]) -> bool:
+    """True if this looks like an Open WebUI meta/task request."""
+    return any("### Task:" in (m.content or "") for m in messages)
+
+
+def run_task_passthrough(request: ChatCompletionRequest) -> str:
+    """Forward an Open WebUI meta request directly to the base model."""
+    llm, _ = get_pipeline()
+    oai_messages = [{"role": m.role, "content": m.content} for m in request.messages]
+    if hasattr(llm, "switch_to_base"):
+        llm.switch_to_base()
+    return llm.call_llm_base(
+        oai_messages,
+        temperature=request.temperature if request.temperature is not None else 0.3,
+        max_tokens=min(request.max_tokens or 512, 512),
+    )
+
+
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest):
     # Extract user message (last user message)
@@ -234,6 +269,30 @@ async def chat_completions(request: ChatCompletionRequest):
         user_message = request.messages[-1].content if request.messages else ""
 
     completion_id = f"chatcmpl-comba-{uuid.uuid4().hex[:12]}"
+
+    # ── Open WebUI meta requests (title/tags/follow-up/etc): bypass pipeline ──
+    if is_owui_task_request(request.messages):
+        loop = asyncio.get_event_loop()
+        try:
+            task_text = await loop.run_in_executor(
+                _executor, lambda: run_task_passthrough(request)
+            )
+        except Exception as e:
+            task_text = f"Error: {e}"
+
+        if request.stream:
+            async def task_stream():
+                yield make_sse_chunk(completion_id, task_text)
+                yield make_sse_chunk(completion_id, "", finish_reason="stop")
+                yield "data: [DONE]\n\n"
+            return StreamingResponse(task_stream(), media_type="text/event-stream")
+
+        return ChatCompletionResponse(
+            id=completion_id,
+            created=int(time.time()),
+            model=COMBA_MODEL_NAME,
+            choices=[ChatChoice(message=ChatMessage(role="assistant", content=task_text))],
+        )
 
     if request.stream:
         # ── SSE Streaming: emit per-node events ──
@@ -320,6 +379,8 @@ async def chat_completions(request: ChatCompletionRequest):
                         # Accumulate state for this candidate
                         sample_state = {}
                         for node_name, state_update in events:
+                            if state_update is None:  # some nodes (e.g. guards) yield no update
+                                continue
                             sample_state.update(state_update)
                             text = format_node_event(node_name, state_update, sample_state)
                             if text:
@@ -361,21 +422,43 @@ async def chat_completions(request: ChatCompletionRequest):
                         yield make_sse_chunk(completion_id, final_output)
 
                 else:
-                    # Run single-pass pipeline in thread pool
-                    def _stream_sync():
-                        results = []
-                        for node_name, state_update in run_pipeline_streaming(user_message):
-                            results.append((node_name, state_update))
-                        return results
+                    # Run single-pass pipeline in a worker thread, bridging each
+                    # node event to the SSE stream as soon as it is produced so
+                    # Open WebUI shows progressive updates (instead of buffering
+                    # the entire pipeline before emitting anything).
+                    event_queue: asyncio.Queue = asyncio.Queue()
+                    _DONE = object()
 
-                    events = await loop.run_in_executor(_executor, _stream_sync)
+                    def _produce_events():
+                        try:
+                            for node_name, state_update in run_pipeline_streaming(user_message):
+                                loop.call_soon_threadsafe(
+                                    event_queue.put_nowait, (node_name, state_update)
+                                )
+                        except Exception as exc:  # surface pipeline errors to the stream
+                            loop.call_soon_threadsafe(
+                                event_queue.put_nowait, ("__error__", exc)
+                            )
+                        finally:
+                            loop.call_soon_threadsafe(event_queue.put_nowait, _DONE)
 
-                    for node_name, state_update in events:
+                    producer = loop.run_in_executor(_executor, _produce_events)
+
+                    while True:
+                        item = await event_queue.get()
+                        if item is _DONE:
+                            break
+                        node_name, state_update = item
+                        if node_name == "__error__":
+                            raise state_update
+                        if state_update is None:  # some nodes (e.g. guards) yield no update
+                            continue
                         final_state.update(state_update)
                         text = format_node_event(node_name, state_update, final_state)
                         if text:
                             yield make_sse_chunk(completion_id, text)
-                            await asyncio.sleep(0.01)
+
+                    await producer  # ensure the worker thread has finished
 
                     final_output = format_final_output(final_state)
                     if final_output:

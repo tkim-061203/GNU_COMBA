@@ -30,7 +30,7 @@ The pipeline utilizes **LangGraph** to model the execution states and conditiona
    Safely applies JSON-based diff patches (or fuzzy matches substitution) returned by the debugger exactly where the issue lies, avoiding regenerating entire large modules.
 
 8. **`node_tb_sim` (Testbench Simulation):**
-   If the syntax check passes without errors, the state routes here. This node compiles the design thoroughly alongside the provided reference and testbench files and performs simulation.
+   If the syntax check passes without errors, the state routes here. This node compiles the design thoroughly alongside the provided reference and testbench files and performs simulation. *(Interactive hosting note: with `COMBA_SKIP_TB_IF_NO_GOLDEN=1` and no golden testbench available, the pipeline skips this node and routes a clean Syntax Check straight to **Pass** — see [README_openwebui.md](README_openwebui.md).)*
 
 9. **`node_ted_tb` (Topmost Exception Detection - TB):**
    If testbench assertions fail (Trace mismatches), it extracts the Topmost TB Failure trace and formulates a **TDP** (Testbench Debugging Prompt) to route back to the Debugger.
@@ -51,6 +51,7 @@ graph TD
     Patch --> San
     
     SC -- Pass --> TS{node_tb_sim<br/>TB Simulation}
+    SC -. "Pass (interactive,<br/>no golden TB)" .-> Pass
     
     TS -- Fail --> TED_TS[node_ted_tb<br/>Extract TB Trace]
     TED_TS --> Debug
@@ -137,3 +138,29 @@ The core entry point utilities are within `pipeline_runner.py`:
 * `run_pipeline_sync()`: Invokes a single module prompt run until resolution or limit. Automatically dispatches to `multi_sample` if self-consistency is enabled.
 * `run_pipeline_streaming()`: Generates an event-driven stream yielding the node and current graphical state per jump (used in UI/API connections).
 * `run_pipeline_batch()`: Executes over directories of descriptions and outputs aggregated markdown (`summary_langgraph.md`) and JSON reports tracking Pass Rates, Avg trials, and BoN (Best-of-N) statistics.
+
+### FastAPI / OpenAI-compatible server (`api_server.py`)
+
+For **interactive** use (e.g. Open WebUI), `api_server.py` wraps the pipeline behind an
+OpenAI-compatible `/v1/chat/completions` endpoint with **real per-node SSE streaming** —
+each node's result is forwarded to the client as soon as it completes (worker-thread →
+`asyncio.Queue` bridge), so the UI shows progressive updates rather than waiting for the
+whole pipeline.
+
+```bash
+cd src/langgraph_core
+uvicorn api_server:app --host 0.0.0.0 --port 8100   # model id: comba-verilog-pipeline
+```
+
+Interactive-hosting specifics:
+
+* **Background-task bypass**: Open WebUI's `### Task:` helper requests (title, tags,
+  follow-up, autocomplete) are detected and forwarded straight to the base model,
+  bypassing the COMBA pipeline.
+* **TB-sim skip without a golden testbench** (`COMBA_SKIP_TB_IF_NO_GOLDEN=1`, default in
+  the server): when there is no golden testbench, the pipeline returns the verified
+  Verilog as soon as Syntax Check passes instead of LLM-generating a speculative
+  testbench. Batch eval (which always ships golden testbenches) is unaffected.
+
+> See **[README_openwebui.md](README_openwebui.md)** for the full hosting + Open WebUI
+> setup guide, endpoint reference, and environment variables.

@@ -467,14 +467,14 @@ class COMBANodes:
             cprint("  [WARN] xml_schema unavailable — falling back to regex check.")
             # Inline fence stripping (fallback when pydantic_xml not installed)
             xml_text = re.sub(r'```(?:xml|verilog|sv|systemverilog)?\s*\n?|```', '', xml_text, flags=re.I).strip()
-            m = re.search(r'<module\s+id="([^"]+)"', xml_text)
+            m = re.search(r'<module\s+id\s*=\s*[\'"]([^\'"]+)[\'"]', xml_text, re.I)
             ok, module, err = (m is not None), None, ("no <module id=> tag" if not m else None)
 
         # Module name extraction (works for both ok and !ok paths)
         if ok and module is not None:
             xml_mod_name = module.id
         else:
-            m2 = re.search(r'<module\s+id="([^"]+)"', xml_text)
+            m2 = re.search(r'<module\s+id\s*=\s*[\'"]([^\'"]+)[\'"]', xml_text, re.I)
             xml_mod_name = m2.group(1) if m2 else "unknown"
 
         if ok:
@@ -1044,11 +1044,50 @@ class COMBANodes:
             break
 
         if not sv_files:
-            return None, self._tb_error_state(
-                state,
-                f"no testbench found in {dataset_dir} (tried: {[p[0] for p in candidate_pairs]})",
-                "no testbench found",
-            )
+            cprint("  ⚠️ No testbench found. Calling LLM/Debugger to generate a testbench...")
+            tb_prompt = f"""You are an expert Verilog verification engineer.
+Your task is to write a self-checking SystemVerilog testbench for the module defined below.
+The module under test will be instantiated as `TopModule`.
+
+Requirements for the testbench:
+1. The testbench module itself must be named `tb` (i.e., `module tb; ... endmodule`), with NO port list (no inputs/outputs in the header). Do NOT name it `TopModule`.
+2. The module under test must be instantiated inside the testbench as `TopModule uut (...);` (using `TopModule` as the module name, NOT the original name like `adder_8bit`).
+3. It must generate a clock signal if the module has a clock input (usually named `clk`, `clock`, or similar).
+4. It must generate a reset signal if the module has a reset input (usually named `rst`, `rst_n`, `reset`, or similar).
+5. It must feed a series of test vectors to the inputs to verify the functionality described in the natural language specification.
+6. It must check the output values against the expected behavior. If a check fails, print a message in the format `TODO <number> Failed` (for example, `TODO 1 Failed`) to indicate the test case index that failed.
+7. It must finish simulation using `$finish;` after completing the test vectors (e.g. after 100-500ns).
+8. If all tests pass, it should print "All tests passed" or similar success message.
+9. Use basic, standard Verilog/SystemVerilog syntax that is compatible with `iverilog` (do not use complex classes, interfaces, or advanced SystemVerilog features. Simple initial blocks, reg/wire declarations, and procedural assignments are preferred).
+10. CRITICAL: Keep the testbench short, clean, and concise (under 80 lines). Do NOT list dozens of repetitive test cases one by one as it will hit the token limit and cause truncation. Instead, write a `for` loop to test multiple values, or write at most 5-10 distinct test cases.
+
+Here is the natural language specification:
+{state["nl_input"]}
+
+Here is the Verilog code of the module:
+{gvd}
+
+Output ONLY the SystemVerilog code of the testbench, inside a code block starting with ```sv or ```verilog. Do not write any explanations or other text outside the code block."""
+
+            from langchain_core.messages import HumanMessage
+            try:
+                response = self._llm.invoke([HumanMessage(content=tb_prompt)])
+                tb_code = response.content.strip()
+                # Clean code from markdown fences
+                tb_code = re.sub(r'```(?:sv|verilog|sv|systemverilog)?\s*\n?|```', '', tb_code, flags=re.I).strip()
+                
+                tb_dst = os.path.join(work_dir, "tb.sv")
+                with open(tb_dst, "w", encoding="utf-8") as f:
+                    f.write(tb_code)
+                cprint("  ✅ Generated testbench written to tb.sv")
+                sv_files.append("tb.sv")
+            except Exception as e:
+                cprint(f"  ❌ Failed to generate testbench: {e}")
+                return None, self._tb_error_state(
+                    state,
+                    f"failed to generate testbench: {e}",
+                    "no testbench found",
+                )
 
         # Write current GVD as TopModule.sv (rename module to TopModule ONLY for VE, i.e. when not RTLLM)
         is_rtllm = self._is_rtllm_dataset(dataset_dir)
@@ -1496,7 +1535,7 @@ class COMBANodes:
             sig_tb = "WIRE_LVALUE:" + "_".join(wire_ports)
             edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
             cprint(f"  ⚡ Wire l-value ports detected: {wire_ports}")
-            return {"tdp": tdp, "phase": "ts", "edtm": edtm}
+            return {"tdp": tdp, "phase": "ts", "edtm": edtm, "current_error_key": sig_tb}
 
         # Fast-path: Port mismatch
         missing_ports = _extract_port_mismatch(tb_log)
@@ -1510,7 +1549,7 @@ class COMBANodes:
             sig_tb = "PORT_MISMATCH:" + "_".join(missing_ports)
             edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
             cprint(f"  ⚡ Port mismatch detected: {missing_ports}")
-            return {"tdp": tdp, "phase": "ts", "edtm": edtm}
+            return {"tdp": tdp, "phase": "ts", "edtm": edtm, "current_error_key": sig_tb}
 
         # Extract topmost failure
         topmost_failure = None
@@ -1579,7 +1618,7 @@ class COMBANodes:
 
         cprint(f"  📋 TDP: {topmost_failure[:80]}")
 
-        return {"tdp": tdp, "phase": "ts", "edtm": edtm}
+        return {"tdp": tdp, "phase": "ts", "edtm": edtm, "current_error_key": sig_tb}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -1602,10 +1641,40 @@ def route_after_sanitizer(state: COMBAState) -> str:
     return "node_syntax_check"
 
 
+def _golden_tb_exists(state: COMBAState) -> bool:
+    """True if a real (golden) testbench is available for this benchmark.
+
+    Mirrors the candidate filenames used by node_tb_sim /
+    _prepare_sv_testbench_files, WITHOUT the LLM-generated fallback.
+    """
+    dataset_dir = state.get("dataset_dir")
+    if not dataset_dir or not os.path.isdir(dataset_dir):
+        return False
+    bid = state.get("benchmark_id") or state.get("module_name") or ""
+    candidates = ["tb.cpp", "testbench.sv", "testbench.v", "tb.sv", "tb.v"]
+    if bid:
+        candidates.append(f"{bid}_test.sv")
+    return any(os.path.isfile(os.path.join(dataset_dir, c)) for c in candidates)
+
+
+def _skip_tb_without_golden(state: COMBAState) -> bool:
+    """Skip functional TB-sim when hosting interactively (COMBA_SKIP_TB_IF_NO_GOLDEN=1)
+    and there is no golden testbench to verify against (e.g. Open WebUI requests).
+    Batch eval always ships golden testbenches, so it is unaffected."""
+    if os.environ.get("COMBA_SKIP_TB_IF_NO_GOLDEN", "0") != "1":
+        return False
+    if _golden_tb_exists(state):
+        return False
+    cprint("  ⏭️  No golden testbench — skipping TB simulation (syntax verified, returning code).")
+    return True
+
+
 def route_after_sc(state: COMBAState) -> str:
-    """After Guard SC — has errors? → TED_SC, else → TB."""
+    """After Guard SC — has errors? → TED_SC; clean → TB (or PASS if no golden TB)."""
     if state["sc_exception_count"] > 0:
         return "node_ted_syntax"
+    if _skip_tb_without_golden(state):
+        return "end_pass"
     return "node_tb_sim"
 
 
@@ -1625,6 +1694,8 @@ def route_after_ted_syntax(state: COMBAState) -> str:
 
     # If TED couldn't parse any error, skip debugger → go to TB
     if not state.get("sc_exception"):
+        if _skip_tb_without_golden(state):
+            return "end_pass"
         return "node_tb_sim"
 
     if state["sc_trial"] >= MAX_SYNTAX_TRIALS:
@@ -1852,11 +1923,11 @@ def build_comba_graph(llm):
         },
     )
 
-    # After Guard SC → TED_SC (errors) or TB (clean)
+    # After Guard SC → TED_SC (errors), TB (clean), or PASS (clean, no golden TB)
     builder.add_conditional_edges(
         "node_guard_sc",
         route_after_sc,
-        {"node_ted_syntax": "node_ted_syntax", "node_tb_sim": "node_tb_sim"},
+        {"node_ted_syntax": "node_ted_syntax", "node_tb_sim": "node_tb_sim", "end_pass": "end_pass"},
     )
 
     # After Guard TS → classify_tb (failed) or END (passed)
@@ -1884,6 +1955,7 @@ def build_comba_graph(llm):
             "node_tb_sim": "node_tb_sim",
             "node_debugger": "node_debugger",
             "end_fail_sc": "end_fail_sc",
+            "end_pass": "end_pass",
         },
     )
 

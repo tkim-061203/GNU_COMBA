@@ -375,6 +375,24 @@ You can serve the base model and debugger model locally on a dual-GPU setup usin
 ./launch_dual_gpu.sh --status
 ```
 
+### Interactive Serving (Open WebUI)
+
+Besides the batch `make langgraph` flow, Pipeline 3 can be served as an
+**OpenAI-compatible API** for interactive use in [Open WebUI](https://docs.openwebui.com/).
+With the dual-GPU backends running, start the COMBA API server:
+
+```bash
+conda activate test_VE          # the serving environment
+cd src/langgraph_core
+uvicorn api_server:app --host 0.0.0.0 --port 8100   # model id: comba-verilog-pipeline
+```
+
+Then add an OpenAI connection in Open WebUI with Base URL `http://localhost:8100/v1`.
+It streams each pipeline node live, bypasses Open WebUI's title/tag/follow-up helper
+requests, and (interactively) returns the verified Verilog as soon as Syntax Check
+passes. See **[README_openwebui.md](README_openwebui.md)** for the full guide and
+**[README_langgraph.md](README_langgraph.md)** for the pipeline internals.
+
 ## Make Target Reference
 
 ### Inference & Benchmarks
