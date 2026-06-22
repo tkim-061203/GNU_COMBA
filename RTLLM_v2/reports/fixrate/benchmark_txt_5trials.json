@@ -3,28 +3,16 @@
     "num_trials": 5,
     "description_type": "txt",
     "num_modules": 50,
-    "timestamp": "2026-06-13T03:24:52.764617"
+    "timestamp": "2026-06-20T13:18:22.500026"
   },
   "global": {
-    "sc_pass_rate": 0.976,
-    "tb_pass_rate": 0.62,
+    "sc_pass_rate": 1.0,
+    "tb_pass_rate": 0.7240000000000001,
     "syntax_fix_rate": 1.0,
-    "func_fix_rate": 0.644
+    "func_fix_rate": 0.7240000000000001
   },
   "modules": {
-    "asyn_fifo": {
-      "sc_pass_rate": 0.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 1.0
-    },
     "LIFObuffer": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 0.0
-    },
-    "accu": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.0,
       "syntax_fr": 1.0,
@@ -37,6 +25,12 @@
       "func_fr": 0.0
     },
     "alu": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.0,
+      "syntax_fr": 1.0,
+      "func_fr": 0.0
+    },
+    "asyn_fifo": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.0,
       "syntax_fr": 1.0,
@@ -60,30 +54,6 @@
       "syntax_fr": 1.0,
       "func_fr": 0.0
     },
-    "float_multi": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 0.0
-    },
-    "freq_divbyfrac": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 0.0
-    },
-    "multi_pipe_8bit": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 0.0
-    },
-    "pulse_detect": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 0.0
-    },
     "radix2_div": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.0,
@@ -102,25 +72,25 @@
       "syntax_fr": 1.0,
       "func_fr": 0.0
     },
-    "traffic_light": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 0.0
-    },
-    "multi_16bit": {
+    "accu": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.2,
       "syntax_fr": 1.0,
       "func_fr": 0.2
     },
-    "multi_pipe_4bit": {
-      "sc_pass_rate": 0.8,
+    "traffic_light": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.2,
+      "syntax_fr": 1.0,
+      "func_fr": 0.2
+    },
+    "float_multi": {
+      "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.4,
       "syntax_fr": 1.0,
-      "func_fr": 0.6
+      "func_fr": 0.4
     },
-    "freq_divbyodd": {
+    "multi_pipe_8bit": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.4,
       "syntax_fr": 1.0,
@@ -132,11 +102,17 @@
       "syntax_fr": 1.0,
       "func_fr": 0.4
     },
-    "sequence_detector": {
+    "freq_divbyodd": {
       "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.6,
+      "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
-      "func_fr": 0.6
+      "func_fr": 0.8
+    },
+    "pulse_detect": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.8,
+      "syntax_fr": 1.0,
+      "func_fr": 0.8
     },
     "JC_counter": {
       "sc_pass_rate": 1.0,
@@ -240,6 +216,12 @@
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
+    "freq_divbyfrac": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
     "fsm": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
@@ -252,6 +234,12 @@
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
+    "multi_16bit": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
     "multi_8bit": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
@@ -259,6 +247,12 @@
       "func_fr": 1.0
     },
     "multi_booth_8bit": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "multi_pipe_4bit": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,
@@ -277,6 +271,12 @@
       "func_fr": 1.0
     },
     "right_shifter": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "sequence_detector": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,

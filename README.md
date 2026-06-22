@@ -165,8 +165,7 @@ Used for processing Verilog codebases to extract specific modules based on compl
    ```
 4. **Evaluate results**:
    ```bash
-   make verilog-eval
-   make -j 20
+   make verilog-eval && make -j 20
    ```
 
 **.config Reference (Pipeline 2)**
@@ -278,17 +277,17 @@ Common setup configurations use the `eX_tY` naming convention (e: examples, t: t
   ```bash
   ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
-- **`e0_t8`**: Zero-shot without examples + Temperature 0.8 (generates 10 samples).
+- **`e0_t8`**: Zero-shot without examples + Temperature 0.8 (generates 20 samples).
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=10 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=0 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
 - **`e1_t0`**: One-shot with 1 example + Greedy Search.
   ```bash
   ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0 --with-samples=1 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
-- **`e1_t8`**: One-shot with 1 example + Temperature 0.8 (generates 10 samples).
+- **`e1_t8`**: One-shot with 1 example + Temperature 0.8 (generates 20 samples).
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=10 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 --with-temperature=0.8 --with-samples=20 --with-examples=1 --with-model-manual=http://localhost:8000/v1 --with-task=code-complete-iccad2023
   ```
 
 

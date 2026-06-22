@@ -6,44 +6,46 @@
     "module_name": "div_16bit",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 1,
-    "ts_trial": 1,
-    "total_iter": 2,
-    "gvd": "module div_16bit (\n    input wire [15:0] A,\n    input wire [7:0] B,\n    output reg [15:0] result,\n    output reg [15:0] odd\n);\n\nreg [15:0] a_reg;\nreg [7:0] b_reg;\n\nalways @* begin\n    a_reg = A;\n    b_reg = B;\n    \n    if (b_reg != 0) begin\n        result = a_reg / b_reg;\n        odd = a_reg % b_reg;\n    end else begin\n        result = 0;\n        odd = a_reg;\n    end\nend\nendmodule\n",
-    "xml_description": "<module id=\"div_16bit\">\n    <description>Implement a 16-bit divider with combinational logic for division.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[15:0]\">Dividend input.</input>\n        <input id=\"B\" width_description=\"[7:0]\">Divider input.</input>\n        <output id=\"result\" width_description=\"[15:0]\">Quotient output.</output>\n        <output id=\"odd\" width_description=\"[15:0]\">Remainder output.</output>\n    </ports>\n    <implementation>Division operation performed using combinational logic.</implementation>\n</module>",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module div_16bit (\n    input wire [15:0] A,\n    input wire [7:0] B,\n    output reg [15:0] result,\n    output reg [15:0] odd\n);\n\nalways @(A, B) begin\n    if (B == 0) begin\n        result = 0;\n        odd = A;\n    end else begin\n        result = A / B;\n        odd = A % B;\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"div_16bit\">\n    <description>Divide a 16-bit number by an 8-bit number.</description>\n    <ports>\n        <input id=\"A\" width_description=\"[15:0]\">Dividend.</input>\n        <input id=\"B\" width_description=\"[7:0]\">Divider.</input>\n        <output id=\"result\" width_description=\"[15:0]\">Quotient.</output>\n        <output id=\"odd\" width_description=\"[15:0]\">Remainder.</output>\n    </ports>\n    <implementation>Two always blocks are used for this module. One is a combinational block triggered by changes in inputs A and B, updating register a_reg with the value of A and register b_reg with the value of B. Another always block is also triggered by changes in inputs A and B, performing the division operation.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: div_16bit.v:16:24: Operator DIV expects 16 bits on the RHS, but RHS's VARREF 'b_reg' generates 8 bits.\n                                 : ... In instance div_16bit\n   16 |         result = a_reg / b_reg;\n      |                        ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: div_16bit.v:17:21: Operator MODDIV expects 16 bits on the RHS, but RHS's VARREF 'b_reg' generates 8 bits.\n                                 : ... In instance div_16bit\n   17 |         odd = a_reg % b_reg;\n      |                     ^\nmake[1]: Entering directory '/tmp/comba_div_16bit_xnroueie/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vdiv_16bit.cpp Vdiv_16bit__Trace.cpp Vdiv_16bit__Slow.cpp Vdiv_16bit__Syms.cpp Vdiv_16bit__Trace__Slow.cpp > Vdiv_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vdiv_16bit__ALL.o Vdiv_16bit__ALL.cpp\nar -cr Vdiv_16bit__ALL.a Vdiv_16bit__ALL.o\nranlib Vdiv_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vdiv_16bit__ALL.a      -o Vdiv_16bit\nmake[1]: Leaving directory '/tmp/comba_div_16bit_xnroueie/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: div_16bit.v:13:20: Operator DIV expects 16 bits on the RHS, but RHS's VARREF 'B' generates 8 bits.\n                                 : ... In instance div_16bit\n   13 |         result = A / B;\n      |                    ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: div_16bit.v:14:17: Operator MODDIV expects 16 bits on the RHS, but RHS's VARREF 'B' generates 8 bits.\n                                 : ... In instance div_16bit\n   14 |         odd = A % B;\n      |                 ^\nmake[1]: Entering directory '/tmp/comba_div_16bit_xkfko2ys/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vdiv_16bit.cpp Vdiv_16bit__Trace.cpp Vdiv_16bit__Slow.cpp Vdiv_16bit__Syms.cpp Vdiv_16bit__Trace__Slow.cpp > Vdiv_16bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vdiv_16bit__ALL.o Vdiv_16bit__ALL.cpp\nar -cr Vdiv_16bit__ALL.a Vdiv_16bit__ALL.o\nranlib Vdiv_16bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vdiv_16bit__ALL.a      -o Vdiv_16bit\nmake[1]: Leaving directory '/tmp/comba_div_16bit_xkfko2ys/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {},
-    "failure_type": "",
-    "vcd_status": "",
+    "edtm": {
+      "TB:fsm_state_error::3::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
     "self_consistency": {
       "samples_run": 1,
-      "max_samples": 8,
+      "max_samples": 5,
       "best_sample_idx": 0,
       "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 9.56,
+      "total_elapsed_s": 11.25,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "pass",
-          "sc_trial": 1,
-          "ts_trial": 1,
-          "iter": 2,
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 23,
-          "elapsed_s": 9.56
+          "gvd_lines": 18,
+          "elapsed_s": 11.25
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 0,
+      "commits": 2,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

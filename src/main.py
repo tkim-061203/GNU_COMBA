@@ -410,7 +410,7 @@ You generate the required Verilog code only. Provide only the Verilog module cod
 				
 				#
 				if (not module_extraction_success) and (resp_statistic["completion_tokens"] == max_tokens):
-					loop_break = False
+					loop_break = True
 					with open(f"{problemPromptFileNameNoSuffix}/error.txt", "a+") as file:
 						file.write(f"\n{i}: Out of token")
 					oft_trial_i += 1
@@ -428,9 +428,9 @@ You generate the required Verilog code only. Provide only the Verilog module cod
 				elif module_extraction_success:
 					cur_full_code = '\n'.join(module_definition) + '\n'.join(module_output_code)
 					# print(cur_full_code)
-					is_cur_module_contain_logic, final_code = is_module_contain_logic(cur_full_code, all_comment_ranges=all_comment_ranges)
+					is_cur_module_contain_logic, final_code = is_module_contain_logic(cur_full_code)
 					if is_cur_module_contain_logic == None and final_code == None:
-						loop_break = False
+						loop_break = True
 						with open(f"{problemPromptFileNameNoSuffix}/error.txt", "a+") as file:
 							file.write(f"\n{i}: Comment parsing failed")
 						oft_trial_i += 1

@@ -6,44 +6,46 @@
     "module_name": "calendar",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 1,
-    "ts_trial": 1,
-    "total_iter": 2,
-    "gvd": "module calendar (\n    input CLK,\n    input RST,\n    output reg [5:0] Hours,\n    output reg [5:0] Mins,\n    output reg [5:0] Secs\n);\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Secs <= 6'b000000;\n    end else if (Secs == 6'b111011) begin\n        Secs <= 6'b000000;\n    end else begin\n        Secs <= Secs + 1;\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Mins <= 6'b000000;\n    end else if ((Mins == 6'b111011) && (Secs == 6'b111011)) begin\n        Mins <= 6'b000000;\n    end else if (Secs == 6'b111011) begin\n        Mins <= Mins + 1;\n    end else begin\n        Mins <= Mins;\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Hours <= 6'b000000;\n    end else if ((Hours == 6'b010111) && (Mins == 6'b111011) && (Secs == 6'b111011)) begin\n        Hours <= 6'b000000;\n    end else if ((Mins == 6'b111011) && (Secs == 6'b111011)) begin\n        Hours <= Hours + 1;\n    end else begin\n        Hours <= Hours;\n    end\nend\nendmodule\n",
-    "xml_description": "<module id=\"calendar\">\n    <description>Perpetual calendar with continuous looping for seconds and minutes.</description>\n    <ports>\n        <input id=\"CLK\">Clock input.</input>\n        <input id=\"RST\">Active-high reset signal.</input>\n        <output id=\"Hours\" width_description=\"[5:0]\">Current hour.</output>\n        <output id=\"Mins\" width_description=\"[5:0]\">Current minute.</output>\n        <output id=\"Secs\" width_description=\"[5:0]\">Current second.</output>\n    </ports>\n    <implementation>Three always blocks triggered on the positive edge of the clock signal or the positive edge of the reset signal. Each block updates the corresponding time unit (seconds, minutes, hours) based on its own conditions.</implementation>\n</module>",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module calendar (\n    input CLK,\n    input RST,\n    output reg [5:0] Hours,\n    output reg [5:0] Mins,\n    output reg [5:0] Secs\n);\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Secs <= 0;\n    end else begin\n        if (Secs == 59) begin\n            Secs <= 0;\n        end else begin\n            Secs <= Secs + 1;\n        end\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Mins <= 0;\n    end else begin\n        if (Mins == 59 && Secs == 59) begin\n            Mins <= 0;\n        end else if (Secs == 59) begin\n            Mins <= Mins + 1;\n        end\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Hours <= 0;\n    end else begin\n        if (Hours == 23 && Mins == 59 && Secs == 59) begin\n            Hours <= 0;\n        end else if (Mins == 59 && Secs == 59) begin\n            Hours <= Hours + 1;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"calendar\">\n    <description>Perpetual calendar with continuous seconds, minutes, and hours.</description>\n    <ports>\n        <input id=\"CLK\">Clock input.</input>\n        <input id=\"RST\">Active-high reset signal.</input>\n        <output id=\"Hours\" width_description=\"[5:0]\">Current hour.</output>\n        <output id=\"Mins\" width_description=\"[5:0]\">Current minute.</output>\n        <output id=\"Secs\" width_description=\"[5:0]\">Current second.</output>\n    </ports>\n    <implementation>Three always blocks for updating seconds, minutes, and hours.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_calendar_rem3td1n/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcalendar.cpp Vcalendar__Trace.cpp Vcalendar__Slow.cpp Vcalendar__Syms.cpp Vcalendar__Trace__Slow.cpp > Vcalendar__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcalendar__ALL.o Vcalendar__ALL.cpp\nar -cr Vcalendar__ALL.a Vcalendar__ALL.o\nranlib Vcalendar__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcalendar__ALL.a      -o Vcalendar\nmake[1]: Leaving directory '/tmp/comba_calendar_rem3td1n/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_calendar_7s85rpqy/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcalendar.cpp Vcalendar__Trace.cpp Vcalendar__Slow.cpp Vcalendar__Syms.cpp Vcalendar__Trace__Slow.cpp > Vcalendar__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcalendar__ALL.o Vcalendar__ALL.cpp\nar -cr Vcalendar__ALL.a Vcalendar__ALL.o\nranlib Vcalendar__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcalendar__ALL.a      -o Vcalendar\nmake[1]: Leaving directory '/tmp/comba_calendar_7s85rpqy/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {},
-    "failure_type": "",
-    "vcd_status": "",
+    "edtm": {
+      "TB:fsm_state_error::3::": 5
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
     "self_consistency": {
       "samples_run": 1,
-      "max_samples": 8,
+      "max_samples": 5,
       "best_sample_idx": 0,
       "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 15.75,
+      "total_elapsed_s": 57.16,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "pass",
-          "sc_trial": 1,
-          "ts_trial": 1,
-          "iter": 2,
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 42,
-          "elapsed_s": 15.75
+          "gvd_lines": 45,
+          "elapsed_s": 57.16
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 0,
+      "commits": 10,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

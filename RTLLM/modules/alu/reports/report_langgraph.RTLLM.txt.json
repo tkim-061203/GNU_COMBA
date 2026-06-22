@@ -6,64 +6,65 @@
     "module_name": "alu",
     "description_type": "RTLLM.txt",
     "final_status": "fail_ts",
-    "sc_trial": 6,
-    "ts_trial": 6,
-    "total_iter": 12,
-    "gvd": "module alu #(\n    parameter ADD = 6'b100000,\n    parameter ADDU = 6'b100001,\n    parameter SUB = 6'b100010,\n    parameter SUBU = 6'b100011,\n    parameter AND = 6'b100100,\n    parameter OR = 6'b100101,\n    parameter XOR = 6'b100110,\n    parameter NOR = 6'b100111,\n    parameter SLT = 6'b101010,\n    parameter SLTU = 6'b101011,\n    parameter SLL = 6'b000000,\n    parameter SRL = 6'b000010,\n    parameter SRA = 6'b000011,\n    parameter SLLV = 6'b000100,\n    parameter SRLV = 6'b000110,\n    parameter SRAV = 6'b000111,\n    parameter LUI = 6'b001111\n) (\n    input [31:0] a,\n    input [31:0] b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero,\n    output reg carry,\n    output negative,\n    output reg overflow,\n    output flag\n);\nreg [31:0] res;\nassign r = res[31:0];\nassign zero = &res;\nassign negative = res[31];\nassign flag = (aluc == SLT || aluc == SLTU) ? res[0] : 1'bz;\nalways @(*) begin\n    case (aluc)\n        ADD: begin\n            {carry, res} = {a[31], a} + {b[31], b};\n            overflow = (a[31] == b[31]) && (res[31] != a[31]);\n        end\n        ADDU: begin\n            {carry, res} = {1'b0, a} + {1'b0, b};\n            overflow = 1'b0;\n        end\n        SUB: begin\n            {carry, res} = {a[31], a} - {b[31], b};\n            overflow = (a[31] != b[31]) && (res[31] != a[31]);\n        end\n        SUBU: begin\n            {carry, res} = {1'b0, a} - {1'b0, b};\n            overflow = 1'b0;\n        end\n        AND: begin\n            res = a & b;\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        OR: begin\n            res = a | b;\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        XOR: begin\n            res = a ^ b;\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        NOR: begin\n            res = ~(a | b);\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SLT: begin\n            res = (a < b) ? 32'b1 : 32'b0;\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SLTU: begin\n            res = (a < b) ? 32'b1 : 32'b0;\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SLL: begin\n            res = b << a[4:0];\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SRL: begin\n            res = b >> a[4:0];\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SRA: begin\n            res = b >>> a[4:0];\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SLLV: begin\n            res = b << a[4:0];\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SRLV: begin\n            res = b >> a[4:0];\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        SRAV: begin\n            res = b >>> a[4:0];\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        LUI: begin\n            res = {b[15:0], 16'b0};\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n        default: begin\n            res = 32'b0;\n            carry = 1'b0;\n            overflow = 1'b0;\n        end\n    endcase\nend\nendmodule\n",
-    "xml_description": "<module id=\"alu\">\n    <description>ALU for a 32-bit MIPS-ISA CPU.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[31:0]\">A 32-bit input operand.</input>\n        <input id=\"b\" width_description=\"[31:0]\">A 32-bit input operand.</input>\n        <input id=\"aluc\" width_description=\"[5:0]\">A 6-bit control signal for selecting the operation to be performed.</input>\n        <output id=\"r\" width_description=\"[31:0]\">A 32-bit output representing the result of the operation.</output>\n        <output id=\"zero\">A 1-bit output indicating whether the result is zero.</output>\n        <output id=\"carry\">A 1-bit output indicating whether a carry occurred during the operation.</output>\n        <output id=\"negative\">A 1-bit output indicating whether the result is negative.</output>\n        <output id=\"overflow\">A 1-bit output indicating whether an overflow occurred during the operation.</output>\n        <output id=\"flag\">A 1-bit output representing a general flag, which is set based on specific operations (SLT and SLTU).</output>\n    </ports>\n    <parameter_description>\n        <constant id=\"ADD\">6'b100000</constant>\n        <constant id=\"ADDU\">6'b100001</constant>\n        <constant id=\"SUB\">6'b100010</constant>\n        <constant id=\"SUBU\">6'b100011</constant>\n        <constant id=\"AND\">6'b100100</constant>\n        <constant id=\"OR\">6'b100101</constant>\n        <constant id=\"XOR\">6'b100110</constant>\n        <constant id=\"NOR\">6'b100111</constant>\n        <constant id=\"SLT\">6'b101010</constant>\n        <constant id=\"SLTU\">6'b101011</constant>\n        <constant id=\"SLL\">6'b000000</constant>\n        <constant id=\"SRL\">6'b000010</constant>\n        <constant id=\"SRA\">6'b000011</constant>\n        <constant id=\"SLLV\">6'b000100</constant>\n        <constant id=\"SRLV\">6'b000110</constant>\n        <constant id=\"SRAV\">6'b000111</constant>\n        <constant id=\"LUI\">6'b001111</constant>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        <assign id=\"signed_a\" width_description=\"[31:0]\">Signed representation of input operand a.</assign>\n        <assign id=\"signed_b\" width_description=\"[31:0]\">Signed representation of input operand b.</assign>\n        <assign id=\"res\" width_description=\"[31:0]\">Result of the operation.</assign>\n        <assign id=\"flag\" width_description=\"[0:0]\">General flag output.</assign>\n        <assign id=\"zero\" width_description=\"[0:0]\">Zero output.</assign>\n        <assign id=\"carry\" width_description=\"[0:0]\">Carry output.</assign>\n        <assign id=\"negative\" width_description=\"[0:0]\">Negative output.</assign>\n        <assign id=\"overflow\" width_description=\"[0:0]\">Overflow output.</assign>\n        \n        <assign signed_a = $signed(a);\n        <assign signed_b = $signed(b);\n        <assign res[31:0] = r;\n        <assign flag = (aluc == SLT || aluc == SLTU) ? 1 : 1'bz;\n        <assign zero = (res == 32'h00000000) ? 1 : 0;\n        <assign carry = (res > 32'hFFFFFFFF) ? 1 : 0;\n        <assign negative = (res[31] == 1) ? 1 : 0;\n        <assign overflow = ((aluc == ADD && (signed_a + signed_b >= 32'h80000000)) ||\n                            (aluc == ADDU && (a + b >= 32'h80000000)) ||\n                            (aluc == SUB && (signed_a - signed_b <= -32'h80000000)) ||\n                            (aluc == SUBU && (a - b <= 32'h80000000))) ? 1 : 0;\n    </logic_description>\n    <implementation>\n        reg [31:0] res;\n        assign r = res[31:0];\n        assign flag = (aluc == SLT || aluc == SLTU) ? 1 : 1'bz;\n        assign zero = (res == 32'h00000000) ? 1 : 0;\n        assign carry = (res > 32'hFFFFFFFF) ? 1 : 0;\n        assign negative = (res[31] == 1) ? 1 : 0;\n        assign overflow = ((aluc == ADD && (signed_a + signed_b >= 32'h80000000)) ||\n                           (aluc == ADDU && (a + b >= 32'h80000000)) ||\n                           (aluc == SUB && (signed_a - signed_b <= -32'h80000000)) ||\n                           (aluc == SUBU && (a - b <= 32'h80000000))) ? 1 : 0;\n        always @(*) begin\n            case(aluc)\n                ADD: res = signed_a + signed_b;\n                ADDU: res = a + b;\n                SUB: res = signed_a - signed_b;\n                SUBU: res = a - b;\n                AND: res = a & b;\n                OR: res = a | b;\n                XOR: res = a ^ b;\n                NOR: res = ~(a | b);\n                SLT: res = (signed_a < signed_b) ? 1 : 0;\n                SLTU: res = (a < b) ? 1 : 0;\n                SLL: res = b << a[4:0];\n                SRL: res = b >> a[4:0];\n                SRA: res = b >>> a[4:0];\n                SLLV: res = b << a[4:0];\n                SRLV: res = b >> a[4:0];\n                SRAV: res = b >>> a[4:0];\n                LUI: res = {a[31:16], 16'h0000};\n                default: res = 32'hxxxxxxxx;\n            endcase\n        end\n    </implementation>\n</module>",
+    "sc_trial": 7,
+    "ts_trial": 7,
+    "total_iter": 14,
+    "gvd": "module alu #(\n    parameter ADD = 6'b100000,\n    parameter ADDU = 6'b100001,\n    parameter SUB = 6'b100010,\n    parameter SUBU = 6'b100011,\n    parameter AND = 6'b100100,\n    parameter OR = 6'b100101,\n    parameter XOR = 6'b100110,\n    parameter NOR = 6'b100111,\n    parameter SLT = 6'b101010,\n    parameter SLTU = 6'b101011,\n    parameter SLL = 6'b000000,\n    parameter SRL = 6'b000010,\n    parameter SRA = 6'b000011,\n    parameter SLLV = 6'b000100,\n    parameter SRLV = 6'b000110,\n    parameter SRAV = 6'b000111,\n    parameter LUI = 6'b001111\n) (\n    input [31:0] a,\n    input [31:0] b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero,\n    output reg carry,\n    output negative,\n    output reg overflow,\n    output flag\n);\n    reg [31:0] res;\n    assign r = res[31:0];\n    assign zero = (res[31:0] == 32'b0);\n    assign negative = res[31];\n    assign flag = (aluc == SLT || aluc == SLTU) ? res[0] : 1'bz;\n    always @(*) begin\n        case (aluc)\n            ADD: begin\n                {carry, res[31:0]} = {a[31], a[31:0]} + {b[31], b[31:0]};\n                overflow = (a[31] == b[31]) && (res[31] != a[31]);\n            end\n            ADDU: begin\n                res[31:0] = a[31:0] + b[31:0];\n                overflow = 1'b0;\n            end\n            SUB: begin\n                {carry, res[31:0]} = {a[31], a[31:0]} - {b[31], b[31:0]};\n                overflow = (a[31] != b[31]) && (res[31] != a[31]);\n            end\n            SUBU: begin\n                res[31:0] = a[31:0] - b[31:0];\n                overflow = 1'b0;\n            end\n            AND: res[31:0] = a[31:0] & b[31:0];\n            OR: res[31:0] = a[31:0] | b[31:0];\n            XOR: res[31:0] = a[31:0] ^ b[31:0];\n            NOR: res[31:0] = ~(a[31:0] | b[31:0]);\n            SLT: begin\n                res[31:0] = (a[31:0] < b[31:0]) ? 32'b1 : 32'b0;\n                overflow = 1'b0;\n            end\n            SLTU: begin\n                res[31:0] = (a[31:0] < b[31:0]) ? 32'b1 : 32'b0;\n                overflow = 1'b0;\n            end\n            SLL: res[31:0] = b[31:0] << a[4:0];\n            SRL: res[31:0] = b[31:0] >> a[4:0];\n            SRA: res[31:0] = b[31:0] >>> a[4:0];\n            SLLV: res[31:0] = b[31:0] << a[4:0];\n            SRLV: res[31:0] = b[31:0] >> a[4:0];\n            SRAV: res[31:0] = b[31:0] >>> a[4:0];\n            LUI: res[31:0] = {b[15:0], 16'b0};\n            default: begin\n                res[31:0] = 32'b0;\n                carry = 1'b0;\n                overflow = 1'b0;\n            end\n        endcase\n    end\nendmodule\n",
+    "xml_description": "<module id=\"alu\">\n    <description>ALU for a 32-bit MIPS-ISA CPU. Supports various arithmetic and logical operations.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[31:0]\">A 32-bit input operand.</input>\n        <input id=\"b\" width_description=\"[31:0]\">A 32-bit input operand.</input>\n        <input id=\"aluc\" width_description=\"[5:0]\">Control signal for selecting the operation to be performed.</input>\n        <output id=\"r\" width_description=\"[31:0]\">Result of the operation.</output>\n        <output id=\"zero\">Indicates if the result is zero.</output>\n        <output id=\"carry\">Indicates if a carry occurred during the operation.</output>\n        <output id=\"negative\">Indicates if the result is negative.</output>\n        <output id=\"overflow\">Indicates if an overflow occurred during the operation.</output>\n        <output id=\"flag\">General flag output, set based on specific operations (SLT and SLTU).</output>\n    </ports>\n    \n    <parameter_description>\n        <param id=\"ADD\">6'b100000</param>\n        <param id=\"ADDU\">6'b100001</param>\n        <param id=\"SUB\">6'b100010</param>\n        <param id=\"SUBU\">6'b100011</param>\n        <param id=\"AND\">6'b100100</param>\n        <param id=\"OR\">6'b100101</param>\n        <param id=\"XOR\">6'b100110</param>\n        <param id=\"NOR\">6'b100111</param>\n        <param id=\"SLT\">6'b101010</param>\n        <param id=\"SLTU\">6'b101011</param>\n        <param id=\"SLL\">6'b000000</param>\n        <param id=\"SRL\">6'b000010</param>\n        <param id=\"SRA\">6'b000011</param>\n        <param id=\"SLLV\">6'b000100</param>\n        <param id=\"SRLV\">6'b000110</param>\n        <param id=\"SRAV\">6'b000111</param>\n        <param id=\"LUI\">6'b001111</param>\n    </parameter_description>\n    \n    <logic_description type=\"combinational_logic\">\n        <assign id=\"signed_a\">($signed(a))</assign>\n        <assign id=\"signed_b\">($signed(b))</assign>\n        <assign id=\"res[31:0]\">(r)</assign>\n        \n        <assign id=\"flag\">((aluc == SLT || aluc == SLTU) ? 1'b1 : 1'bz)</assign>\n        <assign id=\"zero\">({{31{1'b0}}, res[31]} == 1'b1 ? 1'b1 : 1'b0)</assign>\n    </logic_description>\n    \n    <implementation>\n        reg [32:0] res;\n        assign r = res[31:0];\n        assign flag = ((aluc == SLT || aluc == SLTU) ? 1'b1 : 1'bz);\n        assign zero = ({31'd0, res[31]} == 1'b1 ? 1'b1 : 1'b0);\n        always @(*) begin\n            case(aluc)\n                ADD: res <= signed_a + signed_b;\n                ADDU: res <= a + b;\n                SUB: res <= signed_a - signed_b;\n                SUBU: res <= a - b;\n                AND: res <= a & b;\n                OR: res <= a | b;\n                XOR: res <= a ^ b;\n                NOR: res <= ~(a | b);\n                SLT: res <= {32'd0, signed_a < signed_b};\n                SLTU: res <= {32'd0, a < b};\n                SLL: res <= b << a[4:0];\n                SRL: res <= b >> a[4:0];\n                SRA: res <= signed_b >>> signed_a[4:0];\n                SLLV: res <= b << a[4:0];\n                SRLV: res <= b >> a[4:0];\n                SRAV: res <= signed_b >>> signed_a[4:0];\n                LUI: res <= {a[15:0], 16'd0};\n                default: res <= 32'dz;\n            endcase\n        end\n    </implementation>\nendmodule",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_alu_ql_wueoj/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Valu.cpp Valu__Trace.cpp Valu__Slow.cpp Valu__Syms.cpp Valu__Trace__Slow.cpp > Valu__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Valu__ALL.o Valu__ALL.cpp\nar -cr Valu__ALL.a Valu__ALL.o\nranlib Valu__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Valu__ALL.a      -o Valu\nmake[1]: Leaving directory '/tmp/comba_alu_ql_wueoj/obj_dir'\n\n[RUN]\nValu: ../tb.cpp:288: void aluScb::writeOut(aluOutTx*): Assertion `tx->r == (out_tx_ref.r & 0xffffffff) && tx->flag.carry == out_tx_ref.flag.carry && tx->flag.flag == out_tx_ref.flag.flag && tx->flag.negative == out_tx_ref.flag.negative && tx->flag.overflow == out_tx_ref.flag.overflow && tx->flag.zero == out_tx_ref.flag.zero && \"TODO 3 Failed: Operation logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 1\n# TODO 3 INPUT TRACE: in->a.a = 0x3fe3fff4, in->b.b = 0x74c20ea, in->aluc = 0x3a\n# TODO 3 OUTPUT TRACE: tx->flag.carry = 0x0, tx->flag.flag = 0x0, tx->flag.negative = 0x0, tx->flag.overflow = 0x0, tx->flag.zero = 0x0, tx->r = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: out_tx_ref.flag.carry = 0x0, out_tx_ref.flag.flag = 0x0, out_tx_ref.flag.negative = 0x0, out_tx_ref.flag.overflow = 0x0, out_tx_ref.flag.zero = 0x1, out_tx_ref.r = 0x0, out_tx_ref.r = 0x0\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_alu_xd9g5yx8/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Valu.cpp Valu__Trace.cpp Valu__Slow.cpp Valu__Syms.cpp Valu__Trace__Slow.cpp > Valu__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Valu__ALL.o Valu__ALL.cpp\nar -cr Valu__ALL.a Valu__ALL.o\nranlib Valu__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Valu__ALL.a      -o Valu\nmake[1]: Leaving directory '/tmp/comba_alu_xd9g5yx8/obj_dir'\n\n[RUN]\nValu: ../tb.cpp:288: void aluScb::writeOut(aluOutTx*): Assertion `tx->r == (out_tx_ref.r & 0xffffffff) && tx->flag.carry == out_tx_ref.flag.carry && tx->flag.flag == out_tx_ref.flag.flag && tx->flag.negative == out_tx_ref.flag.negative && tx->flag.overflow == out_tx_ref.flag.overflow && tx->flag.zero == out_tx_ref.flag.zero && \"TODO 3 Failed: Operation logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 4\n# TODO 3 INPUT TRACE: in->a.a = 0xcf35848, in->b.b = 0x3d643cc3, in->aluc = 0x22\n# TODO 3 OUTPUT TRACE: tx->flag.carry = 0x1, tx->flag.flag = 0x0, tx->flag.negative = 0x1, tx->flag.overflow = 0x0, tx->flag.zero = 0x0, tx->r = 0xcf8f1b85\n# TODO 3 REFERENCE OUTPUT TRACE: out_tx_ref.flag.carry = 0x1, out_tx_ref.flag.flag = 0x0, out_tx_ref.flag.negative = 0x1, out_tx_ref.flag.overflow = 0x1, out_tx_ref.flag.zero = 0x0, out_tx_ref.r = 0xcf8f1b85, out_tx_ref.r = 0xcf8f1b85\n",
     "error": null,
     "edtm": {
+      "TB:combinational_mismatch::0::": 1,
       "TB:combinational_mismatch::3::": 6
     },
     "failure_type": "combinational_mismatch",
     "vcd_status": "",
     "self_consistency": {
-      "samples_run": 7,
-      "max_samples": 8,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
       "best_status": "fail_ts",
       "early_exit": false,
       "vote_enabled": false,
-      "total_elapsed_s": 1247.87,
+      "total_elapsed_s": 884.77,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 125,
-          "elapsed_s": 138.83
-        },
-        {
-          "idx": 1,
-          "T": 0.1,
           "status": "fail_ts",
           "sc_trial": 7,
           "ts_trial": 6,
           "iter": 13,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 125,
-          "elapsed_s": 156.06
+          "gvd_lines": 142,
+          "elapsed_s": 183.45
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 6,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 142,
+          "elapsed_s": 230.81
         },
         {
           "idx": 2,
           "T": 0.2,
           "status": "fail_ts",
-          "sc_trial": 7,
-          "ts_trial": 7,
-          "iter": 14,
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 125,
-          "elapsed_s": 193.07
+          "gvd_lines": 129,
+          "elapsed_s": 150.88
         },
         {
           "idx": 3,
@@ -75,49 +76,25 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 125,
-          "elapsed_s": 175.64
+          "elapsed_s": 179.13
         },
         {
           "idx": 4,
           "T": 0.4,
           "status": "fail_ts",
-          "sc_trial": 9,
-          "ts_trial": 9,
-          "iter": 18,
+          "sc_trial": 7,
+          "ts_trial": 7,
+          "iter": 14,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 129,
-          "elapsed_s": 184.32
-        },
-        {
-          "idx": 5,
-          "T": 0.5,
-          "status": "fail_ts",
-          "sc_trial": 11,
-          "ts_trial": 10,
-          "iter": 21,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 129,
-          "elapsed_s": 248.55
-        },
-        {
-          "idx": 6,
-          "T": 0.6,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 125,
-          "elapsed_s": 151.4
+          "gvd_lines": 79,
+          "elapsed_s": 140.5
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 10,
+      "commits": 12,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

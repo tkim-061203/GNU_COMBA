@@ -6,30 +6,47 @@
     "module_name": "multi_pipe_4bit",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 1,
-    "ts_trial": 1,
-    "total_iter": 2,
-    "gvd": "module multi_pipe_4bit #(\n    parameter size = 4,\n    parameter N = 2 * size\n) (\n    input \t\t\t\t\t\tclk,\n    input \t\t\t\t\t\trst_n,\n    input\t[size-1:0]\t\t\tmul_a,\n    input\t[size-1:0]\t\t\tmul_b,\n    output\treg\t[size*2-1:0]\tmul_out\n);\n    \n    wire [size-1:0] mul_a_ext;\n    wire [size-1:0] mul_b_ext;\n    assign mul_a_ext = {size{1'b0}} + mul_a;\n    assign mul_b_ext = {size{1'b0}} + mul_b;\n    \n    reg [7:0] sum_tmp1;\n    reg [7:0] sum_tmp2;\n    \n    always @(posedge clk or negedge rst_n) begin\n        if (~rst_n) begin\n            sum_tmp1 <= 8'b0;\n            sum_tmp2 <= 8'b0;\n        end else begin\n            sum_tmp1 <= (mul_b_ext[0] ? mul_a_ext : 8'b0) + (mul_b_ext[1] ? mul_a_ext << 1 : 8'b0);\n            sum_tmp2 <= (mul_b_ext[2] ? mul_a_ext << 2 : 8'b0) + (mul_b_ext[3] ? mul_a_ext << 3 : 8'b0);\n        end\n    end\n    \n    always @(posedge clk or negedge rst_n) begin\n        if (~rst_n) begin\n            mul_out <= 8'b0;\n        end else begin\n            mul_out <= sum_tmp1 + sum_tmp2;\n        end\n    end\nendmodule\n",
-    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>4-bit unsigned number pipeline multiplier</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for chip reset and 1 for reset signal inactive.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Input signal representing the multiplicand with a data width of \"size\" bits.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Input signal representing the multiplier with a data width of \"size\" bits.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product output signal with a data width of 2*size bits.</output>\n    </ports>\n    <parameter_description>\n        <constant id=\"size\">Number of bits in the multiplier and multiplicand.</constant>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        <assign id=\"mul_a_ext\" value=\"'{size{1'b0}}' + mul_a\"/>\n        <assign id=\"mul_b_ext\" value=\"'{size{1'b0}}' + mul_b\"/>\n    </logic_description>\n    <implementation>\n        // Extending inputs\n        wire [size-1:0] mul_a;\n        wire [size-1:0] mul_b;\n        wire [2*size-1:0] mul_out;\n        \n        // Intermediate variables\n        reg [2*size-1:0] regs[0:size-1];\n        integer i;\n        // Generate partial products\n        genvar j;\n        generate\n            for(j = 0; j < size; j=j+1) begin : gen_partial_products\n                assign regs[j] = (mul_b[j]) ? (mul_a << j) : 'd0;\n            end\n        endgenerate\n        \n        // Add partial products\n        always @(posedge clk or negedge rst_n) begin\n            if(!rst_n) begin\n                for(i = 0; i < size; i=i+1) begin\n                    regs[i] <= 0;\n                end\n            end else begin\n                for(i = 0; i < size; i=i+1) begin\n                    regs[i] <= regs[i] + regs[(i+1)%size];\n                end\n            end\n        end\n        \n        // Final product calculation\n        always @(posedge clk or negedge rst_n) begin\n            if(!rst_n) begin\n                mul_out <= 0;\n            end else begin\n                mul_out <= regs[0];\n            end\n        end\n    </implementation>\n    \nendmodule",
+    "sc_trial": 7,
+    "ts_trial": 4,
+    "total_iter": 11,
+    "gvd": "module multi_pipe_4bit #(\n    parameter size = 4,\n    parameter N = 2 * size\n) (\n    input \t\t\t\t\t\tclk,\n    input \t\t\t\t\t\trst_n,\n    input\t[size-1:0]\t\t\tmul_a,\n    input\t[size-1:0]\t\t\tmul_b,\n    output\treg\t[size*2-1:0]\tmul_out\n);\n\nwire [7:0] mul_a_ext = {{4{1'b0}}, mul_a};\nwire [7:0] mul_b_ext = {{4{1'b0}}, mul_b};\n\nreg [7:0] partial_product[3:0];\n\ngenvar i;\ngenerate\n    for(i = 0; i < 4; i=i+1) begin : gen_partial_products\n        assign partial_product[i] = (mul_b_ext[i]) ? (mul_a_ext << i) : 'd0;\n    end\nendgenerate\n\nreg [7:0] sum_tmp1, sum_tmp2;\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        sum_tmp1 <= 'd0;\n        sum_tmp2 <= 'd0;\n    end else begin\n        sum_tmp1 <= (mul_b_ext[0] ? mul_a_ext : 0) + (mul_b_ext[1] ? mul_a_ext << 1 : 0);\n        sum_tmp2 <= (mul_b_ext[2] ? mul_a_ext << 2 : 0) + (mul_b_ext[3] ? mul_a_ext << 3 : 0);\n    end\nend\n\nreg [N-1:0] final_sum;\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        final_sum <= 'd0;\n    end else begin\n        final_sum <= sum_tmp1 + sum_tmp2;\n    end\nend\n\nassign mul_out = final_sum;\n\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>4-bit unsigned number pipeline multiplier with two levels of registers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for chip reset and 1 for reset signal inactive.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Input signal representing the multiplicand with a data width of \"size\" bits.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Input signal representing the multiplier with a data width of \"size\" bits.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product output signal with a data width of 2*size bits.</output>\n    </ports>\n    <parameter_description>\n        <constant id=\"size\" value=\"4\">Number of bits in the multiplicand and multiplier.</constant>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        <assign id=\"mul_a_ext\" width_description=\"[7:0]\">Extends the input signal mul_a by adding 'size' number of zero bits at the most significant bit positions.</assign>\n        <assign id=\"mul_b_ext\" width_description=\"[7:0]\">Extends the input signal mul_b by adding 'size' number of zero bits at the most significant bit positions.</assign>\n        <genvar i;\n        generate\n            for(i = 0; i < size; i=i+1) begin : gen_partial_products\n                <assign id=\"partial_product[i]\" width_description=\"[7:0]\">Calculates the partial product based on the corresponding bit in the multiplier (mul_b).</assign>\n            end\n        endgenerate\n    </logic_description>\n    <logic_description type=\"sequential_logic\">\n        <reg id=\"register[0][0]\" width_description=\"[7:0]\">Stores the first level register for storing intermediate values during the multiplication process.</assign>\n        <reg id=\"register[0][1]\" width_description=\"[7:0]\">Stores the second level register for storing intermediate values during the multiplication process.</assign>\n        <reg id=\"register[0][2]\" width_description=\"[7:0]\">Stores the third level register for storing intermediate values during the multiplication process.</assign>\n        <reg id=\"register[0][3]\" width_description=\"[7:0]\">Stores the fourth level register for storing intermediate values during the multiplication process.</assign>\n        <reg id=\"register[1][0]\" width_description=\"[7:0]\">Stores the fifth level register for storing intermediate values during the multiplication process.</assign>\n        <reg id=\"register[1][1]\" width_description=\"[7:0]\">Stores the sixth level register for storing intermediate values during the multiplication process.</assign>\n        <reg id=\"register[1][2]\" width_description=\"[7:0]\">Stores the seventh level register for storing intermediate values during the multiplication process.</assign>\n        <reg id=\"register[1][3]\" width_description=\"[7:0]\">Stores the eighth level register for storing intermediate values during the multiplication process.</assign>\n        \n        <always @(posedge clk or negedge rst_n) begin\n            if(~rst_n) begin\n                // Reset all registers to 0\n                register[0][0] <= 0;\n                register[0][1] <= 0;\n                register[0][2] <= 0;\n                register[0][3] <= 0;\n                register[1][0] <= 0;\n                register[1][1] <= 0;\n                register[1][2] <= 0;\n                register[1][3] <= 0;\n            end else begin\n                // Add operations for each stage\n                register[0][0] <= partial_product[0];\n                register[0][1] <= register[0][0] + partial_product[1];\n                register[0][2] <= register[0][1] + partial_product[2];\n                register[0][3] <= register[0][2] + partial_product[3];\n                \n                register[1][0] <= register[0][0];\n                register[1][1] <= register[0][1];\n                register[1][2] <= register[0][2];\n                register[1][3] <= register[0][3];\n            end\n        end\n        \n        <always @(posedge clk or negedge rst_n) begin\n            if(~rst_n) begin\n                // Reset product output to 0\n                mul_out <= 0;\n            end else begin\n                // Calculate final product\n                mul_out <= register[1][0] + register[1][1] + register[1][2] + register[1][3];\n            end\n        end\n    </logic_description>\n    <task>\n        <description></description>\n    </task>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: multi_pipe_4bit.v:25:39: Operator COND expects 8 bits on the Conditional True, but Conditional True's VARREF 'mul_a_ext' generates 4 bits.\n                                       : ... In instance multi_pipe_4bit\n   25 |             sum_tmp1 <= (mul_b_ext[0] ? mul_a_ext : 8'b0) + (mul_b_ext[1] ? mul_a_ext << 1 : 8'b0);\n      |                                       ^\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\n%Warning-WIDTH: multi_pipe_4bit.v:25:87: Operator SHIFTL expects 8 bits on the LHS, but LHS's VARREF 'mul_a_ext' generates 4 bits.\n                                       : ... In instance multi_pipe_4bit\n   25 |             sum_tmp1 <= (mul_b_ext[0] ? mul_a_ext : 8'b0) + (mul_b_ext[1] ? mul_a_ext << 1 : 8'b0);\n      |                                                                                       ^~\n%Warning-WIDTH: multi_pipe_4bit.v:26:51: Operator SHIFTL expects 8 bits on the LHS, but LHS's VARREF 'mul_a_ext' generates 4 bits.\n                                       : ... In instance multi_pipe_4bit\n   26 |             sum_tmp2 <= (mul_b_ext[2] ? mul_a_ext << 2 : 8'b0) + (mul_b_ext[3] ? mul_a_ext << 3 : 8'b0);\n      |                                                   ^~\n%Warning-WIDTH: multi_pipe_4bit.v:26:92: Operator SHIFTL expects 8 bits on the LHS, but LHS's VARREF 'mul_a_ext' generates 4 bits.\n                                       : ... In instance multi_pipe_4bit\n   26 |             sum_tmp2 <= (mul_b_ext[2] ? mul_a_ext << 2 : 8'b0) + (mul_b_ext[3] ? mul_a_ext << 3 : 8'b0);\n      |                                                                                            ^~\nmake[1]: Entering directory '/tmp/comba_multi_pipe_4bit_fr2p8dy0/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_pipe_4bit.cpp Vmulti_pipe_4bit__Trace.cpp Vmulti_pipe_4bit__Slow.cpp Vmulti_pipe_4bit__Syms.cpp Vmulti_pipe_4bit__Trace__Slow.cpp > Vmulti_pipe_4bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vmulti_pipe_4bit__ALL.o Vmulti_pipe_4bit__ALL.cpp\nar -cr Vmulti_pipe_4bit__ALL.a Vmulti_pipe_4bit__ALL.o\nranlib Vmulti_pipe_4bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vmulti_pipe_4bit__ALL.a      -o Vmulti_pipe_4bit\nmake[1]: Leaving directory '/tmp/comba_multi_pipe_4bit_fr2p8dy0/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSED: multi_pipe_4bit.v:13:12: Bits of signal are not used: 'mul_b_ext'[7:4]\n                                        : ... In instance multi_pipe_4bit\n   13 | wire [7:0] mul_b_ext = {{4{1'b0}}, mul_b};\n      |            ^~~~~~~~~\n                 ... Use \"/* verilator lint_off UNUSED */\" and lint_on around source to disable this message.\n%Warning-UNUSED: multi_pipe_4bit.v:15:11: Signal is not used: 'partial_product'\n                                        : ... In instance multi_pipe_4bit\n   15 | reg [7:0] partial_product[3:0];\n      |           ^~~~~~~~~~~~~~~\nmake[1]: Entering directory '/tmp/comba_multi_pipe_4bit_hxxraw4_/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_pipe_4bit.cpp Vmulti_pipe_4bit__Trace.cpp Vmulti_pipe_4bit__Slow.cpp Vmulti_pipe_4bit__Syms.cpp Vmulti_pipe_4bit__Trace__Slow.cpp > Vmulti_pipe_4bit__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vmulti_pipe_4bit__ALL.o Vmulti_pipe_4bit__ALL.cpp\nar -cr Vmulti_pipe_4bit__ALL.a Vmulti_pipe_4bit__ALL.o\nranlib Vmulti_pipe_4bit__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vmulti_pipe_4bit__ALL.a      -o Vmulti_pipe_4bit\nmake[1]: Leaving directory '/tmp/comba_multi_pipe_4bit_hxxraw4_/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {},
-    "failure_type": "",
-    "vcd_status": "",
+    "edtm": {
+      "TopModule.sv:N: error: 'register' has already been declared in this scope.": 1,
+      "TopModule.sv:N: error: array 'partial_product' index must be a constant in this context.": 1,
+      "TopModule.sv:N: syntax error": 1,
+      "TB:fsm_state_error::3::logic": 3
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
     "self_consistency": {
-      "samples_run": 2,
-      "max_samples": 8,
-      "best_sample_idx": 1,
-      "best_temperature": 0.1,
+      "samples_run": 4,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 106.44,
+      "total_elapsed_s": 354.35,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 9,
+          "ts_trial": 8,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 45,
+          "elapsed_s": 96.16
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
           "status": "fail_ts",
           "sc_trial": 7,
           "ts_trial": 7,
@@ -37,27 +54,39 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 40,
-          "elapsed_s": 83.2
+          "elapsed_s": 69.98
         },
         {
-          "idx": 1,
-          "T": 0.1,
-          "status": "pass",
-          "sc_trial": 1,
-          "ts_trial": 1,
-          "iter": 2,
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 7,
+          "iter": 15,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 37,
-          "elapsed_s": 23.25
+          "gvd_lines": 41,
+          "elapsed_s": 98.0
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "pass",
+          "sc_trial": 7,
+          "ts_trial": 4,
+          "iter": 11,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 90.22
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 0,
-      "commits": 0,
+      "rollbacks": 1,
+      "commits": 9,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": 1,
       "final_sc": 0
     }
   }

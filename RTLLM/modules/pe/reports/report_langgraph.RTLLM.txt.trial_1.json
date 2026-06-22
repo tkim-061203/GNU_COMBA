@@ -9,23 +9,23 @@
     "sc_trial": 1,
     "ts_trial": 1,
     "total_iter": 2,
-    "gvd": "module pe (\n    input clk,\n    input rst,\n    input [31:0] a,\n    input [31:0] b,\n    output reg [31:0] c\n);\n\nalways @(posedge clk or posedge rst) begin\n    \n    if (rst) begin\n        \n        c <= 32'b0;\n    end else begin\n        \n        c <= c + (a * b);\n    end\nend\nendmodule\n",
-    "xml_description": "<module id=\"pe\">\n    <description>Multipling Accumulator for 32bit integer.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst\">Reset signal. Defined as 1 for reset and 0 for reset signal inactive.</input>\n        <input id=\"a\" width_description=\"[31:0]\">32-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[31:0]\">32-bit input operand B.</input>\n        <output id=\"c\" width_description=\"[31:0]\">32-bit output representing the accumulated result.</output>\n    </ports>\n    <implementation>Parallel Multiplier and Accumulator using Registers and Always Block.</implementation>\n</module>",
+    "gvd": "module pe (\n    input clk,\n    input rst,\n    input [31:0] a,\n    input [31:0] b,\n    output reg [31:0] c\n);\n\nalways @(posedge clk or posedge rst) begin\n    \n    if(rst) begin\n        \n        c <= 32'b0;\n    end else begin\n        \n        c <= c + (a * b);\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"pe\">\n    <description>MAC_PE</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst\">Reset signal. Defined as 1 for reset and 0 for reset signal inactive.</input>\n        <input id=\"a\" width_description=\"[31:0]\">32-bit input operand A.</input>\n        <input id=\"b\" width_description=\"[31:0]\">32-bit input operand B.</input>\n        <output id=\"c\" width_description=\"[31:0]\">32-bit output representing the accumulated result.</output>\n    </ports>\n    <implementation>Parallel multiplier and accumulator using registers and an always block.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_pe_yjkkl6wq/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpe.cpp Vpe__Trace.cpp Vpe__Slow.cpp Vpe__Syms.cpp Vpe__Trace__Slow.cpp > Vpe__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpe__ALL.o Vpe__ALL.cpp\nar -cr Vpe__ALL.a Vpe__ALL.o\nranlib Vpe__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpe__ALL.a      -o Vpe\nmake[1]: Leaving directory '/tmp/comba_pe_yjkkl6wq/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_pe_3162fn9l/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpe.cpp Vpe__Trace.cpp Vpe__Slow.cpp Vpe__Syms.cpp Vpe__Trace__Slow.cpp > Vpe__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vpe__ALL.o Vpe__ALL.cpp\nar -cr Vpe__ALL.a Vpe__ALL.o\nranlib Vpe__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vpe__ALL.a      -o Vpe\nmake[1]: Leaving directory '/tmp/comba_pe_3162fn9l/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "self_consistency": {
       "samples_run": 1,
-      "max_samples": 8,
+      "max_samples": 5,
       "best_sample_idx": 0,
       "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 9.22,
+      "total_elapsed_s": 10.25,
       "all_samples": [
         {
           "idx": 0,
@@ -37,7 +37,7 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 19,
-          "elapsed_s": 9.22
+          "elapsed_s": 10.25
         }
       ]
     },

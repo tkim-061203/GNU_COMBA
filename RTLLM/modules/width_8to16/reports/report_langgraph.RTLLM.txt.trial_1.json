@@ -6,46 +6,48 @@
     "module_name": "width_8to16",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 1,
+    "sc_trial": 2,
     "ts_trial": 1,
-    "total_iter": 2,
-    "gvd": "module width_8to16 (\n    input \t\t\t\t   clk,\n    input \t\t\t\t   rst_n,\n    input\t\t\t\t      valid_in,\n    input\t   [7:0]\t\t   data_in,\n    output\treg\t\t\tvalid_out,\n    output   reg [15:0]\tdata_out\n);\n\nreg [7:0] data_lock;\nreg flag;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data_out <= 16'b0;\n        valid_out <= 1'b0;\n        data_lock <= 8'b0;\n        flag <= 1'b0;\n    end else begin\n        if (valid_in && flag) begin\n            data_out <= {data_lock, data_in};\n            valid_out <= 1'b1;\n            flag <= 1'b0;\n        end else if (valid_in && !flag) begin\n            data_lock <= data_in;\n            flag <= 1'b1;\n            valid_out <= 1'b0;\n        end else begin\n            valid_out <= 1'b0;\n        end\n    end\nend\nendmodule\n",
-    "xml_description": "<module id=\"width_8to16\">\n    <description>Data width conversion circuit that converts 8-bit data input to 16-bit data output.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"valid_in\">Input signal indicating the validity of the input data.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data to be converted.</input>\n        <output id=\"valid_out\">Output signal indicating the validity of the output data.</output>\n        <output id=\"data_out\" width_description=\"[15:0]\">16-bit output data resulting from the width conversion.</output>\n    </ports>\n    <implementation>Triggered on the positive edge of the clock signal (posedge clk) or the negative edge of the reset signal (negedge rst_n). On reset, indicated by !rst_n, the data_out register is cleared to 0. If the input data is valid (valid_in) and the flag signal is active, the data_out register is updated by concatenating the contents of the data_lock register (8 bits) and the data_in register (8 bits) to form a 16-bit output. The first valid data is temporarily stored, and when the second valid data is inputted, they are concatenated to produce the output valid_out and data_out.</implementation>\n</module>",
+    "total_iter": 3,
+    "gvd": "module width_8to16 (\n    input \t\t\t\t   clk,\n    input \t\t\t\t   rst_n,\n    input\t\t\t\t      valid_in,\n    input\t   [7:0]\t\t   data_in,\n    output\treg\t\t\tvalid_out,\n    output   reg [15:0]\tdata_out\n);\n\nreg [7:0] data_lock;\nreg flag;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data_out <= 0;\n        valid_out <= 0;\n    end\n    else begin\n        if (flag && valid_in) begin\n            data_out <= {data_lock, data_in};\n            valid_out <= 1;\n        end\n        else begin\n            valid_out <= 0;\n        end\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        flag <= 0;\n    end\n    else begin\n        if (valid_in) begin\n            flag <= ~flag;\n        end\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data_lock <= 0;\n    end\n    else begin\n        if (valid_in && !flag) begin\n            data_lock <= data_in;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"width_8to16\">\n    <description>data width convertion from 8 to 16</description>\n    <ports>\n        <input id=\"clk\">clock</input>\n        <input id=\"rst_n\">active low reset</input>\n        <input id=\"valid_in\">valid input</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data</input>\n        <output id=\"valid_out\">valid output</output>\n        <output id=\"data_out\" width_description=\"[15:0]\">16-bit output data</output>\n    </ports>\n    <implementation>\n        // TODO: implement your solution here\n        \n        reg [15:0] data_out;\n        reg [7:0] data_lock;\n        reg flag;\n        \n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                data_out <= 0;\n            end else begin\n                if (flag && valid_in) begin\n                    data_out <= {data_lock,data_in};\n                end\n            end\n        end\n        \n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                flag <= 0;\n            end else begin\n                if (valid_in) begin\n                    flag <= ~flag;\n                end\n            end\n        end\n        \n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                data_lock <= 0;\n            end else begin\n                if (valid_in && !flag) begin\n                    data_lock <= data_in;\n                end\n            end\n        end\n        \n        assign valid_out = flag & valid_in;\n        assign data_out = data_out;\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_width_8to16_sgcjyj6v/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vwidth_8to16.cpp Vwidth_8to16__Trace.cpp Vwidth_8to16__Slow.cpp Vwidth_8to16__Syms.cpp Vwidth_8to16__Trace__Slow.cpp > Vwidth_8to16__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vwidth_8to16__ALL.o Vwidth_8to16__ALL.cpp\nar -cr Vwidth_8to16__ALL.a Vwidth_8to16__ALL.o\nranlib Vwidth_8to16__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vwidth_8to16__ALL.a      -o Vwidth_8to16\nmake[1]: Leaving directory '/tmp/comba_width_8to16_sgcjyj6v/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_width_8to16_t6jx7yoj/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vwidth_8to16.cpp Vwidth_8to16__Trace.cpp Vwidth_8to16__Slow.cpp Vwidth_8to16__Syms.cpp Vwidth_8to16__Trace__Slow.cpp > Vwidth_8to16__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vwidth_8to16__ALL.o Vwidth_8to16__ALL.cpp\nar -cr Vwidth_8to16__ALL.a Vwidth_8to16__ALL.o\nranlib Vwidth_8to16__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vwidth_8to16__ALL.a      -o Vwidth_8to16\nmake[1]: Leaving directory '/tmp/comba_width_8to16_t6jx7yoj/obj_dir'\n\n[RUN]\n",
     "error": null,
-    "edtm": {},
+    "edtm": {
+      "TopModule.sv:N: error: data_out Unable to assign to unresolved wires.": 1
+    },
     "failure_type": "",
     "vcd_status": "",
     "self_consistency": {
       "samples_run": 1,
-      "max_samples": 8,
+      "max_samples": 5,
       "best_sample_idx": 0,
       "best_temperature": 0.0,
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 14.78,
+      "total_elapsed_s": 22.18,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "pass",
-          "sc_trial": 1,
+          "sc_trial": 2,
           "ts_trial": 1,
-          "iter": 2,
+          "iter": 3,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 14.78
+          "gvd_lines": 51,
+          "elapsed_s": 22.18
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 0,
+      "commits": 2,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": 2,
       "final_sc": 0
     }
   }

@@ -21,9 +21,10 @@ export VLLM_TORCH_COMPILE_LEVEL=0
 #/home/nntkim/Downloads/outputs_lora_r1024_v2/checkpoint-14500
 #/home/nntkim/Downloads/model_debugger
 #/home/nntkim/Downloads/model_qwen_debugger_v1_merged
+#/home/nntkim/Downloads/model_qwen_generator_0-15_e1_v1_merged
 # ── Config ──
-GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_qwen_generator_0-15_e1_v1_merged}"
-MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_debugger}"
+GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_qwen_generator_0-35_e1_v1_merged}"
+MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_qwen_debugger_v1_merged}"
 PORT_GEN=8000
 PORT_DBG=8001
 MAX_MODEL_LEN=32768
