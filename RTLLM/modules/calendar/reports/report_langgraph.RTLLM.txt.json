@@ -6,16 +6,16 @@
     "module_name": "calendar",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 6,
-    "ts_trial": 6,
-    "total_iter": 12,
-    "gvd": "module calendar (\n    input CLK,\n    input RST,\n    output reg [5:0] Hours,\n    output reg [5:0] Mins,\n    output reg [5:0] Secs\n);\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Secs <= 0;\n    end else begin\n        if (Secs == 59) begin\n            Secs <= 0;\n        end else begin\n            Secs <= Secs + 1;\n        end\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Mins <= 0;\n    end else begin\n        if (Mins == 59 && Secs == 59) begin\n            Mins <= 0;\n        end else if (Secs == 59) begin\n            Mins <= Mins + 1;\n        end\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Hours <= 0;\n    end else begin\n        if (Hours == 23 && Mins == 59 && Secs == 59) begin\n            Hours <= 0;\n        end else if (Mins == 59 && Secs == 59) begin\n            Hours <= Hours + 1;\n        end\n    end\nend\n\nendmodule\n",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module calendar (\n    input CLK,\n    input RST,\n    output reg [5:0] Hours,\n    output reg [5:0] Mins,\n    output reg [5:0] Secs\n);\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Secs <= 0;\n    end\n    else if (Secs == 59) begin\n        Secs <= 0;\n    end\n    else begin\n        Secs <= Secs + 1;\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Mins <= 0;\n    end\n    else if (Mins == 59 && Secs == 59) begin\n        Mins <= 0;\n    end\n    else if (Secs == 59) begin\n        Mins <= Mins + 1;\n    end\n    else begin\n        Mins <= Mins;\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Hours <= 0;\n    end\n    else if (Hours == 23 && Mins == 59 && Secs == 59) begin\n        Hours <= 0;\n    end\n    else if (Mins == 59 && Secs == 59) begin\n        Hours <= Hours + 1;\n    end\n    else begin\n        Hours <= Hours;\n    end\nend\n\nendmodule\n",
     "xml_description": "<module id=\"calendar\">\n    <description>Perpetual calendar with continuous seconds, minutes, and hours.</description>\n    <ports>\n        <input id=\"CLK\">Clock input.</input>\n        <input id=\"RST\">Active-high reset signal.</input>\n        <output id=\"Hours\" width_description=\"[5:0]\">Current hour.</output>\n        <output id=\"Mins\" width_description=\"[5:0]\">Current minute.</output>\n        <output id=\"Secs\" width_description=\"[5:0]\">Current second.</output>\n    </ports>\n    <implementation>Three always blocks for updating seconds, minutes, and hours.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_calendar_rz2b7k6y/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcalendar.cpp Vcalendar__Trace.cpp Vcalendar__Slow.cpp Vcalendar__Syms.cpp Vcalendar__Trace__Slow.cpp > Vcalendar__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcalendar__ALL.o Vcalendar__ALL.cpp\nar -cr Vcalendar__ALL.a Vcalendar__ALL.o\nranlib Vcalendar__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcalendar__ALL.a      -o Vcalendar\nmake[1]: Leaving directory '/tmp/comba_calendar_rz2b7k6y/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_calendar_3vozw6px/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcalendar.cpp Vcalendar__Trace.cpp Vcalendar__Slow.cpp Vcalendar__Syms.cpp Vcalendar__Trace__Slow.cpp > Vcalendar__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vcalendar__ALL.o Vcalendar__ALL.cpp\nar -cr Vcalendar__ALL.a Vcalendar__ALL.o\nranlib Vcalendar__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vcalendar__ALL.a      -o Vcalendar\nmake[1]: Leaving directory '/tmp/comba_calendar_3vozw6px/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:fsm_state_error::3::": 5
+      "TB:fsm_state_error::3::": 1
     },
     "failure_type": "fsm_state_error",
     "vcd_status": "ok",
@@ -27,25 +27,25 @@
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 54.99,
+      "total_elapsed_s": 18.95,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "pass",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 45,
-          "elapsed_s": 54.99
+          "gvd_lines": 51,
+          "elapsed_s": 18.95
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 10,
+      "commits": 2,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

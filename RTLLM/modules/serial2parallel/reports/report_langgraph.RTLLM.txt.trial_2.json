@@ -6,16 +6,16 @@
     "module_name": "serial2parallel",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 4,
-    "ts_trial": 4,
-    "total_iter": 8,
-    "gvd": "module serial2parallel (\n    input clk,\n    input rst_n,\n    input din_serial,\n    input din_valid,\n    output reg [7:0]dout_parallel,\n    output reg dout_valid\n);\n\n    reg [3:0] cnt;\n\n    always @(posedge clk) begin\n        if (!rst_n) begin\n            cnt <= 0;\n            dout_parallel <= 0;\n            dout_valid <= 0;\n        end else if (din_valid) begin\n            dout_parallel <= {dout_parallel[6:0], din_serial};\n            cnt <= cnt + 1;\n            if (cnt == 4'b1111) begin\n                dout_valid <= 1;\n            end else begin\n                dout_valid <= 0;\n            end\n        end else begin\n            dout_valid <= 0;\n        end\n    end\n\nendmodule\n",
-    "xml_description": "<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <constant id=\"COUNTER_WIDTH\">4</constant>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        <reg id=\"cnt\" width_description=\"[COUNTER_WIDTH-1:0]\">Counter to keep track of the number of serial input data bits received.</reg>\n        <reg id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data register.</reg>\n        <reg id=\"dout_valid\">Valid output signal register.</reg>\n        \n        // Sequential logic block triggered on the positive edge of clk or negative edge of rst_n\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt <= 0;\n                dout_parallel <= 0;\n                dout_valid <= 0;\n            end else begin\n                if (din_valid) begin\n                    dout_parallel[cnt] <= din_serial;\n                    cnt <= cnt + 1;\n                    \n                    // Check if all 8 serial data bits have been received\n                    if (cnt == 7) begin\n                        dout_valid <= 1;\n                        cnt <= 0;\n                    end else begin\n                        dout_valid <= 0;\n                    end\n                end\n            end\n        end\n    </logic_description>\n</module>",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module serial2parallel (\n    input clk,\n    input rst_n,\n    input din_serial,\n    input din_valid,\n    output reg [7:0]dout_parallel,\n    output reg dout_valid\n);\n\nreg [7:0] dout_reg;\nreg dout_valid_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        dout_reg <= 8'b0;\n        dout_valid_reg <= 1'b0;\n    end\n    else if (din_valid) begin\n        dout_reg <= {din_serial, dout_reg[7:1]};\n        if (dout_reg == 8'hFF) begin\n            dout_valid_reg <= 1'b1;\n        end\n    end\nend\n\nassign dout_parallel = dout_reg;\nassign dout_valid = dout_valid_reg;\n\nendmodule\n",
+    "xml_description": "<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <constant id=\"COUNTER_WIDTH\">4</constant>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        <reg id=\"cnt\" width_description=\"[COUNTER_WIDTH-1:0]\">Counter to keep track of the number of serial input data bits received.</reg>\n        <reg id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data register.</reg>\n        <reg id=\"dout_valid\">Valid output signal register.</reg>\n        \n        // Sequential logic block triggered on the positive edge of clk\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt <= 0;\n                dout_parallel <= 0;\n                dout_valid <= 0;\n            end else begin\n                if (din_valid) begin\n                    dout_parallel[cnt] <= din_serial;\n                    cnt <= cnt + 1;\n                    \n                    // Check if all 8 serial data bits have been received\n                    if (cnt == 7) begin\n                        dout_valid <= 1;\n                        cnt <= 0; // Reset the counter after processing 8 bits\n                    end else begin\n                        dout_valid <= 0;\n                    end\n                end\n            end\n        end\n    </logic_description>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_serial2parallel_kgs06b7k/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel__Trace.cpp Vserial2parallel__Slow.cpp Vserial2parallel__Syms.cpp Vserial2parallel__Trace__Slow.cpp > Vserial2parallel__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\nar -cr Vserial2parallel__ALL.a Vserial2parallel__ALL.o\nranlib Vserial2parallel__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vserial2parallel__ALL.a      -o Vserial2parallel\nmake[1]: Leaving directory '/tmp/comba_serial2parallel_kgs06b7k/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_serial2parallel_o_lqqdiw/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel__Trace.cpp Vserial2parallel__Slow.cpp Vserial2parallel__Syms.cpp Vserial2parallel__Trace__Slow.cpp > Vserial2parallel__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\nar -cr Vserial2parallel__ALL.a Vserial2parallel__ALL.o\nranlib Vserial2parallel__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vserial2parallel__ALL.a      -o Vserial2parallel\nmake[1]: Leaving directory '/tmp/comba_serial2parallel_o_lqqdiw/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:fsm_state_error::3::": 3
+      "TB:fsm_state_error::3::": 1
     },
     "failure_type": "fsm_state_error",
     "vcd_status": "ok",
@@ -27,25 +27,25 @@
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 25.57,
+      "total_elapsed_s": 18.17,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "pass",
-          "sc_trial": 4,
-          "ts_trial": 4,
-          "iter": 8,
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 30,
-          "elapsed_s": 25.57
+          "gvd_lines": 29,
+          "elapsed_s": 18.17
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 6,
+      "commits": 2,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

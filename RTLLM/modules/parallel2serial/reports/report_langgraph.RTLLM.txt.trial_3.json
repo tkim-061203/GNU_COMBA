@@ -6,46 +6,58 @@
     "module_name": "parallel2serial",
     "description_type": "RTLLM.txt",
     "final_status": "pass",
-    "sc_trial": 2,
-    "ts_trial": 2,
-    "total_iter": 4,
-    "gvd": "module parallel2serial (\n    input wire clk,\n    input wire rst_n,\n    input wire [3:0]d,\n    output wire valid_out,\n    output wire dout\n);\n\n    reg [1:0] cnt;\n    reg [3:0] data;\n    reg valid;\n\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            cnt <= 2'b00;\n            data <= 4'b0000;\n            valid <= 1'b0;\n        end else begin\n            if (cnt == 2'b11) begin\n                data <= d;\n                cnt <= 2'b00;\n                valid <= 1'b1;\n            end else begin\n                data <= {data[2:0], data[3]};\n                cnt <= cnt + 1;\n                valid <= 1'b0;\n            end\n        end\n    end\n\n    assign dout = data[3];\n    assign valid_out = valid;\n\nendmodule\n",
-    "xml_description": "<module id=\"parallel2serial\">\n    <description>Parallel to serial converter, converts every 4 bits of parallel input to 1 bit of serial output (MSB to LSB).</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst_n\">Reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"d\" width_description=\"[3:0]\">4-bit parallel data input.</input>\n        <output id=\"valid_out\">Valid signal indicating the availability of serial output.</output>\n        <output id=\"dout\">Serial output representing the converted data.</output>\n    </ports>\n    <implementation>Assigns the most significant bit of the parallel input to the serial output (dout). On each clock cycle, if the counter (cnt) is 3, indicating the last bit of the parallel input, the module updates the data register (data) with the parallel input (d), resets the counter (cnt) to 0, and sets the valid signal (valid) to 1. Otherwise, the module increments the counter (cnt) by 1, sets the valid signal (valid) to 0, and shifts the data register (data) one bit to the left, with the most significant bit shifted to the least significant bit. Counter Register: If the reset signal (rst_n) is high, the register (cnt) is incremented by 1.</implementation>\n</module>",
+    "sc_trial": 4,
+    "ts_trial": 4,
+    "total_iter": 8,
+    "gvd": "module parallel2serial (\n    input wire clk,\n    input wire rst_n,\n    input wire [3:0]d,\n    output wire valid_out,\n    output wire dout\n);\n\nreg [3:0] data;\nreg valid;\nreg [1:0] cnt;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        data <= 4'b0;\n        valid <= 1'b0;\n        cnt <= 2'b0;\n    end\n    else begin\n        if (cnt == 2'd3) begin\n            data <= d;\n            valid <= 1'b1;\n            cnt <= 2'b0;\n        end\n        else begin\n            data <= {data[2:0], data[3]};\n            valid <= 1'b0;\n            cnt <= cnt + 2'd1;\n        end\n    end\nend\n\nassign dout = data[3];\nassign valid_out = valid;\n\nendmodule\n",
+    "xml_description": "<module id=\"parallel2serial\">\n    <description>Parallel to serial converter, converting 4 parallel inputs to 1 serial output.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst_n\">Reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"d\" width_description=\"[3:0]\">4-bit parallel data input.</input>\n        <output id=\"valid_out\">Valid signal indicating the availability of serial output.</output>\n        <output id=\"dout\">Serial output representing the converted data.</output>\n    </ports>\n    <implementation>Parallel to serial converter, converting 4 parallel inputs to 1 serial output.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_parallel2serial_ladu85lo/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vparallel2serial.cpp Vparallel2serial__Trace.cpp Vparallel2serial__Slow.cpp Vparallel2serial__Syms.cpp Vparallel2serial__Trace__Slow.cpp > Vparallel2serial__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vparallel2serial__ALL.o Vparallel2serial__ALL.cpp\nar -cr Vparallel2serial__ALL.a Vparallel2serial__ALL.o\nranlib Vparallel2serial__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vparallel2serial__ALL.a      -o Vparallel2serial\nmake[1]: Leaving directory '/tmp/comba_parallel2serial_ladu85lo/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_parallel2serial_1yk5gdcc/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vparallel2serial.cpp Vparallel2serial__Trace.cpp Vparallel2serial__Slow.cpp Vparallel2serial__Syms.cpp Vparallel2serial__Trace__Slow.cpp > Vparallel2serial__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vparallel2serial__ALL.o Vparallel2serial__ALL.cpp\nar -cr Vparallel2serial__ALL.a Vparallel2serial__ALL.o\nranlib Vparallel2serial__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vparallel2serial__ALL.a      -o Vparallel2serial\nmake[1]: Leaving directory '/tmp/comba_parallel2serial_1yk5gdcc/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
-      "TB:fsm_state_error::3::": 1
+      "TB:fsm_state_error::3::": 3
     },
     "failure_type": "fsm_state_error",
     "vcd_status": "ok",
     "self_consistency": {
-      "samples_run": 1,
+      "samples_run": 2,
       "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
+      "best_sample_idx": 1,
+      "best_temperature": 0.1,
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 18.79,
+      "total_elapsed_s": 59.02,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
-          "status": "pass",
-          "sc_trial": 2,
-          "ts_trial": 2,
-          "iter": 4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 34,
-          "elapsed_s": 18.79
+          "elapsed_s": 34.36
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "pass",
+          "sc_trial": 4,
+          "ts_trial": 4,
+          "iter": 8,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 24.65
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 2,
+      "commits": 6,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

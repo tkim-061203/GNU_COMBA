@@ -9,10 +9,10 @@
     "sc_trial": 2,
     "ts_trial": 2,
     "total_iter": 4,
-    "gvd": "module edge_detect (\n    input clk,\n    input rst_n,\n    input a,\n    output reg rise,\n    output reg down\n);\n\nreg prev_a;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        prev_a <= 1'b0;\n        rise <= 1'b0;\n        down <= 1'b0;\n    end else begin\n        prev_a <= a;\n        rise <= (prev_a == 1'b0 && a == 1'b1) ? 1'b1 : 1'b0;\n        down <= (prev_a == 1'b1 && a == 1'b0) ? 1'b1 : 1'b0;\n    end\nend\n\nendmodule\n",
+    "gvd": "module edge_detect (\n    input clk,\n    input rst_n,\n    input a,\n    output reg rise,\n    output reg down\n);\n\nreg a_sync;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        a_sync <= 1'b0;\n    end else begin\n        a_sync <= a;\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        rise <= 1'b0;\n        down <= 1'b0;\n    end else begin\n        if (a_sync == 1'b0 && a == 1'b1) begin\n            rise <= 1'b1;\n            down <= 1'b0;\n        end else if (a_sync == 1'b1 && a == 1'b0) begin\n            rise <= 1'b0;\n            down <= 1'b1;\n        end else begin\n            rise <= 1'b0;\n            down <= 1'b0;\n        end\n    end\nend\n\nendmodule\n",
     "xml_description": "<module id=\"edge_detect\">\n    <description>Edge detector for detecting rising and falling edges of a 1-bit input signal 'a'.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"a\">Input signal.</input>\n        <output id=\"rise\">Output signal indicating a rising edge.</output>\n        <output id=\"down\">Output signal indicating a falling edge.</output>\n    </ports>\n    <implementation>\n        // Sequential logic block triggered on the positive edge of the clock or negative edge of reset\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                // On reset, initialize the previous value of 'a' to 0\n                prev_a <= 1'b0;\n            end else begin\n                // Update the previous value of 'a' with the current value of 'a'\n                prev_a <= a;\n            end\n        end\n        \n        // Combinational logic to detect rising and falling edges\n        assign rise = (prev_a == 1'b0 && a == 1'b1);\n        assign down = (prev_a == 1'b1 && a == 1'b0);\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_edge_detect_qcbpv7vn/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vedge_detect.cpp Vedge_detect__Trace.cpp Vedge_detect__Slow.cpp Vedge_detect__Syms.cpp Vedge_detect__Trace__Slow.cpp > Vedge_detect__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vedge_detect__ALL.o Vedge_detect__ALL.cpp\nar -cr Vedge_detect__ALL.a Vedge_detect__ALL.o\nranlib Vedge_detect__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vedge_detect__ALL.a      -o Vedge_detect\nmake[1]: Leaving directory '/tmp/comba_edge_detect_qcbpv7vn/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_edge_detect_vbwqezyj/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vedge_detect.cpp Vedge_detect__Trace.cpp Vedge_detect__Slow.cpp Vedge_detect__Syms.cpp Vedge_detect__Trace__Slow.cpp > Vedge_detect__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vedge_detect__ALL.o Vedge_detect__ALL.cpp\nar -cr Vedge_detect__ALL.a Vedge_detect__ALL.o\nranlib Vedge_detect__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vedge_detect__ALL.a      -o Vedge_detect\nmake[1]: Leaving directory '/tmp/comba_edge_detect_vbwqezyj/obj_dir'\n\n[RUN]\n",
     "error": null,
     "edtm": {
       "TB:fsm_state_error::3::": 1
@@ -27,7 +27,7 @@
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 14.66,
+      "total_elapsed_s": 16.74,
       "all_samples": [
         {
           "idx": 0,
@@ -38,8 +38,8 @@
           "iter": 4,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 23,
-          "elapsed_s": 14.66
+          "gvd_lines": 37,
+          "elapsed_s": 16.74
         }
       ]
     },
