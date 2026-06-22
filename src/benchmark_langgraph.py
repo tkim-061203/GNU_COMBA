@@ -27,7 +27,9 @@ from datetime import datetime
 from pathlib import Path
 
 # ── Project root ──
-PROJECT_ROOT = Path(__file__).resolve().parent
+# This script lives in src/; SCRIPT_DIR is src/, PROJECT_ROOT is the repo root.
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -116,7 +118,7 @@ def run_trials(modules_dir: str, description_type: str, num_trials: int,
             module_paths = [f"{modules_dir}/*"]
 
         cmd = [
-            sys.executable, "run.py", "langgraph"
+            sys.executable, str(SCRIPT_DIR / "run.py"), "langgraph"
         ] + module_paths + [
             "--descriptiontype", description_type,
             "--jobs", str(jobs),
@@ -415,8 +417,8 @@ def main():
                     help="Number of trials per design (default: 5)")
     p.add_argument("--designs", nargs="*", default=None,
                     help="Specific design names (default: all)")
-    p.add_argument("--output-dir", default="reports/fixrate",
-                    help="Output directory (default: reports/fixrate)")
+    p.add_argument("--output-dir", default="reports/verilogeval/fixrate",
+                    help="Output directory (default: reports/verilogeval/fixrate)")
     p.add_argument("--dataset", choices=["rtllm", "rtllm_v2", "verilogeval"], default=None,
                     help="Preset dataset configuration (rtllm, rtllm_v2, or verilogeval)")
     p.add_argument("--jobs", type=int, default=1,
@@ -434,16 +436,16 @@ def main():
     if args.dataset in ("rtllm", "rtllm_v2"):
         if args.dataset == "rtllm":
             modules_dir = "RTLLM/modules"
-            output_dir = "RTLLM/reports/fixrate"
+            output_dir = "reports/rtllm/fixrate"
         else:
             modules_dir = "RTLLM_v2/modules"
-            output_dir = "RTLLM_v2/reports/fixrate"
+            output_dir = "reports/rtllm_v2/fixrate"
         # For RTLLM, default to RTLLM.txt if no specific type was requested
         if args.dataset == "rtllm" and args.descriptiontype == "txt":
             description_type = "RTLLM.txt"
     elif args.dataset == "verilogeval":
         modules_dir = "modules"
-        output_dir = "reports/fixrate"
+        output_dir = "reports/verilogeval/fixrate"
 
     summary_file = os.path.join(os.path.dirname(output_dir), f"summary_langgraph.{description_type}.json")
 

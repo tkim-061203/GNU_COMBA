@@ -91,14 +91,14 @@ all_RTLLM:
 RTLLM:
 	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM dataset (sim: verilator, SC=$(SC)) ==="
-	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm --trials 5 --jobs $(LANGGRAPH_JOBS)
+	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 src/benchmark_langgraph.py --dataset rtllm --trials 5 --jobs $(LANGGRAPH_JOBS)
 	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm
 
 RTLLM_v2:
 	@echo "=== Start: $$(date) ==="
 	@echo "=== Running benchmark for RTLLM_v2 dataset (sim: verilator, SC=$(SC)) ==="
-	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 benchmark_langgraph.py --dataset rtllm_v2 --trials 5 --jobs $(LANGGRAPH_JOBS)
+	$(SC_ENV) COMBA_TS_SIMULATOR=verilator conda run --no-capture-output -n kim_VE python3 src/benchmark_langgraph.py --dataset rtllm_v2 --trials 5 --jobs $(LANGGRAPH_JOBS)
 	@echo "=== End: $$(date) ==="
 	@$(MAKE) -s analyze-syntax-rtllm-v2
 
@@ -179,7 +179,7 @@ filter: gen-flow-configs
 # ── Pipeline 3: LangGraph flow ─────────────────────────────────────────────
 langgraph-flow:
 	@echo "=== Running Pipeline 3 — LangGraph ==="
-	cd $(LANGGRAPH_DIR) && python3 run.py langgraph $(LANGGRAPH_MODULES) --descriptiontype=$(LANGGRAPH_DESC) --samples=$(LANGGRAPH_SAMPLES)
+	cd $(LANGGRAPH_DIR) && python3 $(scripts_dir)/run.py langgraph $(LANGGRAPH_MODULES) --descriptiontype=$(LANGGRAPH_DESC) --samples=$(LANGGRAPH_SAMPLES)
 	@echo "=== Configuring VerilogEval ==="
 	$(MAKE) verilog-eval
 	@echo "=== Pipeline 3 complete ==="
@@ -198,7 +198,7 @@ analyze-syntax-rtllm:
 	@if [ "$(SC)" = "1" ] && [ -d "$(RTLLM_REPORTS_DIR)" ]; then \
 		echo ""; \
 		echo "=== Self-Consistency Analysis: RTLLM ==="; \
-		python3 analyze_self_consistency.py $(RTLLM_REPORTS_DIR) \
+		python3 src/analyze_self_consistency.py $(RTLLM_REPORTS_DIR) \
 			--out reports/analyze_syntax_rtllm.json || true; \
 	fi
 
@@ -206,7 +206,7 @@ analyze-syntax-rtllm-v2:
 	@if [ "$(SC)" = "1" ] && [ -d "$(RTLLM_V2_REPORTS_DIR)" ]; then \
 		echo ""; \
 		echo "=== Self-Consistency Analysis: RTLLM_v2 ==="; \
-		python3 analyze_self_consistency.py $(RTLLM_V2_REPORTS_DIR) \
+		python3 src/analyze_self_consistency.py $(RTLLM_V2_REPORTS_DIR) \
 			--out reports/analyze_syntax_rtllm_v2.json || true; \
 	fi
 
@@ -214,7 +214,7 @@ analyze-syntax-veval:
 	@if [ "$(SC)" = "1" ] && [ -d "$(VEVAL_REPORTS_DIR)" ]; then \
 		echo ""; \
 		echo "=== Self-Consistency Analysis: VerilogEval ==="; \
-		python3 analyze_self_consistency.py $(VEVAL_REPORTS_DIR) \
+		python3 src/analyze_self_consistency.py $(VEVAL_REPORTS_DIR) \
 			--out reports/analyze_syntax_veval.json || true; \
 	fi
 

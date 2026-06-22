@@ -56,7 +56,10 @@ except ImportError:
     def tqdm(iterable=None, **kwargs):
         return iterable
 
-srcDir = os.path.abspath(os.path.dirname(__file__))
+# run.py lives in src/; srcDir is anchored to the repo root (parent of src/)
+# so all downstream paths (scripts/, src/langgraph_core, module globs) resolve
+# exactly as they did when this file lived at the repo root.
+srcDir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, os.path.abspath(f"{srcDir}/scripts"))
 sys.path.insert(0, srcDir)
 

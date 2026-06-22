@@ -252,7 +252,7 @@ RTLLM modules use C++ testbenches and require **Verilator** for simulation inste
 3. **Targeted Testing**:
    To test specific designs or change trial counts:
    ```bash
-   python3 benchmark_langgraph.py --dataset rtllm --trials 1 --designs JC_counter,FIFO_8bit
+   python3 src/benchmark_langgraph.py --dataset rtllm --trials 1 --designs JC_counter,FIFO_8bit
    ```
 
 **Technical Integration:**
@@ -306,7 +306,7 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 
   **`e0_t0`** — temp 0, examples 0. Default `make langgraph` → Best-of-5 (1 run/problem):
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0 --with-samples=1 --with-examples=0 \
                      --with-self-consistency=1 --with-max-samples=5 \
                      --with-model-manual=http://localhost:8000/v1 \
@@ -316,7 +316,7 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 
   **`e0_t8`** — temp 0.8, examples 0. Default `make langgraph` → pass@20 × Best-of-5 (up to 100 runs/problem, 15,600 total generations). Run `make langgraph SC=0` to get plain pass@20:
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0.8 --with-samples=20 --with-examples=0 \
                      --with-self-consistency=1 --with-max-samples=5 \
                      --with-model-manual=http://localhost:8000/v1 \
@@ -326,7 +326,7 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 
   **`e1_t0`** — temp 0, examples 1. Default `make langgraph` → Best-of-5 (1 run/problem):
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0 --with-samples=1 --with-examples=1 \
                      --with-self-consistency=1 --with-max-samples=5 \
                      --with-model-manual=http://localhost:8000/v1 \
@@ -336,7 +336,7 @@ In this Multi-Agent setup, both generator and debugger models are used simultane
 
   **`e1_t8`** — temp 0.8, examples 1. Default `make langgraph` → pass@20 × Best-of-5 (up to 100 runs/problem, 15,600 total generations). Run `make langgraph SC=0` to get plain pass@20:
   ```bash
-  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0.8 --with-samples=20 --with-examples=1 \
                      --with-self-consistency=1 --with-max-samples=5 \
                      --with-model-manual=http://localhost:8000/v1 \
