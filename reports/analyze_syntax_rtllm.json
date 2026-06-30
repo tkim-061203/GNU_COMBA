@@ -1,17 +1,17 @@
 {
   "root": "RTLLM/modules",
   "totals": {
-    "Tier1_pass": 130,
+    "Tier1_pass": 112,
     "No_metadata": 8,
-    "Tier2_no_help": 14,
-    "Tier2_recovered": 30,
+    "Tier2_no_help": 25,
+    "Tier2_recovered": 37,
     "Tier2_partial": 0
   },
   "metrics": {
-    "baseline_pass_pct": 71.43,
-    "with_sc_pass_pct": 87.91,
-    "recovery_rate_pct": 16.48,
-    "avg_cost_multiplier": 1.63
+    "baseline_pass_pct": 61.54,
+    "with_sc_pass_pct": 81.87,
+    "recovery_rate_pct": 20.33,
+    "avg_cost_multiplier": 2.03
   },
   "details": {
     "Tier1_pass": [
@@ -556,7 +556,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "div_8bit",
+        "module": "div_16bit",
         "report": "report_langgraph.RTLLM.txt.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -566,7 +566,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "div_8bit",
+        "module": "div_16bit",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -576,17 +576,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "div_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "div_8bit",
+        "module": "div_16bit",
         "report": "report_langgraph.RTLLM.txt.trial_3.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -596,7 +586,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "div_8bit",
+        "module": "div_16bit",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -606,7 +596,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "div_8bit",
+        "module": "div_16bit",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -616,6 +606,16 @@
         "s0_sc_err": 0
       },
       {
+        "module": "div_8bit",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "best_idx": 0,
+        "best_status": "pass",
+        "samples_run": 1,
+        "s0_status": "pass",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0
+      },
+      {
         "module": "edge_detect",
         "report": "report_langgraph.RTLLM.txt.json",
         "best_idx": 0,
@@ -676,7 +676,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "freq_div",
+        "module": "fsm",
         "report": "report_langgraph.RTLLM.txt.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -686,7 +686,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "freq_div",
+        "module": "fsm",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -696,7 +696,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "freq_div",
+        "module": "fsm",
         "report": "report_langgraph.RTLLM.txt.trial_2.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -706,7 +706,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "freq_div",
+        "module": "fsm",
         "report": "report_langgraph.RTLLM.txt.trial_3.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -716,7 +716,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "freq_div",
+        "module": "fsm",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -726,7 +726,7 @@
         "s0_sc_err": 0
       },
       {
-        "module": "freq_div",
+        "module": "fsm",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -787,66 +787,6 @@
       },
       {
         "module": "multi_16bit",
-        "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "multi_8bit",
-        "report": "report_langgraph.RTLLM.txt.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "multi_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "multi_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "multi_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "multi_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "multi_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -857,7 +797,7 @@
       },
       {
         "module": "multi_pipe_4bit",
-        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "report": "report_langgraph.RTLLM.txt.json",
         "best_idx": 0,
         "best_status": "pass",
         "samples_run": 1,
@@ -877,6 +817,46 @@
       },
       {
         "module": "multi_pipe_4bit",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
+        "best_idx": 0,
+        "best_status": "pass",
+        "samples_run": 1,
+        "s0_status": "pass",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0
+      },
+      {
+        "module": "multi_pipe_8bit",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "best_idx": 0,
+        "best_status": "pass",
+        "samples_run": 1,
+        "s0_status": "pass",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0
+      },
+      {
+        "module": "multi_pipe_8bit",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "best_idx": 0,
+        "best_status": "pass",
+        "samples_run": 1,
+        "s0_status": "pass",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0
+      },
+      {
+        "module": "multi_pipe_8bit",
+        "report": "report_langgraph.RTLLM.txt.trial_2.json",
+        "best_idx": 0,
+        "best_status": "pass",
+        "samples_run": 1,
+        "s0_status": "pass",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0
+      },
+      {
+        "module": "multi_pipe_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_3.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -886,8 +866,18 @@
         "s0_sc_err": 0
       },
       {
-        "module": "multi_pipe_4bit",
+        "module": "multi_pipe_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
+        "best_idx": 0,
+        "best_status": "pass",
+        "samples_run": 1,
+        "s0_status": "pass",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0
+      },
+      {
+        "module": "multi_pipe_8bit",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 0,
         "best_status": "pass",
         "samples_run": 1,
@@ -957,57 +947,7 @@
       },
       {
         "module": "pulse_detect",
-        "report": "report_langgraph.RTLLM.txt.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "pulse_detect",
-        "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "pulse_detect",
         "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "pulse_detect",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "pulse_detect",
-        "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "pulse_detect",
-        "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 0,
         "best_status": "pass",
         "samples_run": 1,
@@ -1067,126 +1007,6 @@
       },
       {
         "module": "right_shifter",
-        "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "serial2parallel",
-        "report": "report_langgraph.RTLLM.txt.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "serial2parallel",
-        "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "serial2parallel",
-        "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "serial2parallel",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "serial2parallel",
-        "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "serial2parallel",
-        "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "signal_generator",
-        "report": "report_langgraph.RTLLM.txt.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "signal_generator",
-        "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "signal_generator",
-        "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "signal_generator",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "signal_generator",
-        "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 0,
-        "best_status": "pass",
-        "samples_run": 1,
-        "s0_status": "pass",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0
-      },
-      {
-        "module": "signal_generator",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 0,
         "best_status": "pass",
@@ -1354,7 +1174,7 @@
       {
         "module": "alu",
         "report": "report_langgraph.RTLLM.txt.json",
-        "best_idx": 0,
+        "best_idx": 4,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1365,7 +1185,7 @@
       {
         "module": "alu",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 0,
+        "best_idx": 1,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1376,7 +1196,7 @@
       {
         "module": "alu",
         "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 0,
+        "best_idx": 3,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1387,7 +1207,7 @@
       {
         "module": "alu",
         "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 0,
+        "best_idx": 1,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1398,7 +1218,7 @@
       {
         "module": "alu",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 0,
+        "best_idx": 1,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1409,7 +1229,7 @@
       {
         "module": "alu",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 0,
+        "best_idx": 4,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1431,9 +1251,9 @@
       {
         "module": "asyn_fifo",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 0,
+        "best_idx": 2,
         "best_status": "fail_ts",
-        "samples_run": 5,
+        "samples_run": 3,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
@@ -1442,7 +1262,7 @@
       {
         "module": "asyn_fifo",
         "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 0,
+        "best_idx": 3,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1453,9 +1273,9 @@
       {
         "module": "asyn_fifo",
         "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 0,
+        "best_idx": 3,
         "best_status": "fail_ts",
-        "samples_run": 5,
+        "samples_run": 4,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
@@ -1464,9 +1284,9 @@
       {
         "module": "asyn_fifo",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 0,
+        "best_idx": 2,
         "best_status": "fail_ts",
-        "samples_run": 5,
+        "samples_run": 4,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
@@ -1484,8 +1304,118 @@
         "err_delta": 0
       },
       {
+        "module": "freq_div",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "best_idx": 3,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "freq_div",
+        "report": "report_langgraph.RTLLM.txt.trial_2.json",
+        "best_idx": 4,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "freq_div",
+        "report": "report_langgraph.RTLLM.txt.trial_4.json",
+        "best_idx": 4,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "pulse_detect",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "best_idx": 4,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "pulse_detect",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "best_idx": 3,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "pulse_detect",
+        "report": "report_langgraph.RTLLM.txt.trial_4.json",
+        "best_idx": 3,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "pulse_detect",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
+        "best_idx": 4,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "serial2parallel",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "best_idx": 3,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "traffic_light",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "best_idx": 0,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
         "module": "traffic_light",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "best_idx": 3,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "traffic_light",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
         "best_idx": 0,
         "best_status": "fail_ts",
         "samples_run": 5,
@@ -1497,7 +1427,18 @@
       {
         "module": "traffic_light",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 4,
+        "best_idx": 3,
+        "best_status": "fail_ts",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "err_delta": 0
+      },
+      {
+        "module": "traffic_light",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
+        "best_idx": 0,
         "best_status": "fail_ts",
         "samples_run": 5,
         "s0_status": "fail_ts",
@@ -1509,6 +1450,18 @@
     "Tier2_recovered": [
       {
         "module": "div_16bit",
+        "report": "report_langgraph.RTLLM.txt.trial_2.json",
+        "best_idx": 1,
+        "best_status": "pass",
+        "samples_run": 2,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 1,
+        "wasted_samples": 1
+      },
+      {
+        "module": "div_8bit",
         "report": "report_langgraph.RTLLM.txt.json",
         "best_idx": 1,
         "best_status": "pass",
@@ -1520,32 +1473,20 @@
         "wasted_samples": 1
       },
       {
-        "module": "div_16bit",
+        "module": "div_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 4,
+        "best_idx": 3,
         "best_status": "pass",
-        "samples_run": 5,
+        "samples_run": 4,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 4,
-        "wasted_samples": 4
+        "recovery_from_idx": 3,
+        "wasted_samples": 3
       },
       {
-        "module": "div_16bit",
+        "module": "div_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 2,
-        "best_status": "pass",
-        "samples_run": 3,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 2,
-        "wasted_samples": 2
-      },
-      {
-        "module": "div_16bit",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
         "best_idx": 1,
         "best_status": "pass",
         "samples_run": 2,
@@ -1556,19 +1497,19 @@
         "wasted_samples": 1
       },
       {
-        "module": "div_16bit",
+        "module": "div_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 2,
+        "best_idx": 3,
         "best_status": "pass",
-        "samples_run": 3,
+        "samples_run": 4,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 2,
-        "wasted_samples": 2
+        "recovery_from_idx": 3,
+        "wasted_samples": 3
       },
       {
-        "module": "div_16bit",
+        "module": "div_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 1,
         "best_status": "pass",
@@ -1580,7 +1521,43 @@
         "wasted_samples": 1
       },
       {
-        "module": "fsm",
+        "module": "freq_div",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "best_idx": 4,
+        "best_status": "pass",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
+      },
+      {
+        "module": "freq_div",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "best_idx": 4,
+        "best_status": "pass",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
+      },
+      {
+        "module": "freq_div",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
+        "best_idx": 4,
+        "best_status": "pass",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
+      },
+      {
+        "module": "multi_8bit",
         "report": "report_langgraph.RTLLM.txt.json",
         "best_idx": 1,
         "best_status": "pass",
@@ -1592,31 +1569,31 @@
         "wasted_samples": 1
       },
       {
-        "module": "fsm",
+        "module": "multi_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
-        "best_idx": 1,
+        "best_idx": 3,
         "best_status": "pass",
-        "samples_run": 2,
+        "samples_run": 4,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
+        "recovery_from_idx": 3,
+        "wasted_samples": 3
       },
       {
-        "module": "fsm",
+        "module": "multi_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 1,
+        "best_idx": 2,
         "best_status": "pass",
-        "samples_run": 2,
+        "samples_run": 3,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
+        "recovery_from_idx": 2,
+        "wasted_samples": 2
       },
       {
-        "module": "fsm",
+        "module": "multi_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_3.json",
         "best_idx": 1,
         "best_status": "pass",
@@ -1628,19 +1605,19 @@
         "wasted_samples": 1
       },
       {
-        "module": "fsm",
+        "module": "multi_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 2,
+        "best_idx": 1,
         "best_status": "pass",
-        "samples_run": 3,
+        "samples_run": 2,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 2,
-        "wasted_samples": 2
+        "recovery_from_idx": 1,
+        "wasted_samples": 1
       },
       {
-        "module": "fsm",
+        "module": "multi_8bit",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 1,
         "best_status": "pass",
@@ -1653,7 +1630,7 @@
       },
       {
         "module": "multi_pipe_4bit",
-        "report": "report_langgraph.RTLLM.txt.json",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
         "best_idx": 1,
         "best_status": "pass",
         "samples_run": 2,
@@ -1665,31 +1642,19 @@
       },
       {
         "module": "multi_pipe_4bit",
-        "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 1,
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "best_idx": 4,
         "best_status": "pass",
-        "samples_run": 2,
+        "samples_run": 5,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
       },
       {
-        "module": "multi_pipe_8bit",
-        "report": "report_langgraph.RTLLM.txt.json",
-        "best_idx": 1,
-        "best_status": "pass",
-        "samples_run": 2,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
-      },
-      {
-        "module": "multi_pipe_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "module": "multi_pipe_4bit",
+        "report": "report_langgraph.RTLLM.txt.trial_4.json",
         "best_idx": 2,
         "best_status": "pass",
         "samples_run": 3,
@@ -1700,56 +1665,20 @@
         "wasted_samples": 2
       },
       {
-        "module": "multi_pipe_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 1,
+        "module": "parallel2serial",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "best_idx": 3,
         "best_status": "pass",
-        "samples_run": 2,
+        "samples_run": 4,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
-      },
-      {
-        "module": "multi_pipe_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 1,
-        "best_status": "pass",
-        "samples_run": 2,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
-      },
-      {
-        "module": "multi_pipe_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_4.json",
-        "best_idx": 1,
-        "best_status": "pass",
-        "samples_run": 2,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
-      },
-      {
-        "module": "multi_pipe_8bit",
-        "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 1,
-        "best_status": "pass",
-        "samples_run": 2,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 1,
-        "wasted_samples": 1
+        "recovery_from_idx": 3,
+        "wasted_samples": 3
       },
       {
         "module": "parallel2serial",
-        "report": "report_langgraph.RTLLM.txt.json",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
         "best_idx": 4,
         "best_status": "pass",
         "samples_run": 5,
@@ -1761,6 +1690,78 @@
       },
       {
         "module": "parallel2serial",
+        "report": "report_langgraph.RTLLM.txt.trial_2.json",
+        "best_idx": 4,
+        "best_status": "pass",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
+      },
+      {
+        "module": "parallel2serial",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "best_idx": 4,
+        "best_status": "pass",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
+      },
+      {
+        "module": "parallel2serial",
+        "report": "report_langgraph.RTLLM.txt.trial_4.json",
+        "best_idx": 4,
+        "best_status": "pass",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
+      },
+      {
+        "module": "parallel2serial",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
+        "best_idx": 3,
+        "best_status": "pass",
+        "samples_run": 4,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 3,
+        "wasted_samples": 3
+      },
+      {
+        "module": "pulse_detect",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "best_idx": 4,
+        "best_status": "pass",
+        "samples_run": 5,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
+      },
+      {
+        "module": "serial2parallel",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "best_idx": 1,
+        "best_status": "pass",
+        "samples_run": 2,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 1,
+        "wasted_samples": 1
+      },
+      {
+        "module": "serial2parallel",
         "report": "report_langgraph.RTLLM.txt.trial_1.json",
         "best_idx": 1,
         "best_status": "pass",
@@ -1772,20 +1773,32 @@
         "wasted_samples": 1
       },
       {
-        "module": "parallel2serial",
+        "module": "serial2parallel",
         "report": "report_langgraph.RTLLM.txt.trial_2.json",
-        "best_idx": 3,
+        "best_idx": 4,
         "best_status": "pass",
-        "samples_run": 4,
+        "samples_run": 5,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 3,
-        "wasted_samples": 3
+        "recovery_from_idx": 4,
+        "wasted_samples": 4
       },
       {
-        "module": "parallel2serial",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "module": "serial2parallel",
+        "report": "report_langgraph.RTLLM.txt.trial_4.json",
+        "best_idx": 2,
+        "best_status": "pass",
+        "samples_run": 3,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 2,
+        "wasted_samples": 2
+      },
+      {
+        "module": "serial2parallel",
+        "report": "report_langgraph.RTLLM.txt.trial_5.json",
         "best_idx": 1,
         "best_status": "pass",
         "samples_run": 2,
@@ -1796,7 +1809,55 @@
         "wasted_samples": 1
       },
       {
-        "module": "parallel2serial",
+        "module": "signal_generator",
+        "report": "report_langgraph.RTLLM.txt.json",
+        "best_idx": 1,
+        "best_status": "pass",
+        "samples_run": 2,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 1,
+        "wasted_samples": 1
+      },
+      {
+        "module": "signal_generator",
+        "report": "report_langgraph.RTLLM.txt.trial_1.json",
+        "best_idx": 1,
+        "best_status": "pass",
+        "samples_run": 2,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 1,
+        "wasted_samples": 1
+      },
+      {
+        "module": "signal_generator",
+        "report": "report_langgraph.RTLLM.txt.trial_2.json",
+        "best_idx": 1,
+        "best_status": "pass",
+        "samples_run": 2,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 1,
+        "wasted_samples": 1
+      },
+      {
+        "module": "signal_generator",
+        "report": "report_langgraph.RTLLM.txt.trial_3.json",
+        "best_idx": 3,
+        "best_status": "pass",
+        "samples_run": 4,
+        "s0_status": "fail_ts",
+        "s0_tb_err": 0,
+        "s0_sc_err": 0,
+        "recovery_from_idx": 3,
+        "wasted_samples": 3
+      },
+      {
+        "module": "signal_generator",
         "report": "report_langgraph.RTLLM.txt.trial_4.json",
         "best_idx": 3,
         "best_status": "pass",
@@ -1808,28 +1869,16 @@
         "wasted_samples": 3
       },
       {
-        "module": "parallel2serial",
+        "module": "signal_generator",
         "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 4,
+        "best_idx": 1,
         "best_status": "pass",
-        "samples_run": 5,
+        "samples_run": 2,
         "s0_status": "fail_ts",
         "s0_tb_err": 0,
         "s0_sc_err": 0,
-        "recovery_from_idx": 4,
-        "wasted_samples": 4
-      },
-      {
-        "module": "traffic_light",
-        "report": "report_langgraph.RTLLM.txt.json",
-        "best_idx": 3,
-        "best_status": "pass",
-        "samples_run": 4,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 3,
-        "wasted_samples": 3
+        "recovery_from_idx": 1,
+        "wasted_samples": 1
       },
       {
         "module": "traffic_light",
@@ -1842,30 +1891,6 @@
         "s0_sc_err": 0,
         "recovery_from_idx": 1,
         "wasted_samples": 1
-      },
-      {
-        "module": "traffic_light",
-        "report": "report_langgraph.RTLLM.txt.trial_3.json",
-        "best_idx": 3,
-        "best_status": "pass",
-        "samples_run": 4,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 3,
-        "wasted_samples": 3
-      },
-      {
-        "module": "traffic_light",
-        "report": "report_langgraph.RTLLM.txt.trial_5.json",
-        "best_idx": 3,
-        "best_status": "pass",
-        "samples_run": 4,
-        "s0_status": "fail_ts",
-        "s0_tb_err": 0,
-        "s0_sc_err": 0,
-        "recovery_from_idx": 3,
-        "wasted_samples": 3
       }
     ],
     "Tier2_partial": []

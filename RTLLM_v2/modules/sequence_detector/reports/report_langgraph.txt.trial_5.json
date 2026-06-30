@@ -1,0 +1,66 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module sequence_detector #(\n    parameter IDLE = 5'b00001,\n    parameter S1   = 5'b00010,\n    parameter S2   = 5'b00100,\n    parameter S3   = 5'b01000,\n    parameter S4   = 5'b10000\n) (\n    input  clk,\n    input  rst_n,\n    input  data_in,\n    output sequence_detected\n);\n\n    reg [4:0] current_state;\n\n    always @(posedge clk) begin\n        if (!rst_n) begin\n            current_state <= IDLE;\n        end else begin\n            case (current_state)\n                IDLE: begin\n                    if (data_in == 1'b1) begin\n                        current_state <= S1;\n                    end\n                end\n                S1: begin\n                    if (data_in == 1'b0) begin\n                        current_state <= S2;\n                    end else begin\n                        current_state <= IDLE;\n                    end\n                end\n                S2: begin\n                    if (data_in == 1'b0) begin\n                        current_state <= S3;\n                    end else begin\n                        current_state <= IDLE;\n                    end\n                end\n                S3: begin\n                    if (data_in == 1'b1) begin\n                        current_state <= S4;\n                    end else begin\n                        current_state <= IDLE;\n                    end\n                end\n                S4: begin\n                    \n                end\n            endcase\n        end\n    end\n\n    assign sequence_detected = (current_state == S4) ? 1'b1 : 1'b0;\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Your Design Passed ===========\ntestbench.v:56: $finish called at 108000 (1ps)\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 2,
+      "max_samples": 5,
+      "best_sample_idx": 1,
+      "best_temperature": 0.1,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 66.1,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 7,
+          "elapsed_s": 41.59
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 56,
+          "elapsed_s": 24.51
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 2,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

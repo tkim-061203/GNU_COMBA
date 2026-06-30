@@ -19,6 +19,18 @@ from typing import Optional
 # _QUIET removed; dynamically checking os.environ["COMBA_QUIET"] to prevent stale cached imports
 
 
+def vcd_hint_enabled() -> bool:
+    """VCD waveform hint is opt-in (default OFF).
+
+    Empirically the populated hint LOWERED the LLM pass rate on RTLLM v1
+    (91.7%→86.2%, one-directional) and was inconclusive/noise on v2. It is
+    gated so it can be A/B'd without code changes. Enable with
+    COMBA_VCD_HINT=1 (also accepts true/on/yes). Read live from the
+    environment to avoid stale cached-import values.
+    """
+    return os.environ.get("COMBA_VCD_HINT", "").strip().lower() in ("1", "true", "on", "yes")
+
+
 # ══════════════════════════════════════════════════════════════
 # 1. TB Failure Classifier
 # ══════════════════════════════════════════════════════════════
@@ -109,9 +121,16 @@ def node_classify_tb(state: dict) -> dict:
 
 
 def route_after_classify_tb(state: dict) -> str:
-    """FSM/timing/timeout → VCD analyzer; combinational → straight to TED."""
+    """FSM/timing/timeout → VCD analyzer; combinational → straight to TED.
+
+    When the VCD hint is disabled (default), skip the analyzer entirely so the
+    debugger runs on the original log-only context — the configuration that
+    benchmarked best.
+    """
     ft = state.get("failure_type", "unknown")
     if ft in ("fsm_state_error", "timing_error", "timeout"):
+        if not vcd_hint_enabled():
+            return "node_ted_tb"
         work_dir = state.get("work_dir", "")
         if work_dir:
             vcd_files = glob.glob(os.path.join(work_dir, "*.vcd"))
@@ -207,6 +226,11 @@ def node_vcd_analyzer(state: dict) -> dict:
     except Exception as e:
         return {"vcd_hint": "", "vcd_status": f"parse_error: {e}"}
 
+    # An aborted testbench can leave a 0-byte / headerless VCD with no signals.
+    # Report that honestly instead of emitting a hollow "ok" hint with no data.
+    if not vcd.references_to_ids:
+        return {"vcd_hint": "", "vcd_status": "empty"}
+
     # 2. Extract mismatch time from tb_log
     tb_log = state.get("tb_log", "")
     mismatch_match = re.search(r"(?:First mismatch occurred at time|failed at simtime|at time)\s*(\d+)", tb_log, re.I)
@@ -229,14 +253,26 @@ def node_vcd_analyzer(state: dict) -> dict:
     # 4. Find all signals, prioritizing top-level and mismatch output
     all_refs = list(vcd.references_to_ids.keys())
     
-    # Parse mismatched output name
-    mismatch_out_match = re.search(r"Output\s+'([^']+)'\s+has\s+\d+\s+mismatches", tb_log, re.I)
-    mismatch_out_name = mismatch_out_match.group(1) if mismatch_out_match else None
-    
-    # Prioritize:
-    # - signals containing mismatch_out_name
-    # - signals in the top level (len(parts) <= 2)
-    # - other signals that are inputs or outputs
+    # Identify the failing output signal(s). RTLLM C++ testbenches name them in
+    # the assertion ("tx->NAME == ...") and in "OUTPUT TRACE: tx->NAME = ..."
+    # lines; VerilogEval-style logs use "Output 'NAME' has N mismatches".
+    fail_out_names = {m.lower() for m in re.findall(r"tx->(\w+)", tb_log)}
+    vm = re.search(r"Output\s+'([^']+)'\s+has\s+\d+\s+mismatches", tb_log, re.I)
+    if vm:
+        fail_out_names.add(vm.group(1).lower())
+
+    clk_leaf = clk_sig.split('.')[-1].lower() if clk_sig else None
+
+    def _is_constant(ref: str) -> bool:
+        """A signal that never changes value across the whole sim (params,
+        localparams, genvars). A waveform conveys nothing for these."""
+        try:
+            tv = vcd[ref].tv
+        except (KeyError, AttributeError):
+            return True
+        return len({str(v) for _, v in tv}) <= 1
+
+    # Prioritize the failing outputs and top-level ports; demote everything else.
     pri_refs = []
     other_refs = []
     for ref in all_refs:
@@ -244,27 +280,37 @@ def node_vcd_analyzer(state: dict) -> dict:
             continue
         parts = ref.split('.')
         name = parts[-1]
-        
-        # Avoid internal compiler-generated signals like _w or temp vars
-        if name.startswith('_') or '_w' in ref.lower():
+        low = name.lower()
+
+        # Skip the clock (shown in its own column) and Verilator temporaries.
+        if low == clk_leaf or name.startswith('_') or '__' in ref:
             continue
-            
-        is_pri = False
-        if mismatch_out_name and mismatch_out_name.lower() in name.lower():
-            is_pri = True
-        elif len(parts) <= 2:
-            is_pri = True
-            
-        if is_pri:
-            pri_refs.append(ref)
-        else:
-            other_refs.append(ref)
-            
-    trace_sigs = sorted(list(set(pri_refs)))
-    if len(trace_sigs) < 8:
-        trace_sigs.extend(sorted(other_refs)[:8 - len(trace_sigs)])
-        
-    trace_sigs = trace_sigs[:15]
+
+        is_fail = any(fn == low or fn in low for fn in fail_out_names)
+        # Lean hint: drop signals that never change — pure noise in a waveform —
+        # unless they are the failing output we were asked to inspect.
+        if not is_fail and _is_constant(ref):
+            continue
+
+        is_pri = is_fail or len(parts) <= 2
+        (pri_refs if is_pri else other_refs).append(ref)
+
+    # De-duplicate by leaf signal name — the same net usually appears at both the
+    # TB-top and DUT scope; keep the deepest scope (the DUT's own reg/wire).
+    def _dedup_by_leaf(refs: list) -> dict:
+        best: dict = {}
+        for r in refs:
+            leaf = r.split('.')[-1].lower()
+            if leaf not in best or r.count('.') > best[leaf].count('.'):
+                best[leaf] = r
+        return best
+
+    # Keep the trace focused: failing signals first, then a few changing ports.
+    chosen = _dedup_by_leaf(pri_refs)
+    for leaf, r in sorted(_dedup_by_leaf(other_refs).items()):
+        if leaf not in chosen and len(chosen) < 8:
+            chosen[leaf] = r
+    trace_sigs = sorted(chosen.values())[:8]
 
     # 5. Determine sampling times
     clk_transitions = []
@@ -305,6 +351,11 @@ def node_vcd_analyzer(state: dict) -> dict:
         sample_times = clk_transitions[start_idx:end_idx]
     else:
         sample_times = clk_transitions[-8:]
+
+    # Ensure the exact mismatch time is represented even if it falls between
+    # sampled clock edges, so the (MIS) row reflects the actual failing cycle.
+    if t_mismatch is not None and t_mismatch not in sample_times:
+        sample_times = sorted(set(sample_times) | {t_mismatch})
 
     # 6. Generate state transition hint and waveform trace
     lines = []

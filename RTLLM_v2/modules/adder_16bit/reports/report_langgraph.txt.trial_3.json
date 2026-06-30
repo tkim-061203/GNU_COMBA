@@ -1,0 +1,76 @@
+{
+  "module_name": "adder_16bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "adder_16bit",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module adder_16bit (\n    input wire [15:0] a,\n    input wire [15:0] b,\n    input wire Cin,\n    output wire [15:0] y,\n    output wire Co\n);\n\nwire c1, c2, c3, c4;\n\nassign {c1, y[7:0]} = a[7:0] + b[7:0] + Cin;\n\nassign {c2, y[15:8]} = a[15:8] + b[15:8] + c1;\n\nassign Co = c2;\nendmodule\n\nmodule add8 (\n    input wire [7:0] a,\n    input wire [7:0] b,\n    input wire Cin,\n    output wire [7:0] y,\n    output wire Co\n);\n \n    wire Co_temp;\n \n    add4 add4_inst1 (\n        .a(a[7:4]),\n        .b(b[7:4]),\n        .Cin(Co_temp),\n        .y(y[7:4]),\n        .Co(Co)\n    );\n \n    add4 add4_inst2 (\n        .a(a[3:0]),\n        .b(b[3:0]),\n        .Cin(Cin),\n        .y(y[3:0]),\n        .Co(Co_temp)\n    );\n \nendmodule\n\nmodule add4 (\n    input wire [3:0] a,\n    input wire [3:0] b,\n    input wire Cin,\n    output wire [3:0] y,\n    output wire Co\n);\n \n    wire Co_temp;\n \n    add2 add2_inst1 (\n        .a(a[3:2]),\n        .b(b[3:2]),\n        .Cin(Co_temp),\n        .y(y[3:2]),\n        .Co(Co)\n    );\n \n    add2 add2_inst2 (\n        .a(a[1:0]),\n        .b(b[1:0]),\n        .Cin(Cin),\n        .y(y[1:0]),\n        .Co(Co_temp)\n    ); \n \nendmodule\n\nmodule add2 (\n    input wire [1:0] a,\n    input wire [1:0] b,\n    input wire Cin,\n    output wire [1:0] y,\n    output wire Co\n);\n \n    wire Co_temp;\n\n    add1 add1_inst1 (\n        .a(a[1]),\n        .b(b[1]),\n        .Cin(Co_temp),\n        .y(y[1]),\n        .Co(Co)\n    );\n \n    add1 add1_inst2 (\n        .a(a[0]),\n        .b(b[0]),\n        .Cin(Cin),\n        .y(y[0]),\n        .Co(Co_temp)\n    );\n         \nendmodule\n\nmodule add1 (\n    input wire a,\n    input wire b,\n    input wire Cin,\n    output wire y,\n    output wire Co\n);\n    assign y = ((~a) & (~b) & Cin | (~a) & b & (~Cin) | a & (~b) & (~Cin) | (a & b & Cin));\n    assign Co = ((~a & b & Cin) | (a & ~b & Cin) | (a & b & ~Cin) | (a & b & Cin));\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n===========Your Design Passed===========\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 3,
+      "max_samples": 5,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 39.12,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 118,
+          "elapsed_s": 17.9
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 118,
+          "elapsed_s": 17.81
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 112,
+          "elapsed_s": 3.41
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

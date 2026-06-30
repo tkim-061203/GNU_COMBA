@@ -1,0 +1,102 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 5,
+    "ts_trial": 1,
+    "total_iter": 6,
+    "gvd": "module multi_pipe_4bit #(\n    parameter size = 4,\n    parameter N = 2 * size\n) (\n    input \t\t\t\t\t\tclk,\n    input \t\t\t\t\t\trst_n,\n    input\t[size-1:0]\t\t\tmul_a,\n    input\t[size-1:0]\t\t\tmul_b,\n    output\treg\t[size*2-1:0]\tmul_out\n);\n\nreg [size-1:0] a_reg, b_reg;\nreg [size*2-1:0] result;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        a_reg <= 0;\n        b_reg <= 0;\n        result <= 0;\n    end else begin\n        a_reg <= mul_a;\n        b_reg <= mul_b;\n        result <= a_reg * b_reg;\n    end\nend\n\nassign mul_out = result;\n\nendmodule\n\nmodule verified_multi_pipe#(\n\tparameter size = 4\n)(\n\tinput \t\t\t\t\t\tclk \t\t,   \n\tinput \t\t\t\t\t\trst_n\t\t,\n\tinput\t[size-1:0]\t\t\tmul_a\t\t,\n\tinput\t[size-1:0]\t\t\tmul_b\t\t,\n \n \toutput\treg\t[size*2-1:0]\tmul_out\t\t\n);\n\nparameter N = 2 * size;\n\nreg     [N-1:0]     sum_tmp1                ;\nreg     [N-1:0]     sum_tmp2                ;\nwire    [N-1:0]     mul_a_extend            ;\nwire    [N-1:0]     mul_b_extend            ;\n\nwire    [N-1:0]     mul_result[size-1:0]    ;\n\ngenvar i;\ngenerate\n    for(i = 0; i < size; i = i + 1) begin:add\n        assign mul_result[i] = mul_b[i] ? mul_a_extend << i : 'd0;\n    end\nendgenerate\n\nassign mul_a_extend = {{size{1'b0}}, mul_a};\nassign mul_b_extend = {{size{1'b0}}, mul_b};\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        sum_tmp1 <= 'd0;\n        sum_tmp2 <= 'd0;\n    end\n    else begin\n        sum_tmp1 <= mul_result[0] + mul_result[1];\n        sum_tmp2 <= mul_result[2] + mul_result[3];\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        mul_out <= 'd0;\n    end\n    else begin\n        mul_out <= sum_tmp1 + sum_tmp2;\n    end\nend\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n===========Your Design Passed===========\ntestbench.v:61: $finish called at 3010 (1ns)\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: syntax error": 4
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 263.76,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 46.11
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 12,
+          "ts_trial": 6,
+          "iter": 18,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 84.98
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 98,
+          "elapsed_s": 43.17
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 102,
+          "elapsed_s": 52.46
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "pass",
+          "sc_trial": 5,
+          "ts_trial": 1,
+          "iter": 6,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 81,
+          "elapsed_s": 37.03
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 1,
+      "commits": 4,
+      "used_fallback": false,
+      "baseline_sc": 3,
+      "final_sc": 0
+    }
+  }
+}

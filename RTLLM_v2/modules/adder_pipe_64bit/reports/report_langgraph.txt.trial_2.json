@@ -1,0 +1,102 @@
+{
+  "module_name": "adder_pipe_64bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "adder_pipe_64bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module adder_pipe_64bit #(\n    parameter DATA_WIDTH = 64,\n    parameter STG_WIDTH = 16\n) (\n    input clk,\n    input rst_n,\n    input i_en,\n    input [DATA_WIDTH-1:0] adda,\n    input [DATA_WIDTH-1:0] addb,\n    output [DATA_WIDTH:0] result,\n    output reg o_en\n);\n\nreg [63:0] a_reg, b_reg;\nreg [64:0] sum_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        a_reg <= 64'b0;\n        b_reg <= 64'b0;\n        sum_reg <= 65'b0;\n        o_en <= 1'b0;\n    end else if (i_en) begin\n        a_reg <= adda;\n        b_reg <= addb;\n        sum_reg <= {1'b0, a_reg} + {1'b0, b_reg};\n        o_en <= 1'b1;\n    end else begin\n        o_en <= 1'b0;\n    end\nend\n\nassign result = sum_reg;\n\nendmodule\n\nmodule verified_adder_64bit\n#(\n    parameter DATA_WIDTH = 64,\n    parameter STG_WIDTH = 16\n)\n(\n    input clk,\n    input rst_n,\n    input i_en,\n    input [DATA_WIDTH-1:0] adda,\n    input [DATA_WIDTH-1:0] addb,\n    output [DATA_WIDTH:0] result,\n    output reg o_en\n);\n\nreg stage1;\nreg stage2;\nreg stage3;\n\nwire [STG_WIDTH-1:0] a1;\nwire [STG_WIDTH-1:0] b1;\nwire [STG_WIDTH-1:0] a2;\nwire [STG_WIDTH-1:0] b2;\nwire [STG_WIDTH-1:0] a3;\nwire [STG_WIDTH-1:0] b3;\nwire [STG_WIDTH-1:0] a4;\nwire [STG_WIDTH-1:0] b4;\n\nreg [STG_WIDTH-1:0] a2_ff1;\nreg [STG_WIDTH-1:0] b2_ff1;\n\nreg [STG_WIDTH-1:0] a3_ff1;\nreg [STG_WIDTH-1:0] b3_ff1;\nreg [STG_WIDTH-1:0] a3_ff2;\nreg [STG_WIDTH-1:0] b3_ff2;\n\nreg [STG_WIDTH-1:0] a4_ff1;\nreg [STG_WIDTH-1:0] b4_ff1;\nreg [STG_WIDTH-1:0] a4_ff2;\nreg [STG_WIDTH-1:0] b4_ff2;\nreg [STG_WIDTH-1:0] a4_ff3;\nreg [STG_WIDTH-1:0] b4_ff3;\n\nreg c1;\nreg c2;\nreg c3;\nreg c4;\n\nreg [STG_WIDTH-1:0] s1;\nreg [STG_WIDTH-1:0] s2;\nreg [STG_WIDTH-1:0] s3;\nreg [STG_WIDTH-1:0] s4;\n\nreg [STG_WIDTH-1:0] s1_ff1;\nreg [STG_WIDTH-1:0] s1_ff2;\nreg [STG_WIDTH-1:0] s1_ff3;\n\nreg [STG_WIDTH-1:0] s2_ff1;\nreg [STG_WIDTH-1:0] s2_ff2;\n\nreg [STG_WIDTH-1:0] s3_ff1;\n\nassign a1 = adda[STG_WIDTH-1:0];\nassign b1 = addb[STG_WIDTH-1:0];\nassign a2 = adda[STG_WIDTH*2-1:16];\nassign b2 = addb[STG_WIDTH*2-1:16];\nassign a3 = adda[STG_WIDTH*3-1:32];\nassign b3 = addb[STG_WIDTH*3-1:32];\nassign a4 = adda[STG_WIDTH*4-1:48];\nassign b4 = addb[STG_WIDTH*4-1:48];\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        stage1 <= 1'b0;\n        stage2 <= 1'b0;\n        stage3 <= 1'b0;\n        o_en <= 1'b0;\n    end\n    else begin\n        stage1 <= i_en;\n        stage2 <= stage1;\n        stage3 <= stage2;\n        o_en <= stage3;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        a2_ff1 <= 'd0;\n        b2_ff1 <= 'd0;\n        a3_ff1 <= 'd0;\n        b3_ff1 <= 'd0;\n        a3_ff2 <= 'd0;\n        b3_ff2 <= 'd0;\n        a4_ff1 <= 'd0;\n        b4_ff1 <= 'd0;\n        a4_ff2 <= 'd0;\n        b4_ff2 <= 'd0;\n        a4_ff3 <= 'd0;\n        b4_ff3 <= 'd0;\n    end\n    else begin\n        a2_ff1 <= a2;\n        b2_ff1 <= b2;\n        a3_ff1 <= a3;\n        b3_ff1 <= b3;\n        a3_ff2 <= a3_ff1;\n        b3_ff2 <= b3_ff1;\n        a4_ff1 <= a4;\n        b4_ff1 <= b4;\n        a4_ff2 <= a4_ff1;\n        b4_ff2<= b4_ff1;\n        a4_ff3 <= a4_ff2;\n        b4_ff3 <= b4_ff2;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        s1_ff1 <= 'd0;\n        s1_ff2 <= 'd0;\n        s1_ff3 <= 'd0;\n        s2_ff1 <= 'd0;\n        s2_ff2 <= 'd0;\n        s3_ff1 <= 'd0;\n    end\n    else begin\n        s1_ff1 <= s1;\n        s1_ff2 <= s1_ff1;\n        s1_ff3 <= s1_ff2;\n        s2_ff1 <= s2;\n        s2_ff2 <= s2_ff1;\n        s3_ff1 <= s3;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c1 <= 1'b0;\n        s1 <= 'd0;\n    end\n    else if (i_en) begin\n        {c1, s1} <= a1 + b1;\n    end\n    else begin\n        c1 <= c1;\n        s1 <= s1;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c2 <= 1'b0;\n        s2 <= 'd0;\n    end\n    else if (stage1) begin\n        {c2, s2} <= a2_ff1 + b2_ff1 + c1;\n    end\n    else begin\n        c2 <= c2;\n        s2 <= s2;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c3 <= 1'b0;\n        s3 <= 'd0;\n    end\n    else if (stage2) begin\n        {c3, s3} <= a3_ff2 + b3_ff2 + c2;\n    end\n    else begin\n        c3 <= c3;\n        s3 <= s3;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c4 <= 1'b0;\n        s4 <= 'd0;\n    end\n    else if (stage3) begin\n        {c4, s4} <= a4_ff3 + b4_ff3 + c3;\n    end\n    else begin\n        c4 <= c4;\n        s4 <= s4;\n    end\nend\n\nassign result = {c4, s4, s3_ff1, s2_ff2, s1_ff3};\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Test completed with         100 / 100 failures ===========\ntestbench.v:53: $finish called at 1600 (1s)\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1204.68,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 231,
+          "elapsed_s": 51.42
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 231,
+          "elapsed_s": 985.69
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 231,
+          "elapsed_s": 50.31
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 233,
+          "elapsed_s": 61.72
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 233,
+          "elapsed_s": 55.54
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

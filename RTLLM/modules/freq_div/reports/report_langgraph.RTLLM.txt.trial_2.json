@@ -5,49 +5,99 @@
   "samples": {
     "module_name": "freq_div",
     "description_type": "RTLLM.txt",
-    "final_status": "pass",
-    "sc_trial": 2,
-    "ts_trial": 2,
-    "total_iter": 4,
-    "gvd": "module freq_div (\n    input CLK_in,\n    output reg CLK_50,\n    output reg CLK_10,\n    output reg CLK_1,\n    input RST\n);\n\nreg [3:0] cnt_10;\nreg [6:0] cnt_100;\n\nalways @(posedge CLK_in or posedge RST) begin\n    if (RST) begin\n        CLK_50 <= 1'b0;\n    end else begin\n        CLK_50 <= ~CLK_50;\n    end\nend\n\nalways @(posedge CLK_in or posedge RST) begin\n    if (RST) begin\n        CLK_10 <= 1'b0;\n        cnt_10 <= 4'b0;\n    end else begin\n        if (cnt_10 == 4'd9) begin\n            CLK_10 <= ~CLK_10;\n            cnt_10 <= 4'b0;\n        end else begin\n            cnt_10 <= cnt_10 + 1;\n        end\n    end\nend\n\nalways @(posedge CLK_in or posedge RST) begin\n    if (RST) begin\n        CLK_1 <= 1'b0;\n        cnt_100 <= 7'b0;\n    end else begin\n        if (cnt_100 == 7'd99) begin\n            CLK_1 <= ~CLK_1;\n            cnt_100 <= 7'b0;\n        end else begin\n            cnt_100 <= cnt_100 + 1;\n        end\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"freq_div\">\n    <description>Frequency Divider for generating different clock frequencies based on input clock.</description>\n    <ports>\n        <input id=\"CLK_in\">Input clock signal.</input>\n        <input id=\"RST\">Reset signal.</input>\n        <output id=\"CLK_50\">Output clock signal with a frequency of CLK_in divided by 2.</output>\n        <output id=\"CLK_10\">Output clock signal with a frequency of CLK_in divided by 10.</output>\n        <output id=\"CLK_1\">Output clock signal with a frequency of CLK_in divided by 100.</output>\n    </ports>\n    <implementation>\n        // Counter for CLK_50\n        reg [0:0] cnt_50;\n        always @(posedge CLK_in or posedge RST) begin\n            if(RST) begin\n                cnt_50 <= 1'b0;\n            end else begin\n                cnt_50 <= ~cnt_50;\n            end\n        end\n        \n        // Counter for CLK_10\n        reg [3:0] cnt_10;\n        always @(posedge CLK_in or posedge RST) begin\n            if(RST) begin\n                cnt_10 <= 4'd0;\n            end else if(cnt_10 == 4'd4) begin\n                cnt_10 <= 4'd0;\n            end else begin\n                cnt_10 <= cnt_10 + 1;\n            end\n        end\n        \n        // Counter for CLK_1\n        reg [6:0] cnt_100;\n        always @(posedge CLK_in or posedge RST) begin\n            if(RST) begin\n                cnt_100 <= 7'd0;\n            end else if(cnt_100 == 7'd49) begin\n                cnt_100 <= 7'd0;\n            end else begin\n                cnt_100 <= cnt_100 + 1;\n            end\n        end\n    </implementation>\n</module>",
+    "final_status": "fail_ts",
+    "sc_trial": 11,
+    "ts_trial": 10,
+    "total_iter": 21,
+    "gvd": "module freq_div (\n    input CLK_in,\n    output reg CLK_50,\n    output reg CLK_10,\n    output reg CLK_1,\n    input RST\n);\n\nreg [1:0] cnt_10;\nreg [5:0] cnt_100;\n\nalways @(posedge CLK_in or posedge RST) begin\n    if (RST) begin\n        CLK_50 <= 0;\n        CLK_10 <= 0;\n        CLK_1 <= 0;\n        cnt_10 <= 0;\n        cnt_100 <= 0;\n    end else begin\n        CLK_50 <= ~CLK_50;\n        cnt_10 <= cnt_10 + 1;\n        if (cnt_10 == 4) begin\n            CLK_10 <= ~CLK_10;\n            cnt_10 <= 0;\n        end\n        cnt_100 <= cnt_100 + 1;\n        if (cnt_100 == 49) begin\n            CLK_1 <= ~CLK_1;\n            cnt_100 <= 0;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"freq_div\">\n    <description>Frequency Divider for generating different clock frequencies based on input clock.</description>\n    <ports>\n        <input id=\"CLK_in\">Input clock signal.</input>\n        <input id=\"RST\">Reset signal.</input>\n        <output id=\"CLK_50\">Output clock signal with a frequency of CLK_in divided by 2.</output>\n        <output id=\"CLK_10\">Output clock signal with a frequency of CLK_in divided by 10.</output>\n        <output id=\"CLK_1\">Output clock signal with a frequency of CLK_in divided by 100.</output>\n    </ports>\n    <implementation>\n        // Counter for CLK_50\n        reg [0:0] cnt_50;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_50 <= 1'b0;\n            end else begin\n                cnt_50 <= ~cnt_50;\n            end\n        end\n        \n        // Counter for CLK_10\n        reg [3:0] cnt_10;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_10 <= 4'd0;\n            end else if (cnt_10 == 4'd4) begin\n                cnt_10 <= 4'd0;\n            end else begin\n                cnt_10 <= cnt_10 + 1;\n            end\n        end\n        \n        // Counter for CLK_1\n        reg [6:0] cnt_100;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                cnt_100 <= 7'd0;\n            end else if (cnt_100 == 7'd49) begin\n                cnt_100 <= 7'd0;\n            end else begin\n                cnt_100 <= cnt_100 + 1;\n            end\n        end\n        \n        // Assigning output clocks\n        assign CLK_50 = cnt_50[0];\n        assign CLK_10 = cnt_10[0];\n        assign CLK_1 = cnt_100[0];\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_freq_div_3b_j32tc/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_div.cpp Vfreq_div__Trace.cpp Vfreq_div__Slow.cpp Vfreq_div__Syms.cpp Vfreq_div__Trace__Slow.cpp > Vfreq_div__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vfreq_div__ALL.o Vfreq_div__ALL.cpp\nar -cr Vfreq_div__ALL.a Vfreq_div__ALL.o\nranlib Vfreq_div__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vfreq_div__ALL.a      -o Vfreq_div\nmake[1]: Leaving directory '/tmp/comba_freq_div_3b_j32tc/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTH: freq_div.v:22:20: Operator EQ expects 32 or 3 bits on the LHS, but LHS's VARREF 'cnt_10' generates 2 bits.\n                                : ... In instance freq_div\n   22 |         if (cnt_10 == 4) begin\n      |                    ^~\n                ... Use \"/* verilator lint_off WIDTH */\" and lint_on around source to disable this message.\nmake[2]: Entering directory '/tmp/comba_freq_div__i_vq_vj/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_div.cpp Vfreq_div__Trace.cpp Vfreq_div__Slow.cpp Vfreq_div__Syms.cpp Vfreq_div__Trace__Slow.cpp > Vfreq_div__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vfreq_div__ALL.o Vfreq_div__ALL.cpp\nar -cr Vfreq_div__ALL.a Vfreq_div__ALL.o\nranlib Vfreq_div__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vfreq_div__ALL.a      -o Vfreq_div\nmake[2]: Leaving directory '/tmp/comba_freq_div__i_vq_vj/obj_dir'\n\n[RUN]\nVfreq_div: ../tb.cpp:150: void freq_divScb::writeOut(freq_divOutTx*): Assertion `tx->CLK_10 == out_tx_ref.CLK_10 && tx->CLK_1 == out_tx_ref.CLK_1 && tx->CLK_50 == out_tx_ref.CLK_50 && \"TODO 3 Failed: Clock logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 26 1 11\n# TODO 3 INPUT TRACE: in->RST = 0x0\n# TODO 3 OUTPUT TRACE: tx->CLK_10 = 0x0, tx->CLK_1 = 0x0, tx->CLK_50 = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: out_tx_ref.CLK_10 = 0x1, out_tx_ref.CLK_1 = 0x0, out_tx_ref.CLK_50 = 0x0\n",
     "error": null,
     "edtm": {
-      "TB:fsm_state_error::3::": 1
+      "TopModule.sv:N: error: can not select part of scalar: cnt_50": 1,
+      "TB:fsm_state_error::3::": 5,
+      "TB:fsm_state_error::0::": 5
     },
     "failure_type": "fsm_state_error",
-    "vcd_status": "ok",
+    "vcd_status": "empty",
     "self_consistency": {
-      "samples_run": 1,
+      "samples_run": 5,
       "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
-      "best_status": "pass",
-      "early_exit": true,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
       "vote_enabled": false,
-      "total_elapsed_s": 26.01,
+      "total_elapsed_s": 302.18,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
-          "status": "pass",
-          "sc_trial": 2,
-          "ts_trial": 2,
-          "iter": 4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 48,
-          "elapsed_s": 26.01
+          "gvd_lines": 41,
+          "elapsed_s": 60.7
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 53.08
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 41,
+          "elapsed_s": 54.01
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 56.42
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 10,
+          "iter": 21,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 34,
+          "elapsed_s": 77.98
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 2,
+      "commits": 20,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": 2,
       "final_sc": 0
     }
   }

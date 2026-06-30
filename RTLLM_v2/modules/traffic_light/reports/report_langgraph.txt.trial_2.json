@@ -1,0 +1,88 @@
+{
+  "module_name": "traffic_light",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "traffic_light",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module traffic_light #(\n    parameter idle = 2'd0,\n    parameter s1_red = 2'd1,\n    parameter s2_yellow = 2'd2,\n    parameter s3_green = 2'd3\n) (\n    input rst_n,\n    input clk,\n    input pass_request,\n    output wire[7:0]clock,\n    output reg red,\n    output reg yellow,\n    output reg green\n);\n\n    \n    reg [7:0] cnt;\n    reg [1:0] state;\n    reg p_red, p_yellow, p_green;\n    always@(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            state <= idle;\n            p_red <= 0;\n            p_yellow <= 0;\n            p_green <= 0;\n        end\n        else begin\n            case(state)\n                idle: begin\n                    p_red <= 0;\n                    p_yellow <= 0;\n                    p_green <= 0;\n                    state <= s1_red;\n                end\n                s1_red: begin\n                    p_red <= 1;\n                    p_yellow <= 0;\n                    p_green <= 0;\n                    if(cnt==3) state <= s3_green;\n                    else state <= s1_red;\n                end\n                s2_yellow: begin\n                    p_red <= 0;\n                    p_yellow <= 1;\n                    p_green <= 0;\n                    if(cnt==3) state <= s1_red;\n                    else state <= s2_yellow;\n                end\n                s3_green: begin\n                    p_red <= 0;\n                    p_yellow <= 0;\n                    p_green <= 1;\n                    if(cnt==3) state <= s2_yellow;\n                    else state <= s3_green;\n                end\n            endcase\n        end\n    end\n    always@(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            cnt <= 10;\n        end\n        else begin\n            if(pass_request&&green&&(cnt>10))\n                cnt <= 10;\n            else if(!green&&p_green)\n                cnt <= 60;\n            else if(!yellow&&p_yellow)\n                cnt <= 5;\n            else if(!red&&p_red) cnt <= 10; else cnt <= cnt - 1;\n        end\n    end\n    assign clock = cnt;\n    always@(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            red <= 0;\n            yellow <= 0;\n            green <= 0;\n        end\n        else begin\n            red <= p_red;\n            yellow <= p_yellow;\n            green <= p_green;\n        end\n    end\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nAt time                   40, clock =  10, red = 1, yellow = 0, green = 0\nAt time                  140, clock =  60, red = 0, yellow = 0, green = 1\nAt time                  740, clock =   5, red = 0, yellow = 1, green = 0\nAt time                  890, clock =  60, red = 0, yellow = 0, green = 1\nAt time                  920, clock =  57, red = 0, yellow = 0, green = 1\nAt time                  930, clock =  10, red = 0, yellow = 0, green = 1\n===========Your Design Passed===========\ntestbench.v:84: $finish called at 930 (1ns)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 4,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 190.21,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 68,
+          "elapsed_s": 60.76
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 61.47
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 67,
+          "elapsed_s": 57.15
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 86,
+          "elapsed_s": 10.84
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

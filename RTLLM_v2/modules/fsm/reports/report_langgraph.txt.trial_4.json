@@ -1,0 +1,64 @@
+{
+  "module_name": "fsm",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fsm",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fsm #(\n    parameter s0 = 3'b000,\n    parameter s1 = 3'b001,\n    parameter s2 = 3'b010,\n    parameter s3 = 3'b011,\n    parameter s4 = 3'b100,\n    parameter s5 = 3'b101\n) (\n    input IN,\n    output reg MATCH,\n    input CLK,\n    input RST\n);\n\n\nreg [2:0] ST_cr, ST_nr;\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) ST_cr <= s0; else ST_cr <= ST_nr;\nend\n\nalways @(*) begin\n    case(ST_cr)\n        s0: begin\n            if(IN==1) ST_nr=s1;\n            else ST_nr=s0;\n        end\n        s1: begin\n            if(IN==1) ST_nr=s1;\n            else ST_nr=s2;\n        end\n        s2: begin\n            if(IN==1) ST_nr=s1;\n            else ST_nr=s3;\n        end\n        s3: begin\n            if(IN==1) ST_nr=s4;\n            else ST_nr=s0;\n        end\n        s4: begin\n            if(IN==1) ST_nr=s5;\n            else ST_nr=s2;\n        end\n        s5: begin\n            if(IN==1) ST_nr=s1;\n            else ST_nr=s2;\n        end\n        default: ST_nr=s0;\n    endcase\nend\n\nassign MATCH = (RST)? 0 :\n               ((ST_cr==s4)&&(IN==1))? 1 : 0;\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n===========Your Design Passed===========\ntestbench.v:71: $finish called at 158 (1ns)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 2,
+      "max_samples": 5,
+      "best_sample_idx": 1,
+      "best_temperature": 0.1,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 63.59,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 73,
+          "elapsed_s": 56.18
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 54,
+          "elapsed_s": 7.41
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

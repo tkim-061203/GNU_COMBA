@@ -189,8 +189,9 @@ class TestRoutingFunctions:
         assert route_after_ts(state) == "end_pass"
 
     # ── Classify TB routing (v5) ──
-    def test_route_after_classify_tb_fsm_with_vcd(self, tmp_path):
+    def test_route_after_classify_tb_fsm_with_vcd_hint_enabled(self, tmp_path, monkeypatch):
         import os
+        monkeypatch.setenv("COMBA_VCD_HINT", "1")
         state = make_initial_state()
         state["failure_type"] = "fsm_state_error"
         state["work_dir"] = str(tmp_path)
@@ -198,7 +199,19 @@ class TestRoutingFunctions:
             f.write("dummy VCD")
         assert route_after_classify_tb(state) == "node_vcd_analyzer"
 
-    def test_route_after_classify_tb_fsm_no_vcd(self):
+    def test_route_after_classify_tb_fsm_with_vcd_disabled_by_default(self, tmp_path, monkeypatch):
+        import os
+        monkeypatch.delenv("COMBA_VCD_HINT", raising=False)
+        state = make_initial_state()
+        state["failure_type"] = "fsm_state_error"
+        state["work_dir"] = str(tmp_path)
+        with open(os.path.join(tmp_path, "test.vcd"), "w") as f:
+            f.write("dummy VCD")
+        # Hint is opt-in: even with a VCD present, default routes straight to TED.
+        assert route_after_classify_tb(state) == "node_ted_tb"
+
+    def test_route_after_classify_tb_fsm_no_vcd(self, monkeypatch):
+        monkeypatch.setenv("COMBA_VCD_HINT", "1")
         state = make_initial_state()
         state["failure_type"] = "fsm_state_error"
         assert route_after_classify_tb(state) == "node_ted_tb"

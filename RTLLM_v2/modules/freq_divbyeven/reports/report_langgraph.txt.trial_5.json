@@ -1,0 +1,52 @@
+{
+  "module_name": "freq_divbyeven",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_divbyeven",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module freq_divbyeven #(\n    parameter NUM_DIV = 6\n) (\n    input clk,\n    input rst_n,\n    output reg clk_div\n);\n    \n    reg [3:0] cnt;\n    reg clk_div_reg;\n    assign clk_div = clk_div_reg;\n    always@(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            cnt <= 4'd0;\n            clk_div_reg <= 1'b0;\n        end\n        else begin\n            if(cnt < NUM_DIV/2 - 1) begin\n                cnt <= cnt + 1;\n                clk_div_reg <= clk_div_reg;\n            end\n            else begin\n                cnt <= 4'd0;\n                clk_div_reg <= ~clk_div_reg;\n            end\n        end\n    end\n    \nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Your Design Passed ===========\ntestbench.v:33: $finish called at 110000 (1ps)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 3.28,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 3.28
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

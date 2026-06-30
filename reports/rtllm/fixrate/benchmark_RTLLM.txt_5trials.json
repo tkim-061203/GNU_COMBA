@@ -3,13 +3,13 @@
     "num_trials": 5,
     "description_type": "RTLLM.txt",
     "num_modules": 29,
-    "timestamp": "2026-06-22T17:08:09.910386"
+    "timestamp": "2026-06-29T18:37:03.950432"
   },
   "global": {
     "sc_pass_rate": 1.0,
-    "tb_pass_rate": 0.9172413793103449,
+    "tb_pass_rate": 0.8551724137931034,
     "syntax_fix_rate": 1.0,
-    "func_fix_rate": 0.9172413793103449
+    "func_fix_rate": 0.8551724137931034
   },
   "modules": {
     "alu": {
@@ -26,9 +26,27 @@
     },
     "traffic_light": {
       "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.6,
+      "tb_pass_rate": 0.2,
       "syntax_fr": 1.0,
-      "func_fr": 0.6
+      "func_fr": 0.2
+    },
+    "freq_div": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.4,
+      "syntax_fr": 1.0,
+      "func_fr": 0.4
+    },
+    "pulse_detect": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.4,
+      "syntax_fr": 1.0,
+      "func_fr": 0.4
+    },
+    "serial2parallel": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.8,
+      "syntax_fr": 1.0,
+      "func_fr": 0.8
     },
     "JC_counter": {
       "sc_pass_rate": 1.0,
@@ -102,12 +120,6 @@
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
-    "freq_div": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 1.0,
-      "syntax_fr": 1.0,
-      "func_fr": 1.0
-    },
     "fsm": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
@@ -150,19 +162,7 @@
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
-    "pulse_detect": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 1.0,
-      "syntax_fr": 1.0,
-      "func_fr": 1.0
-    },
     "right_shifter": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 1.0,
-      "syntax_fr": 1.0,
-      "func_fr": 1.0
-    },
-    "serial2parallel": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,

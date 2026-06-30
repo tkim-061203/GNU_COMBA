@@ -1,0 +1,102 @@
+{
+  "module_name": "barrel_shifter",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "barrel_shifter",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module barrel_shifter (\n    input [7:0] in,\n    input [2:0] ctrl,\n    output [7:0] out\n);\n\nwire [7:0] stage1, stage2;\n\nassign stage1 = (ctrl[2]) ? {in[3:0], in[7:4]} : in;\nassign stage2 = (ctrl[1]) ? {stage1[1:0], stage1[7:2]} : stage1;\n\nassign out = (ctrl[0]) ? {stage2[0], stage2[7:1]} : stage2;\n\nendmodule\n\nmodule mux2X1( in0,in1,sel,out);\ninput in0,in1;\ninput sel;\noutput out;\nassign out=(sel)?in1:in0;\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Test completed with           1 failures ===========\ntestbench.v:37: $finish called at 80 (1s)\n",
+    "error": null,
+    "edtm": {
+      "TB:combinational_mismatch::0::": 6
+    },
+    "failure_type": "combinational_mismatch",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 489.89,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 22,
+          "elapsed_s": 15.79
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 24,
+          "elapsed_s": 17.28
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 21,
+          "elapsed_s": 17.58
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 23,
+          "elapsed_s": 19.97
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 6,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 31,
+          "elapsed_s": 419.26
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 1,
+      "commits": 9,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "module_name": "div_16bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "div_16bit",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 1,
+    "total_iter": 3,
+    "gvd": "module div_16bit (\n    input wire [15:0] A,\n    input wire [7:0] B,\n    output reg [15:0] result,\n    output reg [15:0] odd\n);\n    always @(*) begin\n        if (B == 0) begin\n            result = 0;\n            odd = A;\n        end else begin\n            result = A / B;\n            odd = A % B;\n        end\n    end\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n===========Your Design Passed===========\ntestbench.v:37: $finish called at 1000000 (1ps)\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: syntax error": 1
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 9.31,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 1,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 16,
+          "elapsed_s": 9.31
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 2,
+      "used_fallback": false,
+      "baseline_sc": 3,
+      "final_sc": 0
+    }
+  }
+}

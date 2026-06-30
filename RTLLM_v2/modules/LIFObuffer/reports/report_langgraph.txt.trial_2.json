@@ -1,0 +1,102 @@
+{
+  "module_name": "LIFObuffer",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "LIFObuffer",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module LIFObuffer (\n    input [3:0] dataIn,\n    input RW,\n    input EN,\n    input Rst,\n    input Clk,\n    output reg EMPTY,\n    output reg FULL,\n    output reg [3:0] dataOut\n);\n\nreg [3:0] stack_mem [0:3];\nreg [2:0] SP;\n\nalways @(posedge Clk) begin\n    if (Rst) begin\n        SP <= 3;\n        EMPTY <= 1;\n        FULL <= 0;\n        stack_mem[0] <= 0;\n        stack_mem[1] <= 0;\n        stack_mem[2] <= 0;\n        stack_mem[3] <= 0;\n    end else if (EN) begin\n        if (!RW && !FULL) begin\n            stack_mem[SP] <= dataIn;\n            SP <= SP - 1;\n            if (SP == 0)\n                EMPTY <= 1;\n            FULL <= (SP == 3);\n        end else if (RW && !EMPTY) begin\n            dataOut <= stack_mem[SP];\n            stack_mem[SP] <= 0;\n            SP <= SP + 1;\n            EMPTY <= (SP == 3);\n            FULL <= 0;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Test completed with           x/20 failures ===========\ntestbench.v:76: $finish called at 265000 (1ps)\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 174.64,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 38,
+          "elapsed_s": 34.65
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 50,
+          "elapsed_s": 33.75
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 38,
+          "elapsed_s": 33.36
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 41,
+          "elapsed_s": 41.61
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 46,
+          "elapsed_s": 31.28
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module radix2_div (\n    input wire clk,\n    input wire rst,\n    input wire [7:0] dividend,\n    input wire [7:0] divisor,\n    input wire sign,\n    input wire opn_valid,\n    output reg res_valid,\n    input wire res_ready,\n    output wire [15:0] result\n);\n\nreg [7:0] dividend_reg;\nreg [7:0] divisor_reg;\nreg [15:0] result_reg;\nreg [3:0] cnt;\nreg [3:0] start_cnt;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        dividend_reg <= 8'b0;\n        divisor_reg <= 8'b0;\n        result_reg <= 16'b0;\n        cnt <= 4'b0;\n        start_cnt <= 4'b0;\n        res_valid <= 1'b0;\n    end else if (opn_valid && !res_valid) begin\n        dividend_reg <= dividend;\n        divisor_reg <= divisor;\n        result_reg <= {dividend, 8'b0};\n        cnt <= 4'b1;\n        start_cnt <= 4'b1;\n        res_valid <= 1'b1;\n    end else if (start_cnt) begin\n        if (cnt == 4'd8) begin\n            cnt <= 4'b0;\n            start_cnt <= 4'b0;\n            result_reg <= {result_reg[7:0], result_reg[15:8]};\n        end else begin\n            result_reg <= {result_reg[7:0] - divisor_reg, result_reg[15:8]};\n            cnt <= cnt + 1;\n        end\n    end\nend\n\nassign result = result_reg;\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nError: dividend=100, divisor= 10, expected=000a, got=f664\nError: dividend=156, divisor= 10, expected=00f6, got=50ec\nError: dividend=100, divisor=246, expected=00f6, got=d846\nError: dividend=156, divisor=246, expected=000a, got=46d8\nError: dividend=123, divisor=123, expected=0001, got=46d8\nError: dividend=  0, divisor=123, expected=0000, got=46d8\nError: dividend=123, divisor=251, expected=7b00, got=46d8\nError: dividend=255, divisor=  7, expected=0324, got=46d8\n===========Failed===========          8\ntestbench.v:93: $finish called at 260000 (1ps)\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 764.87,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 48,
+          "elapsed_s": 52.38
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 48,
+          "elapsed_s": 57.73
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 53,
+          "elapsed_s": 70.69
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 58,
+          "elapsed_s": 53.37
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 52,
+          "elapsed_s": 530.69
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

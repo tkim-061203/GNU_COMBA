@@ -1,0 +1,76 @@
+{
+  "module_name": "multi_pipe_8bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_8bit",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_pipe_8bit #(\n    parameter size = 8\n) (\n    input clk,\n    input rst_n,\n    input [size-1:0] mul_a,\n    input [size-1:0] mul_b,\n    input mul_en_in,\n    output reg mul_en_out,\n    output reg [size*2-1:0] mul_out\n);\n\nreg [2:0] mul_en_out_reg;\nreg [7:0] mul_a_reg, mul_b_reg;\nreg [15:0] mul_out_reg;\nreg [15:0] temp[0:7];\nreg [15:0] sum[0:3];\ninteger i;\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        mul_en_out_reg <= 0;\n        mul_en_out <= 0;\n    end\n    else begin\n        mul_en_out_reg <= {mul_en_out_reg[1:0],mul_en_in};\n        mul_en_out <= mul_en_out_reg[2];\n    end\nend\nalways @(posedge clk) begin\n    if(mul_en_in) begin\n        mul_a_reg <= mul_a;\n        mul_b_reg <= mul_b;\n    end\n    else begin\n        mul_a_reg <= 0;\n        mul_b_reg <= 0;\n    end\nend\nalways @(*) begin\n    for(i=0;i<8;i=i+1) begin\n        if(mul_b_reg[i]==1'b1) begin\n            temp[i] = mul_a_reg << i;\n        end\n        else begin\n            temp[i] = 0;\n        end\n    end\nend\nalways @(posedge clk) begin\n    sum[0] <= temp[0]+temp[1];\n    sum[1] <= temp[2]+temp[3];\n    sum[2] <= temp[4]+temp[5];\n    sum[3] <= temp[6]+temp[7];\nend\nalways @(posedge clk) begin\n    mul_out_reg <= sum[0]+sum[1]+sum[2]+sum[3];\nend\nalways @(posedge clk) begin\n    if(mul_en_out_reg[2]) begin\n        mul_out <= mul_out_reg;\n    end\n    else begin\n        mul_out <= 0;\n    end\nend\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n===========Your Design Passed===========\ntestbench.v:85: $finish called at 72220 (1ns)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 3,
+      "max_samples": 5,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 183.66,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 6,
+          "iter": 14,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 42,
+          "elapsed_s": 86.69
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 6,
+          "iter": 14,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 47,
+          "elapsed_s": 87.71
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 66,
+          "elapsed_s": 9.25
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "module_name": "comparator_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "comparator_4bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module comparator_4bit (\n    input [3:0] A,\n    input [3:0] B,\n    output A_greater,\n    output A_equal,\n    output A_less\n);\n\nwire [3:0] diff;\nassign diff = A - B;\n\nassign A_greater = |diff & ~|B;\nassign A_equal = &diff;\nassign A_less = &{~|diff, |B};\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nTest failed: A = 0100, B = 0001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1001, B = 0011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1101, B = 1101, A_greater = 0, A_equal = 0, A_less = 1\nTest failed: A = 0101, B = 0010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0001, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1101, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1001, B = 0110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0101, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0101, B = 0111, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0010, B = 1111, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0010, B = 1110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1000, B = 0101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1100, B = 1101, A_greater = 0, A_equal = 1, A_less = 0\nTest failed: A = 1101, B = 0101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0011, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0000, B = 0000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1010, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 0011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1101, B = 0011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1011, B = 0101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0010, B = 1110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1101, B = 1111, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0011, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1010, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0010, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0001, B = 1000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1000, B = 1001, A_greater = 0, A_equal = 1, A_less = 0\nTest failed: A = 1011, B = 0110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1100, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1011, B = 0001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0101, B = 1111, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1011, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1110, B = 0101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0001, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0010, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1111, B = 1111, A_greater = 0, A_equal = 0, A_less = 1\nTest failed: A = 1000, B = 0111, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1111, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1011, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0111, B = 0001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0010, B = 1000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0111, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0010, B = 1110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1101, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1111, B = 0011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0101, B = 1000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1011, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1111, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1000, B = 0110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1110, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1010, B = 0110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0011, B = 0011, A_greater = 0, A_equal = 0, A_less = 1\nTest failed: A = 1111, B = 0011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1111, B = 0100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0111, B = 1011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1001, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1010, B = 0101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0101, B = 1111, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1001, B = 0100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0000, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1011, B = 1110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1100, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1101, B = 0011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0111, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1001, B = 1000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0100, B = 0011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0100, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1011, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1001, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 0101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 0100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0111, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0100, B = 1000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1000, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0111, B = 1110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1000, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1101, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1100, B = 0110, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1010, B = 1101, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0011, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1110, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0101, B = 1010, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1001, B = 0111, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 0110, A_greater = 0, A_equal = 0, A_less = 1\nTest failed: A = 1101, B = 1100, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0110, B = 1000, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1110, B = 1011, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1111, B = 1001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 1010, B = 0001, A_greater = 0, A_equal = 0, A_less = 0\nTest failed: A = 0111, B = 0001, A_greater = 0, A_equal = 0, A_less = 0\n=========== Test completed with          97 /100 failures ===========\ntestbench.v:54: $finish called at 1000000 (1ps)\n",
+    "error": null,
+    "edtm": {
+      "TB:combinational_mismatch::0::": 6
+    },
+    "failure_type": "combinational_mismatch",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 67.91,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 19,
+          "elapsed_s": 14.31
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 19,
+          "elapsed_s": 14.73
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 19,
+          "elapsed_s": 13.08
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 19,
+          "elapsed_s": 13.27
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 16,
+          "elapsed_s": 12.51
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

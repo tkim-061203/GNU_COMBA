@@ -1,0 +1,52 @@
+{
+  "module_name": "fixed_point_substractor",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fixed_point_substractor",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fixed_point_substractor #(\n    parameter Q = 15,\n    parameter N = 32\n) (\n    input [N-1:0] a,\n    input [N-1:0] b,\n    output reg [N-1:0] c\n);\n\nreg [N-1:0] res;\n\nalways @* begin\n    \n    res = 0;\n\n    if (a[N-1] != b[N-1]) begin\n        \n        if (a[N-1] > b[N-1]) begin\n            \n            res = a + (~b + 1); \n            res[N-1] = 1; \n        end else begin\n            \n            res = ~a + 1 + b; \n            res[N-1] = 0; \n        end\n    end else begin\n        \n        res = a - b;\n\n        if (res == 0) begin\n            res[N-1] = 0; \n        end\n    end\nend\n\nassign c = res;\nendmodule\n\nmodule fixed_point_subtractor #(\n\tparameter Q = 15,\n\tparameter N = 32\n\t)\n\t(\n    input [N-1:0] a,\n    input [N-1:0] b,\n    output [N-1:0] c\n    );\n\nreg [N-1:0] res;\n\nassign c = res;\n\nalways @(a,b) begin\n\t\n\tif(a[N-1] == b[N-1]) begin\t\t\t\t\t\n\t\tres[N-2:0] = a[N-2:0] - b[N-2:0];\t\t\n\t\tres[N-1] = a[N-1];\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\tend\t\t\t\t\t\t\t\t\t\t\t\t\n\t\n\telse if(a[N-1] == 0 && b[N-1] == 1) begin\t\t\n\t\tif( a[N-2:0] > b[N-2:0] ) begin\t\t\t\t\t\n\t\t\tres[N-2:0] = a[N-2:0] + b[N-2:0];\t\t\t\n\t\t\tres[N-1] = 0;\t\t\t\t\t\t\t\t\t\t\n\t\t\tend\n\t\telse begin\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\tres[N-2:0] = b[N-2:0] + a[N-2:0];\t\t\n\t\t\tif (res[N-2:0] == 0)\n\t\t\t\tres[N-1] = 0;\t\t\t\t\t\t\t\t\t\n\t\t\telse\n\t\t\t\tres[N-1] = 1;\t\t\t\t\t\t\t\t\t\n\t\t\tend\n\t\tend\n\telse begin\t\t\t\t\t\t\t\t\t\t\t\t\n\t\tif( a[N-2:0] > b[N-2:0] ) begin\t\t\t\t\t\n\t\t\tres[N-2:0] = a[N-2:0] + b[N-2:0];\t\t\t\n\t\t\tif (res[N-2:0] == 0)\n\t\t\t\tres[N-1] = 0;\t\t\t\t\t\t\t\t\t\t\n\t\t\telse\n\t\t\t\tres[N-1] = 1;\t\t\t\t\t\t\t\t\t\t\n\t\t\tend\n\t\telse begin\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\tres[N-2:0] = b[N-2:0] + a[N-2:0];\t\t\t\n\t\t\tres[N-1] = 0;\t\t\t\t\t\t\t\t\t\t\n\t\t\tend\n\t\tend\n\tend\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Your Design Passed ===========\ntestbench.v:79: $finish called at 1000000 (1ps)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 6.62,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 90,
+          "elapsed_s": 6.62
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

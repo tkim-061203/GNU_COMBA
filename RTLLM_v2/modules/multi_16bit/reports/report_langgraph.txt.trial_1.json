@@ -1,0 +1,52 @@
+{
+  "module_name": "multi_16bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_16bit",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_16bit (\n    input clk,\n    input rst_n,\n    input start,\n    input [15:0] ain,\n    input [15:0] bin,\n    output [31:0] yout,\n    output done\n);\n\nreg [15:0] areg, breg;\nreg [31:0] yout_r;\nreg [4:0] i;\nreg done_r;\nassign yout = yout_r;\nassign done = done_r;\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\ti <= 0;\n\tend\n\telse if(start && i < 17) begin\n\t\ti <= i + 1;\n\tend\n\telse begin\n\t\ti <= 0;\n\tend\nend\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tdone_r <= 0;\n\tend\n\telse if(i == 16) begin\n\t\tdone_r <= 1;\n\tend\n\telse if(i == 17) begin\n\t\tdone_r <= 0;\n\tend\nend\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tyout_r <= 0;\n\t\tareg <= 0;\n\t\tbreg <= 0;\n\tend\n\telse if(start) begin\n\t\tcase(i)\n\t\t\t0: begin\n\t\t\t\tareg <= ain;\n\t\t\t\tbreg <= bin;\n\t\t\tend\n\t\t\tdefault: begin\n\t\t\t\tif(areg[i-1]) begin\n\t\t\t\t\tyout_r <= yout_r + (breg << (i-1));\n\t\t\t\tend\n\t\t\tend\n\t\tendcase\n\tend\nend\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n===========Your Design Passed===========\ntestbench.v:73: $finish called at 47000 (1s)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 8.26,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 59,
+          "elapsed_s": 8.26
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

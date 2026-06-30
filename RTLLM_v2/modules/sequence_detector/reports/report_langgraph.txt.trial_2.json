@@ -1,0 +1,66 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 3,
+    "ts_trial": 1,
+    "total_iter": 4,
+    "gvd": "module sequence_detector #(\n    parameter IDLE = 5'b00001,\n    parameter S1   = 5'b00010,\n    parameter S2   = 5'b00100,\n    parameter S3   = 5'b01000,\n    parameter S4   = 5'b10000\n) (\n    input  clk,\n    input  rst_n,\n    input  data_in,\n    output sequence_detected\n);\n    \n    reg [4:0] current_state;\n    reg [4:0] next_state;\n    always @(*) begin\n        case(current_state)\n            5'b00001: begin\n                if(data_in == 1'b1) begin\n                    next_state = 5'b00010;\n                end else begin\n                    next_state = 5'b00001;\n                end\n            end\n            5'b00010: begin\n                if(data_in == 1'b0) begin\n                    next_state = 5'b00100;\n                end else begin\n                    next_state = 5'b00001;\n                end\n            end\n            5'b00100: begin\n                if(data_in == 1'b0) begin\n                    next_state = 5'b01000;\n                end else begin\n                    next_state = 5'b00001;\n                end\n            end\n            5'b01000: begin\n                if(data_in == 1'b1) begin\n                    next_state = 5'b10000;\n                end else begin\n                    next_state = 5'b00001;\n                end\n            end\n            5'b10000: begin\n                if(data_in == 1'b1) begin\n                    next_state = 5'b00001;\n                end else begin\n                    next_state = 5'b00001;\n                end\n            end\n        endcase\n    end\n    always @(posedge clk or negedge rst_n) begin\n        if(rst_n == 1'b0) begin\n            current_state <= 5'b00001;\n        end else begin\n            current_state <= next_state;\n        end\n    end\n    \n    assign sequence_detected = (current_state == 5'b10000);\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Your Design Passed ===========\ntestbench.v:56: $finish called at 108000 (1ps)\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'": 2
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 2,
+      "max_samples": 5,
+      "best_sample_idx": 1,
+      "best_temperature": 0.1,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 103.66,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 7,
+          "elapsed_s": 42.63
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "pass",
+          "sc_trial": 3,
+          "ts_trial": 1,
+          "iter": 4,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 64,
+          "elapsed_s": 61.03
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 3,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 0
+    }
+  }
+}

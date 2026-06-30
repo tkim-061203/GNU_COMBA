@@ -1,0 +1,54 @@
+{
+  "module_name": "serial2parallel",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "serial2parallel",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module serial2parallel (\n    input clk,\n    input rst_n,\n    input din_serial,\n    input din_valid,\n    output reg [7:0]dout_parallel,\n    output reg dout_valid\n);\n\nreg [3:0] cnt;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        cnt <= 4'b0;\n        dout_parallel <= 8'b0;\n        dout_valid <= 1'b0;\n    end else if (din_valid) begin\n        dout_parallel[cnt] <= din_serial;\n        cnt <= cnt + 1'b1;\n        if (cnt == 4'd7) begin\n            dout_valid <= 1'b1;\n        end else begin\n            dout_valid <= 1'b0;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\nerror: TB simulation timed out",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 2525.79,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 28,
+          "elapsed_s": 2525.79
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

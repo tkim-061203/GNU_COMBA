@@ -1,0 +1,52 @@
+{
+  "module_name": "instr_reg",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "instr_reg",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module instr_reg (\n    input clk,\n    input rst,\n    input [1:0] fetch,\n    input [7:0] data,\n    output [2:0] ins,\n    output [4:0] ad1,\n    output [7:0] ad2\n);\n\nreg [7:0] ins_p1, ins_p2;\nassign ins = ins_p1[7:5];\nassign ad1 = ins_p1[4:0];\nassign ad2 = ins_p2;\nalways@(posedge clk or negedge rst) begin\n    if(!rst) begin\n        ins_p1 <= 8'b0;\n        ins_p2 <= 8'b0;\n    end\n    else begin\n        case(fetch)\n            2'b01: ins_p1 <= data;\n            2'b10: ins_p2 <= data;\n            default: begin\n                ins_p1 <= ins_p1;\n                ins_p2 <= ins_p2;\n            end\n        endcase\n    end\nend\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Your Design Passed ===========\ntestbench.v:84: $finish called at 135000 (1ps)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 4.55,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 31,
+          "elapsed_s": 4.55
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

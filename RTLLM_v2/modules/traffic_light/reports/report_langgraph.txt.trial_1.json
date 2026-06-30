@@ -1,0 +1,102 @@
+{
+  "module_name": "traffic_light",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "traffic_light",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module traffic_light #(\n    parameter idle = 2'd0,\n    parameter s1_red = 2'd1,\n    parameter s2_yellow = 2'd2,\n    parameter s3_green = 2'd3\n) (\n    input rst_n,\n    input clk,\n    input pass_request,\n    output wire[7:0]clock,\n    output reg red,\n    output reg yellow,\n    output reg green\n);\n\nreg [7:0] cnt;\nreg [1:0] state;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        state <= idle;\n        cnt <= 8'h00;\n        red <= 1'b0;\n        yellow <= 1'b0;\n        green <= 1'b0;\n    end else begin\n        case (state)\n            idle: begin\n                state <= s1_red;\n                cnt <= 8'h3C;\n            end\n            s1_red: begin\n                red <= 1'b1;\n                if (cnt == 8'h00) begin\n                    state <= s3_green;\n                    cnt <= 8'h3C;\n                end else begin\n                    cnt <= cnt - 1;\n                end\n            end\n            s2_yellow: begin\n                yellow <= 1'b1;\n                if (cnt == 8'h00) begin\n                    state <= s1_red;\n                    cnt <= 8'h03;\n                end else begin\n                    cnt <= cnt - 1;\n                end\n            end\n            s3_green: begin\n                green <= 1'b1;\n                if (cnt == 8'h00) begin\n                    state <= s2_yellow;\n                    cnt <= 8'h0A;\n                end else begin\n                    cnt <= cnt - 1;\n                end\n            end\n        endcase\n    end\nend\n\nassign clock = cnt;\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nAt time                   40, clock =  58, red = 1, yellow = 0, green = 0\nAt time                  140, clock =  48, red = 1, yellow = 0, green = 0\nAt time                  740, clock =  49, red = 1, yellow = 0, green = 1\nAt time                  890, clock =  34, red = 1, yellow = 0, green = 1\nAt time                  920, clock =  31, red = 1, yellow = 0, green = 1\nAt time                  930, clock =  30, red = 1, yellow = 0, green = 1\n===========Failed===========          3\ntestbench.v:84: $finish called at 930 (1ns)\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 813.54,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 68,
+          "elapsed_s": 62.98
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 64.0
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 68.75
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 65,
+          "elapsed_s": 75.56
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 73,
+          "elapsed_s": 542.26
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 1,
+      "commits": 9,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

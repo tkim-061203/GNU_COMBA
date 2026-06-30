@@ -1,0 +1,92 @@
+{
+  "module_name": "float_multi",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "float_multi",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 11,
+    "ts_trial": 6,
+    "total_iter": 17,
+    "gvd": "module float_multi (\n    input clk,\n    input rst,\n    input [31:0] a,\n    input [31:0] b,\n    output reg [31:0] z\n);\n\nreg [2:0] counter;\nreg [23:0] a_mantissa, b_mantissa, z_mantissa;\nreg [9:0] a_exponent, b_exponent, z_exponent;\nreg a_sign, b_sign, z_sign;\nreg [49:0] product;\nreg guard_bit, round_bit, sticky;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        counter <= 3'b000;\n        a_mantissa <= 24'b0;\n        b_mantissa <= 24'b0;\n        z_mantissa <= 24'b0;\n        a_exponent <= 10'b0;\n        b_exponent <= 10'b0;\n        z_exponent <= 10'b0;\n        a_sign <= 1'b0;\n        b_sign <= 1'b0;\n        z_sign <= 1'b0;\n        product <= 50'b0;\n        guard_bit <= 1'b0;\n        round_bit <= 1'b0;\n        sticky <= 1'b0;\n        z <= 32'b0;\n    end else begin\n        case (counter)\n            3'b000: begin \n                a_mantissa <= a[22:0];\n                b_mantissa <= b[22:0];\n                a_exponent <= {a[30], a[29:23]};\n                b_exponent <= {b[30], b[29:23]};\n                a_sign <= a[31];\n                b_sign <= b[31];\n                counter <= 3'b001;\n            end\n            3'b001: begin \n                if ((a[30:23] == 8'hFF && a[22:0] != 23'b0) || (b[30:23] == 8'hFF && b[22:0] != 23'b0)) begin\n                    z <= 32'b0; \n                end else begin\n                    counter <= 3'b010;\n                end\n            end\n            3'b010: begin \n                if (a_mantissa[23] == 1'b0) begin\n                    a_mantissa <= {a_mantissa[22:0], 1'b0};\n                    a_exponent <= a_exponent - 1;\n                end\n                if (b_mantissa[23] == 1'b0) begin\n                    b_mantissa <= {b_mantissa[22:0], 1'b0};\n                    b_exponent <= b_exponent - 1;\n                end\n                counter <= 3'b011;\n            end\n            3'b011: begin \n                product <= {1'b0, a_mantissa} * {1'b0, b_mantissa};\n                counter <= 3'b100;\n            end\n            3'b100: begin \n                z_exponent <= a_exponent + b_exponent - 127;\n                counter <= 3'b101;\n            end\n            3'b101: begin \n                guard_bit <= product[49];\n                round_bit <= product[48];\n                sticky <= |product[47:0];\n                if (round_bit && (sticky || guard_bit)) begin\n                    product = product + 1;\n                end\n                z_mantissa <= product[46:23];\n                counter <= 3'b110;\n            end\n            3'b110: begin \n                z <= {z_sign, z_exponent, z_mantissa};\n                counter <= 3'b000;\n            end\n        endcase\n    end\nend\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Test completed with           1/20 failures ===========\ntestbench.v:41: $finish called at 243 (1s)\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: 'product_shifted_final' has already been declared in this scope.": 1,
+      "TopModule.sv:N: error: 'product_shifted_final_final_final_final_final_final_final_final_final_final_": 4,
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 4,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1407.96,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 216.42
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 4,
+          "ts_trial": 0,
+          "iter": 4,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 118,
+          "elapsed_s": 109.02
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 6,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 80,
+          "elapsed_s": 654.65
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 6,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 427.88
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 16,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 0
+    }
+  }
+}

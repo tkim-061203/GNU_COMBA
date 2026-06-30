@@ -1,0 +1,102 @@
+{
+  "module_name": "freq_divbyfrac",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_divbyfrac",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module freq_divbyfrac #(\n    parameter MUL2_DIV_CLK = 7\n) (\n    input               rst_n,\n    input               clk,\n    output              clk_div\n);\n\nreg [1:0] count;\nreg div_clk;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        count <= 0;\n        div_clk <= 0;\n    end else begin\n        count <= count + 1;\n        if (count == MUL2_DIV_CLK - 1) begin\n            div_clk <= ~div_clk;\n            count <= 0;\n        end\n    end\nend\n\nassign clk_div = div_clk;\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nFailed at          0: clk=1, clk_div=0 (expected           1)\nFailed at          1: clk=0, clk_div=0 (expected           1)\nFailed at          2: clk=1, clk_div=0 (expected           1)\nFailed at          7: clk=0, clk_div=0 (expected           1)\nFailed at          8: clk=1, clk_div=0 (expected           1)\nFailed at          9: clk=0, clk_div=0 (expected           1)\nFailed at         14: clk=1, clk_div=0 (expected           1)\nFailed at         15: clk=0, clk_div=0 (expected           1)\nFailed at         16: clk=1, clk_div=0 (expected           1)\n=========== Test completed with           9/20 failures ===========\ntestbench.v:33: $finish called at 130000 (1ps)\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 1,
+      "best_temperature": 0.1,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 137.23,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 27,
+          "elapsed_s": 25.68
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 27,
+          "elapsed_s": 26.04
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 28,
+          "elapsed_s": 27.23
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 28,
+          "elapsed_s": 28.13
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 27,
+          "elapsed_s": 30.15
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

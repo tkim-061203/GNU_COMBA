@@ -1,0 +1,104 @@
+{
+  "module_name": "asyn_fifo",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "asyn_fifo",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 12,
+    "ts_trial": 6,
+    "total_iter": 18,
+    "gvd": "module asyn_fifo #(\n    parameter DEPTH = 16,\n    parameter WIDTH = 8,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output wire\t\t\t\twfull,\n    output wire\t\t\t\trempty,\n    output wire [WIDTH-1:0]\trdata\n);\n\nreg [ADDR_WIDTH-1:0] wr_ptr_sync1, wr_ptr_sync2;\nreg [ADDR_WIDTH-1:0] rd_ptr_sync1, rd_ptr_sync2;\n\nalways @(posedge wclk or negedge wrstn) begin\n    if (!wrstn) begin\n        wr_ptr_sync1 <= 0;\n        wr_ptr_sync2 <= 0;\n    end else begin\n        wr_ptr_sync1 <= wr_ptr_sync2;\n        wr_ptr_sync2 <= wr_ptr_sync1 + winc;\n    end\nend\n\nalways @(posedge rclk or negedge rrstn) begin\n    if (!rrstn) begin\n        rd_ptr_sync1 <= 0;\n        rd_ptr_sync2 <= 0;\n    end else begin\n        rd_ptr_sync1 <= rd_ptr_sync2;\n        rd_ptr_sync2 <= rd_ptr_sync1 + rinc;\n    end\nend\n\nreg [WIDTH-1:0] ram [DEPTH-1:0];\n\nalways @(posedge wclk or negedge wrstn) begin\n    if (!wrstn) begin\n        ram[0] <= 0;\n    end else begin\n        ram[wr_ptr_sync2] <= wdata;\n    end\nend\n\nassign rdata = ram[rd_ptr_sync2];\nassign rempty = (wr_ptr_sync2 == rd_ptr_sync2);\nassign wfull = ((wr_ptr_sync2 - rd_ptr_sync2) == DEPTH);\n\nendmodule\n\nmodule dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n(\n\t input wclk\t,\n\t input wenc\t,\n\t input [$clog2(DEPTH)-1:0] waddr  ,\n\t input [WIDTH-1:0] wdata ,\n\t input rclk\t,\n\t input renc\t,\n\t input [$clog2(DEPTH)-1:0] raddr ,\n\t output reg [WIDTH-1:0] rdata \t\t\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n\tif(wenc)\n\t\tRAM_MEM[waddr] <= wdata;\nend \n\nalways @(posedge rclk) begin\n\tif(renc)\n\t\trdata <= RAM_MEM[raddr];\nend \n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "TopModule.sv:21: sorry: Assignment to an entire array or to an array slice is not yet supported.\nTopModule.sv:23: error: Unable to bind wire/reg/memory `waddr' in `asyn_fifo'\n2 error(s) during elaboration.\n",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nERROR: testbench.v:71: $readmemh: Unable to open wfull.txt for reading.\nERROR: testbench.v:72: $readmemh: Unable to open rempty.txt for reading.\nERROR: testbench.v:73: $readmemh: Unable to open tdata.txt for reading.\n===========Error===========\ntestbench.v:58: $finish called at 1050 (1ns)\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: parameter `ADDR_WIDTH` not found in `asyn_fifo.ram_inst`.": 5,
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `waddr' in `asyn_fifo'": 1,
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 487.47,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 12,
+          "ts_trial": 6,
+          "iter": 18,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 81,
+          "elapsed_s": 132.24
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 109,
+          "elapsed_s": 95.44
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 100,
+          "elapsed_s": 101.1
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 6,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 87.36
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 104,
+          "elapsed_s": 71.33
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 2,
+      "commits": 15,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 0
+    }
+  }
+}

@@ -2,20 +2,20 @@
 
 | Key | Value |
 | --- | ----- |
-| **Run timestamp** | `2026-06-20 13:18:22` |
+| **Run timestamp** | `2026-06-29 22:10:16` |
 | **Description type** | `txt` |
 | **Trials per module** | 1 |
 | **Self-consistency** | `ON` |
 | **Total modules** | 50 |
-| **Passed** | 35 / 50 (70.0%) |
+| **Passed** | 33 / 50 (66.0%) |
 | **Failed (syntax)** | 0 |
-| **Failed (testbench)** | 15 |
+| **Failed (testbench)** | 17 |
 | **Error / other** | 0 |
-| **Avg SC trials** | 3.02 |
-| **Avg TS trials** | 2.96 |
-| **Avg total iterations** | 5.98 |
-| **Avg samples / module** | 2.38 |
-| **SC-recovered (Tier 2 saved)** | 6 |
+| **Avg SC trials** | 2.92 |
+| **Avg TS trials** | 2.74 |
+| **Avg total iterations** | 5.66 |
+| **Avg samples / module** | 2.52 |
+| **SC-recovered (Tier 2 saved)** | 8 |
 
 ---
 
@@ -26,55 +26,55 @@
 | 1 | ✅ | `sub_64bit` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 2 | ✅ | `pe` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 3 | ✅ | `comparator_3bit` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 4 | ✅ | `width_8to16` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 5 | ✅ | `fixed_point_adder` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
+| 4 | ✅ | `fixed_point_adder` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
+| 5 | ✅ | `width_8to16` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 6 | ✅ | `multi_16bit` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 7 | ✅ | `multi_booth_8bit` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 8 | ✅ | `multi_8bit` | `pass` | 6 | 6 | 12 | 1 | s0 | [combinational_mismatch]  |
+| 8 | ✅ | `div_16bit` | `pass` | 2 | 1 | 3 | 1 | s0 |  |
 | 9 | ✅ | `fixed_point_substractor` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 10 | ✅ | `freq_divbyfrac` | `pass` | 1 | 1 | 2 | 2 | s1 |  |
+| 10 | ✅ | `multi_8bit` | `pass` | 1 | 1 | 2 | 3 | s2 |  |
 | 11 | ✅ | `freq_div` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 12 | ✅ | `fsm` | `pass` | 2 | 2 | 4 | 1 | s0 | [fsm_state_error]  |
+| 12 | ❌ | `freq_divbyfrac` | `fail_ts` | 6 | 6 | 12 | 5 | s1 | [fsm_state_error]  (+VCD) |
 | 13 | ✅ | `edge_detect` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 14 | ✅ | `instr_reg` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 15 | ✅ | `up_down_counter` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 16 | ✅ | `adder_16bit` | `pass` | 3 | 3 | 6 | 1 | s0 | [combinational_mismatch]  |
-| 17 | ✅ | `multi_pipe_4bit` | `pass` | 1 | 1 | 2 | 2 | s1 |  |
-| 18 | ✅ | `parallel2serial` | `pass` | 2 | 2 | 4 | 1 | s0 | [fsm_state_error]  |
+| 14 | ✅ | `fsm` | `pass` | 1 | 1 | 2 | 3 | s2 |  |
+| 15 | ✅ | `instr_reg` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
+| 16 | ✅ | `up_down_counter` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
+| 17 | ✅ | `adder_16bit` | `pass` | 1 | 1 | 2 | 2 | s1 |  |
+| 18 | ✅ | `multi_pipe_8bit` | `pass` | 1 | 1 | 2 | 3 | s2 |  |
 | 19 | ✅ | `counter_12` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 20 | ✅ | `adder_bcd` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 21 | ✅ | `div_16bit` | `pass` | 1 | 1 | 2 | 2 | s1 |  |
-| 22 | ❌ | `adder_32bit` | `fail_ts` | 6 | 6 | 12 | 5 | s3 | [combinational_mismatch]  |
-| 23 | ❌ | `barrel_shifter` | `fail_ts` | 6 | 6 | 12 | 5 | s1 | [combinational_mismatch]  |
-| 24 | ❌ | `traffic_light` | `fail_ts` | 6 | 6 | 12 | 5 | s4 | [fsm_state_error]  |
-| 25 | ❌ | `calendar` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [fsm_state_error]  |
-| 26 | ✅ | `square_wave` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 27 | ❌ | `multi_pipe_8bit` | `fail_ts` | 6 | 6 | 12 | 5 | s4 | [fsm_state_error]  |
-| 28 | ✅ | `comparator_4bit` | `pass` | 6 | 6 | 12 | 1 | s0 | [combinational_mismatch]  |
-| 29 | ✅ | `adder_pipe_64bit` | `pass` | 5 | 5 | 10 | 1 | s0 | [fsm_state_error]  |
+| 21 | ✅ | `multi_pipe_4bit` | `pass` | 1 | 1 | 2 | 2 | s1 |  |
+| 22 | ❌ | `adder_32bit` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [combinational_mismatch]  |
+| 23 | ✅ | `traffic_light` | `pass` | 1 | 1 | 2 | 5 | s4 |  |
+| 24 | ❌ | `barrel_shifter` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [combinational_mismatch]  |
+| 25 | ✅ | `pulse_detect` | `pass` | 1 | 1 | 2 | 3 | s2 |  |
+| 26 | ❌ | `signal_generator` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [fsm_state_error]  (+VCD) |
+| 27 | ✅ | `square_wave` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
+| 28 | ❌ | `calendar` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [fsm_state_error]  (+VCD) |
+| 29 | ✅ | `parallel2serial` | `pass` | 2 | 2 | 4 | 1 | s0 | [fsm_state_error]  (+VCD) |
 | 30 | ✅ | `adder_8bit` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 31 | ❌ | `signal_generator` | `fail_ts` | 6 | 6 | 12 | 5 | s4 | [fsm_state_error]  |
-| 32 | ✅ | `freq_divbyeven` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 33 | ✅ | `LFSR` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 34 | ❌ | `ring_counter` | `fail_ts` | 6 | 6 | 12 | 5 | s4 | [unknown]  |
-| 35 | ✅ | `freq_divbyodd` | `pass` | 1 | 1 | 2 | 3 | s2 |  |
+| 31 | ❌ | `comparator_4bit` | `fail_ts` | 6 | 6 | 12 | 5 | s4 | [combinational_mismatch]  |
+| 32 | ❌ | `clkgenerator` | `fail_ts` | 7 | 6 | 13 | 5 | s0 | [fsm_state_error]  (+VCD) |
+| 33 | ✅ | `freq_divbyeven` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
+| 34 | ✅ | `LFSR` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
+| 35 | ❌ | `ring_counter` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [unknown]  |
 | 36 | ✅ | `ROM` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 37 | ✅ | `JC_counter` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 38 | ✅ | `RAM` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
 | 39 | ✅ | `right_shifter` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 40 | ❌ | `pulse_detect` | `fail_ts` | 6 | 6 | 12 | 5 | s2 | [fsm_state_error]  |
+| 40 | ✅ | `sequence_detector` | `pass` | 2 | 2 | 4 | 2 | s1 | [fsm_state_error]  (+VCD) |
 | 41 | ✅ | `synchronizer` | `pass` | 1 | 1 | 2 | 1 | s0 |  |
-| 42 | ❌ | `accu` | `fail_ts` | 6 | 6 | 12 | 5 | s2 | [fsm_state_error]  |
-| 43 | ❌ | `asyn_fifo` | `fail_ts` | 6 | 6 | 12 | 5 | s1 | [fsm_state_error]  |
-| 44 | ❌ | `clkgenerator` | `fail_ts` | 7 | 6 | 13 | 5 | s0 | [fsm_state_error]  |
-| 45 | ❌ | `alu` | `fail_ts` | 6 | 6 | 12 | 5 | s4 | [combinational_mismatch]  |
-| 46 | ✅ | `serial2parallel` | `pass` | 2 | 2 | 4 | 2 | s1 | [fsm_state_error]  |
-| 47 | ✅ | `sequence_detector` | `pass` | 7 | 5 | 12 | 4 | s3 | [fsm_state_error]  |
-| 48 | ❌ | `LIFObuffer` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [fsm_state_error]  |
-| 49 | ❌ | `float_multi` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [fsm_state_error]  |
-| 50 | ❌ | `radix2_div` | `fail_ts` | 6 | 6 | 12 | 5 | s4 | [fsm_state_error]  |
+| 42 | ❌ | `accu` | `fail_ts` | 7 | 6 | 13 | 5 | s3 | [fsm_state_error]  (+VCD) |
+| 43 | ❌ | `freq_divbyodd` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [fsm_state_error]  (+VCD) |
+| 44 | ❌ | `LIFObuffer` | `fail_ts` | 6 | 6 | 12 | 5 | s3 | [fsm_state_error]  (+VCD) |
+| 45 | ❌ | `alu` | `fail_ts` | 6 | 6 | 12 | 5 | s3 | [combinational_mismatch]  |
+| 46 | ❌ | `asyn_fifo` | `fail_ts` | 12 | 6 | 18 | 5 | s0 | [fsm_state_error]  (+VCD) |
+| 47 | ❌ | `float_multi` | `fail_ts` | 6 | 6 | 12 | 5 | s2 | [fsm_state_error]  (+VCD) |
+| 48 | ❌ | `adder_pipe_64bit` | `fail_ts` | 6 | 6 | 12 | 5 | s0 | [fsm_state_error]  (+VCD) |
+| 49 | ❌ | `radix2_div` | `fail_ts` | 6 | 6 | 12 | 2 | s0 | [fsm_state_error]  (+VCD) |
+| 50 | ❌ | `serial2parallel` | `fail_ts` | 6 | 6 | 12 | 1 | s0 | [fsm_state_error]  (+VCD) |
 
 ---
 
-*Generated by COMBA pipeline runner · 2026-06-20 13:18:22*
+*Generated by COMBA pipeline runner · 2026-06-29 22:10:16*
 *Full JSON: `reports/summary_langgraph.txt.json`*

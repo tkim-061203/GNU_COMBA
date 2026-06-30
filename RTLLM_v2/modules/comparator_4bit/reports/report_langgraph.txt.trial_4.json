@@ -1,0 +1,88 @@
+{
+  "module_name": "comparator_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "comparator_4bit",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module comparator_4bit (\n    input [3:0] A,\n    input [3:0] B,\n    output A_greater,\n    output A_equal,\n    output A_less\n);\n\nwire [3:0] diff;\nwire [3:0] borrow;\n\nassign diff = A - B;\n\nassign borrow[0] = ~A[0] & B[0];\nassign borrow[1] = (~A[1] & B[1]) | ((~A[1] | B[1]) & borrow[0]);\nassign borrow[2] = (~A[2] & B[2]) | ((~A[2] | B[2]) & borrow[1]);\nassign borrow[3] = (~A[3] & B[3]) | ((~A[3] | B[3]) & borrow[2]);\n\nassign A_greater = (diff != 0 && !borrow[3]);\nassign A_equal = (diff == 0);\nassign A_less = (borrow[3] || (diff == 0));\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Your Design Passed ===========\ntestbench.v:54: $finish called at 1000000 (1ps)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 4,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 47.77,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 19,
+          "elapsed_s": 14.47
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 19,
+          "elapsed_s": 15.14
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 16,
+          "elapsed_s": 13.4
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 22,
+          "elapsed_s": 4.76
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

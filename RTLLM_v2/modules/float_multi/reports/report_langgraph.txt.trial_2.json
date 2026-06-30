@@ -1,0 +1,103 @@
+{
+  "module_name": "float_multi",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "float_multi",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 9,
+    "ts_trial": 6,
+    "total_iter": 15,
+    "gvd": "module float_multi (\n    input clk,\n    input rst,\n    input [31:0] a,\n    input [31:0] b,\n    output reg [31:0] z\n);\n\nreg [2:0] counter;\nreg [23:0] a_mantissa, b_mantissa, z_mantissa;\nreg [9:0] a_exponent, b_exponent, z_exponent;\nreg a_sign, b_sign, z_sign;\nreg [49:0] product;\nreg guard_bit, round_bit, sticky;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        counter <= 0;\n        a_mantissa <= 0;\n        b_mantissa <= 0;\n        z_mantissa <= 0;\n        a_exponent <= 0;\n        b_exponent <= 0;\n        z_exponent <= 0;\n        a_sign <= 0;\n        b_sign <= 0;\n        z_sign <= 0;\n        product <= 0;\n        guard_bit <= 0;\n        round_bit <= 0;\n        sticky <= 0;\n    end else begin\n        case (counter)\n            0: begin \n                a_mantissa <= a[22:0];\n                b_mantissa <= b[22:0];\n                a_exponent <= a[30:23];\n                b_exponent <= b[30:23];\n                a_sign <= a[31];\n                b_sign <= b[31];\n            end\n            1: begin \n                if ((a == 32'b11111111111111111111111111111111) || (b == 32'b11111111111111111111111111111111)) begin\n                    z <= 32'b11111111111111111111111111111111; \n                end else if ((a == 32'b01111111111111111111111111111111) && (b == 32'b01111111111111111111111111111111)) begin\n                    z <= 32'b01111111111111111111111111111111; \n                end else begin\n                    counter <= 2;\n                end\n            end\n            2: begin \n                if (a_mantissa[23]) begin\n                    a_mantissa <= {a_mantissa[22:0], 1'b0};\n                    a_exponent <= a_exponent + 1;\n                end\n                if (b_mantissa[23]) begin\n                    b_mantissa <= {b_mantissa[22:0], 1'b0};\n                    b_exponent <= b_exponent + 1;\n                end\n                counter <= 3;\n            end\n            3: begin \n                product <= a_mantissa * b_mantissa;\n                z_sign <= a_sign ^ b_sign;\n                z_exponent <= a_exponent + b_exponent - 127;\n                counter <= 4;\n            end\n            4: begin \n                guard_bit <= product[48];\n                round_bit <= product[47];\n                sticky <= product[46] | product[45] | product[44];\n                if (round_bit & (sticky | guard_bit)) begin\n                    product <= product + 1;\n                end\n                z_mantissa <= product[48:25];\n                if (z_mantissa[24]) begin\n                    z_mantissa <= {z_mantissa[23:0], 1'b0};\n                    z_exponent <= z_exponent + 1;\n                end\n                counter <= 5;\n            end\n            5: begin \n                z <= {z_sign, z_exponent, z_mantissa};\n                counter <= 0;\n            end\n        endcase\n    end\nend\n\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\nTopModule.sv:76: warning: Constant bit select [24] is after vector z_mantissa[23:0].\nTopModule.sv:76:        : Replacing select with a constant 1'bx.\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Test completed with           X/20 failures ===========\ntestbench.v:41: $finish called at 243 (1s)\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: temp_z_mantissa is not a valid l-value in float_multi.": 3,
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "ok",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 5,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 906.99,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 219.83
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 6,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 96,
+          "elapsed_s": 173.65
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 84,
+          "elapsed_s": 235.71
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 9,
+          "ts_trial": 6,
+          "iter": 15,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 90,
+          "elapsed_s": 166.22
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 91,
+          "elapsed_s": 111.58
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 14,
+      "used_fallback": false,
+      "baseline_sc": 10,
+      "final_sc": 0
+    }
+  }
+}

@@ -48,6 +48,7 @@ from fsm_patch import (
     route_after_classify_tb,
     node_vcd_analyzer,
     node_ted_tb_v5,
+    vcd_hint_enabled,
 )
 
 from prompts import (
@@ -1135,6 +1136,22 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         if "break;" in content:
             content = content.replace("repeat (17) begin", "repeat (17) begin : loop_block")
             content = content.replace("break;", "disable loop_block;")
+
+        # Enable VCD dumping so the FSM/timing debug path (node_vcd_analyzer) has a
+        # waveform to analyze. RTLLM_v2 SV testbenches don't dump by default, which
+        # left the VCD-assisted debugger blind on sequential designs. Gated on the
+        # opt-in VCD hint flag so OFF (default) incurs no dumping overhead.
+        if vcd_hint_enabled() and "$dumpvars" not in content:
+            mh = re.search(r'\bmodule\s+(\w+)\b[^;]*;', content)
+            if mh:
+                inject = (
+                    '\n\n    initial begin\n'
+                    '        $dumpfile("waveform.vcd");\n'
+                    f'        $dumpvars(0, {mh.group(1)});\n'
+                    '    end\n'
+                )
+                content = content[:mh.end()] + inject + content[mh.end():]
+
         return content
 
     def _find_top_module(self, sv_files: list[str], work_dir: str) -> str:
@@ -1380,6 +1397,29 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
     # ──────────────────────────────────────────────────────────
     # RTLLM C++ testbench via Verilator (unchanged path)
     # ──────────────────────────────────────────────────────────
+    @staticmethod
+    def _instrument_vcd_flush(content: str) -> str:
+        """Move `m_trace->dump(sim_time)` before the scoreboard `outMon->monitor()`
+        check and add `m_trace->flush()` so the failing cycle is captured and
+        persisted even when the testbench `assert()`s/aborts. Semantically neutral
+        (monitor() only reads signals). Idempotent; returns content unchanged if the
+        expected anchors aren't found exactly once."""
+        if "m_trace->flush();" in content:
+            return content
+        if (content.count("m_trace->dump(sim_time);") != 1
+                or content.count("outMon->monitor();") != 1):
+            return content
+        m = re.search(r'^[ \t]*m_trace->dump\(sim_time\);[ \t]*\n', content, re.M)
+        if not m:
+            return content
+        content = content[:m.start()] + content[m.end():]
+        om = re.search(r'^([ \t]*)outMon->monitor\(\);', content, re.M)
+        if not om:
+            return content
+        oi = om.group(1)
+        ins = f"{oi}m_trace->dump(sim_time);\n{oi}m_trace->flush();\n"
+        return content[:om.start()] + ins + content[om.start():]
+
     def _run_rtllm_verilator(self, state: COMBAState, tb_cpp_path: str) -> dict:
         """RTLLM C++ testbenches via Verilator (--cc --exe with tb.cpp)."""
         module_name = state["module_name"] or "TopModule"
@@ -1405,6 +1445,14 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                 if "tx->C32 << 32" in content:
                     content = content.replace("tx->C32 << 32", "((uint64_t)tx->C32 << 32)")
                     mutated = True
+                # When the VCD hint is enabled, instrument the work-dir copy so a
+                # failing (assert/abort) run still leaves a populated waveform.
+                # The vendored tb.cpp stays original when the flag is OFF.
+                if vcd_hint_enabled():
+                    instrumented = self._instrument_vcd_flush(content)
+                    if instrumented != content:
+                        content = instrumented
+                        mutated = True
                 if mutated:
                     with open(tb_cpp_dst, "w", encoding="utf-8") as f:
                         f.write(content)

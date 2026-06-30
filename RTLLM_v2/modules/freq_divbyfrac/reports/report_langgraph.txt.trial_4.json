@@ -1,0 +1,76 @@
+{
+  "module_name": "freq_divbyfrac",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_divbyfrac",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module freq_divbyfrac #(\n    parameter MUL2_DIV_CLK = 7\n) (\n    input               rst_n,\n    input               clk,\n    output              clk_div\n);\n\nreg [3:0] cnt;\nreg clk_ave_r, clk_adjust_r;\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tcnt <= 4'd0;\n\tend\n\telse begin\n\t\tif(cnt == MUL2_DIV_CLK - 1) cnt <= 4'd0;\n\t\telse cnt <= cnt + 1;\n\tend\nend\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tclk_ave_r <= 1'b0;\n\tend\n\telse begin\n\t\tcase(cnt)\n\t\t\t4'd0, 4'd4: clk_ave_r <= 1'b1;\n\t\t\tdefault: clk_ave_r <= 1'b0;\n\t\tendcase\n\tend\nend\nalways@(negedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tclk_adjust_r <= 1'b0;\n\tend\n\telse begin\n\t\tcase(cnt)\n\t\t\t4'd1, 4'd4: clk_adjust_r <= 1'b1;\n\t\t\tdefault: clk_adjust_r <= 1'b0;\n\t\tendcase\n\tend\nend\nassign clk_div = clk_adjust_r | clk_ave_r;\nendmodule\n",
+    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_log": "",
+    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Your Design Passed ===========\ntestbench.v:33: $finish called at 130000 (1ps)\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 3,
+      "max_samples": 5,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 57.45,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 27,
+          "elapsed_s": 25.67
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 27,
+          "elapsed_s": 26.01
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 5.77
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}
