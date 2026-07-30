@@ -1,0 +1,102 @@
+{
+  "module_name": "freq_divbyfrac",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_divbyfrac",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module freq_divbyfrac #(\n    parameter MUL2_DIV_CLK = 7\n) (\n    input               rst_n,\n    input               clk,\n    output              clk_div\n);\n\nreg [1:0] phase_clk;\nreg [3:0] cnt;\nreg clk_ave_r;\nreg clk_adjust_r;\n\nassign phase_clk[0] = ~clk;\nassign phase_clk[1] = clk;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        cnt <= 4'd0;\n    end else if (cnt == MUL2_DIV_CLK - 1) begin\n        cnt <= 4'd0;\n    end else begin\n        cnt <= cnt + 1;\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        clk_ave_r <= 1'b0;\n    end else begin\n        if (cnt == 4'd0 || cnt == 4'd4) begin\n            clk_ave_r <= 1'b1;\n        end else begin\n            clk_ave_r <= 1'b0;\n        end\n    end\nend\n\nalways @(negedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        clk_adjust_r <= 1'b0;\n    end else begin\n        if (cnt == 4'd1 || cnt == 4'd4) begin\n            clk_adjust_r <= 1'b1;\n        end else begin\n            clk_adjust_r <= 1'b0;\n        end\n    end\nend\n\nassign clk_div = clk_adjust_r | clk_ave_r;\n\nendmodule\n",
+    "xml_description": "<module id=\"freq_divbyfrac\">\n    <description>A frequency divider that divides the input clock frequency by fractional values. It generates a clock signal with a fractional frequency division (3.5x), using the double-edge clocking technique to achieve half-integer division while adjusting for duty cycle imbalance. By dividing uneven clock cycles and phase-shifting them, a smooth fractional clock output is produced.</description>\n    <ports>\n        <input id=\"clk\">Input clock signal.</input>\n        <input id=\"rst_n\">Active low reset signal to initialize the module.</input>\n        <output id=\"clk_div\">Fractionally divided clock output.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"MUL2_DIV_CLK\">Number of clock cycles for division operation.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"phase_clk\" width_description=\"[1:0]\">Phase shifted clock signals.&lt;/signal>\n        &lt;signal id=\"cnt\" width_description=\"[3:0]\">Counter value.&lt;/signal>\n        &lt;signal id=\"even_cnt\" width_description=\"[3:0]\">Evenly divided counter value.&lt;/signal>\n        &lt;signal id=\"odd_cnt\" width_description=\"[3:0]\">Oddly divided counter value.&lt;/signal>\n        &lt;signal id=\"clk_div_tmp\">Temporary divided clock signal.&lt;/signal>\n        &lt;signal id=\"clk_div_tmp2\">Second temporary divided clock signal.&lt;/signal>\n        &lt;signal id=\"clk_div_tmp3\">Third temporary divided clock signal.&lt;/signal>\n    </logic_description>\n    <implementation>\n        // Phase shifting logic\n        assign phase_clk[0] = ~clk;\n        assign phase_clk[1] = clk;\n        \n        // Counter logic\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                cnt &lt;= 4'd0;\n            end else if (cnt == MUL2_DIV_CLK - 1) begin\n                cnt &lt;= 4'd0;\n            end else begin\n                cnt &lt;= cnt + 1;\n            end\n        end\n        \n        // Evenly divided counter logic\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                even_cnt &lt;= 4'd0;\n            end else if ((cnt % 2 == 0 &amp;&amp; cnt != 0) || cnt == 4'd0) begin\n                even_cnt &lt;= even_cnt + 1;\n            end\n        end\n        \n        // Oddly divided counter logic\n        always @(negedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                odd_cnt &lt;= 4'd0;\n            end else if ((cnt % 2 == 1 &amp;&amp; cnt != 0) || cnt == 4'd0) begin\n                odd_cnt &lt;= odd_cnt + 1;\n            end\n        end\n        \n        // Temporary divided clock generation logic\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                clk_div_tmp &lt;= 1'b0;\n            end else if (cnt >= 4'd0 &amp;&amp; cnt &lt;= 4'd3) begin\n                clk_div_tmp &lt;= 1'b1;\n            end else begin\n                clk_div_tmp &lt;= 1'b0;\n            end\n        end\n        \n        // Second temporary divided clock generation logic\n        always @(negedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                clk_div_tmp2 &lt;= 1'b0;\n            end else if (cnt >= 4'd0 &amp;&amp; cnt &lt;= 4'd2) begin\n                clk_div_tmp2 &lt;= 1'b1;\n            end else begin\n                clk_div_tmp2 &lt;= 1'b0;\n            end\n        end\n        \n        // Third temporary divided clock generation logic\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                clk_div_tmp3 &lt;= 1'b0;\n            end else if (cnt >= 4'd0 &amp;&amp; cnt &lt;= 4'd4) begin\n                clk_div_tmp3 &lt;= 1'b1;\n            end else begin\n                clk_div_tmp3 &lt;= 1'b0;\n            end\n        end\n        \n        // Final divided clock output logic\n        assign clk_div = clk_div_tmp | clk_div_tmp2 | clk_div_tmp3;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:55:2: Missing newline at end of file (POSIX 3.206).\n                                     : ... Suggest add newline.\n   55 |  \n      |  ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module freq_divbyfrac #(\n      |        ^~~~~~~~~~~~~~\n                       testbench.v:2:8: ... Location of module with timescale\n    2 | module freq_divbyfrac_tb;\n      |        ^~~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_freq_divbyfrac_hkv3ce5s/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_divbyfrac_tb.cpp Vfreq_divbyfrac_tb___024root__0.cpp Vfreq_divbyfrac_tb__main.cpp Vfreq_divbyfrac_tb___024root__Slow.cpp Vfreq_divbyfrac_tb___024root__0__Slow.cpp Vfreq_divbyfrac_tb__Syms__Slow.cpp > Vfreq_divbyfrac_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vfreq_divbyfrac_tb__ALL.o Vfreq_divbyfrac_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vfreq_divbyfrac_tb__ALL.a    -pthread -lpthread -latomic   -o Vfreq_divbyfrac_tb\nrm Vfreq_divbyfrac_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_freq_divbyfrac_hkv3ce5s/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.045 MB sources in 3 modules, into 0.035 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.328 s (elab=0.001, cvt=0.004, bld=0.318); cpu 0.010 s on 1 threads; allocated 30.547 MB\n\n[RUN]\n=========== Your Design Passed ===========\n- testbench.v:27: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 130ns; walltime 0.000 s; speed 2.408 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 609.31,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 267.78
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 201.67
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 56,
+          "elapsed_s": 46.23
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 61,
+          "elapsed_s": 53.93
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 53,
+          "elapsed_s": 39.68
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 2,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

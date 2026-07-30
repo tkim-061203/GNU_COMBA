@@ -1,0 +1,162 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "fail_sc",
+    "sc_trial": 1,
+    "ts_trial": 0,
+    "total_iter": 1,
+    "gvd": "module sequence_detector #(\n    parameter IDLE = 5'b00001,\n    parameter S1   = 5'b00010,\n    parameter S2   = 5'b00100,\n    parameter S3   = 5'b01000,\n    parameter S4   = 5'b10000\n) (\n    input  clk,\n    input  rst_n,\n    input  data_in,\n    output sequence_detected\n);\n\n\nreg [2:0] current_state;\n\nalways @(posedge clk or negedge reset_n) begin\n    \n    if (!reset_n) begin\n        current_state <= IDLE;  \n    end else begin\n        case(current_state)\n            \n            default: current_state <= IDLE;  \n            \n            IDLE: current_state <= data_in ? S1 : IDLE;  \n            S1: current_state <= ~data_in ? S2 : IDLE;  \n            S2: current_state <= data_in ? S3 : IDLE;  \n            S3: current_state <= ~data_in ? S4 : IDLE;  \n            S4: current_state <= IDLE;  \n        endcase\n    end\nend\n\nassign sequence_detected = (current_state == S4);\nendmodule\n",
+    "xml_description": "<module id=\"sequence_detector\">\n    <description>A 4-bit sequence detector to detect the sequence '1001'.</description>\n    <ports>\n        <input id=\"clk\">The clock signal for synchronization.</input>\n        <input id=\"reset_n\">The active-low reset signal.</input>\n        <input id=\"data_in\">A 1-bit input data stream.</input>\n        <output id=\"sequence_detected\">A 1-bit output indicating if the sequence was detected.</output>\n    </ports>\n    <implementation>\n        <parameter_description>\n            <parameter name=\"IDLE\">Waiting for the start of the sequence.</parameter>\n            <parameter name=\"S1\">Detected the first bit of the sequence.</parameter>\n            <parameter name=\"S2\">Detected the second bit of the sequence.</parameter>\n            <parameter name=\"S3\">Detected the third bit of the sequence.</parameter>\n            <parameter name=\"S4\">Detected the fourth bit of the sequence.</parameter>\n        </parameter_description>\n        \n        // Declare state register\n        reg [2:0] current_state;\n        \n        // Sequential logic block triggered on the rising edge of the clock or the negative edge of reset\n        always @(posedge clk or negedge reset_n) begin\n            // Check for the negative edge of reset to return to initial state\n            if (!reset_n) begin\n                current_state &lt;= 3'd0;  // Reset the state to IDLE (000)\n            end else begin\n                case(current_state)\n                    // Default case to handle unexpected states\n                    default: current_state &lt;= 3'd0;  // Set to IDLE state\n                    // Transition rules for each state\n                    3'd0: current_state &lt;= data_in ? 3'd1 : 3'd0;  // S1 = 001 if data_in is 1, otherwise stay in IDLE\n                    3'd1: current_state &lt;= ~data_in ? 3'd2 : 3'd0;  // S2 = 010 if data_in is 0, otherwise go back to IDLE\n                    3'd2: current_state &lt;= data_in ? 3'd3 : 3'd0;  // S3 = 011 if data_in is 1, otherwise go back to IDLE\n                    3'd3: current_state &lt;= ~data_in ? 3'd4 : 3'd0;  // S4 = 100 if data_in is 0, otherwise go back to IDLE\n                    3'd4: current_state &lt;= 3'd0;  // Stay in S4 after detecting the last bit\n                endcase\n            end\n        end\n        \n        // Combinational logic to assert the output signal based on the current state\n        assign sequence_detected = (current_state == 3'd4);\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:19: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'\nTopModule.sv:19: error: Unable to elaborate condition expression.\nElaboration failed\n",
+    "tb_log": null,
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'": 1
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_sc",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 229.85,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 67,
+          "elapsed_s": 22.19
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 52,
+          "elapsed_s": 16.84
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 72,
+          "elapsed_s": 24.63
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 24.8
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 20.44
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 22.26
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 20.83
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 64,
+          "elapsed_s": 32.02
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 21.28
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 52,
+          "elapsed_s": 24.56
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 2
+    }
+  }
+}

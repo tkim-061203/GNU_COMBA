@@ -1,0 +1,148 @@
+{
+  "module_name": "fsm",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fsm",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fsm (\n    input IN,\n    input CLK,\n    input RST,\n    output MATCH\n);\n// Define parameters for the states\nparameter s0 = 3'b000; \nparameter s1 = 3'b001;\nparameter s2 = 3'b010;\nparameter s3 = 3'b011;\nparameter s4 = 3'b100;\nparameter s5 = 3'b101;\n// Define internal signals\nreg [2:0] CURRENT_STATE, NEXT_STATE;\nreg MATCH_REG;\n// Combinational logic for next state and output\nalways @(*) begin\n    if(RST) begin\n        MATCH_REG = 0;\n        NEXT_STATE = s0;\n    end else begin\n        case(CURRENT_STATE)\n            s0: begin\n                if(IN==1) begin\n                    NEXT_STATE = s1;\n                    MATCH_REG = 0;\n                end else begin\n                    NEXT_STATE = s0;\n                    MATCH_REG = 0;\n                end\n            end\n            \n            s1: begin\n                if(IN==1) begin\n                    NEXT_STATE = s1;\n                    MATCH_REG = 0;\n                end else begin\n                    NEXT_STATE = s2;\n                    MATCH_REG = 0;\n                end\n            end\n            \n            s2: begin\n                if(IN==1) begin\n                    NEXT_STATE = s1;\n                    MATCH_REG = 0;\n                end else begin\n                    NEXT_STATE = s3;\n                    MATCH_REG = 0;\n                end\n            end\n            \n            s3: begin\n                if(IN==1) begin\n                    NEXT_STATE = s4;\n                    MATCH_REG = 0;\n                end else begin\n                    NEXT_STATE = s0;\n                    MATCH_REG = 0;\n                end\n            end\n            \n            s4: begin\n                if(IN==1) begin\n                    NEXT_STATE = s5;\n                    MATCH_REG = 1;\n                end else begin\n                    NEXT_STATE = s2;\n                    MATCH_REG = 0;\n                end\n            end\n            \n            s5: begin\n                if(IN==1) begin\n                    NEXT_STATE = s1;\n                    MATCH_REG = 0;\n                end else begin\n                    NEXT_STATE = s2;\n                    MATCH_REG = 0;\n                end\n            end\n        endcase\n    end\nend\n// Sequential logic for state register\nalways @(posedge CLK or posedge RST) begin\n    if(RST) begin\n        CURRENT_STATE <= s0;\n    end else begin\n        CURRENT_STATE <= NEXT_STATE;\n    end\nend\n// Assign output MATCH to MATCH_REG\nassign MATCH = MATCH_REG;\nendmodule\n",
+    "xml_description": "<module id=\"fsm\">\n    <description>Mealy FSM detection circuit to detect input pattern '10011'</description>\n    <ports>\n        <input id=\"IN\">Single-bit input signal.</input>\n        <input id=\"CLK\">Clock signal.</input>\n        <input id=\"RST\">Reset signal.</input>\n        <output id=\"MATCH\">Output signal indicating whether the detected pattern matches.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"s0\">State representing the initial state.</parameter>\n        <parameter id=\"s1\">State representing the first character '1'.</parameter>\n        <parameter id=\"s2\">State representing the second character '0'.</parameter>\n        <parameter id=\"s3\">State representing the third character '0'.</parameter>\n        <parameter id=\"s4\">State representing the fourth character '1'.</parameter>\n        <parameter id=\"s5\">State representing the final character '1'.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;case>\n            &lt;condition>\n                &lt;equal>&lt;left>RST&lt;/left>&lt;right>1'b1&lt;/right>&lt;/equal>\n            &lt;/condition>\n            &lt;then>\n                &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n            &lt;/then>\n            &lt;else>\n                &lt;case>\n                    &lt;condition>\n                        &lt;equal>&lt;left>CURRENT_STATE&lt;/left>&lt;right>s0&lt;/right>&lt;/equal>\n                    &lt;/condition>\n                    &lt;then>\n                        &lt;if>\n                            &lt;equal>&lt;left>IN&lt;/left>&lt;right>1'b1&lt;/right>&lt;/equal>\n                            &lt;then>\n                                &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s1&lt;/right>&lt;/assign>\n                                &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                            &lt;/then>\n                            &lt;else>\n                                &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s0&lt;/right>&lt;/assign>\n                                &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                            &lt;/else>\n                        &lt;/if>\n                    &lt;/then>\n                    &lt;else>\n                        &lt;case>\n                            &lt;condition>\n                                &lt;equal>&lt;left>CURRENT_STATE&lt;/left>&lt;right>s1&lt;/right>&lt;/equal>\n                            &lt;/condition>\n                            &lt;then>\n                                &lt;if>\n                                    &lt;equal>&lt;left>IN&lt;/left>&lt;right>1'b0&lt;/right>&lt;/equal>\n                                    &lt;then>\n                                        &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s2&lt;/right>&lt;/assign>\n                                        &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                    &lt;/then>\n                                    &lt;else>\n                                        &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s0&lt;/right>&lt;/assign>\n                                        &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                    &lt;/else>\n                                &lt;/if>\n                            &lt;/then>\n                            &lt;else>\n                                &lt;case>\n                                    &lt;condition>\n                                        &lt;equal>&lt;left>CURRENT_STATE&lt;/left>&lt;right>s2&lt;/right>&lt;/equal>\n                                    &lt;/condition>\n                                    &lt;then>\n                                        &lt;if>\n                                            &lt;equal>&lt;left>IN&lt;/left>&lt;right>1'b0&lt;/right>&lt;/equal>\n                                            &lt;then>\n                                                &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s3&lt;/right>&lt;/assign>\n                                                &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                            &lt;/then>\n                                            &lt;else>\n                                                &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s0&lt;/right>&lt;/assign>\n                                                &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                            &lt;/else>\n                                        &lt;/if>\n                                    &lt;/then>\n                                    &lt;else>\n                                        &lt;case>\n                                            &lt;condition>\n                                                &lt;equal>&lt;left>CURRENT_STATE&lt;/left>&lt;right>s3&lt;/right>&lt;/equal>\n                                            &lt;/condition>\n                                            &lt;then>\n                                                &lt;if>\n                                                    &lt;equal>&lt;left>IN&lt;/left>&lt;right>1'b1&lt;/right>&lt;/equal>\n                                                    &lt;then>\n                                                        &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s4&lt;/right>&lt;/assign>\n                                                        &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                                    &lt;/then>\n                                                    &lt;else>\n                                                        &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s0&lt;/right>&lt;/assign>\n                                                        &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                                    &lt;/else>\n                                                &lt;/if>\n                                            &lt;/then>\n                                            &lt;else>\n                                                &lt;case>\n                                                    &lt;condition>\n                                                        &lt;equal>&lt;left>CURRENT_STATE&lt;/left>&lt;right>s4&lt;/right>&lt;/equal>\n                                                    &lt;/condition>\n                                                    &lt;then>\n                                                        &lt;if>\n                                                            &lt;equal>&lt;left>IN&lt;/left>&lt;right>1'b1&lt;/right>&lt;/equal>\n                                                            &lt;then>\n                                                                &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s5&lt;/right>&lt;/assign>\n                                                                &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b1&lt;/right>&lt;/assign>\n                                                            &lt;/then>\n                                                            &lt;else>\n                                                                &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s0&lt;/right>&lt;/assign>\n                                                                &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                                            &lt;/else>\n                                                        &lt;/if>\n                                                    &lt;/then>\n                                                    &lt;else>\n                                                        &lt;case>\n                                                            &lt;condition>\n                                                                &lt;equal>&lt;left>CURRENT_STATE&lt;/left>&lt;right>s5&lt;/right>&lt;/equal>\n                                                            &lt;/condition>\n                                                            &lt;then>\n                                                                &lt;if>\n                                                                    &lt;equal>&lt;left>IN&lt;/left>&lt;right>1'b0&lt;/right>&lt;/equal>\n                                                                    &lt;then>\n                                                                        &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s2&lt;/right>&lt;/assign>\n                                                                        &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                                                    &lt;/then>\n                                                                    &lt;else>\n                                                                        &lt;assign>&lt;left>NEXT_STATE&lt;/left>&lt;right>s0&lt;/right>&lt;/assign>\n                                                                        &lt;assign>&lt;left>MATCH&lt;/left>&lt;right>1'b0&lt;/right>&lt;/assign>\n                                                                    &lt;/else>\n                                                                &lt;/if>\n                                                            &lt;/then>\n                                                        &lt;/case>\n                                                    &lt;/else>\n                                                &lt;/case>\n                                            &lt;/then>\n                                        &lt;/case>\n                                    &lt;/then>\n                                &lt;/case>\n                            &lt;/then>\n                        &lt;/case>\n                    &lt;/then>\n                &lt;/case>\n            &lt;/else>\n        &lt;/case>\n    </logic_description>\n    <implementation>Continuous assignment for next_state and match based on current_state and in.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:67:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   67 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module fsm (\n      |        ^~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module main();\n      |        ^~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-LATCH: TopModule.sv:18:1: Latch inferred for signal 'main.DUT.MATCH_REG' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   18 | always @(*) begin\n      | ^~~~~~\n                ... For warning description see https://verilator.org/warn/LATCH?v=5.048\n                ... Use \"/* verilator lint_off LATCH */\" and lint_on around source to disable this message.\n%Warning-LATCH: TopModule.sv:18:1: Latch inferred for signal 'main.DUT.NEXT_STATE' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   18 | always @(*) begin\n      | ^~~~~~\nmake: Entering directory '/tmp/comba_fsm_03ywe876/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmain.cpp Vmain___024root__0.cpp Vmain__main.cpp Vmain__ConstPool__0__Slow.cpp Vmain___024root__Slow.cpp Vmain___024root__0__Slow.cpp Vmain__Syms__Slow.cpp > Vmain__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vmain__ALL.o Vmain__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vmain__ALL.a    -pthread -lpthread -latomic   -o Vmain\nrm Vmain__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_fsm_03ywe876/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 3 modules, into 0.040 MB in 7 C++ files needing 0.000 MB\n- Verilator: Walltime 1.461 s (elab=0.001, cvt=0.005, bld=1.450); cpu 0.011 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n===========Your Design Passed===========\n- testbench.v:65: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 158ns; walltime 0.000 s; speed 2.754 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 9,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 302.53,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 80,
+          "elapsed_s": 26.09
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 82,
+          "elapsed_s": 37.28
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 80,
+          "elapsed_s": 28.43
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 76,
+          "elapsed_s": 36.59
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 72,
+          "elapsed_s": 23.38
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 75,
+          "elapsed_s": 25.8
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 76,
+          "elapsed_s": 44.24
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 94,
+          "elapsed_s": 31.89
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 96,
+          "elapsed_s": 48.81
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

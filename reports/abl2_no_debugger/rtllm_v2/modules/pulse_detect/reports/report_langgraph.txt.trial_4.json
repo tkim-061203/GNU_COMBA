@@ -1,0 +1,160 @@
+{
+  "module_name": "pulse_detect",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "pulse_detect",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module pulse_detect #(\n    parameter s0 = 2'b00,\n    parameter s1 = 2'b01,\n    parameter s2 = 2'b10,\n    parameter s3 = 2'b11\n) (\n    input clk,\n    input rst_n,\n    input data_in,\n    output reg data_out\n);\n\treg [1:0] state, next_state;\n\n\talways@(posedge clk or negedge rst_n) begin\n\t\tif(!rst_n) state <= s0;\n\t\telse \t\t state <= next_state;\n\tend\n\n\talways@(*) begin\n\t\tcase(state)\n\t\t\ts0:\tbegin\n\t\t\t\tnext_state = (data_in)? s0 : s1;\n\t\t\tend\n\t\t\ts1:\tbegin\n\t\t\t\tnext_state = (data_in)? s2 : s1;\n\t\t\tend\n\t\t\ts2:\tbegin\n\t\t\t\tnext_state = (data_in)? s0 : s3;\n\t\t\tend\n\t\t\ts3:\tbegin\n\t\t\t\tnext_state = (data_in)? s2 : s1;\n\t\t\tend\n\t\t\tdefault:\tnext_state = s0;\n\t\tendcase\n\tend\n\n\talways@(*) begin\n\t\tdata_out = ((state==s2)&&(data_in==1'b0))? 1'b1 : 1'b0;\n\tend\nendmodule\n",
+    "xml_description": "<module id=\"pulse_detect\">\n\t<description>Implements pulse detection logic for a single-bit input signal data_in.</description>\n\t\n\t<ports>\n\t\t<input id=\"clk\">Clock signal.</input>\n\t\t<input id=\"rst_n\">Active-low reset signal.</input>\n\t\t\n\t\t<input id=\"data_in\">One-bit input signal.</input>\n\t\t\n\t\t<output id=\"data_out\">Output signal indicating detected pulses.</output>\n\tendports\n\t\n\t<implementation>Implements pulse detection logic for a single-bit input signal data_in. It resets the state to 0 when rst_n is asserted and checks for transitions between values 0 and 1 to detect pulses. The data_out signal indicates the end of a pulse when transitioning from 0 to 1 and then back to 0.</implementation>\n\t\n\t\n\t<logic_description type=\"sequential_logic\">\n\t\t&lt;reg id=\"state\">The current state of the pulse detection process.&lt;/reg>\n\t\t&lt;assign>next_state = state + 1;&lt;/assign>\n\t\t&lt;always id=\"seq_block\" event_control=\"posedge clk or negedge rst_n\">\n\t\t\tif(~rst_n) begin\n\t\t\t\tstate &lt;= 0;\n\t\t\tend else begin\n\t\t\t\tcase(state)\n\t\t\t\t\t0 : begin\n\t\t\t\t\t\tif(data_in == 1) begin\n\t\t\t\t\t\t\tstate &lt;= 1;\n\t\t\t\t\t\tend else begin\n\t\t\t\t\t\t\tstate &lt;= 0;\n\t\t\t\t\t\tend\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\t1 : begin\n\t\t\t\t\t\tif(data_in == 1) begin\n\t\t\t\t\t\t\tstate &lt;= 2;\n\t\t\t\t\t\tend else begin\n\t\t\t\t\t\t\tstate &lt;= 0;\n\t\t\t\t\t\tend\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\t2 : begin\n\t\t\t\t\t\tif(data_in == 1) begin\n\t\t\t\t\t\t\tstate &lt;= 3;\n\t\t\t\t\t\tend else begin\n\t\t\t\t\t\t\tstate &lt;= 0;\n\t\t\t\t\t\tend\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\tdefault : begin\n\t\t\t\t\t\tstate &lt;= 0;\n\t\t\t\t\tend\n\t\t\t\tendcase\n\t\t\tend\n\t\tend\n\t\t\n\t\t&lt;always id=\"comb_block\" event_control=\"*\">\n\t\t\tcase(state)\n\t\t\t\t0 : data_out = 0;\n\t\t\t\t\n\t\t\t\t1 : data_out = 0;\n\t\t\t\t\n\t\t\t\t2 : data_out = 0;\n\t\t\t\t\n\t\t\t\t3 : data_out = 1;\n\t\t\t\t\n\t\t\t\tdefault : data_out = 0;\n\t\t\tendcase\n\t\tend\n\t\t\n\tendlogic_description\n\t\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:77:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   77 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module pulse_detect #(\n      |        ^~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module pulse_detect_tb;\n      |        ^~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_pulse_detect_aarvhg3t/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpulse_detect_tb.cpp Vpulse_detect_tb___024root__0.cpp Vpulse_detect_tb__main.cpp Vpulse_detect_tb__ConstPool__0__Slow.cpp Vpulse_detect_tb___024root__Slow.cpp Vpulse_detect_tb___024root__0__Slow.cpp Vpulse_detect_tb__Syms__Slow.cpp > Vpulse_detect_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vpulse_detect_tb__ALL.o Vpulse_detect_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vpulse_detect_tb__ALL.a    -pthread -lpthread -latomic   -o Vpulse_detect_tb\nrm Vpulse_detect_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_pulse_detect_aarvhg3t/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.044 MB sources in 3 modules, into 0.045 MB in 7 C++ files needing 0.000 MB\n- Verilator: Walltime 0.325 s (elab=0.001, cvt=0.005, bld=0.315); cpu 0.010 s on 1 threads; allocated 30.547 MB\n\n[RUN]\n===========Your Design Passed===========\n- testbench.v:43: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 148ns; walltime 0.000 s; speed 2.093 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 302.45,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 73,
+          "elapsed_s": 23.04
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 65,
+          "elapsed_s": 19.76
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 79,
+          "elapsed_s": 32.76
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 43.28
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 47,
+          "elapsed_s": 24.37
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 52,
+          "elapsed_s": 34.68
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 56,
+          "elapsed_s": 27.18
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 52.41
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 61,
+          "elapsed_s": 18.2
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 40,
+          "elapsed_s": 26.75
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

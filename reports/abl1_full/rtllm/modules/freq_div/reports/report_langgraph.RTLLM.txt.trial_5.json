@@ -1,0 +1,126 @@
+{
+  "module_name": "freq_div",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_div",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module freq_div (\n    input CLK_in,\n    output reg CLK_50,\n    output reg CLK_10,\n    output reg CLK_1,\n    input RST\n);\n\n    reg [3:0] cnt_10;\n    reg [6:0] cnt_100;\n\n    always @(posedge CLK_in or posedge RST) begin\n        if (RST) begin\n            cnt_10 <= 4'b0;\n            cnt_100 <= 7'b0;\n            CLK_50 <= 1'b0;\n            CLK_10 <= 1'b0;\n            CLK_1 <= 1'b0;\n        end else begin\n            cnt_10 <= cnt_10 + 1'b1;\n            cnt_100 <= cnt_100 + 1'b1;\n            CLK_50 <= ~CLK_50;\n            if (cnt_10 == 4'd9) begin\n                CLK_10 <= ~CLK_10;\n                cnt_10 <= 4'b0;\n            end\n            if (cnt_100 == 7'd99) begin\n                CLK_1 <= ~CLK_1;\n                cnt_100 <= 7'b0;\n            end\n        end\n    end\n\nendmodule\n",
+    "xml_description": "<module id=\"freq_div\">\n    <description>Frequency Divider</description>\n    <ports>\n        <input id=\"CLK_in\">Input clock signal.</input>\n        <input id=\"RST\">Reset signal.</input>\n        <output id=\"CLK_50\">Output clock signal with a frequency of CLK_in divided by 2.</output>\n        <output id=\"CLK_10\">Output clock signal with a frequency of CLK_in divided by 10.</output>\n        <output id=\"CLK_1\">Output clock signal with a frequency of CLK_in divided by 100.</output>\n    </ports>\n    <logic_description type=\"combinational_logic\">\n        &lt;assign CLK_50 = ~CLK_50;\n        &lt;assign CLK_10 = cnt_10 == 4 ? ~CLK_10 : CLK_10;\n        &lt;assign CLK_1 = cnt_100 == 49 ? ~CLK_1 : CLK_1;\n    </logic_description>\n    <implementation>\n        // Sequential logic for CLK_50\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                CLK_50 &lt;= 1'b0;\n            end else begin\n                CLK_50 &lt;= ~CLK_50;\n            end\n        end\n        \n        // Sequential logic for CLK_10\n        reg [2:0] cnt_10;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                CLK_10 &lt;= 1'b0;\n                cnt_10 &lt;= 3'd0;\n            end else begin\n                if (cnt_10 == 3'd4) begin\n                    CLK_10 &lt;= ~CLK_10;\n                    cnt_10 &lt;= 3'd0;\n                end else begin\n                    cnt_10 &lt;= cnt_10 + 1;\n                end\n            end\n        end\n        \n        // Sequential logic for CLK_1\n        reg [6:0] cnt_100;\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                CLK_1 &lt;= 1'b0;\n                cnt_100 &lt;= 7'd0;\n            end else begin\n                if (cnt_100 == 7'd49) begin\n                    CLK_1 &lt;= ~CLK_1;\n                    cnt_100 &lt;= 7'd0;\n                end else begin\n                    cnt_100 &lt;= cnt_100 + 1;\n                end\n            end\n        end\n    </implementation>\n    \n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_freq_div_eqttbhgk/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_div.cpp Vfreq_div___024root__0.cpp Vfreq_div__Trace__0.cpp Vfreq_div___024root__Slow.cpp Vfreq_div___024root__0__Slow.cpp Vfreq_div__Syms__Slow.cpp Vfreq_div__Trace__0__Slow.cpp Vfreq_div__TraceDecls__0__Slow.cpp > Vfreq_div__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vfreq_div__ALL.o Vfreq_div__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vfreq_div__ALL.a    -pthread -lpthread -latomic   -o Vfreq_div\nrm Vfreq_div__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_freq_div_eqttbhgk/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.027 MB sources in 2 modules, into 0.032 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.378 s (elab=0.000, cvt=0.004, bld=0.367); cpu 0.010 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::3::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 7,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 349.52,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 31,
+          "elapsed_s": 45.93
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 31,
+          "elapsed_s": 51.81
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 63.53
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 55.97
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 33,
+          "elapsed_s": 53.87
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 56.55
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 34,
+          "elapsed_s": 21.87
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 2,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

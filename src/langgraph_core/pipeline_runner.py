@@ -152,7 +152,15 @@ def _extract_header_from_verified(verified_file_path: str, target_module_name: s
         port_map = {name: {"direction": None, "type": "", "range": ""} for name in port_names}
         
         header_end = best_match.end()
-        body_clean = re.sub(r'//.*', '', content[header_end:])
+        # Scope the declaration scan to THIS module's body. Scanning to end of
+        # file lets a later sub-module with the same port names (e.g. CLA_16's
+        # 'input [16:1] A;' inside verified_adder_32bit.v) overwrite the top
+        # module's widths — which then get force-aligned onto the generation.
+        body = content[header_end:]
+        end_m = re.search(r'\bendmodule\b', body)
+        if end_m:
+            body = body[: end_m.start()]
+        body_clean = re.sub(r'//.*', '', body)
         body_clean = re.sub(r'/\*.*?\*/', '', body_clean, flags=re.S)
         
         # Extract declarations ended by semicolon
@@ -350,7 +358,13 @@ def _prepare_state(
         if match:
             state["module_name"] = match.group(1)
 
-    if desc_type == "txt" and not state.get("xml_description"):
+    # TXT mode normally bypasses the NL→XML converter (placeholder sentinel).
+    # COMBA_FORCE_XML=1 forces the converter to run even for txt descriptions,
+    # so a txt-only dataset (e.g. RTLLM_v2) goes through the SAME COMBA XML
+    # pipeline as v1 (which uses RTLLM.txt). Leaving xml_description unset here
+    # makes node_converter run instead of skipping.
+    _force_xml = os.environ.get("COMBA_FORCE_XML", "0") == "1"
+    if desc_type == "txt" and not state.get("xml_description") and not _force_xml:
         state["xml_description"] = "(Bypassed XML; Using TXT mode)"
 
     # Look for verified_*.v files to extract expected header
@@ -744,6 +758,17 @@ def _export_markdown_summary(
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     sc_active = _is_sc_enabled()
 
+    # Record which checkpoints actually served this run (guesswork otherwise).
+    try:
+        from model_provenance import probe_served_models
+        _models = probe_served_models()
+    except Exception:
+        _models = {}
+
+    def _model_row(role: str) -> str:
+        info = _models.get(role, {}) or {}
+        return f"| **Model ({role})** | `{info.get('model') or info.get('error') or 'unknown'}` |"
+
     pass_count = 0
     fail_sc = 0
     fail_ts = 0
@@ -819,6 +844,8 @@ def _export_markdown_summary(
         f"| Key | Value |",
         f"| --- | ----- |",
         f"| **Run timestamp** | `{timestamp}` |",
+        _model_row("generator"),
+        _model_row("debugger"),
         f"| **Description type** | `{description_type}` |",
         f"| **Trials per module** | {samples} |",
         f"| **Self-consistency** | `{'ON' if sc_active else 'OFF'}` |",

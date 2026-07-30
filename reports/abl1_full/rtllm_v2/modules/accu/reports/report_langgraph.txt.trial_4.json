@@ -1,0 +1,164 @@
+{
+  "module_name": "accu",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "accu",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 10,
+    "ts_trial": 10,
+    "total_iter": 20,
+    "gvd": "module accu (\n    input               clk,\n    input               rst_n,\n    input       [7:0]   data_in,\n    input               valid_in,\n    output  reg         valid_out,\n    output  reg [9:0]   data_out\n);\n\nreg [9:0] sum;\nreg [2:0] count;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        sum <= 0;\n        count <= 0;\n        valid_out <= 0;\n    end else begin\n        if (valid_in) begin\n            sum <= sum + data_in;\n            count <= count + 1;\n        end\n        if (count == 4) begin\n            data_out <= sum;\n            valid_out <= 1;\n            count <= 0;\n        end else begin\n            valid_out <= 0;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"accu\">\n\t<description>Implement a module to accumulate input data sequentially until four data points have been received, then output the accumulated value.</description>\n\t<ports>\n\t    <input id=\"clk\">Clock input.</input>\n\t\t<input id=\"rst_n\">Active-low reset signal.</input>\n\t\t<input id=\"data_in\" width_description=\"[7:0]\">8-bit input data.</input>\n\t\t<input id=\"valid_in\">Valid input signal.</input>\n\t\t\n\t\t<output id=\"valid_out\">Output valid signal.</output>\n\t\t<output id=\"data_out\" width_description=\"[9:0]\">10-bit output data.</output>\n\tendports\n\t\n\t<implementation>\n        // Define internal registers and counter\n        reg [9:0] accumulator;\n        reg [2:0] counter;      // 4-bit counter to keep track of the number of received inputs\n        reg [9:0] temp_sum;     // Temporary variable to store the accumulated sum\n        reg [2:0] valid_in_counter;       // Counter to keep track of valid_in cycles\n        \n        // Sequential logic block triggered on the rising edge of the clock or active low reset\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                // Reset all registers and flags on reset\n                accumulator &lt;= 10'd0;\n                counter &lt;= 3'd0;\n                temp_sum &lt;= 10'd0;\n                valid_in_counter &lt;= 3'd0;\n            end else begin\n                // Check if valid_in is asserted (data is ready to be added)\n                if (valid_in == 1'b1) begin\n                    // Add the incoming data to the accumulator\n                    accumulator &lt;= accumulator + data_in;\n                    \n                    // Increment the counter to track the number of valid inputs received\n                    counter &lt;= counter + 1'b1;\n                    // Check if we've received enough inputs (4 inputs)\n                    if (counter == 3'd4) begin\n                        // Store the accumulated sum in temp_sum\n                        temp_sum &lt;= accumulator;\n                        // Set the valid_out flag to indicate the accumulated data is available\n                        valid_out &lt;= 1'b1;\n                        // Reset the accumulator and counter for the next set of inputs\n                        accumulator &lt;= 10'd0;\n                        counter &lt;= 3'd0;\n                    end else begin\n                        // Not yet enough inputs, so set valid_out to 0\n                        valid_out &lt;= 1'b0;\n                    end\n                end else begin\n                    // No valid input received, so set valid_out to 0\n                    valid_out &lt;= 1'b0;\n                end\n            end\n        end\n\t\t\n\t\t// Assign the final accumulated value to the data_out port\n        assign data_out = temp_sum;\n        \n        // Count the number of valid_in cycles for proper timing control\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                valid_in_counter &lt;= 3'd0;\n            end else begin\n                if (valid_in == 1'b1 &amp;&amp; valid_in_counter &lt; 3'd4) begin\n                    valid_in_counter &lt;= valid_in_counter + 1'b1;\n                end else if (valid_in_counter >= 3'd4) begin\n                    valid_in_counter</implementation></ports></module>\n",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\nmake: Entering directory '/tmp/comba_accu_oy27kx6d/obj_dir'\nmake: Nothing to be done for 'default'.\nmake: Leaving directory '/tmp/comba_accu_oy27kx6d/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.010 s (elab=0.000, cvt=0.000, bld=0.009); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\nFailed at output 1 (t=120000): data_out= 139, expected= 114\nFailed: expected exactly 3 valid_out pulses, observed 2 (accumulate 4 valid inputs per output)\n===========Error===========\n- testbench.v:90: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 150ns; walltime 0.000 s; speed 2.645 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::0": 4,
+      "TB:fsm_state_error::0::": 4,
+      "TB:fsm_state_error::0::1": 2
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 683.8,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 10,
+          "iter": 21,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 81.0
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 37,
+          "elapsed_s": 63.74
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 37,
+          "elapsed_s": 59.72
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 35,
+          "elapsed_s": 64.26
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 37,
+          "elapsed_s": 69.82
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 34,
+          "elapsed_s": 62.81
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 8,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 34,
+          "elapsed_s": 75.37
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 33,
+          "elapsed_s": 70.32
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 37,
+          "elapsed_s": 61.54
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 33,
+          "elapsed_s": 75.21
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 18,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

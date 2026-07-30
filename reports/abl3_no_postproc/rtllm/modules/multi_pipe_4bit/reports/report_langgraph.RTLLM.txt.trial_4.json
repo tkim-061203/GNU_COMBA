@@ -1,0 +1,88 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_pipe_4bit(\n    input clk, \n    input rst_n, \n    input [3:0] mul_a, \n    input [3:0] mul_b, \n    output [7:0] mul_out\n);\n// Extension of input signals\nwire [7:0] mul_a_ext = 'd0 + mul_a;\nwire [7:0] mul_b_ext = 'd0 + mul_b;\n// Generate partial products\nwire [7:0] partial_product_0 = (mul_b[0]) ? mul_a_ext : 'd0;\nwire [7:0] partial_product_1 = (mul_b[1]) ? mul_a_ext << 1 : 'd0;\nwire [7:0] partial_product_2 = (mul_b[2]) ? mul_a_ext << 2 : 'd0;\nwire [7:0] partial_product_3 = (mul_b[3]) ? mul_a_ext << 3 : 'd0;\n// Registers to store intermediate sums\nreg [7:0] sum_tmp1;\nreg [7:0] sum_tmp2;\n// Sequential logic for stage 1\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        sum_tmp1 <= 'd0;\n        sum_tmp2 <= 'd0;\n    end else begin\n        sum_tmp1 <= partial_product_0 + partial_product_1;\n        sum_tmp2 <= partial_product_2 + partial_product_3;\n    end\nend\n// Final product calculation\nreg [7:0] mul_out_reg;\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        mul_out_reg <= 'd0;\n    end else begin\n        mul_out_reg <= sum_tmp1 + sum_tmp2;\n    end\nend\nassign mul_out = mul_out_reg;\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>4-bit unsigned number pipeline multiplier.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Multiplicand input.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Multiplier input.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product output.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"size\">4</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;assign id=\"mul_a_ext\" value=\"'d0 + mul_a\" width_description=\"[7:0]\">Extended multiplicand.&lt;/assign>\n        &lt;assign id=\"mul_b_ext\" value=\"'d0 + mul_b\" width_description=\"[7:0]\">Extended multiplier.&lt;/assign>\n    </logic_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;genvar id=\"i\" />\n        &lt;generate>\n            &lt;for start=\"0\" end=\"size-1\" step=\"1\">\n                &lt;if condition=\"mul_b[i] == 1'b1\">\n                    &lt;assign id=\"partial_product_i\" value=\"mul_a_ext &lt;&lt; i\" width_description=\"[7:0]\" />\n                &lt;/if>\n                &lt;else>\n                    &lt;assign id=\"partial_product_i\" value=\"'d0\" width_description=\"[7:0]\" />\n                &lt;/else>\n            &lt;/for>\n        &lt;/generate>\n    </logic_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"register_sum[0]\" value=\"'d0\" width_description=\"[7:0]\" />\n        &lt;reg id=\"register_sum[1]\" value=\"'d0\" width_description=\"[7:0]\" />\n        &lt;reg id=\"register_sum[2]\" value=\"'d0\" width_description=\"[7:0]\" />\n        &lt;always_comb>\n            register_sum[0] &lt;= 'd0;\n            register_sum[1] &lt;= 'd0;\n            register_sum[2] &lt;= 'd0;\n            if (rst_n == 1'b0) begin\n                register_sum[0] &lt;= 'd0;\n                register_sum[1] &lt;= 'd0;\n                register_sum[2] &lt;= 'd0;\n            end else begin\n                register_sum[0] &lt;= partial_product_0;\n                register_sum[1] &lt;= register_sum[0] + partial_product_1;\n                register_sum[2] &lt;= register_sum[1] + partial_product_2;\n            end\n        &lt;/always_comb>\n    </logic_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"mul_out\" value=\"'d0\" width_description=\"[7:0]\" />\n        &lt;always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                mul_out &lt;= 'd0;\n            end else begin\n                mul_out &lt;= register_sum[2];\n            end\n        end\n    </logic_description>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTHEXPAND: multi_pipe_4bit.v:9:28: Operator ADD expects 32 or 8 bits on the RHS, but RHS's VARREF 'mul_a' generates 4 bits.\n                                            : ... note: In instance 'multi_pipe_4bit'\n    9 | wire [7:0] mul_a_ext = 'd0 + mul_a;\n      |                            ^\n                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.048\n                      ... Use \"/* verilator lint_off WIDTHEXPAND */\" and lint_on around source to disable this message.\n%Warning-WIDTHEXPAND: multi_pipe_4bit.v:10:28: Operator ADD expects 32 or 8 bits on the RHS, but RHS's VARREF 'mul_b' generates 4 bits.\n                                             : ... note: In instance 'multi_pipe_4bit'\n   10 | wire [7:0] mul_b_ext = 'd0 + mul_b;\n      |                            ^\n%Warning-UNUSEDSIGNAL: multi_pipe_4bit.v:10:12: Signal is not used: 'mul_b_ext'\n                                              : ... note: In instance 'multi_pipe_4bit'\n   10 | wire [7:0] mul_b_ext = 'd0 + mul_b;\n      |            ^~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.048\n                       ... Use \"/* verilator lint_off UNUSEDSIGNAL */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_multi_pipe_4bit_93eqkpik/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_pipe_4bit.cpp Vmulti_pipe_4bit___024root__0.cpp Vmulti_pipe_4bit__Trace__0.cpp Vmulti_pipe_4bit___024root__Slow.cpp Vmulti_pipe_4bit___024root__0__Slow.cpp Vmulti_pipe_4bit__Syms__Slow.cpp Vmulti_pipe_4bit__Trace__0__Slow.cpp Vmulti_pipe_4bit__TraceDecls__0__Slow.cpp > Vmulti_pipe_4bit__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vmulti_pipe_4bit__ALL.o Vmulti_pipe_4bit__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vmulti_pipe_4bit__ALL.a    -pthread -lpthread -latomic   -o Vmulti_pipe_4bit\nrm Vmulti_pipe_4bit__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_multi_pipe_4bit_93eqkpik/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.042 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.468 s (elab=0.001, cvt=0.004, bld=0.459); cpu 0.009 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 4,
+      "max_samples": 10,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 132.92,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 54,
+          "elapsed_s": 31.17
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 26.68
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 49,
+          "elapsed_s": 37.16
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 39,
+          "elapsed_s": 37.91
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

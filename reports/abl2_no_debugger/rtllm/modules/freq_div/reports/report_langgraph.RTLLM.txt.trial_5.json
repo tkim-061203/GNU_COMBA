@@ -1,0 +1,148 @@
+{
+  "module_name": "freq_div",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_div",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module freq_div (\n    input CLK_in,\n    output reg CLK_50,\n    output reg CLK_10,\n    output reg CLK_1,\n    input RST\n);\n\n\talways @(posedge CLK_in or posedge RST) begin\n\t    if(RST) begin\n\t        CLK_50 <= 1'b0;\n\t    end\n\t    else begin\n\t        CLK_50 <= ~CLK_50;\n\t    end\n\tend\n\n\treg [3:0] cnt_10;\n\talways @(posedge CLK_in or posedge RST) begin\n\t    if(RST) begin\n\t        CLK_10 <= 1'b0;\n\t        cnt_10 <= 4'd0;\n\t    end\n\t    else if(cnt_10 == 4'd9) begin\n\t        CLK_10 <= ~CLK_10;\n\t        cnt_10 <= 4'd0;\n\t    end\n\t    else begin\n\t        cnt_10 <= cnt_10 + 1;\n\t    end\n\tend\n\n\treg [6:0] cnt_100;\n\talways @(posedge CLK_in or posedge RST) begin\n\t    if(RST) begin\n\t        CLK_1 <= 1'b0;\n\t        cnt_100 <= 7'd0;\n\t    end\n\t    else if(cnt_100 == 7'd99) begin\n\t        CLK_1 <= ~CLK_1;\n\t        cnt_100 <= 7'd0;\n\t    end\n\t    else begin\n\t        cnt_100 <= cnt_100 + 1;\n\t    end\n\tend\n\nendmodule\n",
+    "xml_description": "<module id=\"freq_div\">\n    <description>Frequency divider for generating different clock frequencies based on input clock and reset signals.</description>\n    \n    <ports>\n        <input id=\"CLK_in\">Input clock signal.</input>\n        <input id=\"RST\">Reset signal.</input>\n        \n        <output id=\"CLK_50\">Output clock signal with a frequency of CLK_in divided by 2.</output>\n        <output id=\"CLK_10\">Output clock signal with a frequency of CLK_in divided by 10.</output>\n        <output id=\"CLK_1\">Output clock signal with a frequency of CLK_in divided by 100.</output>\n    </ports>\n    \n    <logic_description type=\"combinational_logic\">\n        &lt;reg id=\"CLK_50\">Register for CLK_50 output.&lt;/reg>\n        &lt;reg id=\"CLK_10\">Register for CLK_10 output.&lt;/reg>\n        &lt;reg id=\"CLK_1\">Register for CLK_1 output.&lt;/reg>\n        \n        &lt;reg id=\"cnt_50\">Counter for generating CLK_50.&lt;/reg>\n        &lt;reg id=\"cnt_10\">Counter for generating CLK_10.&lt;/reg>\n        &lt;reg id=\"cnt_100\">Counter for generating CLK_1.&lt;/reg>\n    </logic_description>\n    \n    <implementation>\n        // Counter for CLK_50\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                CLK_50 &lt;= 1'b0;\n                cnt_50 &lt;= 1'b0;\n            end else begin\n                cnt_50 &lt;= ~cnt_50;\n                CLK_50 &lt;= cnt_50;\n            end\n        end\n        \n        // Counter for CLK_10\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                CLK_10 &lt;= 1'b0;\n                cnt_10 &lt;= 1'b0;\n            end else if (cnt_10 == 4) begin\n                CLK_10 &lt;= ~CLK_10;\n                cnt_10 &lt;= 1'b0;\n            end else begin\n                cnt_10 &lt;= cnt_10 + 1;\n            end\n        end\n        \n        // Counter for CLK_1\n        always @(posedge CLK_in or posedge RST) begin\n            if (RST) begin\n                CLK_1 &lt;= 1'b0;\n                cnt_100 &lt;= 1'b0;\n            end else if (cnt_100 == 49) begin\n                CLK_1 &lt;= ~CLK_1;\n                cnt_100 &lt;= 1'b0;\n            end else begin\n                cnt_100 &lt;= cnt_100 + 1;\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_freq_div_u9py4vfb/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_div.cpp Vfreq_div___024root__0.cpp Vfreq_div__Trace__0.cpp Vfreq_div___024root__Slow.cpp Vfreq_div___024root__0__Slow.cpp Vfreq_div__Syms__Slow.cpp Vfreq_div__Trace__0__Slow.cpp Vfreq_div__TraceDecls__0__Slow.cpp > Vfreq_div__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vfreq_div__ALL.o Vfreq_div__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vfreq_div__ALL.a    -pthread -lpthread -latomic   -o Vfreq_div\nrm Vfreq_div__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_freq_div_u9py4vfb/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.032 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.343 s (elab=0.000, cvt=0.003, bld=0.335); cpu 0.008 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 9,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 169.55,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 40,
+          "elapsed_s": 15.83
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 17.75
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 19.05
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 40,
+          "elapsed_s": 19.15
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 19.34
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 47,
+          "elapsed_s": 18.99
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 26,
+          "elapsed_s": 17.66
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 20.32
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 21.45
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

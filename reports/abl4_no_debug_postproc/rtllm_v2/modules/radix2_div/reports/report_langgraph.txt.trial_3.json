@@ -1,0 +1,160 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module radix2_div (\n    input clk, \n    input rst, \n    input sign, \n    input [7:0] dividend, \n    input [7:0] divisor, \n    input opn_valid, \n    output reg res_valid, \n    output reg [15:0] result\n);\n    reg [7:0] dividend_reg, divisor_reg;\n    reg [7:0] remainder, quotient;\n    reg [3:0] cnt;\n    reg [15:0] SR;\n    reg [8:0] NEG_DIVISOR;\n    \n    always @(posedge clk or negedge rst) begin\n        if(!rst) begin\n            cnt <= 4'd0;\n            res_valid <= 1'b0;\n            SR <= 16'd0;\n            NEG_DIVISOR <= 9'd0;\n        end else begin\n            if(opn_valid && !res_valid) begin\n                dividend_reg <= dividend;\n                divisor_reg <= divisor;\n                remainder <= 8'd0;\n                quotient <= 8'd0;\n                cnt <= 4'd1;\n                NEG_DIVISOR <= (~{1'b0, divisor_reg[7], divisor_reg} + 1);\n                SR <= {{8{1'b0}}, {1'b0, dividend_reg[7], dividend_reg}} << 1;\n            end else if(cnt != 4'd0) begin\n                if(cnt[3]) begin\n                    cnt <= 4'd0;\n                    res_valid <= 1'b1;\n                    SR <= {remainder, quotient};\n                end else begin\n                    cnt <= cnt + 4'd1;\n                    remainder <= ({NEG_DIVISOR[8], SR[15:8]} >> 1);\n                    quotient <= (NEG_DIVISOR[8])? ((SR[15:8] + NEG_DIVISOR)>>1) : (SR[15:8]>>1);\n                    SR <= {remainder, quotient} << 1;\n                end\n            end else begin\n                res_valid <= 1'b0;\n            end\n        end\n    end\n    \n    always @(posedge clk) begin\n        if(res_valid) begin\n            result <= SR;\n        end\n    end\nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n    <description>A simplified radix-2 divider for 8-bit signed or unsigned integers.</description>\n    <ports>\n        <input id=\"clk\">The clock signal used for synchronous operation.</input>\n        <input id=\"rst\">The reset signal to initialize or reset the module.</input>\n        <input id=\"sign\">Indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">The input dividend for division.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">The input divisor for division.</input>\n        <input id=\"opn_valid\">Indicates that a valid operation request is present.</input>\n        <output id=\"res_valid\">Indicates the result is valid and ready.</output>\n        <output id=\"result\" width_description=\"[15:0]\">The output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"COUNTER_WIDTH\">3</parameter>\n        <parameter id=\"IDLE\">3'd0</parameter>\n        <parameter id=\"DIVIDE\">3'd1</parameter>\n        <parameter id=\"OUTPUT\">3'd2</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"neg_divisor\" width_description=\"[8:0]\">The negative value of the divisor.&lt;/signal>\n        &lt;signal id=\"abs_dividend\" width_description=\"[8:0]\">The absolute value of the dividend.&lt;/signal>\n        &lt;signal id=\"abs_divisor\" width_description=\"[8:0]\">The absolute value of the divisor.&lt;/signal>\n        &lt;signal id=\"sub_result\" width_description=\"[9:0]\">The result of the subtraction.&lt;/signal>\n        &lt;signal id=\"carry_out\">The carry-out from the subtraction.&lt;/signal>\n        &lt;signal id=\"mux_out\" width_description=\"[9:0]\">The selected result from the mux.&lt;/signal>\n        &lt;signal id=\"sr_next\" width_description=\"[15:0]\">The next state of the shift register.&lt;/signal>\n        &lt;signal id=\"shift_reg\" width_description=\"[15:0]\">The shift register to store the result.&lt;/signal>\n        &lt;signal id=\"remainder\" width_description=\"[7:0]\">The remainder of the division.&lt;/signal>\n        &lt;signal id=\"quotient\" width_description=\"[7:0]\">The quotient of the division.&lt;/signal>\n        &lt;signal id=\"counter\" width_description=\"[2:0]\">The counter for tracking the number of iterations.&lt;/signal>\n        &lt;signal id=\"start_cnt\">A signal to indicate the start of the division process.&lt;/signal>\n        &lt;signal id=\"done\">A signal to indicate the completion of the division process.&lt;/signal>\n        \n        &lt;assign abs_dividend = {1'b0, dividend[7], dividend}};\n        &lt;assign abs_divisor = {1'b0, divisor[7], divisor}};\n        &lt;assign neg_divisor = ~abs_divisor + 1;\n        &lt;assign sr_next = {SR[14:0], carry_out};\n        &lt;assign done = (counter == COUNTER_WIDTH);\n        &lt;assign res_valid = (counter == COUNTER_WIDTH &amp;&amp; !start_cnt);\n        &lt;assign result = {remainder, quotient};\n        &lt;assign remainder = shift_reg[15:8];\n        &lt;assign quotient = shift_reg[7:0];\n        &lt;assign counter = cnt;\n    </logic_description>\n    <implementation>\n        // State machine states\n        typedef enum logic [2:0] {\n            IDLE,\n            DIVIDE,\n            OUTPUT\n        } state_t;\n        state_t current_state, next_state;\n        // Registers for storing inputs\n        reg [7:0] dividend_reg, divisor_reg;\n        reg sign_reg;\n        // Internal signals\n        reg [8:0] neg_divisor;\n        reg [8:0] abs_dividend;\n        reg [8:0] abs_divisor;\n        reg [9:0] sub_result;\n        reg carry_out;\n        reg [9:0] mux_out;\n        reg [15:0] shift_reg;\n        reg [2:0] counter;\n        reg start_cnt;\n        // Sequential logic for state transitions and data storage\n        always @(posedge clk or posedge rst) begin\n            if (rst) begin\n                current_state &lt;= IDLE;\n                dividend_reg &lt;= 8'h00;\n                divisor_reg &lt;= 8'h00;\n                sign_reg &lt;= 1'b0;\n                shift_reg &lt;= 16'h0000;\n                counter &lt;= 3'b000;\n                start_cnt &lt;= 1'b0;\n            end else begin\n                current_state &lt;= next_state;\n                \n                case(current_state)\n                    IDLE: begin\n                        if (opn_valid &amp;&amp; !res_valid) begin\n                            dividend_reg &lt;= dividend;\n                            divisor_reg &lt;= divisor;\n                            sign_reg &lt;= sign;\n                            shift_reg &lt;= {abs_dividend, 8'h00}; // Shift dividend left by 8 bits\n                            start_cnt &lt;= 1'b1;\n                        end\n                    end\n                    \n                    DIVIDE: begin\n                        if (!done) begin\n                            shift_reg &lt;= sr_next;\n                            counter &lt;= counter + 1;\n                            start_cnt &lt;= 1'b0;\n                        end\n                    end\n                    \n                    OUTPUT: begin\n                        counter &lt;= 3'b000;\n                    end\n                endcase\n            end\n        end\n        // Combinational logic for calculations\n        always @(*) begin\n            next_state = current_state;\n            case(current_state)\n                IDLE: begin\n                    if (opn_valid &amp;&amp; !res_valid) begin\n                        abs_dividend = {1'b0, dividend[7], dividend};\n                        abs_divisor = {1'b0, divisor[7], divisor};\n                        neg_divisor = ~abs_divisor + 1;\n                        counter = 3'b001;\n                        start_cnt = 1'b1;\n                        next_state = DIVIDE;\n                    end\n                end\n                \n                DIVIDE: begin\n                    if (!done) begin\n                        sub_result = shift_reg[15:8] + neg_divisor;\n                        carry_out = sub_result[9]; // Carry-out is the 9th bit\n                        mux_out = (carry_out) ? sub_result : {1'b0, shift_reg[15:8]};\n                        shift_reg = sr_next;\n                        next_state = DIVIDE;\n                    end else begin\n                        next_state = OUTPUT;\n                    end\n                end\n                \n                OUTPUT: begin\n                    next_state = IDLE;\n                end\n            endcase\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div (\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:22:10: Pin not found: 'res_ready'\n   22 |         .res_ready(res_ready),\n      |          ^~~~~~~~~\n                                     : ... Location of instance's module declaration\n    1 | module radix2_div (\n      |        ^~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 535.19,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 66,
+          "elapsed_s": 35.83
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 80,
+          "elapsed_s": 52.87
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 65,
+          "elapsed_s": 31.49
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 120,
+          "elapsed_s": 52.2
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 101,
+          "elapsed_s": 73.75
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 81,
+          "elapsed_s": 39.3
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 54,
+          "elapsed_s": 44.98
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 55,
+          "elapsed_s": 48.43
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 73,
+          "elapsed_s": 83.74
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 95,
+          "elapsed_s": 72.61
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

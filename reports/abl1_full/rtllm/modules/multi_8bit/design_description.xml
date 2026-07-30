@@ -1,0 +1,14 @@
+<module id="multi_8bit">
+    <description>Implement a module of an 8-bit multiplier based on shifting and adding operations.</description>
+    <ports>
+        <input id="A">First 8-bit input operand (representing a multiplicand).</input>
+        <input id="B">Second 8-bit input operand (representing a multiplier).</input>
+        <output id="product">16-bit output representing the product of the two 8-bit inputs (A * B).</output>
+    </ports>
+    <implementation>Multiplication: The module performs multiplication of A and B using the shift-and-add method.
+- The algorithm iterates through each bit of the multiplier (B). For each bit that is set (1), the multiplicand (A) is added to the product at the corresponding shifted position.
+- The process continues until all bits of the multiplier have been processed.
+Shifting: After each addition, the multiplicand is logically shifted left by one bit to prepare for the next addition, simulating the traditional multiplication process.
+The final product is stored in the output port, which is 16 bits wide to accommodate the maximum possible product of two 8-bit numbers.
+    </implementation>
+</module>

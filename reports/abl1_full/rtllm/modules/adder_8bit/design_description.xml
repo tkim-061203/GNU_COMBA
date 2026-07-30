@@ -1,0 +1,11 @@
+<module id="adder_8bit">
+    <description>Implement a module of an 8-bit adder with multiple bit-level adders in combinational logic.</description>
+    <ports>
+        <input id="a" width_description="[7:0]">8-bit input operand A.</input>
+        <input id="b" width_description="[7:0]">8-bit input operand B.</input>
+        <input id="cin">Carry-in input.</input>
+        <output id="sum" width_description="[7:0]">8-bit output representing the sum of A and B.</output>
+        <output id="cout">Carry-out output.</output>
+    </ports>
+    <implementation>The module utilizes a series of bit-level adders (full adders) to perform the addition operation.</implementation>
+</module>

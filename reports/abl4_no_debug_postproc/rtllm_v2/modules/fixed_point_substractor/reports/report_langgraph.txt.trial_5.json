@@ -1,0 +1,160 @@
+{
+  "module_name": "fixed_point_substractor",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fixed_point_substractor",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fixed_point_subtractor(\n    input [N-1:0] a, b,\n    input [N-1:0] c\n);\n    \n    parameter Q = 4;\n    parameter N = 10;\n    integer i;\n    \n    reg signed [N-1:0]res;\n    wire signed [N-1:0]temp_a = $signed(a);\n    wire signed [N-1:0]temp_b = $signed(b);\n    assign c = res;\n    \n    always @(*) begin\n        \n        if(temp_a[N-1]==temp_b[N-1]) begin //Same sign\n            res[N-2:0] <= (a[N-2:0]-b[N-2:0]);\n            res[N-1] <= a[N-1];\n            \n        end else if((~(a[N-1]^b[N-1]))==1 && ($signed(a)>=0))begin//Positive\n            res <= $unsigned(a+b);\n            res[N-1] <= a[N-1];\n            \n        end else if ((~(a[N-1]^b[N-1]))==1 && ($signed(a)<$signed(b)))begin//Negative\n            for(i=0;i<N-1;i=i+1)begin\n                res[i] <= ~(a[i]|b[i]); \n            end\n            \n            res[N-1]<= 0;\n        \n        end else if((~(a[N-1]^b[N-1]))==1 && ($signed(a)>$signed(b)))begin //Positive\n            res <= (a-b);\n            res[N-1] <= 1;\n            \n        end else begin //Zero\n            res<=0;\n            res[N-1] <= 0;\n        end\n        \n    end\n    \n    \n    \nendmodule\n",
+    "xml_description": "<module id=\"fixed_point_subtractor\">\n\t<description>A fixed-point subtractor for precise arithmetic operations with fixed precision.</description>\n\t\n\t<ports>\n\t\t<input id=\"a\" width_description=\"[N-1:0]\">First N-bit fixed-point input operand.</input>\n\t\t<input id=\"b\" width_description=\"[N-1:0]\">Second N-bit fixed-point input operand.</input>\n\t\t\n\t\t<output id=\"c\" width_description=\"[N-1:0]\">N-bit output representing the result of the fixed-point subtraction.</output>\n\tendports\n\t\n\t<parameter_description>\n\t\t&lt;N> Total number of bits used for inputs and outputs (integer + fractional).&lt;/N>\n\t\t&lt;Q> Number of fractional bits in the fixed-point representation.&lt;/Q>\n\tendparameter_description\n\t\n\t<logic_description type=\"sequential_logic\">\n\t\treg signed[N-1:0] res;\n\t\twire signed[N-1:0] temp_a = $signed(a);\n\t\twire signed[N-1:0] temp_b = $signed(b);\n\t\tassign c = res;\n\tendlogic_description\n\t\n\t<implementation>\n\t\tinteger i;\n\t\talways@(*) begin\n\t\t\t\n\t\t\tif(temp_a[N-1]==temp_b[N-1]) begin //Same sign\n\t\t\t\tres &lt;= (a[N-2:0]-b[N-2:0]);\n\t\t\t\tres[N-1] &lt;= a[N-1];\n\t\t\t\t\n\t\t\tend else if((~(a[N-1]^b[N-1]))==1 &amp;&amp; ($signed(a)>=0))begin//Positive\n\t\t\t\tres &lt;= $unsigned(a+b);\n\t\t\t\tres[N-1] &lt;= a[N-1];\n\t\t\t\t\n\t\t\tend else if ((~(a[N-1]^b[N-1]))==1 &amp;&amp; ($signed(a)&lt;$signed(b)))begin//Negative\n\t\t\t\tfor(i=0;i&lt;N-1;i=i+1)begin\n\t\t\t\t\tres[i] &lt;= ~(a[i]|b[i]); \n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tres[N-1]&lt;= 0;\n\t\t\t\n\t\t\tend else if((~(a[N-1]^b[N-1]))==1 &amp;&amp; ($signed(a)>$signed(b)))begin //Positive\n\t\t\t\tres &lt;= (a-b);\n\t\t\t\tres[N-1] &lt;= 1;\n\t\t\t\t\n\t\t\tend else begin //Zero\n\t\t\t\tres&lt;=0;\n\t\t\t\tres[N-1]</implementation></logic_description></parameter_description></ports></module>\n",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:76:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   76 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module fixed_point_subtractor(\n      |        ^~~~~~~~~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_fixed_point_subtractor;\n      |        ^~~~~~~~~~~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-ASSIGNIN: TopModule.sv:13:12: Assigning to input/const variable: 'c'\n                                   : ... note: In instance 'tb_fixed_point_subtractor.uut'\n   13 |     assign c = res;\n      |            ^\n                 ... For error description see https://verilator.org/warn/ASSIGNIN?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 294.76,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 30,
+          "elapsed_s": 17.11
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 50,
+          "elapsed_s": 28.41
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 35,
+          "elapsed_s": 21.6
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 38,
+          "elapsed_s": 20.55
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 30,
+          "elapsed_s": 14.71
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 30,
+          "elapsed_s": 33.41
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 35,
+          "elapsed_s": 56.86
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 30,
+          "elapsed_s": 29.35
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 48,
+          "elapsed_s": 40.73
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 45,
+          "elapsed_s": 32.04
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

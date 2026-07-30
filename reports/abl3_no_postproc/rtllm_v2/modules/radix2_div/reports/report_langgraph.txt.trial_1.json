@@ -1,0 +1,160 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module radix2_div(\n    input clk, input rst, input sign, input [7:0] dividend, input [7:0] divisor, input opn_valid, output res_valid, output [15:0] result\n);\n// TODO: Please add your solution here\nreg [7:0] dividend_reg;\nreg [7:0] divisor_reg;\nreg [8:0] neg_divisor;\nreg start_cnt;\nreg [3:0] cnt;\nreg res_valid_reg;\nreg [15:0] result_reg;\nreg sr_carry_out;\nwire [9:0] sub_result;\nwire [8:0] mux_out;\nwire [8:0] sr_in;\nassign sub_result[9] = SR[8];\nassign sub_result[8:0] = SR[7:0] + neg_divisor;\nassign mux_out[7:0] = sr_carry_out ? sub_result[8:1] : sub_result[8:1] + 9'd1;\nassign sr_in = mux_out;\nassign result = result_reg;\nassign res_valid = res_valid_reg;\nalways @(*) begin\n    case(cnt)\n        4'd0: sr_carry_out = ~sub_result[9];\n        default: sr_carry_out = sub_result[9];\n    endcase\nend\nalways @(posedge clk or posedge rst) begin\n    if(rst) begin\n        cnt <= 4'd0;\n        start_cnt <= 1'b0;\n        res_valid_reg <= 1'b0;\n        result_reg <= 16'd0;\n    end else begin\n        if(opn_valid && !res_valid_reg) begin\n            dividend_reg <= dividend;\n            divisor_reg <= divisor;\n            neg_divisor <= {~|divisor, ~divisor}+1'b1;\n            SR <= {dividend, 1'b0};\n            cnt <= 4'd1;\n            start_cnt <= 1'b1;\n        end else if(start_cnt) begin\n            if(&cnt) begin\n                cnt <= 4'd0;\n                start_cnt <= 1'b0;\n                res_valid_reg <= 1'b1;\n                result_reg <= {SR[8], SR[7:0]};\n            end else begin\n                cnt <= cnt + 1'b1;\n                SR <= sr_in;\n            end\n        end else begin\n            res_valid_reg <= 1'b0;\n        end\n    end\nend\nreg [15:0] SR;\nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n    <description>A simplified radix-2 divider for 8-bit signed or unsigned integers.</description>\n    <ports>\n        <input id=\"clk\">The clock signal for synchronous operation.</input>\n        <input id=\"rst\">The reset signal to initialize or reset the module.</input>\n        <input id=\"sign\">Indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">The 8-bit input signal representing the dividend for division.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">The 8-bit input signal representing the divisor for division.</input>\n        <input id=\"opn_valid\">A 1-bit input signal indicating that a valid operation request is present.</input>\n        <output id=\"res_valid\">A 1-bit output signal indicating the result is valid and ready.</output>\n        <output id=\"result\" width_description=\"[15:0]\">The 16-bit output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Idle state.</parameter>\n        <parameter id=\"DIVIDE\">Divide state.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"dividend_reg\" width_description=\"[7:0]\">Register to hold the dividend.&lt;/reg>\n        &lt;reg id=\"divisor_reg\" width_description=\"[7:0]\">Register to hold the divisor.&lt;/reg>\n        &lt;reg id=\"neg_divisor\" width_description=\"[8:0]\">Register to hold the negative divisor.&lt;/reg>\n        &lt;reg id=\"start_cnt\">Start counter flag.&lt;/reg>\n        &lt;reg id=\"cnt\" width_description=\"[3:0]\">Counter for iterations.&lt;/reg>\n        &lt;reg id=\"res_valid_reg\">Result valid flag.&lt;/reg>\n        &lt;reg id=\"result_reg\" width_description=\"[15:0]\">Register to hold the result.&lt;/reg>\n        &lt;reg id=\"sr_carry_out\">Shift register carry-out.&lt;/reg>\n        &lt;wire id=\"sub_result\" width_description=\"[9:0]\">Wire to hold the subtraction result.&lt;/wire>\n        &lt;wire id=\"mux_out\" width_description=\"[8:0]\">Wire to hold the mux output.&lt;/wire>\n        &lt;wire id=\"sr_in\" width_description=\"[8:0]\">Wire to hold the shift register input.&lt;/wire>\n        &lt;assign id=\"SR[8]\" src=\"sub_result[9]\"/>\n        &lt;assign id=\"SR[7:0]\" src=\"mux_out[7:0]\"/>\n        &lt;assign id=\"sub_result\" src=\"SR + neg_divisor\"/>\n        &lt;assign id=\"mux_out\" src=\"{sr_carry_out, sub_result[8:1]}\"/>\n        &lt;assign id=\"sr_in\" src=\"mux_out\"/>\n        &lt;always_comb>\n            case(cnt)\n                4'd0: sr_carry_out = ~sub_result[9];\n                default: sr_carry_out = sub_result[9];\n            endcase\n        end\n        &lt;always @(posedge clk or posedge rst)> \n            if(rst) begin\n                cnt &lt;= 4'd0;\n                start_cnt &lt;= 1'b0;\n                res_valid_reg &lt;= 1'b0;\n                result_reg &lt;= 16'd0;\n            end else begin\n                if(opn_valid &amp;&amp; !res_valid_reg) begin\n                    dividend_reg &lt;= dividend;\n                    divisor_reg &lt;= divisor;\n                    neg_divisor &lt;= {~|divisor, ~divisor}+1'b1;\n                    SR &lt;= {dividend, 1'b0};\n                    cnt &lt;= 4'd1;\n                    start_cnt &lt;= 1'b1;\n                end else if(start_cnt) begin\n                    if(&amp;cnt) begin\n                        cnt &lt;= 4'd0;\n                        start_cnt &lt;= 1'b0;\n                        res_valid_reg &lt;= 1'b1;\n                        result_reg &lt;= {SR[8], SR[7:0]};\n                    end else begin\n                        cnt &lt;= cnt + 1'b1;\n                        SR &lt;= sr_in;\n                    end\n                end else begin\n                    res_valid_reg &lt;= 1'b0;\n                end\n            end\n        end\n    </logic_description>\n    <implementation>Implements a simplified radix-2 divider for 8-bit signed or unsigned integers.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div(\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:22:10: Pin not found: 'res_ready'\n   22 |         .res_ready(res_ready),\n      |          ^~~~~~~~~\n                                     : ... Location of instance's module declaration\n    1 | module radix2_div(\n      |        ^~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 625.53,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 58,
+          "elapsed_s": 31.84
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 84,
+          "elapsed_s": 42.65
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 44.32
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 160,
+          "elapsed_s": 205.06
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 71,
+          "elapsed_s": 37.31
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 110,
+          "elapsed_s": 64.73
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 64,
+          "elapsed_s": 29.01
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 68,
+          "elapsed_s": 40.74
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 94,
+          "elapsed_s": 55.76
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 75,
+          "elapsed_s": 74.11
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

@@ -31,6 +31,14 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 
+# Model provenance — records which checkpoint actually served the run.
+sys.path.insert(0, str(SCRIPT_DIR / "langgraph_core"))
+try:
+    from model_provenance import probe_served_models
+except Exception:  # never let provenance break a benchmark
+    def probe_served_models(*a, **k):
+        return {"error": "model_provenance unavailable"}
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -125,7 +133,13 @@ def run_trials(modules_dir: str, description_type: str, num_trials: int,
         ]
 
         print(f"  🚀 Executing: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=False, text=True)
+        # Reproducible-but-independent trials: each trial gets its own LLM base
+        # seed (offset from COMBA_LLM_SEED, default 42). Re-running the same
+        # trial index reproduces it; different trials remain independent draws.
+        trial_env = dict(os.environ)
+        seed_base = int(os.environ.get("COMBA_LLM_SEED", "42") or 42)
+        trial_env["COMBA_LLM_SEED"] = str(seed_base + 10_000 * trial)
+        result = subprocess.run(cmd, capture_output=False, text=True, env=trial_env)
 
         if result.returncode != 0:
             print(f"  ⚠️ Trial {trial} had errors (returncode={result.returncode})")
@@ -309,6 +323,7 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
             'description_type': description_type,
             'num_modules': len(rows),
             'timestamp': datetime.now().isoformat(),
+            'models': probe_served_models(),
         },
         'global': {
             'sc_pass_rate': avg_sc_pr / 100,
@@ -371,6 +386,20 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
     print(f'📄 LaTeX saved: {tex_path}')
 
     # --- Markdown ---
+    # Wilson 95% CI on the aggregate TB pass rate: makes the sampling-noise
+    # floor visible so run-to-run deltas inside the interval aren't over-read.
+    def _wilson_ci(p: float, n: int, z: float = 1.96) -> tuple[float, float]:
+        if n <= 0:
+            return 0.0, 100.0
+        p /= 100.0
+        denom = 1 + z * z / n
+        center = (p + z * z / (2 * n)) / denom
+        half = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / denom
+        return max(0.0, (center - half) * 100), min(100.0, (center + half) * 100)
+
+    n_obs = len(rows) * num_trials
+    ci_lo, ci_hi = _wilson_ci(avg_tb_pr, n_obs)
+
     md_lines = [
         f"# COMBA-LLM Benchmark Report",
         f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}  ",
@@ -378,7 +407,7 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
         f"## Summary", "",
         f"| Metric | Value |", f"|--------|-------|",
         f"| Syntax Pass Rate | **{avg_sc_pr:.1f}%** |",
-        f"| TB Pass Rate | **{avg_tb_pr:.1f}%** |",
+        f"| TB Pass Rate | **{avg_tb_pr:.1f}%** (95% CI {ci_lo:.1f}–{ci_hi:.1f}%, n={n_obs}) |",
         f"| Syntax Fix Rate | **{avg_sfr:.2f}%** |",
         f"| Func Fix Rate | **{avg_ffr:.2f}%** |",
         f"| Syntax Exceptions | {stats['total_sc_fixed']}/{stats['total_sc_exceptions']} |",
@@ -421,8 +450,8 @@ def main():
                     help="Output directory (default: reports/verilogeval/fixrate)")
     p.add_argument("--dataset", choices=["rtllm", "rtllm_v2", "verilogeval"], default=None,
                     help="Preset dataset configuration (rtllm, rtllm_v2, or verilogeval)")
-    p.add_argument("--jobs", type=int, default=1,
-                    help="Parallel worker processes for the module batch (default: 1)")
+    p.add_argument("--jobs", type=int, default=15,
+                    help="Parallel worker processes for the module batch (default: 15)")
     args = p.parse_args()
 
     os.environ["COMBA_QUIET"] = "1"

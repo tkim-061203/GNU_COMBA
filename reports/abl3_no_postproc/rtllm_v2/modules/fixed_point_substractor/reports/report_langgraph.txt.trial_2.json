@@ -1,0 +1,160 @@
+{
+  "module_name": "fixed_point_substractor",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fixed_point_substractor",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fixed_point_subtractor (\n    parameter Q = 8, N = 16,\n    input [N-1:0] a,\n    input [N-1:0] b,\n    output [N-1:0] c\n);\n    \n    reg [N-1:0] res;\n    \n    assign c = res;\n    always @(*) begin\n        if (a[N-1] == b[N-1]) begin // Same sign subtraction\n            res[N-1-Q:N-Q] = a[N-1-Q:N-Q] - b[N-1-Q:N-Q];\n            res[N-1] = a[N-1];\n        end else begin // Different sign subtraction\n            if (a[N-1] == 1'b0 && b[N-1] == 1'b1) begin // Positive minus negative\n                if (a[N-1:Q] > b[N-1:Q]) begin\n                    res[N-1-Q:N-Q] = a[N-1:Q] + ~b[N-1:Q] + 1;\n                    res[N-1] = 1'b1;\n                end else begin\n                    res[N-1-Q:N-Q] = b[N-1:Q] + ~a[N-1:Q] + 1;\n                    res[N-1] = 1'b0;\n                end\n            end else begin // Negative minus positive\n                if (~a[N-1:Q] > ~b[N-1:Q]) begin\n                    res[N-1-Q:N-Q] = a[N-1:Q] + ~b[N-1:Q] + 1;\n                    res[N-1] = 1'b0;\n                end else begin\n                    res[N-1-Q:N-Q] = b[N-1:Q] + ~a[N-1:Q] + 1;\n                    res[N-1] = 1'b1;\n                end\n            end\n        end\n    end\n    \nendmodule\n",
+    "xml_description": "<module id=\"fixed_point_subtractor\">\n    <description>Fixed-point subtractor with precision control.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[N-1:0]\">First input operand.</input>\n        <input id=\"b\" width_description=\"[N-1:0]\">Second input operand.</input>\n        <output id=\"c\" width_description=\"[N-1:0]\">Resulting value after subtraction.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"Q\">Number of fractional bits.</parameter>\n        <parameter id=\"N\">Total number of bits including integer and fractional parts.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"res\" width_description=\"[N-1:0]\" />\n        &lt;assign res = ($signed(a[N-1:Q]) + $signed(b[N-1:Q])) - ($signed(~a[N-1:Q]) + $signed(~b[N-1:Q])); // Same sign subtraction\n        &lt;assign res[N-1] = 1'b0;\n        \n        &lt;always @(*) begin\n            if (a[N-1] == b[N-1]) begin // Same sign subtraction\n                res[N-1-Q:N-Q] = a[N-1-Q:N-Q] - b[N-1-Q:N-Q];\n                res[N-1] = a[N-1];\n            end else begin // Different sign subtraction\n                if (a[N-1] == 1'b0 &amp;&amp; b[N-1] == 1'b1) begin // Positive minus negative\n                    if (a[N-1:Q] > b[N-1:Q]) begin\n                        res[N-1-Q:N-Q] = a[N-1:Q] + ~b[N-1:Q] + 1;\n                        res[N-1] = 1'b1;\n                    end else begin\n                        res[N-1-Q:N-Q] = b[N-1:Q] + ~a[N-1:Q] + 1;\n                        res[N-1] = 1'b0;\n                    end\n                end else begin // Negative minus positive\n                    if (~a[N-1:Q] > ~b[N-1:Q]) begin\n                        res[N-1-Q:N-Q] = a[N-1:Q] + ~b[N-1:Q] + 1;\n                        res[N-1] = 1'b0;\n                    end else begin\n                        res[N-1-Q:N-Q] = b[N-1:Q] + ~a[N-1:Q] + 1;\n                        res[N-1] = 1'b1;\n                    end\n                end\n            end\n        end\n        \n        &lt;assign c = res;\n    </logic_description>\n    <implementation></implementation>\n    <task></task>\n</module>",
+    "sc_log": "TopModule.sv:2: syntax error\nTopModule.sv:2: Errors in port declarations.\n",
+    "tb_log": "[COMPILE verilator]\n%Error: TopModule.sv:2:5: syntax error, unexpected parameter, expecting '['\n    2 |     parameter Q = 8, N = 16,\n      |     ^~~~~~~~~\n        ... See the manual at https://verilator.org/verilator_doc.html?v=5.048 for more assistance.\n%Error: TopModule.sv:3:5: syntax error, unexpected input, expecting IDENTIFIER or IDENTIFIER-for-pathpulse or randomize\n    3 |     input [N-1:0] a,\n      |     ^~~~~\n%Error: TopModule.sv:10:5: syntax error, unexpected assign\n   10 |     assign c = res;\n      |     ^~~~~~\n%Warning-EOFNEWLINE: testbench.v:76:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   76 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Error: Exiting due to 3 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 268.49,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 30,
+          "elapsed_s": 15.17
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 28,
+          "elapsed_s": 16.88
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 30,
+          "elapsed_s": 14.76
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 28,
+          "elapsed_s": 14.93
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 40,
+          "elapsed_s": 38.82
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 38,
+          "elapsed_s": 23.21
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 32,
+          "elapsed_s": 29.57
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 46,
+          "elapsed_s": 34.72
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 4,
+          "gvd_lines": 36,
+          "elapsed_s": 36.3
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 16,
+          "elapsed_s": 44.12
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

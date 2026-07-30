@@ -1,0 +1,100 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_pipe_4bit #(\n    parameter size = 4,\n    parameter N = 2 * size\n) (\n    input \t\t\t\t\t\tclk,\n    input \t\t\t\t\t\trst_n,\n    input\t[size-1:0]\t\t\tmul_a,\n    input\t[size-1:0]\t\t\tmul_b,\n    output\treg\t[size*2-1:0]\tmul_out\n);\n    \n    wire [7:0] mul_a_ext = {4'd0, mul_a};\n    wire [7:0] mul_b_ext = {4'd0, mul_b};\n\n    wire [7:0] partial_product[3:0];\n    genvar i;\n    generate\n        for(i = 0; i < 4; i = i + 1) begin : gen_partial_products\n            assign partial_product[i] = (mul_b_ext[i] ? mul_a_ext << i : 8'd0);\n        end\n    endgenerate\n\n    reg [7:0] sum_reg[1:0];\n    reg [7:0] product;\n\n    always @(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            sum_reg[0] <= 8'd0;\n            sum_reg[1] <= 8'd0;\n        end else begin\n            sum_reg[0] <= partial_product[0] + partial_product[1];\n            sum_reg[1] <= partial_product[2] + partial_product[3];\n        end\n    end\n\n    always @(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            product <= 8'd0;\n        end else begin\n            product <= sum_reg[0] + sum_reg[1];\n        end\n    end\n\n    assign mul_out = product;\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>4-bit unsigned number pipeline multiplier.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for chip reset and 1 for reset signal inactive.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Input signal representing the multiplicand with a data width of \"size\" bits.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Input signal representing the multiplier with a data width of \"size\" bits.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product output signal with a data width of 2*size bits.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"size\">4</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"mul_a_ext\" width_description=\"[7:0]\">Extended multiplicand register.&lt;/reg>\n        &lt;reg id=\"mul_b_ext\" width_description=\"[7:0]\">Extended multiplier register.&lt;/reg>\n        &lt;reg id=\"partial_product[0]\" width_description=\"[7:0]\">Partial product register for bit 0.&lt;/reg>\n        &lt;reg id=\"partial_product[1]\" width_description=\"[7:0]\">Partial product register for bit 1.&lt;/reg>\n        &lt;reg id=\"partial_product[2]\" width_description=\"[7:0]\">Partial product register for bit 2.&lt;/reg>\n        &lt;reg id=\"partial_product[3]\" width_description=\"[7:0]\">Partial product register for bit 3.&lt;/reg>\n        &lt;reg id=\"sum_reg[0]\" width_description=\"[7:0]\">Register for storing the first stage of sums.&lt;/reg>\n        &lt;reg id=\"sum_reg[1]\" width_description=\"[7:0]\">Register for storing the second stage of sums.&lt;/reg>\n        &lt;reg id=\"product\" width_description=\"[7:0]\">Register for storing the final product.&lt;/reg>\n    </logic_description>\n    <implementation>\n        // Extend inputs by adding 'size' number of zeros at the MSB positions\n        assign mul_a_ext = {4'd0, mul_a};\n        assign mul_b_ext = {4'd0, mul_b};\n        \n        genvar i;\n        generate\n            for(i = 0; i &lt; size; i=i+1) begin : gen_partial_products\n                always @(posedge clk or negedge rst_n) begin\n                    if(!rst_n) begin\n                        partial_product[i] &lt;= 'd0;\n                    end else begin\n                        if(mul_b_ext[i]) begin\n                            partial_product[i] &lt;= mul_a_ext &lt;&lt; i;\n                        end else begin\n                            partial_product[i] &lt;= 'd0;\n                        end\n                    end\n                end\n            end\n        endgenerate\n        \n        // Add of partial products\n        integer j;\n        always @(posedge clk or negedge rst_n) begin\n            if(!rst_n) begin\n                for(j = 0; j &lt; 2; j=j+1) begin\n                    sum_reg[j] &lt;= 'd0;\n                end\n            end else begin\n                sum_reg[0] &lt;= partial_product[0] + partial_product[1];\n                sum_reg[1] &lt;= partial_product[2] + partial_product[3];\n            end\n        end\n        \n        // Final product calculation\n        always @(posedge clk or negedge rst_n) begin\n            if(!rst_n) begin\n                product &lt;= 'd0;\n            end else begin\n                product &lt;= sum_reg[0] + sum_reg[1];\n            end\n        end\n        \n        // Assign the final product to the output port\n        assign mul_out = product;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSEDPARAM: multi_pipe_4bit.v:3:15: Parameter is not used: 'N'\n                                            : ... note: In instance 'multi_pipe_4bit'\n    3 |     parameter N = 2 * size\n      |               ^\n                      ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.048\n                      ... Use \"/* verilator lint_off UNUSEDPARAM */\" and lint_on around source to disable this message.\n%Warning-UNUSEDSIGNAL: multi_pipe_4bit.v:13:16: Bits of signal are not used: 'mul_b_ext'[7:4]\n                                              : ... note: In instance 'multi_pipe_4bit'\n   13 |     wire [7:0] mul_b_ext = {4'd0, mul_b};\n      |                ^~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.048\n                       ... Use \"/* verilator lint_off UNUSEDSIGNAL */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_multi_pipe_4bit_j3s1u0ta/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_pipe_4bit.cpp Vmulti_pipe_4bit___024root__0.cpp Vmulti_pipe_4bit__Trace__0.cpp Vmulti_pipe_4bit___024root__Slow.cpp Vmulti_pipe_4bit___024root__0__Slow.cpp Vmulti_pipe_4bit__Syms__Slow.cpp Vmulti_pipe_4bit__Trace__0__Slow.cpp Vmulti_pipe_4bit__TraceDecls__0__Slow.cpp > Vmulti_pipe_4bit__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vmulti_pipe_4bit__ALL.o Vmulti_pipe_4bit__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vmulti_pipe_4bit__ALL.a    -pthread -lpthread -latomic   -o Vmulti_pipe_4bit\nrm Vmulti_pipe_4bit__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_multi_pipe_4bit_j3s1u0ta/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.053 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 1.469 s (elab=0.001, cvt=0.004, bld=1.459); cpu 0.010 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 124.83,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 56,
+          "elapsed_s": 29.37
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 47,
+          "elapsed_s": 20.52
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 49,
+          "elapsed_s": 21.92
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 26.59
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 45,
+          "elapsed_s": 26.42
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

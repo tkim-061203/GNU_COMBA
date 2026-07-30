@@ -1,0 +1,147 @@
+<modules>
+<module id="asyn_fifo">
+    <description>Implement an asynchronous FIFO, FIFO bit width and depth can be configured(parameter DEPTH = 16, parameter WIDTH = 8). The asynchronous FIFO structure is divided into several parts. The first part is dual-port RAM, which is used for data storage. Instantiate dual-port RAM as a submodule, The RAM ports are input wclk, input wenc, input [$clog2(DEPTH)-1:0] waddr, input [WIDTH-1:0] wdata, input rclk, input renc, input [$clog2(DEPTH)-1:0] raddr, output reg [WIDTH-1:0] rdata. The second part is the data write controller. The third part is the data read controller. The fourth part is the read pointer synchronizer. The read pointer is collected using the two-stage trigger of the write clock and output to the data write controller. The fifth part is the write pointer synchronizer, which uses the two-stage trigger of the read clock to collect the write pointer and output it to the data read controller.
+The method of empty and full judgment is to generate empty and full signals by comparing the Gray code. Use 4-bit Gray code as a read/write pointer for a FIFO with depth 8. The gray code is converted to a four-digit binary number, using the lower three digits of the binary number as the address to access RAM. When the read and write Pointers are equal, the FIFO is null.
+When the write pointer has one more cycle RAM than the read pointer, the highest and second-highest bits of the read and write pointer are opposite, the remaining bits are the same, and the FIFO is full.
+</description>
+    <ports>
+        <input id="wclk">Write clock signal used for synchronous write operations.</input>
+        <input id="rclk">Read clock signal used for synchronous read operations.</input>
+        <input id="wrstn">Write reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>
+        <input id="rrstn">Read reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>
+        <input id="winc">Write increment signal. Used to trigger write operations.</input>
+        <input id="rinc">Read increment signal. Used to trigger read operations.</input>
+        <input id="wdata">Write data input. The width [WIDTH-1:0] is configurable and represents the data to be written into the FIFO.</input>
+        <output id="wfull">Write full signal. Indicates if the FIFO is full and cannot accept further write operations.</output>
+        <output id="rempty">Read empty signal. Indicates if the FIFO is empty and cannot provide any data for read operations.</output>
+        <output id="rdata">Read data output. The width [WIDTH-1:0] is configurable and represents the data read from the FIFO.</output>
+    </ports>
+    <parameter_description>
+        <parameter id="WIDTH" value="8"/>
+        <parameter id="DEPTH" value="16"/>
+        <parameter id="ADDR_WIDTH" value="$clog2(DEPTH)">Internal parameter.</parameter>
+    </parameter_description>
+    <logic_description>
+        <description>
+            Notice that below descriptions are along with tags <![CDATA[ <logic />]]>.
+            With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+            With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+            With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+            With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+        </description>
+        <logic type="combinational_logic_operation" id="neg_2_MSB_rptr_syn">
+        The negation of the last 2 most significant bits of the <![CDATA[ <logic refid="rptr_syn" />]]>.
+        </logic>
+        <logic type="combinational_logic_operation" id="rptr_syn_no_2_MSB">
+        The <![CDATA[ <logic refid="rptr_syn" />]]> without the last 2 most significant bits.
+        </logic>
+        <logic type="combinational_logic_operation" id="rptr_syn_no_2_MSB">
+        The concatenation vector of <![CDATA[ <logic refid="neg_2_MSB_rptr_syn" />]]> and <![CDATA[ <logic refid="rptr_syn_no_2_MSB" />]]>.
+        </logic>
+        <logic type="sequential_logic" id="raddr_bin">
+        executes when positive edge of `rclk` or negative edge of `rrstn`. `raddr_bin` size is (`ADDR_WIDTH` + 1) bits. If `rrstn` is deactive, `raddr_bin` is all zero. Otherwise, `raddr_bin` is incremented by 1 if `rempty` is deactive and `rinc` is active.
+        </logic>
+        <logic type="combinational_logic" id="raddr_gray">
+        raddr_gray is XOR operation between `raddr_bin` and shift-left-1 operation of `raddr_bin.`
+        </logic>
+        <logic type="sequential_logic" id="rptr">
+        executes when positive edge of `rclk` or negative edge of `rrstn`. <![CDATA[ <logic refid="rptr" />]]> size is (`ADDR_WIDTH` + 1) bits. If `wrstn` is deactive, <![CDATA[ <logic refid="rptr" />]]> is all zero. Otherwise, <![CDATA[ <logic refid="rptr" />]]> is `raddr_gray`.
+        </logic>
+        <logic type="sequential_logic" id="rptr_buff">
+        executes when positive edge of `wclk` or negative edge of `wrstn`. `rptr_buff` size is (`ADDR_WIDTH` + 1) bits. If `wrstn` is deactive, `rptr_buff` is all zero. Otherwise, `rptr_buff` is set to <![CDATA[ <logic refid="rptr" />]]>.
+        </logic>
+        <logic type="sequential_logic" id="rptr_syn">
+        executes when positive edge of `wclk` or negative edge of `wrstn`. `rptr_syn` size is (`ADDR_WIDTH` + 1) bits. If `wrstn` is deactive, `rptr_syn` is all zero. Otherwise, `rptr_syn` is set to `rptr_buff`.
+        </logic>
+        <logic type="combinational_logic" id="ren">
+        Internal read enable logic. `ren` is active if `rinc` is active and `rempty` is deactive.
+        </logic>
+        <logic type="sequential_logic" id="waddr_bin">
+        executes when positive edge of `wclk` or negative edge of `wrstn`. `waddr_bin` size is (`ADDR_WIDTH` + 1) bits. If `wrstn` is deactive, `waddr_bin` is all zero. Otherwise, `waddr_bin` is incremented by 1 if `wfull` is deactive and `winc` is active.
+        </logic>
+        <logic type="combinational_logic" id="waddr_gray">
+        waddr_gray is XOR operation between `waddr_bin` and shift-left-1 operation of `waddr_bin.`
+        </logic>
+        <logic type="sequential_logic" id="wptr">
+        executes when positive edge of `wclk` or negative edge of `wrstn`. <![CDATA[ <logic refid="wptr" />]]> size is (`ADDR_WIDTH` + 1) bits. If `wrstn` is deactive, <![CDATA[ <logic refid="wptr" />]]> is all zero. Otherwise, <![CDATA[ <logic refid="wptr" />]]> is `waddr_gray`.
+        </logic>
+        <logic type="combinational_logic" id="wfull">
+        The <![CDATA[ <logic refid="wfull" />]]> output is set to 1 whether the (ADDR_WIDTH + 1)-bit <![CDATA[ <logic refid="wptr" />]]> is equal to the <![CDATA[ <logic refid="rptr_syn_no_2_MSB" />]]>.
+        </logic>
+        <logic type="sequential_logic" id="wptr_buff">
+        executes when positive edge of `rclk` or negative edge of `rrstn`. `wptr_buff` size is (`ADDR_WIDTH` + 1) bits. If `rrstn` is deactive, `wptr_buff` is all zero. Otherwise, `wptr_buff` is set to <![CDATA[ <logic refid="wptr" />]]>.
+        </logic>
+        <logic type="sequential_logic" id="wptr_syn">
+        executes when positive edge of `rclk` or negative edge of `rrstn`. `wptr_syn` size is (`ADDR_WIDTH` + 1) bits. If `rrstn` is deactive, `wptr_syn` is all zero. Otherwise, `wptr_syn` is set to `wptr_buff`.
+        </logic>
+        <logic type="combinational_logic" id="wen">
+        Internal write enable logic. `wen` is active if `winc` is active and `wfull` is deactive.
+        </logic>
+        <logic type="combinational_logic" id="rempty">
+        The output <![CDATA[ <logic refid="rempty" />]]> is active if <![CDATA[ <logic refid="rptr" />]]> is equaled to <![CDATA[ <logic refid="wptr_syn" />]]>.
+        </logic>
+    </logic_description>
+    <implementation>The module implements an asynchronous FIFO using a dual-port RAM module and additional logic for managing read and write pointers.
+Dual-port RAM:
+The module instantiates a dual-port RAM module, <![CDATA[ <module refid="dual_port_RAM"/>]]>, with configurable depth and width.  
+The following logics from the top module `asyn_fifo` are used to instantiates the <![CDATA[ <module refid="dual_port_RAM"/>]]>:
+- <![CDATA[ <input refid="wclk"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <input refid="wclk"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+- <![CDATA[ <input refid="wenc"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <logic refid="wen"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+- <![CDATA[ <input refid="waddr"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <logic refid="waddr"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+- <![CDATA[ <input refid="wdata"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <input refid="wdata"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+- <![CDATA[ <input refid="rclk"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <input refid="rclk"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+- <![CDATA[ <input refid="renc"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <logic refid="ren"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+- <![CDATA[ <logic refid="raddr"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <input refid="raddr"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+- <![CDATA[ <output refid="rdata"/>]]> of <![CDATA[ <module refid="dual_port_RAM"/>]]> is mapped to <![CDATA[ <output refid="rdata"/>]]> of <![CDATA[ <module refid="asyn_fifo"/>]]>.
+
+Write and Read Pointers:
+The module includes logic to manage write and read pointers for asynchronous operation.
+The write and read pointers are represented by binary registers, `waddr_bin` and `raddr_bin`, respectively.
+The `waddr_bin` and `raddr_bin` pointers are incremented based on the write and read increment signals (winc and rinc), respectively.
+The write pointer `waddr_bin` is incremented on the positive edge of the write clock (posedge wclk) and reset to 0 on write reset (~wrstn).
+The read pointer `raddr_bin` is incremented on the positive edge of the read clock (posedge rclk) and reset to 0 on read reset (~rrstn).
+Gray Code Conversion:
+The write and read pointers are converted to Gray code using XOR operations with right-shifted values.
+The converted write and read pointers are stored in registers <![CDATA[ <logic refid="wptr" />]]> and <![CDATA[ <logic refid="rptr" />]]>, respectively.
+The Gray code conversion reduces glitches and ensures proper synchronization of the write and read pointers.
+Pointer Buffers:
+The module includes buffer registers (wptr_buff and rptr_buff) to hold the previous values of the write and read pointers.
+The buffer registers are updated on the positive edge of the respective clocks and reset to 0 on the respective resets (~wrstn and ~rrstn).
+The buffer registers are used to synchronize the write and read pointers for determining the full and empty conditions.
+Full `wfull` and Empty `rempty` Signals:
+The module compares the current write and read pointers (wptr and rptr_syn) to determine if the FIFO is full or empty.
+The <![CDATA[ <logic refid="rempty" />]]> output is set to 1 when the read pointer <![CDATA[ <logic refid="rptr" />]]> is equal to the write pointer <![CDATA[ <logic refid="wptr_syn" />]]>.
+Input and Output Connections:
+The module connects the input and output signals to the dual-port RAM module based on the control signals and pointer values.
+The `wen` and `ren` signals control the write and read enable signals of the RAM module, respectively.
+The `wdata` input is connected to the write data input (wdata) of the RAM module.
+The `rdata` output is connected to the read data output (rdata) of the RAM module.
+
+Please provide correct `Logic description` fields above to achieve correctness for `asyn_fifo` design in both sequential and combinational logics.
+</implementation>
+</module>
+<module id="dual_port_RAM">
+    <description>A dual-port RAM module</description>
+    <ports>
+        <input id="wclk">Write clock signal used for synchronous write operations.</input>
+        <input id="wenc">1-bit Write-enable signal</input>
+        <input id="waddr">`$clog2(DEPTH)` bits for Write address</input>
+        <input id="wdata">Write data input. The width [WIDTH-1:0] is configurable and represents the data to be written into the FIFO.</input>
+        <input id="rclk">Read clock signal used for synchronous read operations.</input>
+        <input id="renc">Read-enable signal</input>
+        <input id="raddr">`$clog2(DEPTH)` bits for Read address</input>
+        <output id="rdata">Read data output. The width [WIDTH-1:0] is configurable and represents the data read from the <![CDATA[ <module refid="dual_port_RAM"/>]]>.</output>
+    </ports>
+    <parameter_description>
+        <parameter id="WIDTH" value="8"/>
+        <parameter id="DEPTH" value="16"/>
+    </parameter_description>
+    <implementation>
+    The RAM module has separate clock inputs for write (wclk) and read (rclk) operations.
+The RAM module has separate address inputs for write (waddr) and read (raddr) operations.
+The RAM module has a write enable input (wenc) and a write data input (wdata).
+The RAM module has a read enable input (renc) and a read data output (rdata).
+The RAM module stores data in a two-dimensional array, RAM_MEM, with a size of DEPTH by WIDTH.
+    </implementation>
+</module>
+</modules>

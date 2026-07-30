@@ -1,0 +1,160 @@
+{
+  "module_name": "freq_divbyeven",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_divbyeven",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module freq_diveven(\n    input clk, rst_n\n);\n// TODO: Please add your logic design here\n    \nendmodule\n",
+    "xml_description": "<module id=\"freq_diveven\">\n    <description>A frequency divider that divides the input clock frequency by even numbers.</description>\n    <ports>\n        <input id=\"clk\">The input clock signal to be divided.</input>\n        <input id=\"rst_n\">An active-low reset signal for initializing the module.</input>\n        <output id=\"clk_div\">The divided clock output signal.</output>\n    </ports>\n    <parameter_description>\n        &lt;param id=\"NUM_DIV\">The division factor, which must be an even number.&lt;/param>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;reg id=\"cnt\" width_description=\"[3:0]\">A 4-bit register to keep track of the current count value.&lt;/reg>\n        &lt;reg id=\"clk_div\">The divided clock output signal.&lt;/reg>\n    </logic_description>\n    <implementation>\n        // Initialize cnt and clk_div to 0 when rst_n is low\n        if (~rst_n) begin\n            cnt &lt;= 4'd0;\n            clk_div &lt;= 1'b0;\n        end else begin\n            // Increment cnt when clk rises and cnt is less than NUM_DIV/2 - 1\n            if (clk &amp;&amp; cnt &lt; (NUM_DIV >> 1) - 1) begin\n                cnt &lt;= cnt + 1;\n            end else begin\n                // Reset cnt to 0 and toggle clk_div when cnt reaches NUM_DIV/2 - 1\n                cnt &lt;= 4'd0;\n                clk_div &lt;= ~clk_div;\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:52:2: Missing newline at end of file (POSIX 3.206).\n                                     : ... Suggest add newline.\n   52 |  \n      |  ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module freq_diveven(\n      |        ^~~~~~~~~~~~\n                       testbench.v:2:8: ... Location of module with timescale\n    2 | module testb_div_even;\n      |        ^~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-MODMISSING: testbench.v:10:5: Cannot find file containing module: 'freq_divbyeven'\n   10 |     freq_divbyeven uut (\n      |     ^~~~~~~~~~~~~~\n                   ... For error description see https://verilator.org/warn/MODMISSING?v=5.048\n                   ... This may be because there's no search path specified with -I<dir>.\n                   ... Looked in:\n                        freq_divbyeven\n                        freq_divbyeven.v\n                        freq_divbyeven.sv\n                        obj_dir/freq_divbyeven\n                        obj_dir/freq_divbyeven.v\n                        obj_dir/freq_divbyeven.sv\n                   ... With current working directory '/tmp/comba_freq_divbyeven_cgvspowt'\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 127.04,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 26,
+          "elapsed_s": 11.76
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 26,
+          "elapsed_s": 11.69
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 27,
+          "elapsed_s": 7.23
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 26,
+          "elapsed_s": 10.85
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 6,
+          "elapsed_s": 16.7
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 26,
+          "elapsed_s": 16.3
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 34,
+          "elapsed_s": 14.88
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 31,
+          "elapsed_s": 8.96
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 33,
+          "elapsed_s": 14.67
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 22,
+          "elapsed_s": 14.0
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

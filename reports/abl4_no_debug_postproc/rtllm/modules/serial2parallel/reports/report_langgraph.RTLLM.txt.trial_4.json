@@ -1,0 +1,64 @@
+{
+  "module_name": "serial2parallel",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "serial2parallel",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module serial2parallel (\n    input clk, \n    input rst_n, \n    input din_serial, \n    input din_valid, \n    output reg [7:0] dout_parallel, \n    output reg dout_valid\n);\n// Internal signals\nreg [3:0] cnt;\n// Sequential logic\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        cnt <= 4'd0;\n        dout_parallel <= 8'd0;\n        dout_valid <= 1'b0;\n    end else begin\n        case ({din_valid, cnt})\n            {1'b1, 4'd0}: begin\n                dout_parallel[7] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            {1'b1, 4'd1}: begin\n                dout_parallel[6] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            {1'b1, 4'd2}: begin\n                dout_parallel[5] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            {1'b1, 4'd3}: begin\n                dout_parallel[4] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            {1'b1, 4'd4}: begin\n                dout_parallel[3] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            {1'b1, 4'd5}: begin\n                dout_parallel[2] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            {1'b1, 4'd6}: begin\n                dout_parallel[1] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            {1'b1, 4'd7}: begin\n                dout_parallel[0] <= din_serial;\n                cnt <= cnt + 1;\n            end\n            default: begin\n                cnt <= 4'd0;\n                dout_valid <= 1'b0;\n            end\n        endcase\n        \n        // Set dout_valid to 1 when cnt reaches 8\n        if (cnt == 4'd8) begin\n            dout_valid <= 1'b1;\n        end else begin\n            dout_valid <= 1'b0;\n        end\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"serial2parallel\">\n    <description>Serial-to-Parallel Conversion Circuit</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Idle state.</parameter>\n        <parameter id=\"RECEIVE\">Receiving state.</parameter>\n        <parameter id=\"OUTPUT\">Outputting state.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"cnt\" width_description=\"[3:0]\">Counter to keep track of the number of received serial input data bits.&lt;/reg>\n        &lt;reg id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data register.&lt;/reg>\n        &lt;reg id=\"dout_valid\">Valid output signal register.&lt;/reg>\n        \n        // Sequential logic block triggered on the positive edge of clk\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt &lt;= 4'd0;\n                dout_parallel &lt;= 8'd0;\n                dout_valid &lt;= 1'b0;\n            end else begin\n                case ({din_valid, cnt})\n                    {1'b1, 4'd0}: begin\n                        dout_parallel[7] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    {1'b1, 4'd1}: begin\n                        dout_parallel[6] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    {1'b1, 4'd2}: begin\n                        dout_parallel[5] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    {1'b1, 4'd3}: begin\n                        dout_parallel[4] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    {1'b1, 4'd4}: begin\n                        dout_parallel[3] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    {1'b1, 4'd5}: begin\n                        dout_parallel[2] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    {1'b1, 4'd6}: begin\n                        dout_parallel[1] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    {1'b1, 4'd7}: begin\n                        dout_parallel[0] &lt;= din_serial;\n                        cnt &lt;= cnt + 1;\n                    end\n                    default: begin\n                        cnt &lt;= 4'd0;\n                        dout_valid &lt;= 1'b0;\n                    end\n                endcase\n                \n                // Set dout_valid to 1 when cnt reaches 8\n                if (cnt == 4'd8) begin\n                    dout_valid &lt;= 1'b1;\n                end else begin\n                    dout_valid &lt;= 1'b0;\n                end\n            end\n        end\n    </logic_description>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_serial2parallel_a3zt_m_i/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel___024root__0.cpp Vserial2parallel__Trace__0.cpp Vserial2parallel___024root__Slow.cpp Vserial2parallel___024root__0__Slow.cpp Vserial2parallel__Syms__Slow.cpp Vserial2parallel__Trace__0__Slow.cpp Vserial2parallel__TraceDecls__0__Slow.cpp > Vserial2parallel__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vserial2parallel__ALL.a    -pthread -lpthread -latomic   -o Vserial2parallel\nrm Vserial2parallel__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_serial2parallel_a3zt_m_i/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.037 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.345 s (elab=0.000, cvt=0.004, bld=0.336); cpu 0.009 s on 0 threads; allocated 30.539 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 2,
+      "max_samples": 10,
+      "best_sample_idx": 1,
+      "best_temperature": 0.1,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 71.02,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 25.14
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 65,
+          "elapsed_s": 45.88
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

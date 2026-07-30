@@ -6,60 +6,62 @@
     "module_name": "radix2_div",
     "description_type": "txt",
     "final_status": "fail_ts",
-    "sc_trial": 6,
-    "ts_trial": 6,
-    "total_iter": 12,
-    "gvd": "module radix2_div (\n    input wire clk,\n    input wire rst,\n    input wire [7:0] dividend,\n    input wire [7:0] divisor,\n    input wire sign,\n    input wire opn_valid,\n    output reg res_valid,\n    input wire res_ready,\n    output wire [15:0] result\n);\n\nreg [7:0] dividend_reg;\nreg [7:0] divisor_reg;\nreg [15:0] result_reg;\nreg [3:0] cnt;\nreg [3:0] start_cnt;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        dividend_reg <= 8'b0;\n        divisor_reg <= 8'b0;\n        result_reg <= 16'b0;\n        cnt <= 4'b0;\n        start_cnt <= 4'b0;\n        res_valid <= 1'b0;\n    end else if (opn_valid && !res_valid) begin\n        dividend_reg <= dividend;\n        divisor_reg <= divisor;\n        result_reg <= {dividend, 8'b0};\n        cnt <= 4'b1;\n        start_cnt <= 4'b1;\n        res_valid <= 1'b1;\n    end else if (start_cnt) begin\n        if (cnt == 4'd8) begin\n            cnt <= 4'b0;\n            start_cnt <= 4'b0;\n            result_reg <= {result_reg[7:0], result_reg[15:8]};\n        end else begin\n            result_reg <= {result_reg[7:0] - divisor_reg, result_reg[15:8]};\n            cnt <= cnt + 1;\n        end\n    end\nend\n\nassign result = result_reg;\n\nendmodule\n",
-    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "sc_trial": 14,
+    "ts_trial": 10,
+    "total_iter": 24,
+    "gvd": "module radix2_div (\n    input wire clk,\n    input wire rst,\n    input wire [7:0] dividend,\n    input wire [7:0] divisor,\n    input wire sign,\n    input wire opn_valid,\n    output reg res_valid,\n    input wire res_ready,\n    output reg [15:0] result\n);\n\n    reg [7:0] abs_dividend;\n    reg [7:0] abs_divisor;\n    reg [7:0] sr;\n    reg [3:0] cnt;\n    reg [3:0] start_cnt;\n    reg [7:0] neg_divisor;\n    reg [7:0] temp;\n\n    always @(posedge clk or posedge rst) begin\n        if (rst) begin\n            res_valid <= 0;\n            sr <= 0;\n            cnt <= 0;\n            start_cnt <= 0;\n            neg_divisor <= 0;\n            result <= 0;\n        end else begin\n            if (opn_valid && !res_valid) begin\n                abs_dividend <= (sign && dividend[7]) ? ~dividend + 1 : dividend;\n                abs_divisor <= (sign && divisor[7]) ? ~divisor + 1 : divisor;\n                sr <= {abs_dividend, 1'b0};\n                neg_divisor <= ~abs_divisor + 1;\n                cnt <= 4'd0;\n                start_cnt <= 4'd1;\n                res_valid <= 0;\n            end else if (start_cnt) begin\n                if (cnt == 4'd8) begin\n                    cnt <= 4'd0;\n                    start_cnt <= 4'd0;\n                    result <= {sr[7:0], sr[15:8]};\n                end else begin\n                    cnt <= cnt + 4'd1;\n                    temp <= sr - neg_divisor;\n                    if (temp[8]) begin\n                        sr <= {temp[7:0], 1'b0};\n                    end else begin\n                        sr <= {temp[7:0], 1'b1};\n                    end\n                end\n            end\n        end\n    end\n\nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n    <description>Implement a simplified radix-2 divider on 8-bit signed or unsigned integers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst\">The reset signal to initialize or reset the module.</input>\n        <input id=\"sign\">1-bit indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">8-bit input signal representing the dividend for division.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">8-bit input signal representing the divisor for division.</input>\n        <input id=\"opn_valid\">1-bit indicates that a valid operation request is present.</input>\n        <output id=\"res_valid\">1-bit output signal indicating the result is valid and ready.</output>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit the output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"DIV_WIDTH\">8</parameter>\n        <parameter id=\"RES_WIDTH\">16</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"SR\" width=\"9\">Shift Register.&lt;/reg>\n        &lt;reg id=\"NEG_DIVISOR\" width=\"9\">Negated Divisor.&lt;/reg>\n        &lt;reg id=\"cnt\" width=\"4\">Counter.&lt;/reg>\n        &lt;reg id=\"start_cnt\" width=\"1\">Start Counter Flag.&lt;/reg>\n        &lt;reg id=\"quotient\" width=\"8\">Quotient.&lt;/reg>\n        &lt;reg id=\"remainder\" width=\"8\">Remainder.&lt;/reg>\n        &lt;wire id=\"sub_result\" width=\"9\">Subtraction Result.&lt;/wire>\n        &lt;wire id=\"carry_out\" width=\"1\">Carry-Out.&lt;/wire>\n    </logic_description>\n    <implementation>\n        always @(posedge clk or posedge rst) begin\n            if (rst) begin\n                SR &lt;= {1'b0, dividend};\n                NEG_DIVISOR &lt;= {1'b0, ~divisor + 1};\n                cnt &lt;= 4'd0;\n                start_cnt &lt;= 1'b0;\n                quotient &lt;= 8'd0;\n                remainder &lt;= 8'd0;\n                res_valid &lt;= 1'b0;\n            end else begin\n                if (opn_valid &amp;&amp; !res_valid) begin\n                    SR &lt;= {1'b0, dividend};\n                    NEG_DIVISOR &lt;= {1'b0, ~divisor + 1};\n                    cnt &lt;= 4'd1;\n                    start_cnt &lt;= 1'b1;\n                end\n\n                if (start_cnt) begin\n                    if (cnt == 4'd8) begin\n                        quotient &lt;= SR[7:0];\n                        remainder &lt;= SR[15:8];\n                        cnt &lt;= 4'd0;\n                        start_cnt &lt;= 1'b0;\n                        res_valid &lt;= 1'b1;\n                    end else begin\n                        sub_result &lt;= SR - NEG_DIVISOR;\n                        carry_out &lt;= sub_result[8];\n                        SR &lt;= {carry_out, sub_result[7:0]};\n                        cnt &lt;= cnt + 1;\n                    end\n                end\n\n                if (res_valid) begin\n                    res_valid &lt;= 1'b0;\n                end\n            end\n        end\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nError: dividend=100, divisor= 10, expected=000a, got=f664\nError: dividend=156, divisor= 10, expected=00f6, got=50ec\nError: dividend=100, divisor=246, expected=00f6, got=d846\nError: dividend=156, divisor=246, expected=000a, got=46d8\nError: dividend=123, divisor=123, expected=0001, got=46d8\nError: dividend=  0, divisor=123, expected=0000, got=46d8\nError: dividend=123, divisor=251, expected=7b00, got=46d8\nError: dividend=255, divisor=  7, expected=0324, got=46d8\n===========Failed===========          8\ntestbench.v:93: $finish called at 260000 (1ps)\n",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div (\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-SELRANGE: TopModule.sv:42:43: Selection index out of range: 15:8 outside 7:0\n                                     : ... note: In instance 'radix2_div_tb.uut'\n   42 |                     result <= {sr[7:0], sr[15:8]};\n      |                                           ^\n                   ... For warning description see https://verilator.org/warn/SELRANGE?v=5.048\n                   ... Use \"/* verilator lint_off SELRANGE */\" and lint_on around source to disable this message.\n%Warning-SELRANGE: TopModule.sv:46:29: Selection index out of range: 8:8 outside 7:0\n                                     : ... note: In instance 'radix2_div_tb.uut'\n   46 |                     if (temp[8]) begin\n      |                             ^\nmake[1]: Entering directory '/tmp/comba_radix2_div_tm0xlrsr/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vradix2_div_tb.cpp Vradix2_div_tb___024root__0.cpp Vradix2_div_tb__main.cpp Vradix2_div_tb___024root__Slow.cpp Vradix2_div_tb___024root__0__Slow.cpp Vradix2_div_tb__Syms__Slow.cpp > Vradix2_div_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vradix2_div_tb__ALL.o Vradix2_div_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vradix2_div_tb__ALL.a    -pthread -lpthread -latomic   -o Vradix2_div_tb\nrm Vradix2_div_tb__ALL.verilator_deplist.tmp\nmake[1]: Leaving directory '/tmp/comba_radix2_div_tm0xlrsr/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.048 MB sources in 3 modules, into 0.052 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.292 s (elab=0.001, cvt=0.006, bld=0.280); cpu 0.013 s on 1 threads; allocated 30.539 MB\n\n[RUN]\n===========Error: testbench timeout waiting for res_valid===========\n- testbench.v:93: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 20us; walltime 0.001 s; speed 13.522 ms/s\n- Verilator: cpu 0.001 s on 1 threads; allocated 6 MB\n",
     "error": null,
     "edtm": {
-      "TB:fsm_state_error::0::": 6
+      "TopModule.sv:N: error: Concatenation operand \"(~(divisor))+('sd1)\" has indefinite width.": 4,
+      "TB:timeout::0::": 5,
+      "TB:fsm_state_error::0::": 5
     },
-    "failure_type": "fsm_state_error",
-    "vcd_status": "ok",
+    "failure_type": "timeout",
+    "vcd_status": "",
     "self_consistency": {
       "samples_run": 2,
-      "max_samples": 5,
+      "max_samples": 10,
       "best_sample_idx": 0,
       "best_temperature": 0.0,
       "best_status": "fail_ts",
       "early_exit": false,
       "vote_enabled": false,
-      "total_elapsed_s": 2027.82,
+      "total_elapsed_s": 1317.46,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "sc_trial": 14,
+          "ts_trial": 10,
+          "iter": 24,
           "sc_err": 0,
-          "tb_err": 8,
-          "gvd_lines": 48,
-          "elapsed_s": 50.43
+          "tb_err": 0,
+          "gvd_lines": 56,
+          "elapsed_s": 666.6
         },
         {
           "idx": 1,
           "T": 0.1,
           "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "sc_trial": 14,
+          "ts_trial": 10,
+          "iter": 24,
           "sc_err": 0,
-          "tb_err": 8,
-          "gvd_lines": 49,
-          "elapsed_s": 1977.39
+          "tb_err": 7,
+          "gvd_lines": 60,
+          "elapsed_s": 650.86
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 0,
-      "commits": 10,
+      "rollbacks": 1,
+      "commits": 22,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": 4,
       "final_sc": 0
     }
   }

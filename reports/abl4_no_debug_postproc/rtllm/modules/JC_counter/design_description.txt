@@ -1,0 +1,28 @@
+Please act as a professional verilog designer.
+
+Implement a 64-bit Johnson counter (torsional ring counter), and the state of the similar 4-bit Johnson counter example is as follows: 0000, 1000, 1100, 1110, 1111, 0111, 0011, 0001, 0000.
+
+Module name:
+    JC_counter
+Input ports:
+    clk: Clock signal used for synchronous operation.
+    rst_n: Active-low reset signal to initialize the counter.
+Output ports:
+    Q: 64-bit register representing the current count value.
+
+Logic description:
+Notice that below descriptions are along with keywords`sequencial` and `combinational`.
+With a `combinational` logic, must construct this logic as interal wire declaration. Or this `combinational` logic can be declared as a `reg` but only be used in always(*) block.
+With a `sequencial` logic, must construct this logic as `reg` declaration. Must update this logic, in an always block,  based on other `combinational` or `sequencial` logic states.
+With a `sequencial logic operation`, don't declare this keyword as wire/reg in verilog code. Just place this sequencial operation in an appropriate `always` block.
+With a `combinational logic operation`, don't declare this keyword as wire/reg in verilog code. Just based on the keyword `assign` to construct description of this combinational logic operation.
+- Q_right_increament_shifting: sequencial logic operation. The current `Q` is a concatenation of 1-bit 1 and 63 bits [63:1] of `Q`.
+- Q_right_decreament_shifting: sequencial logic operation. The current `Q` is a concatenation of 1-bit 0 and 63 bits [63:1] of `Q`.
+
+Implementation:
+On every rising edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the counter value is updated.
+If the reset signal (rst_n) is low, indicating a reset condition, the counter value (Q) is set to 0.
+Otherwise, if the least significant bit (Q[0]) is 0, the counter increments by shifting the current value `Q` based on `Q_right_increament_shifting`.
+If the least significant bit (Q[0]) is 1, the counter decrements by shifting the current value based on `Q_right_decreament_shifting`.
+
+Give me the complete code.

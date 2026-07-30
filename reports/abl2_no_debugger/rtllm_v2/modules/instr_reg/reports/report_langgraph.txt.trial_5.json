@@ -1,0 +1,52 @@
+{
+  "module_name": "instr_reg",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "instr_reg",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module instr_reg (\n    input clk,\n    input rst,\n    input [1:0] fetch,\n    input [7:0] data,\n    output [2:0] ins,\n    output [4:0] ad1,\n    output [7:0] ad2\n);\n    reg [7:0] ins_p1, ins_p2;\n    \n    always@(posedge clk or negedge rst) begin\n        if(!rst) begin\n            ins_p1 <= 8'b0;\n            ins_p2 <= 8'b0;\n        end\n        else begin\n            case(fetch)\n                2'b01: ins_p1 <= data;\n                2'b10: ins_p2 <= data;\n                default: begin\n                    ins_p1 <= ins_p1;\n                    ins_p2 <= ins_p2;\n                end\n            endcase\n        end\n    end\n    \n    assign ins = ins_p1[7:5];\n    assign ad1 = ins_p1[4:0];\n    assign ad2 = ins_p2;\nendmodule\n",
+    "xml_description": "<module id=\"instr_reg\">\n    <description>An instruction register module designed to hold and process CPU instructions. It captures incoming instructions from various sources and separates them into distinct fields for further processing.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronization.</input>\n        <input id=\"rst\">Active low reset signal to initialize the register.</input>\n        <input id=\"fetch\" width_description=\"[1:0]\">Control signal indicating the source of the instruction (1 for register, 2 for RAM/ROM).</input>\n        <input id=\"data\" width_description=\"[7:0]\">8-bit data input representing the instruction to be fetched.</input>\n        <output id=\"ins\" width_description=\"[2:0]\">High 3 bits of the instruction, indicating the opcode or operation.</output>\n        <output id=\"ad1\" width_description=\"[4:0]\">Low 5 bits of the instruction, representing the register address.</output>\n        <output id=\"ad2\" width_description=\"[7:0]\">The full 8-bit data from the second source.</output>\n    </ports>\n    <implementation>Instruction register holds and processes CPU instructions. It captures incoming instructions from various sources and separates them into distinct fields for further processing.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:83:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   83 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module instr_reg (\n      |        ^~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module instr_reg_tb;\n      |        ^~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_instr_reg_4y9cern3/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vinstr_reg_tb.cpp Vinstr_reg_tb___024root__0.cpp Vinstr_reg_tb__main.cpp Vinstr_reg_tb___024root__Slow.cpp Vinstr_reg_tb___024root__0__Slow.cpp Vinstr_reg_tb__Syms__Slow.cpp > Vinstr_reg_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vinstr_reg_tb__ALL.o Vinstr_reg_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vinstr_reg_tb__ALL.a    -pthread -lpthread -latomic   -o Vinstr_reg_tb\nrm Vinstr_reg_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_instr_reg_4y9cern3/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.045 MB sources in 3 modules, into 0.032 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.319 s (elab=0.001, cvt=0.004, bld=0.310); cpu 0.009 s on 1 threads; allocated 30.547 MB\n\n[RUN]\n=========== Your Design Passed ===========\n- testbench.v:78: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 135ns; walltime 0.000 s; speed 2.725 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 10,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 10.63,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 32,
+          "elapsed_s": 10.63
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

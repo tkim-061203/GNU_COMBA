@@ -1,0 +1,162 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module radix2_div (\n    input wire clk,\n    input wire rst,\n    input wire [7:0] dividend,\n    input wire [7:0] divisor,\n    input wire sign,\n    input wire opn_valid,\n    output reg res_valid,\n    input wire res_ready,\n    output reg [15:0] result\n);\n    reg signed_op;\n    reg [7:0] dividend_save;\n    reg [7:0] divisor_save;\n    reg [9:0] neg_divisor;\n    reg sr_carry_out;\n    reg start_cnt;\n    reg [3:0] cnt;\n    reg res_valid_reg;\n    wire [9:0] sub_res;\n    wire [9:0] mux_out;\n    wire [9:0] sr_right_in;\n    wire [9:0] dividend_left_in;\n    wire [9:0] neg_divisor_left_in;\n    wire [9:0] dividend_sign;\n    wire [9:0] divisor_sign;\n    wire [9:0] shift_sel;\n    wire [9:0] neg_shift_sel;\n    wire [9:0] add_sub_result;\n    wire [9:0] shift_add_sub_sel;\n    wire [9:0] shift_add_sub_out;\n    wire [9:0] final_remainder;\n    wire [9:0] final_quotient;\n    wire [15:0] final_result;\n    wire [15:0] rem_neg_sel;\n    wire [15:0] quo_neg_sel;\n    wire [15:0] remainder;\n    wire [15:0] quotient;\n    wire [15:0] final_res_valid;\n    wire [15:0] res_consumed;\n    \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            signed_op <= 1'b0;\n        end else if((opn_valid == 1'b1)&&(res_valid_reg == 1'b0))begin\n            signed_op <= sign;\n        end\n    end\n    \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            dividend_save <= 8'd0;\n        end else if((opn_valid == 1'b1)&&(res_valid_reg == 1'b0))begin\n            dividend_save <= dividend;\n        end\n    end\n    \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            divisor_save <= 8'd0;\n        end else if((opn_valid == 1'b1)&&(res_valid_reg == 1'b0))begin\n            divisor_save <= divisor;\n        end\n    end\n    \n    assign dividend_left_in = {signed_op ? dividend_save[7] : 1'b0 , dividend_save};\n    \n    assign divisor_sign = {8'd0 , ((signed_op && divisor[7]) ? ~divisor + 1'b1 : divisor)};\n    assign neg_divisor = ~(divisor_sign << 1);\n    assign neg_divisor_left_in = {neg_divisor[8] , neg_divisor};\n    \n    assign dividend_sign = {8'd0 , ((signed_op && dividend[7]) ? ~dividend + 1'b1 : dividend)};\n    assign shift_sel = {dividend_sign[9], dividend_sign} << cnt;\n    assign neg_shift_sel = {neg_divisor_left_in[9], neg_divisor_left_in} << cnt;\n    \n    assign add_sub_result = sr_carry_out ? shift_sel : neg_shift_sel;\n    assign shift_add_sub_sel = sr_carry_out ? 10'd1 : 10'd0;\n    assign shift_add_sub_out = add_sub_result + shift_add_sub_sel;\n    \n    reg [9:0] sr_temp;\n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            sr_temp <= 10'd0;\n        end else if(start_cnt == 1'b1)begin\n            sr_temp <= shift_add_sub_out;\n        end else begin\n            sr_temp <= sr_temp >> 1;\n        end\n    end\n        \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            cnt <= 4'd0;\n        end else if(opn_valid == 1'b1)begin\n            cnt <= 4'd1;\n        end else if((cnt != 4'd0)&&(!res_valid_reg))begin\n            cnt <= cnt + 1'b1;\n        end else begin\n            cnt <= 4'd0;\n        end\n    end\n    \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            start_cnt <= 1'b0;\n        end else if((cnt != 4'd0)&&(!res_valid_reg))begin\n            start_cnt <= 1'b1;\n        end else begin\n            start_cnt <= 1'b0;\n        end\n    end\n    \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            sr_carry_out <= 1'b0;\n        end else if(cnt == 4'd8)begin\n            sr_carry_out <= sr_temp[9];\n        end else if((cnt != 4'd0)&&(!res_valid_reg))begin\n            sr_carry_out <= sr_temp[9];\n        end else begin\n            sr_carry_out <= 1'b0;\n        end\n    end\n    \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n            res_valid_reg <= 1'b0;\n        end else if((cnt == 4'd8)||((cnt != 4'd0)&&(!res_valid_reg)))begin\n            res_valid_reg <= 1'b1;\n        end else begin\n            res_valid_reg <= 1'b0;\n        end\n    end\n    \n    always @(posedge clk or posedge rst) begin\n        if(rst == 1'b1)begin\n        end else if((cnt == 4'd8)||(cnt == 4'd0))begin\n            \n        end\n    end\n\n    assign final_remainder = signed_op ? dividend_sign - (divisor_save * ((dividend[7]^divisor[7])? 1 : 0)) : dividend_sign;\n    assign final_quotient = (signed_op & (dividend[7]^divisor[7])) ? ((~final_result + 1'b1)>>1) : final_result>>1;\n    assign rem_neg_sel = {16{!final_remainder[9]}};\n    assign quo_neg_sel = {16{(final_remainder[9]&final_quotient[9])}};\n    assign remainder = ({16{rem_neg_sel}} | {final_remainder , 8'h0});\n    assign quotient = ({16{quo_neg_sel}} | final_quotient);\n    assign final_result = {remainder , quotient}; \n    \n    assign final_res_valid = (cnt == 4'd8) ? 1'b1 : 1'b0;\n    assign res_consumed = res_valid ? 1'b1 : 1'b0;\n    assign res_valid = (final_res_valid && !res_consumed) ? 1'b1 : 1'b0;\n    assign result = (final_res_valid && !res_consumed) ? final_result : 16'd0;\n    \nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n\t<description>Implements a simple radix-2 divider capable of performing division on either signed or unsigned 8-bit operands. The result includes both the quotient and remainder.</description>\n\t<ports>\n\t\t<input id=\"clk\">The clock signal used for synchronous operation.</input>\n\t\t<input id=\"rst\">Resets the module's state.</input>\n\t\t<input id=\"sign\">A 1-bit signal that indicates if the operation is signed (1) or unsigned (0).</input>\n\t\t<input id=\"dividend\" width_description=\"[7:0]\">An 8-bit input signal representing the dividend for division.</input>\n\t\t<input id=\"divisor\" width_description=\"[7:0]\">An 8-bit input signal representing the divisor for division.</input>\n\t\t<input id=\"opn_valid\">A 1-bit signal that indicates if a valid operation request is present.</input>\n\t\t<output id=\"res_valid\">A 1-bit output signal indicating the result is valid and ready.</output>\n\t\t<output id=\"result\" width_description=\"[15:0]\">The output which contains the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n\tendports\n\t<parameter_description>\n\t\t<parameter name=\"DIVIDE_SIGN\">Signed division operation.</parameter>\n\t\t<parameter name=\"DIVIDE_UNSIGNED\">Unsigned division operation.</parameter>\n\t</parameter_description>\n\t<logic_description>\n\t\t&lt;reg id=\"signed_op\" type=\"sequential_logic\">Indicates if the operation is signed.&lt;/reg>\n\t\t&lt;reg id=\"dividend_save\" type=\"sequential_logic\" width_description=\"[7:0]\">Saved dividend for division operation.&lt;/reg>\n\t\t&lt;reg id=\"divisor_save\" type=\"sequential_logic\" width_description=\"[7:0]\">Saved divisor for division operation.&lt;/reg>\n\t\t&lt;reg id=\"neg_divisor\" type=\"sequential_logic\" width_description=\"[9:0]\">Negative divisor for subtraction during division operation.&lt;/reg>\n\t\t&lt;reg id=\"sr_carry_out\" type=\"sequential_logic\">Carry-out from the subtractor.&lt;/reg>\n\t\t&lt;reg id=\"start_cnt\" type=\"sequential_logic\">Start flag for division operation.&lt;/reg>\n\t\t&lt;reg id=\"cnt\" type=\"sequential_logic\" width_description=\"[3:0]\">Count value for division operation.&lt;/reg>\n\t\t&lt;reg id=\"res_valid_reg\" type=\"sequential_logic\">Register indicating the validity of the result.&lt;/reg>\n\t\t&lt;wire id=\"sub_res\" width_description=\"[9:0]\">Subtraction result from the subtractor.&lt;/wire>\n\t\t&lt;wire id=\"mux_out\" width_description=\"[9:0]\">Multiplexer output for selecting between subtraction result and shifted right operand.&lt;/wire>\n\t\t&lt;wire id=\"sr_right_in\" width_description=\"[9:0]\">Shift register input from the mux.&lt;/wire>\n\t\t&lt;wire id=\"dividend_left_in\" width_description=\"[9:0]\">Left input to the shift register.&lt;/wire>\n\t\t&lt;wire id=\"neg_divisor_left_in\" width_description=\"[9:0]\">Left input to the shift register for negative divisor.&lt;/wire>\n\t\t&lt;wire id=\"dividend_sign\" width_description=\"[9:0]\">Sign extension for positive dividend.&lt;/wire>\n\t\t&lt;wire id=\"divisor_sign\" width_description=\"[9:0]\">Sign extension for positive divisor.&lt;/wire>\n\t\t&lt;wire id=\"shift_sel\" width_description=\"[9:0]\">Selector for shift register input.&lt;/wire>\n\t\t&lt;wire id=\"neg_shift_sel\" width_description=\"[9:0]\">Selector for negative shift register input.&lt;/wire>\n\t\t&lt;wire id=\"add_sub_result\" width_description=\"[9:0]\">Addition/subtraction result for the shift register.&lt;/wire>\n\t\t&lt;wire id=\"shift_add_sub_sel\" width_description=\"[9:0]\">Selector for adding or subtracting in the shift register.&lt;/wire>\n\t\t&lt;wire id=\"shift_add_sub_out\" width_description=\"[9:0]\">Output after adding or subtracting in the shift register.&lt;/wire>\n\t\t&lt;wire id=\"final_remainder\" width_description=\"[9:0]\">Final remainder result.&lt;/wire>\n\t\t&lt;wire id=\"final_quotient\" width_description=\"[9:0]\">Final quotient result.&lt;/wire>\n\t\t&lt;wire id=\"final_result\" width_description=\"[15:0]\">Final result combining remainder and quotient.&lt;/wire>\n\t\t&lt;wire id=\"rem_neg_sel\" width_description=\"[15:0]\">Selector for negative remainder selection.&lt;/wire>\n\t\t&lt;wire id=\"quo_neg_sel\" width_description=\"[15:0]\">Selector for negative quotient selection.&lt;/wire>\n\t\t&lt;wire id=\"remainder\" width_description=\"[15:0]\">Remainder part of the result.&lt;/wire>\n\t\t&lt;wire id=\"quotient\" width_description=\"[15:0]\">Quotient part of the result.&lt;/wire>\n\t\t&lt;wire id=\"final_res_valid\" width_description=\"[15:0]\">Final result validity.&lt;/wire>\n\t\t&lt;wire id=\"res_consumed\" width_description=\"[15:0]\">Indicator if the result has been consumed.&lt;/wire>\n\t</logic_description>\n\t\n\t<implementation>\n\t\tSYNTHESIS OFF\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tsigned_op &lt;= 1'b0;\n\t\t\tend else if((opn_valid == 1'b1)&amp;&amp;(res_valid_reg == 1'b0))begin\n\t\t\t\tsigned_op &lt;= sign;\n\t\t\tend\n\t\tend\n\t\t\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tdividend_save &lt;= 8'd0;\n\t\t\tend else if((opn_valid == 1'b1)&amp;&amp;(res_valid_reg == 1'b0))begin\n\t\t\t\tdividend_save &lt;= dividend;\n\t\t\tend\n\t\tend\n\t\t\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tdivisor_save &lt;= 8'd0;\n\t\t\tend else if((opn_valid == 1'b1)&amp;&amp;(res_valid_reg == 1'b0))begin\n\t\t\t\tdivisor_save &lt;= divisor;\n\t\t\tend\n\t\tend\n\t\n\t\tassign dividend_left_in = {signed_op ? dividend_save[7] : 1'b0 , dividend_save};\n\t\t\n\t\tassign divisor_sign = {8'd0 , ((signed_op &amp;&amp; divisor[7]) ? ~divisor + 1'b1 : divisor)};\n\t\tassign neg_divisor = ~(divisor_sign &lt;&lt; 1);\n\t\tassign neg_divisor_left_in = {neg_divisor[8] , neg_divisor};\n\t\t\n\t\tassign dividend_sign = {8'd0 , ((signed_op &amp;&amp; dividend[7]) ? ~dividend + 1'b1 : dividend)};\n\t\tassign shift_sel = {dividend_sign[9], dividend_sign} &lt;&lt; cnt;\n\t\tassign neg_shift_sel = {neg_divisor_left_in[9], neg_divisor_left_in} &lt;&lt; cnt;\n\t\t\n\t\tassign add_sub_result = sr_carry_out ? shift_sel : neg_shift_sel;\n\t\tassign shift_add_sub_sel = sr_carry_out ? 10'd1 : 10'd0;\n\t\tassign shift_add_sub_out = add_sub_result + shift_add_sub_sel;\n\t\t\n\t\treg [9:0] sr_temp;\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tsr_temp &lt;= 10'd0;\n\t\t\tend else if(start_cnt == 1'b1)begin\n\t\t\t\tsr_temp &lt;= shift_add_sub_out;\n\t\t\tend else begin\n\t\t\t\tsr_temp &lt;= sr_temp >> 1;\n\t\t\tend\n\t\tend\n\t\t\t\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tcnt &lt;= 4'd0;\n\t\t\tend else if(opn_valid == 1'b1)begin\n\t\t\t\tcnt &lt;= 4'd1;\n\t\t\tend else if((cnt != 4'd0)&amp;&amp;(!res_valid_reg))begin\n\t\t\t\tcnt &lt;= cnt + 1'b1;\n\t\t\tend else begin\n\t\t\t\tcnt &lt;= 4'd0;\n\t\t\tend\n\t\tend\n\t\t\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tstart_cnt &lt;= 1'b0;\n\t\t\tend else if((cnt != 4'd0)&amp;&amp;(!res_valid_reg))begin\n\t\t\t\tstart_cnt &lt;= 1'b1;\n\t\t\tend else begin\n\t\t\t\tstart_cnt &lt;= 1'b0;\n\t\t\tend\n\t\tend\n\t\t\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tsr_carry_out &lt;= 1'b0;\n\t\t\tend else if(cnt == 4'd8)begin\n\t\t\t\tsr_carry_out &lt;= sr_temp[9];\n\t\t\tend else if((cnt != 4'd0)&amp;&amp;(!res_valid_reg))begin\n\t\t\t\tsr_carry_out &lt;= sr_temp[9];\n\t\t\tend else begin\n\t\t\t\tsr_carry_out &lt;= 1'b0;\n\t\t\tend\n\t\tend\n\t\t\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\t\tres_valid_reg &lt;= 1'b0;\n\t\t\tend else if((cnt == 4'd8)||((cnt != 4'd0)&amp;&amp;(!res_valid_reg)))begin\n\t\t\t\tres_valid_reg &lt;= 1'b1;\n\t\t\tend else begin\n\t\t\t\tres_valid_reg &lt;= 1'b0;\n\t\t\tend\n\t\tend\n\t\t\n\t\talways @(posedge clk or posedge rst) begin\n\t\t\tif(rst == 1'b1)begin\n\t\t\tend else if((cnt == 4'd8)||(cnt == 4'd0))begin\n\t\t\t\t//SR &lt;= (signed_op &amp; (dividend[7]^divisor[7])) ? (~final_result + 1'b1) : final_result;\n\t\t\tend\n\t\tend\n\t\t\n\t\t\n\t\tassign final_remainder = signed_op ? dividend_sign - (divisor_save * ((dividend[7]^divisor[7])? 1 : 0)) : dividend_sign;\n\t\tassign final_quotient = (signed_op &amp; (dividend[7]^divisor[7])) ? ((~final_result + 1'b1)>>1) : final_result>>1;\n\t\tassign rem_neg_sel = {16{!final_remainder[9]}};\n\t\tassign quo_neg_sel = {16{(final_remainder[9]&amp;final_quotient[9])}};\n\t\tassign remainder = ({16{rem_neg_sel}} | {final_remainder , 8'h0});\n\t\tassign quotient = ({16{quo_neg_sel}} | final_quotient);\n\t\tassign final_result = {remainder , quotient}; \n\t\t\n\t\tassign final_res_valid = (cnt == 4'd8) ? 1'b1 : 1'b0;\n\t\tassign res_consumed = res_valid ? 1'b1 : 1'b0;\n\t\tassign res_valid = (final_res_valid &amp;&amp; !res_consumed) ? 1'b1 : 1'b0;\n\t\tassign result = (final_res_valid &amp;&amp; !res_consumed) ? final_result : 16'd0;\n\t\tSYNTHESIS ON\n\tend\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div (\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-UNOPTFLAT: testbench.v:10:10: Signal unoptimizable: Circular combinational logic: 'radix2_div_tb.res_valid'\n   10 |     wire res_valid;\n      |          ^~~~~~~~~\n                    ... For warning description see https://verilator.org/warn/UNOPTFLAT?v=5.048\n                    ... Use \"/* verilator lint_off UNOPTFLAT */\" and lint_on around source to disable this message.\n                    testbench.v:10:10:      Example path: radix2_div_tb.res_valid\n                    TopModule.sv:40:17:      Example path: ASSIGNW\n                    TopModule.sv:40:17:      Example path: radix2_div_tb.uut.res_consumed\n                    testbench.v:10:10:      Example path: ASSIGNW\n                    testbench.v:10:10:      Example path: radix2_div_tb.res_valid\n%Warning-UNOPTFLAT: TopModule.sv:33:16: Signal unoptimizable: Circular combinational logic: 'radix2_div_tb.uut.final_quotient'\n   33 |     wire [9:0] final_quotient;\n      |                ^~~~~~~~~~~~~~\n                    TopModule.sv:33:16:      Example path: radix2_div_tb.uut.final_quotient\n                    TopModule.sv:147:21:      Example path: ASSIGNW\n                    TopModule.sv:38:17:      Example path: radix2_div_tb.uut.quotient\n                    TopModule.sv:143:27:      Example path: ASSIGNW\n                    TopModule.sv:33:16:      Example path: radix2_div_tb.uut.final_quotient\nmake: Entering directory '/tmp/comba_radix2_div_xwoiabzc/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vradix2_div_tb.cpp Vradix2_div_tb___024root__0.cpp Vradix2_div_tb__main.cpp Vradix2_div_tb___024root__Slow.cpp Vradix2_div_tb___024root__0__Slow.cpp Vradix2_div_tb__Syms__Slow.cpp > Vradix2_div_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vradix2_div_tb__ALL.o Vradix2_div_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vradix2_div_tb__ALL.a    -pthread -lpthread -latomic   -o Vradix2_div_tb\nrm Vradix2_div_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_radix2_div_xwoiabzc/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.054 MB sources in 3 modules, into 0.070 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.544 s (elab=0.002, cvt=0.009, bld=1.527); cpu 0.018 s on 1 threads; allocated 30.547 MB\n\n[RUN]\n===========Error: testbench timeout waiting for res_valid===========\n- testbench.v:93: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 20us; walltime 0.001 s; speed 13.309 ms/s\n- Verilator: cpu 0.002 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:timeout::0::": 1
+    },
+    "failure_type": "timeout",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 745.42,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 70,
+          "elapsed_s": 31.93
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 179,
+          "elapsed_s": 216.21
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 84,
+          "elapsed_s": 40.37
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 74,
+          "elapsed_s": 41.58
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 86,
+          "elapsed_s": 40.29
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 158,
+          "elapsed_s": 61.19
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 117,
+          "elapsed_s": 82.36
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 113,
+          "elapsed_s": 74.09
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 72,
+          "elapsed_s": 21.54
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 155,
+          "elapsed_s": 135.86
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "module_name": "multi_16bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_16bit",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_16bit (\n    input clk,\n    input rst_n,\n    input start,\n    input [15:0] ain,\n    input [15:0] bin,\n    output [31:0] yout,\n    output done\n);\n\n    reg [4:0] i;\n    reg done_r;\n    reg [15:0] areg;\n    reg [15:0] breg;\n    reg [31:0] yout_r;\n    \n    always@(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            i <= 0;\n        end\n        else if(start && i < 17) begin\n            i <= i + 1;\n        end\n        else begin\n            i <= 0;\n        end\n    end\n    \n    always@(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            done_r <= 0;\n        end\n        else if(i == 16) begin\n            done_r <= 1;\n        end\n        else if(i == 17) begin\n            done_r <= 0;\n        end\n    end\n    \n    always@(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            areg <= 0;\n            breg <= 0;\n            yout_r <= 0;\n        end\n        else if(start) begin\n            if(i == 0) begin\n                areg <= ain;\n                breg <= bin;\n            end\n            else if(i > 0 && i < 17) begin\n                if(areg[i-1]) begin\n                    yout_r <= yout_r + (breg << (i-1));\n                end\n            end\n        end\n    end\n    \n    assign yout = yout_r;\n    assign done = done_r;\nendmodule\n",
+    "xml_description": "<module id=\"multi_16bit\">\n    <description>Implement an unsigned 16-bit multiplier using shift and accumulate operations.</description>\n    <ports>\n        <input id=\"clk\">Chip clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for chip reset and 1 for reset signal inactive.</input>\n        <input id=\"start\">Chip enable signal to initiate the multiplication operation.</input>\n        <input id=\"ain\" width_description=\"[15:0]\">Input signal representing the multiplicand (a) with a data width of 16 bits.</input>\n        <input id=\"bin\" width_description=\"[15:0]\">Input signal representing the multiplier (b) with a data width of 16 bits.</input>\n        <output id=\"yout\" width_description=\"[31:0]\">Product output signal with a data width of 32 bits.</output>\n        <output id=\"done\">Chip output flag signal. Defined as 1 indicates the completion of the multiplication operation.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">State IDLE = 0.</parameter>\n        <parameter id=\"START\">State START = 1.</parameter>\n        <parameter id=\"DONE\">State DONE = 2.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;register id=\"i\" type=\"shift_count_register\">Shift count register initialized to 0.&lt;/register>\n        &lt;register id=\"done_r\" type=\"multiplication_completion_flag\">Multiplication completion flag initialized to 0.&lt;/register>\n        &lt;register id=\"areg\" type=\"multiplicand_register\">Multiplicand register initialized to 0.&lt;/register>\n        &lt;register id=\"breg\" type=\"multiplier_register\">Multiplier register initialized to 0.&lt;/register>\n        &lt;register id=\"yout_r\" type=\"product_register\">Product register initialized to 0.&lt;/register>\n    </logic_description>\n    <implementation>\n        // Shift Count Register Update Logic\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                i &lt;= 0;\n            end else if (start &amp;&amp; i &lt; 17) begin\n                i &lt;= i + 1;\n            end else begin\n                i &lt;= 0;\n            end\n        end\n        \n        // Multiplication Completion Flag Generation Logic\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                done_r &lt;= 0;\n            end else if (i == 16) begin\n                done_r &lt;= 1;\n            end else if (i == 17) begin\n                done_r &lt;= 0;\n            end\n        end\n        \n        // Shift and Accumulate Operation Logic\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                areg &lt;= 0;\n                breg &lt;= 0;\n                yout_r &lt;= 0;\n            end else if (start) begin\n                if (i == 0) begin\n                    areg &lt;= ain;\n                    breg &lt;= bin;\n                end else if (i > 0 &amp;&amp; i &lt; 17) begin\n                    if (areg[i-1]) begin\n                        yout_r &lt;= yout_r + (breg &lt;&lt; (i-1));\n                    end\n                end\n            end\n        end\n        assign yout = yout_r;\n        assign done = done_r;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:75:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   75 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_multi_16bit_7wpr6v4c/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_multi_16bit.cpp Vtb_multi_16bit___024root__0.cpp Vtb_multi_16bit__main.cpp Vtb_multi_16bit___024root__Slow.cpp Vtb_multi_16bit___024root__0__Slow.cpp Vtb_multi_16bit__Syms__Slow.cpp > Vtb_multi_16bit__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_multi_16bit__ALL.o Vtb_multi_16bit__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_multi_16bit__ALL.a    -pthread -lpthread -latomic   -o Vtb_multi_16bit\nrm Vtb_multi_16bit__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_multi_16bit_7wpr6v4c/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.045 MB sources in 3 modules, into 0.037 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.188 s (elab=0.001, cvt=0.003, bld=0.180); cpu 0.007 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n===========Your Design Passed===========\n- testbench.v:67: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 47ns; walltime 0.002 s; speed 21.581 us/s\n- Verilator: cpu 0.002 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 10,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 24.5,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 62,
+          "elapsed_s": 24.5
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

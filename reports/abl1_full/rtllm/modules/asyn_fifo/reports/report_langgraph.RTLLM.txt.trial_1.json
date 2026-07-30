@@ -1,0 +1,128 @@
+{
+  "module_name": "asyn_fifo",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "asyn_fifo",
+    "description_type": "RTLLM.txt",
+    "final_status": "fail_ts",
+    "sc_trial": 11,
+    "ts_trial": 6,
+    "total_iter": 17,
+    "gvd": "module asyn_fifo #(\n    parameter\tWIDTH = 8,\n    parameter \tDEPTH = 16,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output wire\t\t\t\twfull,\n    output wire\t\t\t\trempty,\n    output reg [WIDTH-1:0]\trdata\n);\n\nendmodule\n\nmodule dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n(\n\t input wclk\t,\n\t input wenc\t,\n\t input [$clog2(DEPTH)-1:0] waddr  ,\n\t input [WIDTH-1:0] wdata ,\n\t input rclk\t,\n\t input renc\t,\n\t input [$clog2(DEPTH)-1:0] raddr ,\n\t output reg [WIDTH-1:0] rdata \t\t\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n\tif(wenc)\n\t\tRAM_MEM[waddr] <= wdata;\nend \n\nalways @(posedge rclk) begin\n\tif(renc)\n\t\trdata <= RAM_MEM[raddr];\nend \n\nendmodule\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Asynchronous FIFO implementation with configurable parameters for depth and width.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal.</input>\n        <input id=\"rclk\">Read clock signal.</input>\n        <input id=\"wrstn\">Write reset signal.</input>\n        <input id=\"rrstn\">Read reset signal.</input>\n        <input id=\"winc\">Write increment signal.</input>\n        <input id=\"rinc\">Read increment signal.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input.</input>\n        <output id=\"wfull\">Write full signal.</output>\n        <output id=\"rempty\">Read empty signal.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output.</output>\n    </ports>\n    <parameter_description>\n        &lt;param id=\"WIDTH\">FIFO data width.&lt;/param>\n        &lt;param id=\"DEPTH\">FIFO depth.&lt;/param>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        // Define internal signals\n        reg [WIDTH-1:0] RAM_MEM[DEPTH-1:0];\n        reg [WIDTH-1:0] rdata;\n        reg [WIDTH-1:0] wdata;\n        reg [WIDTH-1:0] raddr;\n        reg [WIDTH-1:0] waddr;\n        reg [WIDTH-1:0] wptr;\n        reg [WIDTH-1:0] rptr;\n        reg [WIDTH-1:0] wptr_buff;\n        reg [WIDTH-1:0] rptr_buff;\n        reg [WIDTH-1:0] wptr_syn;\n        reg [WIDTH-1:0] rptr_syn;\n        reg wen;\n        reg ren;\n        // Assign outputs to internal signals\n        assign wfull = (wptr == {~rptr[WIDTH-1], rptr[WIDTH-2:0]});\n        assign rempty = (rptr == wptr);\n        assign rdata = rdata;\n        // Dual-port RAM instance\n        dual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH)) ram_inst (\n            .wclk(wclk),\n            .wenc(wen),\n            .waddr(waddr),\n            .wdata(wdata),\n            .rclk(rclk),\n            .renc(ren),\n            .raddr(raddr),\n            .rdata(rdata)\n        );\n        \n        // Write Pointer Logic\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                waddr &lt;= 0;\n            end else if (winc &amp;&amp; !wfull) begin\n                waddr &lt;= waddr + 1;\n            end\n        end\n        \n        // Read Pointer Logic\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                raddr &lt;= 0;\n            end else if (rinc &amp;&amp; !rempty) begin\n                raddr &lt;= raddr + 1;\n            end\n        end\n        \n        // Convert Binary to Gray Code\n        function [WIDTH-1:0] bin_to_gray(input [WIDTH-1:0] bin);\n            integer i;\n            begin\n                bin_to_gray[WIDTH-1] = bin[WIDTH-1];\n                for (i = WIDTH-2; i >= 0; i = i - 1) begin\n                    bin_to_gray[i] = bin[i+1] ^ bin[i];\n                end\n            end\n        endfunction\n        \n        // Convert Gray Code to Binary\n        function [WIDTH-1:0] gray_to_bin(input [WIDTH-1:0] gray);\n            integer i;\n            begin\n                gray_to_bin[WIDTH-1] = gray[WIDTH-1];\n                for (i = WIDTH-2; i >= 0; i = i - 1) begin\n                    gray_to_bin[i] = gray_to_bin[i+1] ^ gray[i];\n                end\n            end\n        endfunction\n        \n        // Write Pointer Buffer Logic\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                wptr_buff &lt;= 0;\n            end else begin\n                wptr_buff &lt;= wptr;\n            end\n        end\n        \n        // Read Pointer Buffer Logic\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                rptr_buff &lt;= 0;\n            end else begin\n                rptr_buff &lt;= rptr;\n            end\n        end\n        \n        // Synchronize Write Pointer Logic\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                wptr_syn &lt;= 0;\n            end else begin\n                wptr_syn &lt;= wptr_buff;\n            end\n        end\n        \n        // Synchronize Read Pointer Logic\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                rptr_syn &lt;= 0;\n            end else begin\n                rptr_syn &lt;= rptr_buff;\n            end\n        end\n        \n        // Full Signal Logic\n        assign wfull = (wptr == {~rptr[WIDTH-1], rptr[WIDTH-2:0]});\n        \n        // Empty Signal Logic\n        assign rempty = (rptr == wptr);\n        \n        // Write Enable Logic\n        always @(*) begin\n            if (winc &amp;&amp; !wfull) begin\n                wen = 1;\n            end else begin\n                wen = 0;\n            end\n        end\n        \n        // Read Enable Logic\n        always @(*) begin\n            if (rinc &amp;&amp; !rempty) begin\n                ren = 1;\n            end else begin\n                ren = 0;\n            end\n        end\n        \n        // Write Address Logic\n        always @(*) begin\n            if (wen) begin\n                waddr = waddr;\n            end else begin\n                waddr = waddr + 1;\n            end\n        end\n        \n        // Read Address Logic\n        always @(*) begin\n            if (ren) begin\n                raddr = raddr;\n            end else begin\n                raddr = raddr + 1;\n            end\n        end\n        \n        // Write Data Logic\n        always @(*) begin\n            if (wen) begin\n                wdata = wdata;\n            end else begin\n                wdata = wdata + 1;\n            end\n        end\n    </logic_description>\n    \n    <implementation>\n        // Implement dual-port RAM here\n        // Implement write and read controllers here\n        // Implement read pointer synchronizers here\n        // Implement write pointer synchronizers here\n        // Implement empty/full signal generation here\n        // Connect input/output signals to dual-port RAM\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:19: error: Unable to bind wire/reg/memory `wenc' in `asyn_fifo'\nTopModule.sv:19: error: Unable to elaborate condition expression.\nTopModule.sv:25: error: Unable to bind wire/reg/memory `renc' in `asyn_fifo'\nTopModule.sv:25: error: Unable to elaborate condition expression.\nElaboration failed\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_asyn_fifo_h19ox7zs/obj_dir'\nmake: Nothing to be done for 'default'.\nmake: Leaving directory '/tmp/comba_asyn_fifo_h19ox7zs/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.044 s (elab=0.000, cvt=0.000, bld=0.043); cpu 0.001 s on 0 threads; allocated 30.160 MB\n\n[RUN]\nVasyn_fifo: ../tb.cpp:180: void asyn_fifoScb::writeOut(asyn_fifoOutTx*): Assertion `tx->rempty == 0x1 && tx->wfull == 0x0 && \"TODO 3 Failed: Reset logic result of the Verilog module is incorrect\"' failed.\n\n# TODO 3 Failed at simtime 0\n# TODO 3 INPUT TRACE: in->rinc = 0x0, in->rrstn = 0x0, in->wdata = 0x0, in->winc = 0x0, in->wrstn = 0x0\n# TODO 3 OUTPUT TRACE: tx->rdata = 0x0, tx->rempty = 0x0, tx->wfull = 0x0\n# TODO 3 REFERENCE OUTPUT TRACE: rempty = 0x1, wfull = 0x0\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: Unresolved net/uwire rdata cannot have multiple drivers.": 1,
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `wenc' in `asyn_fifo'": 4,
+      "TB:fsm_state_error::3::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 7,
+      "max_samples": 10,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1248.13,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 153,
+          "elapsed_s": 247.13
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 153,
+          "elapsed_s": 234.92
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 6,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 111.31
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 192,
+          "elapsed_s": 233.17
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 6,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 116.71
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 78,
+          "elapsed_s": 74.58
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 76,
+          "elapsed_s": 230.31
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 3,
+      "commits": 13,
+      "used_fallback": false,
+      "baseline_sc": 4,
+      "final_sc": 0
+    }
+  }
+}

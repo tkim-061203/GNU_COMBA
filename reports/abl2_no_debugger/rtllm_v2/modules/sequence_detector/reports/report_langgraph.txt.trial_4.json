@@ -1,0 +1,162 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "fail_sc",
+    "sc_trial": 1,
+    "ts_trial": 0,
+    "total_iter": 1,
+    "gvd": "module sequence_detector #(\n    parameter IDLE = 5'b00001,\n    parameter S1   = 5'b00010,\n    parameter S2   = 5'b00100,\n    parameter S3   = 5'b01000,\n    parameter S4   = 5'b10000\n) (\n    input  clk,\n    input  rst_n,\n    input  data_in,\n    output sequence_detected\n);\n\n\nreg [2:0] current_state, next_state;\n\nalways @(posedge clk or posedge reset_n) begin\n    if (reset_n == 1'b1) begin\n        current_state <= IDLE;\n    end else begin\n        current_state <= next_state;\n    end\nend\nalways @(*) begin\n    case(current_state)\n        IDLE: begin\n            if(data_in == 1'b1) next_state = S1; else next_state = IDLE;\n        end\n        \n        S1: begin\n            if(data_in == 1'b0) next_state = S2; else next_state = IDLE;\n        end\n        \n        S2: begin\n            if(data_in == 1'b0) next_state = S3; else next_state = IDLE;\n        end\n        \n        S3: begin\n            if(data_in == 1'b1) next_state = S4; else next_state = IDLE;\n        end\n        \n        S4: begin\n            if(data_in == 1'b1) next_state = IDLE; else next_state = IDLE;\n        end\n        \n        default: next_state = IDLE;\n    endcase\nend\n\nassign sequence_detected = (current_state == S4 && data_in == 1'b1);\nendmodule\n",
+    "xml_description": "<module id=\"sequence_detector\">\n    <description>A sequence detector to detect the specific 4-bit binary sequence 1001.</description>\n    <ports>\n        <input id=\"clk\">The clock signal to synchronize the detector.</input>\n        <input id=\"reset_n\">The active-low reset signal to initialize the state machine.</input>\n        <input id=\"data_in\">A 1-bit binary input signal representing the next bit in the bitstream.</input>\n        <output id=\"sequence_detected\">A 1-bit output signal indicating whether the specific sequence has been detected.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Waiting for the start of the sequence.</parameter>\n        <parameter id=\"S1\">First bit of the desired sequence detected.</parameter>\n        <parameter id=\"S2\">Second bit of the desired sequence detected.</parameter>\n        <parameter id=\"S3\">Third bit of the desired sequence detected.</parameter>\n        <parameter id=\"S4\">Fourth and final bit of the desired sequence detected.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"current_state\" width_description=\"[2:0]\">Register to hold the current state of the state machine.&lt;/reg>\n        &lt;reg id=\"next_state\" width_description=\"[2:0]\">Register to hold the next state of the state machine.&lt;/reg>\n        \n        &lt;always @(posedge clk or posedge reset_n)>\n            if (reset_n == 1'b1)\n                current_state &lt;= IDLE;\n            else\n                current_state &lt;= next_state;\n        &lt;/always>\n    </logic_description>\n    <implementation>\n        // Define the state machine states\n        parameter IDLE = 3'b000;\n        parameter S1 = 3'b001;\n        parameter S2 = 3'b010;\n        parameter S3 = 3'b011;\n        parameter S4 = 3'b100;\n        // Define the state machine outputs\n        reg [2:0] current_state, next_state;\n        // Define the sequence detector logic\n        always @(posedge clk or posedge reset_n) begin\n            if (reset_n == 1'b1) begin\n                current_state &lt;= IDLE;\n            end else begin\n                current_state &lt;= next_state;\n            end\n        end\n        \n        always @(*) begin\n            case(current_state)\n                IDLE: begin\n                    if(data_in == 1'b1)\n                        next_state = S1;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S1: begin\n                    if(data_in == 1'b0)\n                        next_state = S2;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S2: begin\n                    if(data_in == 1'b0)\n                        next_state = S3;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S3: begin\n                    if(data_in == 1'b1)\n                        next_state = S4;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S4: begin\n                    if(data_in == 1'b1)\n                        next_state = IDLE;\n                    else\n                        next_state = IDLE;\n                end\n                \n                default: next_state = IDLE;\n            endcase\n        end\n        \n        // Output the sequence detected signal\n        assign sequence_detected = (current_state == S4 &amp;&amp; data_in == 1'b1);\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:18: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'\nTopModule.sv:18: error: Unable to elaborate condition expression.\nElaboration failed\n",
+    "tb_log": null,
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'": 1
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "fail_sc",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 271.25,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 67,
+          "elapsed_s": 23.16
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 67,
+          "elapsed_s": 23.33
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 25.35
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 17.6
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 57,
+          "elapsed_s": 17.61
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 22.41
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 105,
+          "elapsed_s": 61.31
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 49,
+          "elapsed_s": 19.23
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 70,
+          "elapsed_s": 35.45
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 25.8
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 2
+    }
+  }
+}

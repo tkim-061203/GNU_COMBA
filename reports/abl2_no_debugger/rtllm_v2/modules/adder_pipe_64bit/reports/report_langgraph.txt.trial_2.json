@@ -1,0 +1,126 @@
+{
+  "module_name": "adder_pipe_64bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "adder_pipe_64bit",
+    "description_type": "txt",
+    "final_status": "fail_sc",
+    "sc_trial": 1,
+    "ts_trial": 0,
+    "total_iter": 1,
+    "gvd": "module adder_pipe_64bit #(\n    parameter DATA_WIDTH = 64,\n    parameter STG_WIDTH = 16\n) (\n    input clk,\n    input rst_n,\n    input i_en,\n    input [DATA_WIDTH-1:0] adda,\n    input [DATA_WIDTH-1:0] addb,\n    output [DATA_WIDTH:0] result,\n    output reg o_en\n);\n\nreg i_en_reg, carry_in_reg, o_en_reg;\nreg [63:0] adda_reg, addb_reg;\nreg [64:0] result_reg;\n\nwire carry_in_next;\nwire [63:0] s_out_next;\nwire c_out_next;\nwire o_en_next;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        i_en_reg <= 1'b0;\n        carry_in_reg <= 1'b0;\n        adda_reg <= 64'b0;\n        addb_reg <= 64'b0;\n        result_reg <= 65'b0;\n        o_en_reg <= 1'b0;\n    end else begin\n        i_en_reg <= i_en;\n        carry_in_reg <= carry_in_next;\n        adda_reg <= adda;\n        addb_reg <= addb;\n        result_reg <= {c_out_next, s_out_next};\n        o_en_reg <= o_en_next;\n    end\nend\n\nassign carry_in_next = c_out_reg;\nassign {c_out_next, s_out_next} = adda_reg + addb_reg + carry_in_reg;\nassign o_en_next = i_en_reg & ~o_en_reg;\n\nassign result = result_reg;\nassign o_en = o_en_reg;\nendmodule\n\nmodule verified_adder_64bit\n#(\n    parameter DATA_WIDTH = 64,\n    parameter STG_WIDTH = 16\n)\n(\n    input clk,\n    input rst_n,\n    input i_en,\n    input [DATA_WIDTH-1:0] adda,\n    input [DATA_WIDTH-1:0] addb,\n    output [DATA_WIDTH:0] result,\n    output reg o_en\n);\n\nreg stage1;\nreg stage2;\nreg stage3;\n\nwire [STG_WIDTH-1:0] a1;\nwire [STG_WIDTH-1:0] b1;\nwire [STG_WIDTH-1:0] a2;\nwire [STG_WIDTH-1:0] b2;\nwire [STG_WIDTH-1:0] a3;\nwire [STG_WIDTH-1:0] b3;\nwire [STG_WIDTH-1:0] a4;\nwire [STG_WIDTH-1:0] b4;\n\nreg [STG_WIDTH-1:0] a2_ff1;\nreg [STG_WIDTH-1:0] b2_ff1;\n\nreg [STG_WIDTH-1:0] a3_ff1;\nreg [STG_WIDTH-1:0] b3_ff1;\nreg [STG_WIDTH-1:0] a3_ff2;\nreg [STG_WIDTH-1:0] b3_ff2;\n\nreg [STG_WIDTH-1:0] a4_ff1;\nreg [STG_WIDTH-1:0] b4_ff1;\nreg [STG_WIDTH-1:0] a4_ff2;\nreg [STG_WIDTH-1:0] b4_ff2;\nreg [STG_WIDTH-1:0] a4_ff3;\nreg [STG_WIDTH-1:0] b4_ff3;\n\nreg c1;\nreg c2;\nreg c3;\nreg c4;\n\nreg [STG_WIDTH-1:0] s1;\nreg [STG_WIDTH-1:0] s2;\nreg [STG_WIDTH-1:0] s3;\nreg [STG_WIDTH-1:0] s4;\n\nreg [STG_WIDTH-1:0] s1_ff1;\nreg [STG_WIDTH-1:0] s1_ff2;\nreg [STG_WIDTH-1:0] s1_ff3;\n\nreg [STG_WIDTH-1:0] s2_ff1;\nreg [STG_WIDTH-1:0] s2_ff2;\n\nreg [STG_WIDTH-1:0] s3_ff1;\n\nassign a1 = adda[STG_WIDTH-1:0];\nassign b1 = addb[STG_WIDTH-1:0];\nassign a2 = adda[STG_WIDTH*2-1:16];\nassign b2 = addb[STG_WIDTH*2-1:16];\nassign a3 = adda[STG_WIDTH*3-1:32];\nassign b3 = addb[STG_WIDTH*3-1:32];\nassign a4 = adda[STG_WIDTH*4-1:48];\nassign b4 = addb[STG_WIDTH*4-1:48];\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        stage1 <= 1'b0;\n        stage2 <= 1'b0;\n        stage3 <= 1'b0;\n        o_en <= 1'b0;\n    end\n    else begin\n        stage1 <= i_en;\n        stage2 <= stage1;\n        stage3 <= stage2;\n        o_en <= stage3;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        a2_ff1 <= 'd0;\n        b2_ff1 <= 'd0;\n        a3_ff1 <= 'd0;\n        b3_ff1 <= 'd0;\n        a3_ff2 <= 'd0;\n        b3_ff2 <= 'd0;\n        a4_ff1 <= 'd0;\n        b4_ff1 <= 'd0;\n        a4_ff2 <= 'd0;\n        b4_ff2 <= 'd0;\n        a4_ff3 <= 'd0;\n        b4_ff3 <= 'd0;\n    end\n    else begin\n        a2_ff1 <= a2;\n        b2_ff1 <= b2;\n        a3_ff1 <= a3;\n        b3_ff1 <= b3;\n        a3_ff2 <= a3_ff1;\n        b3_ff2 <= b3_ff1;\n        a4_ff1 <= a4;\n        b4_ff1 <= b4;\n        a4_ff2 <= a4_ff1;\n        b4_ff2<= b4_ff1;\n        a4_ff3 <= a4_ff2;\n        b4_ff3 <= b4_ff2;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        s1_ff1 <= 'd0;\n        s1_ff2 <= 'd0;\n        s1_ff3 <= 'd0;\n        s2_ff1 <= 'd0;\n        s2_ff2 <= 'd0;\n        s3_ff1 <= 'd0;\n    end\n    else begin\n        s1_ff1 <= s1;\n        s1_ff2 <= s1_ff1;\n        s1_ff3 <= s1_ff2;\n        s2_ff1 <= s2;\n        s2_ff2 <= s2_ff1;\n        s3_ff1 <= s3;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c1 <= 1'b0;\n        s1 <= 'd0;\n    end\n    else if (i_en) begin\n        {c1, s1} <= a1 + b1;\n    end\n    else begin\n        c1 <= c1;\n        s1 <= s1;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c2 <= 1'b0;\n        s2 <= 'd0;\n    end\n    else if (stage1) begin\n        {c2, s2} <= a2_ff1 + b2_ff1 + c1;\n    end\n    else begin\n        c2 <= c2;\n        s2 <= s2;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c3 <= 1'b0;\n        s3 <= 'd0;\n    end\n    else if (stage2) begin\n        {c3, s3} <= a3_ff2 + b3_ff2 + c2;\n    end\n    else begin\n        c3 <= c3;\n        s3 <= s3;\n    end\nend\n\nalways @(posedge clk, negedge rst_n) begin\n    if (!rst_n) begin\n        c4 <= 1'b0;\n        s4 <= 'd0;\n    end\n    else if (stage3) begin\n        {c4, s4} <= a4_ff3 + b4_ff3 + c3;\n    end\n    else begin\n        c4 <= c4;\n        s4 <= s4;\n    end\nend\n\nassign result = {c4, s4, s3_ff1, s2_ff2, s1_ff3};\n\nendmodule\n",
+    "xml_description": "<module id=\"adder_pipe_64bit\">\n    <description>A 64-bit ripple carry adder implemented with pipelined registers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operations.</input>\n        <input id=\"rst_n\">Active low reset signal.</input>\n        <input id=\"i_en\">Enable signal for initiating addition operation.</input>\n        <input id=\"adda\" width_description=\"[63:0]\">First input operand for addition.</input>\n        <input id=\"addb\" width_description=\"[63:0]\">Second input operand for addition.</input>\n        <output id=\"result\" width_description=\"[64:0]\">Sum result of the addition operation.</output>\n        <output id=\"o_en\">Output enable signal indicating the availability of the result.</output>\n    </ports>\n    \n    <!-- Pipeline Registers -->\n    &lt;reg id=\"i_en_reg\" type=\"flip_flop\" width_description=\"[0:0]\">Register to store the input enable signal.&lt;/reg>\n    &lt;reg id=\"carry_in_reg\" type=\"flip_flop\" width_description=\"[0:0]\">Register to store the carry-in value.&lt;/reg>\n    &lt;reg id=\"adda_reg\" type=\"flip_flop\" width_description=\"[63:0]\">Register to store the first input operand.&lt;/reg>\n    &lt;reg id=\"addb_reg\" type=\"flip_flop\" width_description=\"[63:0]\">Register to store the second input operand.&lt;/reg>\n    &lt;reg id=\"c_out_reg\" type=\"flip_flop\" width_description=\"[0:0]\">Register to store the carry-out value.&lt;/reg>\n    &lt;reg id=\"s_out_reg\" type=\"flip_flop\" width_description=\"[63:0]\">Register to store the sum output.&lt;/reg>\n    &lt;reg id=\"o_en_reg\" type=\"flip_flop\" width_description=\"[0:0]\">Register to store the output enable signal.&lt;/reg>\n    <!-- Intermediate signals for calculation -->\n    &lt;wire id=\"carry_in_next\" width_description=\"[0:0]\">Next carry-in value.&lt;/wire>\n    &lt;wire id=\"s_out_next\" width_description=\"[63:0]\">Next sum output.&lt;/wire>\n    &lt;wire id=\"c_out_next\" width_description=\"[0:0]\">Next carry-out value.&lt;/wire>\n    &lt;wire id=\"o_en_next\" width_description=\"[0:0]\">Next output enable signal.&lt;/wire>\n    <!-- Sequential Logic Description -->\n    <logic_description type=\"sequential_logic\">\n        // Update registers on positive edge of the clock or negative edge of reset\n        @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                i_en_reg &lt;= 1'b0;\n                carry_in_reg &lt;= 1'b0;\n                adda_reg &lt;= 64'b0;\n                addb_reg &lt;= 64'b0;\n                c_out_reg &lt;= 1'b0;\n                s_out_reg &lt;= 64'b0;\n                o_en_reg &lt;= 1'b0;\n            end else begin\n                i_en_reg &lt;= i_en;\n                carry_in_reg &lt;= carry_in_next;\n                adda_reg &lt;= adda;\n                addb_reg &lt;= addb;\n                c_out_reg &lt;= c_out_next;\n                s_out_reg &lt;= s_out_next;\n                o_en_reg &lt;= o_en_next;\n            end\n        end\n    </logic_description>\n    <!-- Combinational Logic Description -->\n    <logic_description type=\"combinational_logic\">\n        // Calculate next carry-in value\n        assign carry_in_next = c_out_reg;\n        \n        // Perform addition operation\n        assign {c_out_next, s_out_next} = adda + addb + carry_in_reg;\n        \n        // Determine output enable signal\n        assign o_en_next = i_en_reg &amp; !o_en_reg;\n    &lt;/endlogic_description>\n    <!-- Assign outputs to registered values -->\n    &lt;assign result = {c_out_reg, s_out_reg}; // Concatenate carry-out and sum output</logic_description></module>\n",
+    "sc_log": "TopModule.sv:41: error: Unable to bind wire/reg/memory `c_out_reg' in `adder_pipe_64bit'\nTopModule.sv:41: error: Unable to elaborate r-value: c_out_reg\n2 error(s) during elaboration.\n",
+    "tb_log": null,
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `c_out_reg' in `adder_pipe_64bit'": 1
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 7,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "fail_sc",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1203.14,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 421,
+          "elapsed_s": 261.09
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 420,
+          "elapsed_s": 250.57
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 513,
+          "elapsed_s": 232.95
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 514,
+          "elapsed_s": 227.23
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 269,
+          "elapsed_s": 45.94
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 499,
+          "elapsed_s": 148.04
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 243,
+          "elapsed_s": 37.32
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 2
+    }
+  }
+}

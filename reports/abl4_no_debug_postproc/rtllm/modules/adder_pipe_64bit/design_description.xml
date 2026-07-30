@@ -1,0 +1,17 @@
+<module id="adder_pipe_64bit">
+    <description>Implement a module of a 64-bit ripple carry adder, which includes several 16-bit registers to enable the 16-bit pipeline stages. The output result is available on the result port, and the o_en = 1 indicates the availability of the result.</description>
+    <ports>
+        <input id="clk">Clock input</input>
+        <input id="rst_n">Active low reset signal</input>
+        <input id="i_en">Enable signal for addition operation</input>
+        <input id="adda">64-bit input operand A.</input>
+        <input id="addb">64-bit input operand B.</input>
+        <output id="result">65-bit output representing the sum of adda and addb.</output>
+        <output id="o_en">Output enable signal.</output>
+    </ports>
+    <implementation>The module includes several 16-bit registers to enable the 4 pipeline stages and synchronize the input enable signal (i_en). These 16-bit registers are controlled by the clock (clk) and reset (rst_n) signals.
+The 17-bit sum values for each pipeline stage are calculated by adding the a 16-bit subsection of corresponding input operands and carry signals.
+The output enable signal (o_en) is updated based on the pipeline stages and synchronized with the clock (clk) and reset (rst_n) signals.
+When the (result) and the (o_en) must be asserted in the same time, at the same clock (clk) cycle.
+</implementation>
+</module>

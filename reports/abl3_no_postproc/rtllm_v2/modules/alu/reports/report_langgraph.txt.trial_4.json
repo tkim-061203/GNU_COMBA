@@ -1,0 +1,160 @@
+{
+  "module_name": "alu",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "alu",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module alu(\n    input [31:0] a, b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero, carry, negative, overflow, flag\n);\n    parameter ADD = 6'b100000;\n    parameter ADDU = 6'b100001;\n    parameter SUB = 6'b100010;\n    parameter SUBU = 6'b100011;\n    parameter AND = 6'b100100;\n    parameter OR = 6'b100101;\n    parameter XOR = 6'b100110;\n    parameter NOR = 6'b100111;\n    parameter SLT = 6'b101010;\n    parameter SLTU = 6'b101011;\n    parameter SLL = 6'b000000;\n    parameter SRL = 6'b000010;\n    parameter SRA = 6'b000011;\n    parameter SLLV = 6'b000100;\n    parameter SRLV = 6'b000110;\n    parameter SRAV = 6'b000111;\n    parameter LUI = 6'b001111;\n    reg [32:0] res;\n    assign flag = (aluc == SLT || aluc == SLTU) ? ((aluc == SLT) ? ($signed(a) < $signed(b)) : (a < b)) : 1'b0;\n    assign r = res[31:0];\n    assign zero = (res[31:0] == 0);\n    assign negative = res[31];\n    assign carry = (aluc == ADD || aluc == ADDU) ? res[32] : (aluc == SUB || aluc == SUBU) ? res[32] : 1'b0;\n    assign overflow = (aluc == ADD) ? ((~a[31] & ~b[31] & res[31]) | (a[31] & b[31] & ~res[31])) :\n                      (aluc == SUB) ? ((a[31] & ~b[31] & ~res[31]) | (~a[31] & b[31] & res[31])) : 1'b0;\n    always @(*) begin\n        case(aluc)\n            ADD: res = a + b;\n            ADDU: res = a + b;\n            SUB: res = a - b;\n            SUBU: res = a - b;\n            AND: res = a & b;\n            OR: res = a | b;\n            XOR: res = a ^ b;\n            NOR: res = ~(a | b);\n            SLT: res = $signed(a) < $signed(b);\n            SLTU: res = a < b;\n            SLL: res = b << a[4:0];\n            SRL: res = b >> a[4:0];\n            SRA: res = $signed(b) >>> a[4:0];\n            SLLV: res = b << a[4:0];\n            SRLV: res = b >> a[4:0];\n            SRAV: res = $signed(b) >>> a[4:0];\n            LUI: res = {a[15:0], 16'b0};\n            default: res = 32'hzzzz_zzzz;\n        endcase\n    end\n    \nendmodule\n",
+    "xml_description": "<module id=\"alu\">\n    <description>An arithmetic and logical unit (ALU) for a 32-bit MIPS-ISA CPU.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[31:0]\">A 32-bit input operand.</input>\n        <input id=\"b\" width_description=\"[31:0]\">A 32-bit input operand.</input>\n        <input id=\"aluc\" width_description=\"[5:0]\">Control signal for selecting the operation to be performed.</input>\n        <output id=\"r\" width_description=\"[31:0]\">Result of the operation.</output>\n        <output id=\"zero\">Indicates whether the result is zero.</output>\n        <output id=\"carry\">Indicates whether a carry occurred during the operation.</output>\n        <output id=\"negative\">Indicates whether the result is negative.</output>\n        <output id=\"overflow\">Indicates whether an overflow occurred during the operation.</output>\n        <output id=\"flag\">General flag, set based on specific operations (SLT and SLTU).</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"ADD\">6'b100000</parameter>\n        <parameter id=\"ADDU\">6'b100001</parameter>\n        <parameter id=\"SUB\">6'b100010</parameter>\n        <parameter id=\"SUBU\">6'b100011</parameter>\n        <parameter id=\"AND\">6'b100100</parameter>\n        <parameter id=\"OR\">6'b100101</parameter>\n        <parameter id=\"XOR\">6'b100110</parameter>\n        <parameter id=\"NOR\">6'b100111</parameter>\n        <parameter id=\"SLT\">6'b101010</parameter>\n        <parameter id=\"SLTU\">6'b101011</parameter>\n        <parameter id=\"SLL\">6'b000000</parameter>\n        <parameter id=\"SRL\">6'b000010</parameter>\n        <parameter id=\"SRA\">6'b000011</parameter>\n        <parameter id=\"SLLV\">6'b000100</parameter>\n        <parameter id=\"SRLV\">6'b000110</parameter>\n        <parameter id=\"SRAV\">6'b000111</parameter>\n        <parameter id=\"LUI\">6'b001111</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"res\" width_description=\"[31:0]\">Register to hold the result of the operation.&lt;/reg>\n        &lt;assign id=\"flag\" value=\"'bz\">Flag is initially set to high impedance.&lt;/assign>\n        &lt;always_comb>\n            &lt;case id=\"operation_selection\">\n                &lt;when condition=\"aluc == ADD\">\n                    &lt;assign id=\"res\" value=\"a + b\">Addition operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == ADDU\">\n                    &lt;assign id=\"res\" value=\"a + b\">Unsigned addition operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SUB\">\n                    &lt;assign id=\"res\" value=\"a - b\">Subtraction operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SUBU\">\n                    &lt;assign id=\"res\" value=\"a - b\">Unsigned subtraction operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == AND\">\n                    &lt;assign id=\"res\" value=\"a &amp; b\">Bitwise AND operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == OR\">\n                    &lt;assign id=\"res\" value=\"a | b\">Bitwise OR operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == XOR\">\n                    &lt;assign id=\"res\" value=\"a ^ b\">Bitwise XOR operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == NOR\">\n                    &lt;assign id=\"res\" value=\"~(a | b)\">Bitwise NOR operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SLT\">\n                    &lt;assign id=\"res\" value=\"$signed(a) &lt; $signed(b)\">Set less than operation.&lt;/assign>\n                    &lt;assign id=\"flag\" value=\"1'b1\">Set flag to 1 for SLT.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SLTU\">\n                    &lt;assign id=\"res\" value=\"a &lt; b\">Set less than unsigned operation.&lt;/assign>\n                    &lt;assign id=\"flag\" value=\"1'b1\">Set flag to 1 for SLTU.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SLL\">\n                    &lt;assign id=\"res\" value=\"b &lt;&lt; a[4:0]\">Logical left shift operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SRL\">\n                    &lt;assign id=\"res\" value=\"b >> a[4:0]\">Logical right shift operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SRA\">\n                    &lt;assign id=\"res\" value=\"$signed(b) >>> a[4:0]\">Arithmetic right shift operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SLLV\">\n                    &lt;assign id=\"res\" value=\"b &lt;&lt; a[4:0]\">Variable logical left shift operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SRLV\">\n                    &lt;assign id=\"res\" value=\"b >> a[4:0]\">Variable logical right shift operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == SRAV\">\n                    &lt;assign id=\"res\" value=\"$signed(b) >>> a[4:0]\">Variable arithmetic right shift operation.&lt;/assign>\n                &lt;/when>\n                &lt;when condition=\"aluc == LUI\">\n                    &lt;assign id=\"res\" value=\"{a[15:0], 16'h0}\">Load upper immediate operation.&lt;/assign>\n                &lt;/when>\n                &lt;default>\n                    &lt;assign id=\"res\" value=\"32'hzzzz_zzzz\">Default case.&lt;/assign>\n                &lt;/default>\n            &lt;/case>\n        &lt;/always_comb>\n    </logic_description>\n    <implementation>\n        The ALU performs arithmetic and logical operations based on the control signal (aluc). It supports operations like addition, subtraction, bitwise AND, OR, XOR, NOR, comparison, shifting, and loading upper immediate values.\n        \n        The module uses parameters to define the control signals for various operations, such as ADD, SUB, AND, OR, etc. \n        \n        The module assigns the input operands to the signed wires and the output result (r) to the lower 32 bits of the register (res[31:0]). The flag output is determined based on the control signal (aluc) and is set to '1' when the operation is SLT or SLTU, and 'z' (high-impedance) otherwise. The zero output is set to '1' when the result is all zeros, and '0' otherwise.\n        \n        Inside the always block, a case statement is used to perform the appropriate operation based on the control signal (aluc). The result is assigned to the register (res) accordingly. For shift operations (SLL, SRL, SRA, SLLV, SRLV, SRAV), the shift amount is determined by the value of 'a' or 'a[4:0]'. For the LUI operation, the upper 16 bits of 'a' are concatenated with 16 zeros to form the result.\n        \n        If the control signal (aluc) does not match any defined operation, the result is assigned as 'z' (high-impedance).\n    </implementation>\n    \n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module alu(\n      |        ^~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module test_alu();\n      |        ^~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_alu_6vw32ge0/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtest_alu.cpp Vtest_alu___024root__0.cpp Vtest_alu__main.cpp Vtest_alu___024root__Slow.cpp Vtest_alu___024root__0__Slow.cpp Vtest_alu__Syms__Slow.cpp > Vtest_alu__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtest_alu__ALL.o Vtest_alu__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtest_alu__ALL.a    -pthread -lpthread -latomic   -o Vtest_alu\nrm Vtest_alu__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_alu_6vw32ge0/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 3 modules, into 0.046 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.320 s (elab=0.001, cvt=0.006, bld=0.309); cpu 0.011 s on 1 threads; allocated 30.547 MB\n\n[RUN]\nFailed at opcode[0]=100000: got r=1000003d, expected=0000003d\nFailed at opcode[1]=100001: got r=1000003d, expected=0000003d\nFailed at opcode[2]=100010: got r=ffffffff, expected=fffffffb\nFailed at opcode[3]=100011: got r=ffffffff, expected=fffffffb\nFailed at opcode[4]=100100: got r=ffffffff, expected=00000000\nFailed at opcode[5]=100101: got r=ffffffff, expected=0000003d\nFailed at opcode[6]=100110: got r=ffffffff, expected=0000003d\nFailed at opcode[7]=100111: got r=ffffffff, expected=ffffffc2\nFailed at opcode[8]=101010: got r=ffffffff, expected=00000001\nFailed at opcode[9]=101011: got r=ffffffff, expected=00000001\nFailed at opcode[10]=000000: got r=ffffffff, expected=10000000\nFailed at opcode[11]=000010: got r=ffffffff, expected=00000000\nFailed at opcode[12]=000011: got r=ffffffff, expected=00000000\nFailed at opcode[13]=000100: got r=ffffffff, expected=10000000\nFailed at opcode[14]=000110: got r=ffffffff, expected=00000000\nFailed at opcode[15]=000111: got r=ffffffff, expected=00000000\nFailed at opcode[16]=001111: got r=ffffffff, expected=001c0000\n===========Error===========\n- testbench.v:89: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 175ns; walltime 0.000 s; speed 1.715 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 598.32,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 104,
+          "elapsed_s": 48.07
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 98,
+          "elapsed_s": 41.89
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 176,
+          "elapsed_s": 82.07
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 81,
+          "elapsed_s": 55.49
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 55,
+          "elapsed_s": 52.05
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 90,
+          "elapsed_s": 48.14
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 66,
+          "elapsed_s": 71.78
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 166,
+          "elapsed_s": 89.95
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 70,
+          "elapsed_s": 60.62
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 75,
+          "elapsed_s": 48.25
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

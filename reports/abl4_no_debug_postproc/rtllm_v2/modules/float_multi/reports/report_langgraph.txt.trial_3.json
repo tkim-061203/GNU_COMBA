@@ -1,0 +1,160 @@
+{
+  "module_name": "float_multi",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "float_multi",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module float_multi (\n\tinput clk,\n\tinput rst,\n\tinput [31:0] a,\n\tinput [31:0] b,\n\toutput reg [31:0] z\n);\n\t\n\tlocalparam SHIFT_RIGHT = 3'd0;\n\tlocalparam MULTIPLY_MANTISSA = 3'd1;\n\tlocalparam NORMALIZE = 3'd2;\n\tlocalparam ADD_EXPONENTS = 3'd3;\n\tlocalparam ROUND = 3'd4;\n\tlocalparam OUTPUT = 3'd5;\n\t\n\t\n\treg [2:0] counter;\n\treg [23:0] a_mantissa, b_mantissa, z_mantissa;\n\treg [9:0] a_exponent, b_exponent, z_exponent;\n\treg a_sign, b_sign, z_sign;\n\treg [49:0] product;\n\treg guard_bit, round_bit, sticky;\n\t\n\tinitial begin\n\t\tcounter = 0;\n\tend\n\t\n\talways @(posedge clk) begin\n\t\tcase(counter)\n\t\t\tSHIFT_RIGHT: begin\n\t\t\t\tif(a_exponent == 0) begin\n\t\t\t\t\ta_mantissa <= {1'b0, a[22 : 0]};\n\t\t\t\tend else begin\n\t\t\t\t\ta_mantissa <= {1'b1, a[22 : 0]};\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tif(b_exponent == 0) begin\n\t\t\t\t\tb_mantissa <= {1'b0, b[22 : 0]};\n\t\t\t\tend else begin\n\t\t\t\t\tb_mantissa <= {1'b1, b[22 : 0]};\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tz_sign <= a_sign ^ b_sign;\n\t\t\t\tcounter <= MULTIPLY_MANTISSA;\n\t\t\tend\n\t\t\t\n\t\t\tMULTIPLY_MANTISSA: begin\n\t\t\t\tproduct <= a_mantissa * b_mantissa;\n\t\t\t\tcounter <= NORMALIZE;\n\t\t\tend\n\t\t\t\n\t\t\tNORMALIZE: begin\n\t\t\t\tif(product[47]) begin\n\t\t\t\t\tproduct <= product >> 1;\n\t\t\t\t\tz_exponent <= a_exponent + b_exponent - 1023 + 1;\n\t\t\t\tend else begin\n\t\t\t\t\tz_exponent <= a_exponent + b_exponent - 1023;\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tcounter <= ADD_EXPONENTS;\n\t\t\tend\n\t\t\t\n\t\t\tADD_EXPONENTS: begin\n\t\t\t\tguard_bit <= product[22];\n\t\t\t\tround_bit <= |product[21:0]; // OR reduction operator\n\t\t\t\tsticky <= |product[49:23];\n\t\t\t\t\n\t\t\t\tcounter <= ROUND;\n\t\t\tend\n\t\t\t\n\t\t\tROUND: begin\n\t\t\t\tif(z_exponent >= 2047) begin\n\t\t\t\t\tz_mantissa <= 0;\n\t\t\t\t\tz_exponent <= 2047;\n\t\t\t\tend else if(z_exponent <= 0) begin\n\t\t\t\t\tz_mantissa <= 0;\n\t\t\t\t\tz_exponent <= 0;\n\t\t\t\tend else begin\n\t\t\t\t\tif(guard_bit && (round_bit || sticky || z_mantissa[0])) begin\n\t\t\t\t\t\tz_mantissa <= product[46:23] + 1;\n\t\t\t\t\t\t\n\t\t\t\t\t\tif(z_mantissa[23]) begin\n\t\t\t\t\t\t\tz_exponent <= z_exponent + 1;\n\t\t\t\t\t\tend\n\t\t\t\t\tend else begin\n\t\t\t\t\t\tz_mantissa <= product[46:23];\n\t\t\t\t\tend\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tcounter <= OUTPUT;\n\t\t\tend\n\t\t\t\n\t\t\tOUTPUT: begin\n\t\t\t\tif($signed(z_exponent) == -127 && $signed(z_mantissa) == 0) begin\n\t\t\t\t\tz <= {z_sign, 31'b0};\n\t\t\t\tend else if($signed(z_exponent) > 127 && $signed(z_mantissa) == 0) begin\n\t\t\t\t\tz <= {z_sign, 8'hFF, 23'b0}; // Infinity\n\t\t\t\tend else begin\n\t\t\t\t\tz <= {z_sign, z_exponent[7:0], z_mantissa[22:0]};\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tcounter <= SHIFT_RIGHT;\n\t\t\tend\n\t\tendcase\n\t\t\n\t\tif(rst) begin\n\t\t\tcounter <= 0;\n\t\tend\n\tend\nendmodule\n",
+    "xml_description": "<module id=\"float_multi\">\n\t<description>A module implementing IEEE 754 compliant floating point multiply.</description>\n\t<ports>\n\t\t<input id=\"clk\">Clock signal.</input>\n\t\t<input id=\"rst\">Active-high reset signal.</input>\n\t\t<input id=\"a\" width_description=\"[31:0]\">First operand in IEEE 754 format.</input>\n\t\t<input id=\"b\" width_description=\"[31:0]\">Second operand in IEEE 754 format.</input>\n\t\t<output id=\"z\" width_description=\"[31:0]\">Result in IEEE 754 format.</output>\n\tendports\n\t<parameter_description>\n\t\tSHIFT_RIGHT = 3'd0;\n\t\tMULTIPLY_MANTISSA = 3'd1;\n\t\tNORMALIZE = 3'd2;\n\t\tADD_EXPONENTS = 3'd3;\n\t\tROUND = 3'd4;\n\t\tOUTPUT = 3'd5;\n\tendparameter_description\n\t\n\t<logic_description type=\"sequential_logic\">\n\t\treg [2:0] counter;\n\t\treg [23:0] a_mantissa, b_mantissa, z_mantissa;\n\t\treg [9:0] a_exponent, b_exponent, z_exponent;\n\t\treg a_sign, b_sign, z_sign;\n\t\treg [49:0] product;\n\t\treg guard_bit, round_bit, sticky;\n\t\t\n\t\tinitial begin\n\t\t\tcounter = 0;\n\t\tend\n\t\t\n\t\talways @(posedge clk) begin\n\t\t\tcase(counter)\n\t\t\t\tSHIFT_RIGHT: begin\n\t\t\t\t\tif(a_exponent == 0) begin\n\t\t\t\t\t\ta_mantissa &lt;= {1'b0, a[22 : 0]};\n\t\t\t\t\tend else begin\n\t\t\t\t\t\ta_mantissa &lt;= {1'b1, a[22 : 0]};\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\tif(b_exponent == 0) begin\n\t\t\t\t\t\tb_mantissa &lt;= {1'b0, b[22 : 0]};\n\t\t\t\t\tend else begin\n\t\t\t\t\t\tb_mantissa &lt;= {1'b1, b[22 : 0]};\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\tz_sign &lt;= a_sign ^ b_sign;\n\t\t\t\t\tcounter &lt;= MULTIPLY_MANTISSA;\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tMULTIPLY_MANTISSA: begin\n\t\t\t\t\tproduct &lt;= a_mantissa * b_mantissa;\n\t\t\t\t\tcounter &lt;= NORMALIZE;\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tNORMALIZE: begin\n\t\t\t\t\tif(product[47]) begin\n\t\t\t\t\t\tproduct &lt;= product >> 1;\n\t\t\t\t\t\tz_exponent &lt;= a_exponent + b_exponent - 1023 + 1;\n\t\t\t\t\tend else begin\n\t\t\t\t\t\tz_exponent &lt;= a_exponent + b_exponent - 1023;\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\tcounter &lt;= ADD_EXPONENTS;\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tADD_EXPONENTS: begin\n\t\t\t\t\tguard_bit &lt;= product[22];\n\t\t\t\t\tround_bit &lt;= |product[21:0]; // OR reduction operator\n\t\t\t\t\tsticky &lt;= |product[49:23];\n\t\t\t\t\t\n\t\t\t\t\tcounter &lt;= ROUND;\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tROUND: begin\n\t\t\t\t\tif(z_exponent >= 2047) begin\n\t\t\t\t\t\tz_mantissa &lt;= 0;\n\t\t\t\t\t\tz_exponent &lt;= 2047;\n\t\t\t\t\tend else if(z_exponent &lt;= 0) begin\n\t\t\t\t\t\tz_mantissa &lt;= 0;\n\t\t\t\t\t\tz_exponent &lt;= 0;\n\t\t\t\t\tend else begin\n\t\t\t\t\t\tif(guard_bit &amp;&amp; (round_bit || sticky || z_mantissa[0])) begin\n\t\t\t\t\t\t\tz_mantissa &lt;= product[46:23] + 1;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tif(z_mantissa[23]) begin\n\t\t\t\t\t\t\t\tz_exponent &lt;= z_exponent + 1;\n\t\t\t\t\t\t\tend\n\t\t\t\t\t\tend else begin\n\t\t\t\t\t\t\tz_mantissa &lt;= product[46:23];\n\t\t\t\t\t\tend\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\tcounter &lt;= OUTPUT;\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tOUTPUT: begin\n\t\t\t\t\tif($signed(z_exponent) == -127 &amp;&amp; $signed(z_mantissa) == 0) begin\n\t\t\t\t\t\tz &lt;= {z_sign, 31'b0};\n\t\t\t\t\tend else if($signed(z_exponent) > 127 &amp;&amp; $signed(z_mantissa) == 0) begin\n\t\t\t\t\t\tz &lt;= {z_sign, 8'hFF, 23'b0}; // Infinity\n\t\t\t\t\tend else begin\n\t\t\t\t\t\tz &lt;= {z_sign, z_exponent[7:0], z_mantissa[22:0]};\n\t\t\t\t\tend\n\t\t\t\t\t\n\t\t\t\t\tcounter &lt;= SHIFT_RIGHT;\n\t\t\t\tend\n\t\t\tendcase\n\t\t\t\n\t\t\tif(rst) begin\n\t\t\t\tcounter</logic_description></parameter_description></ports></module>\n",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:39:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   39 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-UNDRIVEN: TopModule.sv:19:12: Signal is not driven: 'a_exponent'\n                                     : ... note: In instance 'fmultiplier_tb.uut'\n   19 |  reg [9:0] a_exponent, b_exponent, z_exponent;\n      |            ^~~~~~~~~~\n                   ... For warning description see https://verilator.org/warn/UNDRIVEN?v=5.048\n                   ... Use \"/* verilator lint_off UNDRIVEN */\" and lint_on around source to disable this message.\n%Warning-UNDRIVEN: TopModule.sv:19:24: Signal is not driven: 'b_exponent'\n                                     : ... note: In instance 'fmultiplier_tb.uut'\n   19 |  reg [9:0] a_exponent, b_exponent, z_exponent;\n      |                        ^~~~~~~~~~\n%Warning-UNDRIVEN: TopModule.sv:20:6: Signal is not driven: 'a_sign'\n                                    : ... note: In instance 'fmultiplier_tb.uut'\n   20 |  reg a_sign, b_sign, z_sign;\n      |      ^~~~~~\n%Warning-UNDRIVEN: TopModule.sv:20:14: Signal is not driven: 'b_sign'\n                                     : ... note: In instance 'fmultiplier_tb.uut'\n   20 |  reg a_sign, b_sign, z_sign;\n      |              ^~~~~~\n%Warning-INITIALDLY: testbench.v:10:6: Non-blocking assignment '<=' in initial/final block\n                                     : ... This will be executed as a blocking assignment '='!\n   10 |  clk <= 0;\n      |      ^~\n                     ... For warning description see https://verilator.org/warn/INITIALDLY?v=5.048\n                     ... Use \"/* verilator lint_off INITIALDLY */\" and lint_on around source to disable this message.\n%Warning-INITIALDLY: testbench.v:11:6: Non-blocking assignment '<=' in initial/final block\n                                     : ... This will be executed as a blocking assignment '='!\n   11 |  rst <= 1;\n      |      ^~\n%Warning-INITIALDLY: testbench.v:13:10: Non-blocking assignment '<=' in initial/final block\n                                      : ... This will be executed as a blocking assignment '='!\n   13 |   #5 clk <= ~clk;\n      |          ^~\n%Warning-INITIALDLY: testbench.v:16:17: Non-blocking assignment '<=' in initial/final block\n                                      : ... This will be executed as a blocking assignment '='!\n   16 | initial #13 rst <= 0;\n      |                 ^~\nmake: Entering directory '/tmp/comba_float_multi_pmi6kkbc/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfmultiplier_tb.cpp Vfmultiplier_tb___024root__0.cpp Vfmultiplier_tb__main.cpp Vfmultiplier_tb___024root__Slow.cpp Vfmultiplier_tb___024root__0__Slow.cpp Vfmultiplier_tb__Syms__Slow.cpp > Vfmultiplier_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vfmultiplier_tb__ALL.o Vfmultiplier_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vfmultiplier_tb__ALL.a    -pthread -lpthread -latomic   -o Vfmultiplier_tb\nrm Vfmultiplier_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_float_multi_pmi6kkbc/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 3 modules, into 0.042 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.323 s (elab=0.001, cvt=0.006, bld=0.312); cpu 0.012 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n=========== Test completed with           1/20 failures ===========\n- testbench.v:35: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 243ps; walltime 0.000 s; speed 4.170 us/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 990.19,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 66.87
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 101,
+          "elapsed_s": 79.71
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 114,
+          "elapsed_s": 144.81
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 122,
+          "elapsed_s": 106.01
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 19,
+          "gvd_lines": 110,
+          "elapsed_s": 83.91
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 147,
+          "elapsed_s": 63.35
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 110,
+          "elapsed_s": 58.82
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 69,
+          "elapsed_s": 246.53
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 7,
+          "gvd_lines": 119,
+          "elapsed_s": 52.59
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 3,
+          "gvd_lines": 142,
+          "elapsed_s": 87.59
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

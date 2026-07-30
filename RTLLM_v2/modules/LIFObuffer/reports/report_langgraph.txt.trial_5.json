@@ -5,97 +5,74 @@
   "samples": {
     "module_name": "LIFObuffer",
     "description_type": "txt",
-    "final_status": "fail_ts",
+    "final_status": "pass",
     "sc_trial": 6,
-    "ts_trial": 6,
-    "total_iter": 12,
-    "gvd": "module LIFObuffer (\n    input [3:0] dataIn,\n    input RW,\n    input EN,\n    input Rst,\n    input Clk,\n    output reg EMPTY,\n    output reg FULL,\n    output reg [3:0] dataOut\n);\n\nreg [3:0] stack_mem [3:0];\nreg [2:0] SP;\n\nalways @(posedge Clk) begin\n    if (Rst) begin\n        SP <= 4;\n        EMPTY <= 1;\n        FULL <= 0;\n        dataOut <= 0;\n        stack_mem[0] <= 0;\n        stack_mem[1] <= 0;\n        stack_mem[2] <= 0;\n        stack_mem[3] <= 0;\n    end else if (EN) begin\n        if (~FULL && ~RW) begin\n            stack_mem[--SP] <= dataIn;\n            if (SP == 0) EMPTY <= 1; else EMPTY <= 0;\n        end else if (~EMPTY && RW) begin\n            dataOut <= stack_mem[SP++];\n            if (SP == 4) FULL <= 1; else FULL <= 0;\n        end\n    end\nend\n\nendmodule\n",
-    "xml_description": "(Bypassed XML; Using TXT mode)",
+    "ts_trial": 2,
+    "total_iter": 8,
+    "gvd": "module LIFObuffer (\n    input [3:0] dataIn,\n    input RW,\n    input EN,\n    input Rst,\n    input Clk,\n    output reg EMPTY,\n    output reg FULL,\n    output reg [3:0] dataOut\n);\n\nreg [3:0] buffer [0:3];\ninteger top;\n\nassign EMPTY = (top == -1);\nassign FULL = (top == 3);\n\nalways @(posedge Clk or posedge Rst) begin\n    if (Rst) begin\n        top <= -1;\n        dataOut <= 4'b0000;\n    end else begin\n        if (EN) begin\n            if (!FULL && !RW) begin\n                buffer[top + 1] <= dataIn;\n                top <= top + 1;\n            end else if (!EMPTY && RW) begin\n                dataOut <= buffer[top];\n                top <= top - 1;\n            end\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"LIFObuffer\">\n    <description>A 4-bit wide Last-In-First-Out (LIFO) buffer with 4 entries, supporting push and pop operations controlled by read/write (RW) signals.</description>\n    <ports>\n        <input id=\"dataIn\" width_description=\"[3:0]\">4-bit input data to be pushed onto the buffer.</input>\n        <input id=\"RW\">Read/Write control signal (1 for read, 0 for write).</input>\n        <input id=\"EN\">Enable signal to activate buffer operations.</input>\n        <input id=\"Rst\">Active high reset signal to initialize the buffer.</input>\n        <input id=\"Clk\">Clock signal for synchronous operations.</input>\n        <output id=\"EMPTY\">Flag indicating whether the buffer is empty.</output>\n        <output id=\"FULL\">Flag indicating whether the buffer is full.</output>\n        <output id=\"dataOut\" width_description=\"[3:0]\">4-bit output data retrieved from the buffer.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"EMPTY\">Buffer is empty.</parameter>\n        <parameter name=\"FULL\">Buffer is full.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"stack_mem\" width=\"4\" depth=\"4\">Stack memory array to store the data.&lt;/reg>\n        &lt;reg id=\"SP\" width=\"2\">Stack pointer tracking the current position in the stack.&lt;/reg>\n        &lt;wire id=\"EMPTY_flag\">Flag indicating whether the buffer is empty.&lt;/wire>\n        &lt;wire id=\"FULL_flag\">Flag indicating whether the buffer is full.&lt;/wire>\n    </logic_description>\n    <implementation>\n        always @(posedge Clk) begin\n            if (Rst) begin\n                SP &lt;= 4;\n                stack_mem &lt;= {4{4'b0}};\n                EMPTY_flag &lt;= 1'b1;\n                FULL_flag &lt;= 1'b0;\n            end else if (EN) begin\n                if (RW == 1'b0 &amp;&amp; !FULL_flag) begin\n                    stack_mem[SP] &lt;= dataIn;\n                    SP &lt;= SP + 1;\n                end else if (RW == 1'b1 &amp;&amp; !EMPTY_flag) begin\n                    dataOut &lt;= stack_mem[SP];\n                    stack_mem[SP] &lt;= 4'b0;\n                    SP &lt;= SP - 1;\n                end\n            end\n        end\n        EMPTY &lt;= (SP == 4);\n        FULL &lt;= (SP == 0);\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\n=========== Test completed with           3/20 failures ===========\ntestbench.v:76: $finish called at 265000 (1ps)\n",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module LIFObuffer (\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module LIFObuffer_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake[1]: Entering directory '/tmp/comba_LIFObuffer_zammcsjz/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include VLIFObuffer_tb.cpp VLIFObuffer_tb___024root__0.cpp VLIFObuffer_tb__main.cpp VLIFObuffer_tb___024root__Slow.cpp VLIFObuffer_tb___024root__0__Slow.cpp VLIFObuffer_tb__Syms__Slow.cpp > VLIFObuffer_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o VLIFObuffer_tb__ALL.o VLIFObuffer_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o VLIFObuffer_tb__ALL.a    -pthread -lpthread -latomic   -o VLIFObuffer_tb\nrm VLIFObuffer_tb__ALL.verilator_deplist.tmp\nmake[1]: Leaving directory '/tmp/comba_LIFObuffer_zammcsjz/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.044 MB sources in 3 modules, into 0.036 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.413 s (elab=0.001, cvt=0.004, bld=1.404); cpu 0.010 s on 1 threads; allocated 30.539 MB\n\n[RUN]\n=========== Your Design Passed ===========\n- testbench.v:70: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 265ns; walltime 0.000 s; speed 7.093 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
     "error": null,
     "edtm": {
-      "TB:fsm_state_error::0::": 6
+      "TopModule.sv:N: syntax error": 4,
+      "TB:fsm_state_error::0::": 1
     },
     "failure_type": "fsm_state_error",
-    "vcd_status": "ok",
+    "vcd_status": "",
     "self_consistency": {
-      "samples_run": 5,
-      "max_samples": 5,
-      "best_sample_idx": 3,
-      "best_temperature": 0.3,
-      "best_status": "fail_ts",
-      "early_exit": false,
+      "samples_run": 3,
+      "max_samples": 10,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "pass",
+      "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 169.6,
+      "total_elapsed_s": 199.73,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "fail_ts",
-          "sc_trial": 6,
+          "sc_trial": 8,
           "ts_trial": 6,
-          "iter": 12,
+          "iter": 14,
           "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 38,
-          "elapsed_s": 34.97
+          "tb_err": 3,
+          "gvd_lines": 40,
+          "elapsed_s": 69.77
         },
         {
           "idx": 1,
           "T": 0.1,
           "status": "fail_ts",
-          "sc_trial": 6,
+          "sc_trial": 8,
           "ts_trial": 6,
-          "iter": 12,
+          "iter": 14,
           "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 48,
-          "elapsed_s": 33.59
+          "tb_err": 3,
+          "gvd_lines": 40,
+          "elapsed_s": 74.82
         },
         {
           "idx": 2,
           "T": 0.2,
-          "status": "fail_ts",
+          "status": "pass",
           "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "ts_trial": 2,
+          "iter": 8,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 42,
-          "elapsed_s": 36.11
-        },
-        {
-          "idx": 3,
-          "T": 0.3,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 36,
-          "elapsed_s": 31.4
-        },
-        {
-          "idx": 4,
-          "T": 0.4,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 61,
-          "elapsed_s": 33.52
+          "gvd_lines": 35,
+          "elapsed_s": 55.14
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 10,
+      "commits": 7,
       "used_fallback": false,
-      "baseline_sc": 0,
+      "baseline_sc": 2,
       "final_sc": 0
     }
   }

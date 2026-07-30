@@ -1,0 +1,70 @@
+{
+  "base": "full",
+  "variants": {
+    "full": "reports/base",
+    "abl2": "reports/abl2_no_debugger",
+    "abl3": "reports/abl3_no_postproc"
+  },
+  "metrics": {
+    "rtllm_syntax": {
+      "full": 100.0,
+      "abl2": 100.0,
+      "abl3": 100.0
+    },
+    "rtllm_func": {
+      "full": 93.1,
+      "abl2": 82.76,
+      "abl3": 82.76
+    },
+    "rtllm2_syntax": {
+      "full": 100.0,
+      "abl2": 98.0,
+      "abl3": 100.0
+    },
+    "rtllm2_func": {
+      "full": 72.0,
+      "abl2": 64.0,
+      "abl3": 58.0
+    },
+    "ve_zs_t0": {
+      "full": null,
+      "abl2": null,
+      "abl3": null
+    },
+    "ve_zs_t08": {
+      "full": null,
+      "abl2": null,
+      "abl3": null
+    },
+    "ve_os_t0": {
+      "full": null,
+      "abl2": null,
+      "abl3": null
+    },
+    "ve_os_t08": {
+      "full": null,
+      "abl2": null,
+      "abl3": null
+    },
+    "syntax_fr": {
+      "full": 100.0,
+      "abl2": null,
+      "abl3": null
+    },
+    "func_fr": {
+      "full": 85.52,
+      "abl2": null,
+      "abl3": null
+    },
+    "recovery": {
+      "full": 18.68,
+      "abl2": 31.87,
+      "abl3": 32.42
+    },
+    "cost_mult": {
+      "full": 1.93,
+      "abl2": 3.01,
+      "abl3": 3.09
+    }
+  }
+}

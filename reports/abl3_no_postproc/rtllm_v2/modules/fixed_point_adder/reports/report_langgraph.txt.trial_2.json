@@ -1,0 +1,160 @@
+{
+  "module_name": "fixed_point_adder",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fixed_point_adder",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fixed_point_adder(\n    parameter Q, N,\n    input [N-1:0] a, \n    input [N-1:0] b, \n    output reg [N-1:0] c\n);\n    \n    reg [N-1:0] res;\n    \n    always@ (*) begin\n        if(a[N-1]==b[N-1])\n            res = a+b;\n        else begin\n            if(a>b) res = a-b;\n            else res = b-a;\n        end\n    end\n    \n    always@(res) begin\n        if(res==0) c = {~(a[N-1]), {(N-1){1'b0}}};\n        else c = res;\n    end\nendmodule\n",
+    "xml_description": "<module id=\"fixed_point_adder\">\n    <description>A parameterized fixed-point adder for performing addition/subtraction operations based on the signs of two inputs.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[N-1:0]\">The first input operand.</input>\n        <input id=\"b\" width_description=\"[N-1:0]\">The second input operand.</input>\n        <output id=\"c\" width_description=\"[N-1:0]\">The output result of the operation.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"Q\">Number of fractional bits.</parameter>\n        <parameter id=\"N\">Total number of bits (including integer and fractional parts).</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;register id=\"res\" width_description=\"[N-1:0]\">Register to store the result of the operation.&lt;/register>\n    </logic_description>\n    <implementation>\n        // Internal variables\n        reg [N-1:0] abs_a;\n        reg [N-1:0] abs_b;\n        reg [N-1:0] temp_result;\n        reg [N-1:0] final_result;\n        \n        // Calculate the absolute values of a and b\n        if(a[N-1] == b[N-1]) begin\n            abs_a = a + ~{N{a[N-1]}} + 1;\n            abs_b = b + ~{N{b[N-1]}} + 1;\n            \n            // Add the absolute values of a and b\n            temp_result = abs_a + abs_b;\n            \n            // Set the result's sign bit to match the sign bits of a and b\n            final_result = {temp_result[N-2], temp_result[N-2:N-1]};\n        end else begin\n            // Determine which operand has a larger absolute value\n            if(a > b) begin\n                abs_a = a + ~{N{a[N-1]}} + 1;\n                abs_b = b + ~{N{b[N-1]}} + 1;\n                \n                // Subtract the smaller absolute value from the larger one\n                temp_result = abs_a - abs_b;\n                \n                // Set the result's sign bit to indicate positive result\n                final_result = {1'b0, temp_result[N-2:0]};\n            end else begin\n                abs_a = a + ~{N{a[N-1]}} + 1;\n                abs_b = b + ~{N{b[N-1]}} + 1;\n                \n                // Subtract the smaller absolute value from the larger one\n                temp_result = abs_b - abs_a;\n                \n                // Check if the result is zero\n                if(temp_result == 0) begin\n                    // Result is zero, set the sign bit accordingly\n                    final_result = {1'b0, {N-1{1'b0}}};\n                end else begin\n                    // Result is not zero, set the sign bit to indicate negative result\n                    final_result = {1'b1, temp_result[N-2:0]};\n                end\n            end\n        end\n        \n        // Assign the final result to the output port 'c'\n        c &lt;= final_result;\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:2: syntax error\nTopModule.sv:2: Errors in port declarations.\n",
+    "tb_log": "[COMPILE verilator]\n%Error: TopModule.sv:2:5: syntax error, unexpected parameter, expecting '['\n    2 |     parameter Q, N,\n      |     ^~~~~~~~~\n        ... See the manual at https://verilator.org/verilator_doc.html?v=5.048 for more assistance.\n%Error: TopModule.sv:3:5: syntax error, unexpected input, expecting IDENTIFIER or IDENTIFIER-for-pathpulse or randomize\n    3 |     input [N-1:0] a, \n      |     ^~~~~\n%Error: TopModule.sv:6:1: syntax error, unexpected ')', expecting ',' or ';'\n    6 | );\n      | ^\n%Error: TopModule.sv:10:5: syntax error, unexpected always\n   10 |     always@ (*) begin\n      |     ^~~~~~\n%Warning-EOFNEWLINE: testbench.v:58:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   58 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Error: Exiting due to 4 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 162.94,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 34,
+          "elapsed_s": 19.83
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 47,
+          "elapsed_s": 20.93
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 31,
+          "elapsed_s": 19.1
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 26,
+          "elapsed_s": 14.7
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 26,
+          "elapsed_s": 12.46
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 25,
+          "elapsed_s": 13.52
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 26,
+          "elapsed_s": 15.24
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 27,
+          "elapsed_s": 11.41
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 23,
+          "elapsed_s": 18.19
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 33,
+          "elapsed_s": 17.56
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

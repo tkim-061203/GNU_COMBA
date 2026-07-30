@@ -1,0 +1,160 @@
+{
+  "module_name": "traffic_light",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "traffic_light",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module traffic_light(\n    input rst_n, \n    input clk, \n    input pass_request, \n    output red, \n    output yellow, \n    output green, \n    output [7:0] clock\n);\n// TODO: Please add your solution here\n    \n    localparam idle = 2'b00;\n\tlocalparam s1_red = 2'b01;\n\tlocalparam s2_yellow = 2'b10;\n\tlocalparam s3_green = 2'b11;\n\t\n\treg [1:0] state, next_state;\n    reg [7:0] cnt, next_cnt;\n    reg p_red, p_yellow, p_green;\n    assign red = p_red;\n\tassign yellow = p_yellow;\n\tassign green = p_green;\n    always@(posedge clk or negedge rst_n) begin\n        if(~rst_n) begin\n\t\t\tstate <= idle;\n\t\tend\n\t\telse begin\n\t\t\tstate <= next_state;\n\t\tend\n\tend\n\t\n\talways@(*) begin\n\t    case(state)\n\t\t    idle: begin\n\t\t        next_state = s1_red;\n\t\t    end\n\t\t    s1_red: begin\n\t\t        if(cnt==8'd3) begin\n\t\t            next_state = s3_green;\n\t\t        end\n\t\t        else begin\n\t\t            next_state = s1_red;\n\t\t        end\n\t\t    end\n\t\t    s2_yellow: begin\n\t\t        if(cnt==8'd3) begin\n\t\t            next_state = s1_red;\n\t\t        end\n\t\t        else begin\n\t\t            next_state = s2_yellow;\n\t\t        end\n\t\t    end\n\t\t    s3_green: begin\n\t\t        if(cnt==8'd3) begin\n\t\t            next_state = s2_yellow;\n\t\t        end\n\t\t        else begin\n\t\t            next_state = s3_green;\n\t\t        end\n\t\t    end\n\t\t    default: begin\n\t\t    \tnext_state = idle;\n\t\t    end\n\t\tendcase\n\tend\n\t\n\t\n\talways@(posedge clk or negedge rst_n) begin\n\t    if(~rst_n) begin\n\t        cnt <= 8'd10;\n\t    end\n\t    else begin\n\t    \tif(pass_request&&green&&(cnt>8'd10)) begin\n\t    \t\tcnt <= 8'd10;\n\t    \tend\n\t    \telse if(!green&p_green) begin\n\t    \t\tcnt <= 8'd60;\n\t    \tend\n\t    \telse if(!yellow&p_yellow) begin\n\t    \t\tcnt <= 8'd5;\n\t    \tend\n\t    \telse if(!red&p_red) begin\n\t    \t\tcnt <= 8'd10;\n\t    \tend\n\t    \telse begin\n\t    \t\tcnt <= cnt-1;\n\t    \tend\n\t    end\n\tend\n\t\n\t\n\t\n\talways@(posedge clk or negedge rst_n) begin\n\t    if(~rst_n) begin\n\t        p_red <= 1'b0;\n\t        p_yellow <= 1'b0;\n\t        p_green <= 1'b0;\n\t    end\n\t    else begin\n\t    \tp_red <= (state==s1_red);\n\t    \tp_yellow <= (state==s2_yellow);\n\t    \tp_green <= (state==s3_green);\n\t    end\n\tend\n    \n    \n    assign clock = cnt;\n    \nendmodule\n",
+    "xml_description": "<module id=\"traffic_light\">\n    <description>Implement a traffic light with three outputs: red, yellow, and green. These represent the states of the road lanes, while another lane (sidewalk) has two LEDs: green and red. The red LED indicates that pedestrians can cross, while the green LED indicates that vehicles can pass. There is also a pedestrian button. In normal operation, the road lane indicator changes its color to green after 60 clock cycles, then turns to yellow for 5 clock cycles, and finally turns to red for 10 clock cycles. When the pedestrian button is pressed, the road lane indicator changes its color to green after 60 clock cycles, then turns to yellow for 5 clock cycles, but the number of clock cycles for red depends on whether there are more than 10 clock cycles left to change the color to green. If there are more than 10 clock cycles, the red LED turns off and changes to green after 60 clock cycles, otherwise it stays red until the end of the cycle.</description>\n    <ports>\n        <input id=\"pass_request\">Input for requesting permission to pass.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"clk\">Clock signal.</input>\n        <output id=\"green\">Green LED output for the road lane.</output>\n        <output id=\"yellow\">Yellow LED output for the road lane.</output>\n        <output id=\"red\">Red LED output for the road lane.</output>\n        <output id=\"clock\" width_description=\"[7:0]\">Internal counter for tracking clock cycles.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"idle\">Initial state of the traffic light controller.</parameter>\n        <parameter name=\"s1_red\">State indicating the red light is turned on for the road lane.</parameter>\n        <parameter name=\"s2_yellow\">State indicating the yellow light is turned on for the road lane.</parameter>\n        <parameter name=\"s3_green\">State indicating the green light is turned on for the road lane.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"cnt\" type=\"internal\">Internal counter for managing clock cycles.&lt;/reg>\n        &lt;reg id=\"state\" type=\"internal\">Current state of the traffic light controller.&lt;/reg>\n        \n        &lt;reg id=\"p_red\" type=\"internal\">Next value for the red LED.&lt;/reg>\n        &lt;reg id=\"p_yellow\" type=\"internal\">Next value for the yellow LED.&lt;/reg>\n        &lt;reg id=\"p_green\" type=\"internal\">Next value for the green LED.&lt;/reg>\n    </logic_description>\n    \n    <implementation>\n        // State transition logic\n        always @(posedge clk or negedge rst_n) begin\n            if(!rst_n) begin\n                state &lt;= idle;\n            end else begin\n                case(state)\n                    idle: begin\n                        state &lt;= s1_red;\n                    end\n                    s1_red: begin\n                        if(cnt == 8'd3) begin\n                            state &lt;= s3_green;\n                        end else begin\n                            state &lt;= s1_red;\n                        end\n                    end\n                    s2_yellow: begin\n                        if(cnt == 8'd3) begin\n                            state &lt;= s1_red;\n                        end else begin\n                            state &lt;= s2_yellow;\n                        end\n                    end\n                    s3_green: begin\n                        if(cnt == 8'd3) begin\n                            state &lt;= s2_yellow;\n                        end else begin\n                            state &lt;= s3_green;\n                        end\n                    end\n                    default: begin\n                        state &lt;= idle;\n                    end\n                endcase\n            end\n        end\n        \n        // Counting logic for the internal counter (cnt)\n        always @(posedge clk or negedge rst_n) begin\n            if(!rst_n) begin\n                cnt &lt;= 8'd10;\n            end else begin\n                if(pass_request &amp;&amp; green) begin\n                    cnt &lt;= 8'd10;\n                end else begin\n                    if(green &amp;&amp; !p_green) begin\n                        cnt &lt;= 8'd60;\n                    end else if(yellow &amp;&amp; !p_yellow) begin\n                        cnt &lt;= 8'd5;\n                    end else if(red &amp;&amp; !p_red) begin\n                        cnt &lt;= 8'd10;\n                    end else begin\n                        cnt &lt;= cnt - 8'd1;\n                    end\n                end\n            end\n        end\n        \n        assign clock = cnt;\n        \n        // Output assignments\n        always @(posedge clk or negedge rst_n) begin\n            if(!rst_n) begin\n                {red, yellow, green} &lt;= {1'b0, 1'b0, 1'b0};\n            end else begin\n                {red, yellow, green} &lt;= {p_red, p_yellow, p_green};\n            end\n        end\n    </implementation>\n    <task>\n        &lt;title>Task Description&lt;/title>\n        &lt;text>\n            Task ID: 1\n            Input Ports:\n                - pass_request\n                - rst_n\n                - clk\n            Output Ports:\n                - green\n                - yellow\n                - red\n                - clock\n            Internal Registers/Wires:\n                - cnt\n                - state\n                - p_red\n                - p_yellow\n                - p_green\n            Description:\n            The task is to implement a traffic light system. Given the inputs pass_request, rst_n, and clk, generate the outputs green, yellow, red, and clock. Utilize the internal registers/wires cnt, state, p_red, p_yellow, and p_green to manage the traffic light operations. Ensure proper synchronization and timing.\n        &lt;/text>\n    </task>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module traffic_light(\n      |        ^~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_traffic_light;\n      |        ^~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_traffic_light_m0rjh89b/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_traffic_light.cpp Vtb_traffic_light___024root__0.cpp Vtb_traffic_light__main.cpp Vtb_traffic_light__ConstPool__0__Slow.cpp Vtb_traffic_light___024root__Slow.cpp Vtb_traffic_light___024root__0__Slow.cpp Vtb_traffic_light__Syms__Slow.cpp > Vtb_traffic_light__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_traffic_light__ALL.o Vtb_traffic_light__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_traffic_light__ALL.a    -pthread -lpthread -latomic   -o Vtb_traffic_light\nrm Vtb_traffic_light__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_traffic_light_m0rjh89b/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 3 modules, into 0.049 MB in 7 C++ files needing 0.000 MB\n- Verilator: Walltime 1.412 s (elab=0.001, cvt=0.008, bld=1.399); cpu 0.013 s on 1 threads; allocated 33.047 MB\n\n[RUN]\nAt time                   40, clock =   7, red = 1, yellow = 0, green = 0\nAt time                  140, clock = 253, red = 0, yellow = 0, green = 1\nAt time                  740, clock = 193, red = 0, yellow = 0, green = 1\nAt time                  890, clock = 178, red = 0, yellow = 0, green = 1\nAt time                  920, clock = 175, red = 0, yellow = 0, green = 1\nAt time                  930, clock =  10, red = 0, yellow = 0, green = 1\n===========Failed===========          1\n- testbench.v:78: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 930ns; walltime 0.000 s; speed 3.452 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 395.33,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 102,
+          "elapsed_s": 30.38
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 83,
+          "elapsed_s": 29.81
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 111,
+          "elapsed_s": 31.52
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 86,
+          "elapsed_s": 69.51
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 94,
+          "elapsed_s": 39.33
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 94,
+          "elapsed_s": 29.36
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 31.23
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 102,
+          "elapsed_s": 38.39
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 109,
+          "elapsed_s": 62.77
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 117,
+          "elapsed_s": 33.04
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

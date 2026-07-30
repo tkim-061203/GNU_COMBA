@@ -1,0 +1,76 @@
+{
+  "module_name": "calendar",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "calendar",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module calendar (\n    input CLK, \n    input RST, \n    output reg [5:0] Secs, \n    output reg [5:0] Mins, \n    output reg [5:0] Hours\n);\n// First always block for updating seconds value\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Secs <= 6'd0;\n    end else if (Secs == 6'd59) begin\n        Secs <= 6'd0;\n    end else begin\n        Secs <= Secs + 6'd1;\n    end\nend\n// Second always block for updating minutes value\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Mins <= 6'd0;\n    end else if ((Mins == 6'd59) && (Secs == 6'd59)) begin\n        Mins <= 6'd0;\n    end else if (Secs == 6'd59) begin\n        Mins <= Mins + 6'd1;\n    end else begin\n        Mins <= Mins;\n    end\nend\n// Third always block for updating hours value\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Hours <= 6'd0;\n    end else if ((Hours == 6'd23) && (Mins == 6'd59) && (Secs == 6'd59)) begin\n        Hours <= 6'd0;\n    end else if ((Mins == 6'd59) && (Secs == 6'd59)) begin\n        Hours <= Hours + 6'd1;\n    end else begin\n        Hours <= Hours;\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"calendar\">\n    <description>A perpetual calendar module that updates the seconds, minutes, and hours values based on the clock signal and reset signal.</description>\n    <ports>\n        <input id=\"CLK\">Clock input.</input>\n        <input id=\"RST\">Active high reset signal.</input>\n        <output id=\"Secs\" width_description=\"[5:0]\">6-bit output representing the current seconds.</output>\n        <output id=\"Mins\" width_description=\"[5:0]\">6-bit output representing the current minutes.</output>\n        <output id=\"Hours\" width_description=\"[5:0]\">6-bit output representing the current hours.</output>\n    </ports>\n    <implementation>\n        // First always block for updating seconds value\n        always @(posedge CLK or posedge RST) begin\n            if (RST) begin\n                Secs &lt;= 6'd0;\n            end else if (Secs == 6'd59) begin\n                Secs &lt;= 6'd0;\n            end else begin\n                Secs &lt;= Secs + 6'd1;\n            end\n        end\n        \n        // Second always block for updating minutes value\n        always @(posedge CLK or posedge RST) begin\n            if (RST) begin\n                Mins &lt;= 6'd0;\n            end else if ((Mins == 6'd59) &amp;&amp; (Secs == 6'd59)) begin\n                Mins &lt;= 6'd0;\n            end else if (Secs == 6'd59) begin\n                Mins &lt;= Mins + 6'd1;\n            end else begin\n                Mins &lt;= Mins;\n            end\n        end\n        \n        // Third always block for updating hours value\n        always @(posedge CLK or posedge RST) begin\n            if (RST) begin\n                Hours &lt;= 6'd0;\n            end else if ((Hours == 6'd23) &amp;&amp; (Mins == 6'd59) &amp;&amp; (Secs == 6'd59)) begin\n                Hours &lt;= 6'd0;\n            end else if ((Mins == 6'd59) &amp;&amp; (Secs == 6'd59)) begin\n                Hours &lt;= Hours + 6'd1;\n            end else begin\n                Hours &lt;= Hours;\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_calendar_7g_vyzp5/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vcalendar.cpp Vcalendar___024root__0.cpp Vcalendar__Trace__0.cpp Vcalendar___024root__Slow.cpp Vcalendar___024root__0__Slow.cpp Vcalendar__Syms__Slow.cpp Vcalendar__Trace__0__Slow.cpp Vcalendar__TraceDecls__0__Slow.cpp > Vcalendar__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vcalendar__ALL.o Vcalendar__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vcalendar__ALL.a    -pthread -lpthread -latomic   -o Vcalendar\nrm Vcalendar__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_calendar_7g_vyzp5/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.031 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.346 s (elab=0.000, cvt=0.003, bld=0.338); cpu 0.008 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 3,
+      "max_samples": 10,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 43.61,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 11.14
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 12.02
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 42,
+          "elapsed_s": 20.45
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

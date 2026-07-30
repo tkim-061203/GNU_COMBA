@@ -21,16 +21,16 @@ export VLLM_TORCH_COMPILE_LEVEL=0
 #/home/nntkim/Downloads/outputs_lora_r1024_v2/checkpoint-14500
 #/home/nntkim/Downloads/model_debugger
 #/home/nntkim/Downloads/model_qwen_debugger_v1_merged
-#/home/nntkim/Downloads/model_qwen_generator_0-15_e1_v1_merged
+#/home/nntkim/Downloads/model_qwen_generator_0-15_e1_v2_merged
 # ── Config ──
 GENERATED_MODEL="${GENERATED_MODEL:-/home/nntkim/Downloads/model_qwen_generator_0-35_e1_v1_merged}"
-MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_qwen_debugger_v1_merged}"
+MERGED_MODEL="${MERGED_MODEL:-/home/nntkim/Downloads/model_qwen_debugger_2gpu_e1_v2_merged}"
 PORT_GEN=8000
 PORT_DBG=8001
 MAX_MODEL_LEN=32768
-GPU_MEM=0.9
+GPU_MEM=0.95
 CACHE_DIR="../../hf_model_cache"
-DTYPE="float16"
+DTYPE="${DTYPE:-float16}"
 LOG_DIR="./logs"
 
 # ── Parse Args ──
@@ -146,6 +146,7 @@ start_dual() {
         --download-dir $CACHE_DIR \
         --served-model-name generator \
         $GEN_FLAGS \
+        --seed 42 \
         --enforce-eager \
         --disable-log-stats \
         --max-model-len $MAX_MODEL_LEN \
@@ -163,6 +164,7 @@ start_dual() {
         --model $MERGED_MODEL \
         --served-model-name debugger \
         $DBG_FLAGS \
+        --seed 42 \
         --max-model-len $MAX_MODEL_LEN \
         --gpu-memory-utilization $GPU_MEM \
         --port $PORT_DBG \

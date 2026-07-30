@@ -1,0 +1,11 @@
+VerilogEval sweep timing
+finished : 2026-07-21T19:54:35+07:00
+configs  : e0_t0 e0_t8 e1_t0 e1_t8
+
+  config  elapsed   (langgraph only)
+  e0_t0   00:36:58  (2218 s, rc=0)
+  e0_t8   09:54:00  (35640 s, rc=0)
+  e1_t0   00:37:10  (2230 s, rc=0)
+  e1_t8   10:02:26  (36146 s, rc=0)
+
+  TOTAL   21:10:34  (76234 s, includes configure + report copy)

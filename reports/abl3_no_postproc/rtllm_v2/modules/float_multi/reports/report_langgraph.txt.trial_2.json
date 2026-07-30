@@ -1,0 +1,160 @@
+{
+  "module_name": "float_multi",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "float_multi",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module float_multi (\n    input clk, \n    input rst, \n    input [31:0] a, \n    input [31:0] b, \n    output reg [31:0] z\n);\n    reg [2:0] counter;\n    reg [23:0] a_mantissa, b_mantissa, z_mantissa;\n    reg [9:0] a_exponent, b_exponent, z_exponent;\n    reg a_sign, b_sign, z_sign;\n    reg [49:0] product;\n    reg guard_bit, round_bit, sticky;\n    // Internal signal declarations\n    \n    parameter ZERO = 32'h00000000;\n    parameter INFINITY = 32'h7F800000;\n    parameter NAN = 32'h7FC00000;\n    \n    always @(posedge clk or posedge rst) begin\n        if (rst) begin\n            counter <= 3'b0;\n            z <= 32'h0;\n        end else begin\n            case(counter)\n                3'd0: begin\n                    a_mantissa[22:0] <= a[22:0];\n                    a_exponent[9:0] <= a[30:23] - 127;\n                    a_sign <= a[31];\n                    if (a_exponent[9]) begin\n                        a_mantissa[23] <= 1'b1;\n                    end else begin\n                        a_mantissa[23] <= 1'b0;\n                    end\n                end\n                \n                3'd1: begin\n                    b_mantissa[22:0] <= b[22:0];\n                    b_exponent[9:0] <= b[30:23] - 127;\n                    b_sign <= b[31];\n                    if (b_exponent[9]) begin\n                        b_mantissa[23] <= 1'b1;\n                    end else begin\n                        b_mantissa[23] <= 1'b0;\n                    end\n                end\n                \n                3'd2: begin\n                    product[49:0] <= {1'b0, a_mantissa} * {1'b0, b_mantissa};\n                    z_sign <= a_sign ^ b_sign;\n                    z_exponent[9:0] <= a_exponent + b_exponent + 127;\n                end\n                \n                3'd3: begin\n                    guard_bit <= product[24];\n                    round_bit <= product[23];\n                    sticky <= |product[22:0];\n                    \n                    if (guard_bit && (round_bit || sticky || product[24])) begin\n                        product[49:25] <= product[49:25] + 1'b1;\n                    end\n                    if (product[49]) begin\n                        z_exponent <= z_exponent + 1'b1;\n                        product[49:25] <= product[49:25] >> 1;\n                    end\n                end\n                \n                3'd4: begin\n                    z_mantissa <= product[48:25];\n                    \n                    if ((a_exponent == 128 && a_mantissa != 0) || (b_exponent == 128 && b_mantissa != 0)) begin\n                        z <= NAN;\n                    end else if (z_exponent >= 127) begin\n                        z <= INFINITY;\n                    end else begin\n                        z[31] <= z_sign;\n                        z[30:23] <= z_exponent[7:0] + 127;\n                        z[22:0] <= z_mantissa[22:0];\n                    end\n                end\n            endcase\n            \n            counter <= counter + 1;\n        end\n    end\nendmodule\n",
+    "xml_description": "<module id=\"float_multi\">\n    <description>Implements a 32-bit floating point multiplier for IEEE-754 single precision.</description>\n    \n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operation.</input>\n        <input id=\"rst\">Reset signal for synchronous operation.</input>\n        \n        <input id=\"a\" width_description=\"[31:0]\">First operand in IEEE-754 format.</input>\n        <input id=\"b\" width_description=\"[31:0]\">Second operand in IEEE-754 format.</input>\n        \n        <output id=\"z\" width_description=\"[31:0]\">Result of the multiplication in IEEE-754 format.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"ZERO\">IEEE 754 representation of zero.</parameter>\n        <parameter id=\"INFINITY\">IEEE 754 representation of infinity.</parameter>\n        <parameter id=\"NAN\">IEEE 754 representation of Not-a-Number.</parameter>\n    </parameter_description>\n    \n    <implementation>\n        // Sequential logic for managing internal states and outputs\n        sequential_block begin : float_multiplier_seq\n        \n            // Define registers for internal signals\n            reg [2:0] counter;\n            reg [23:0] a_mantissa, b_mantissa, z_mantissa;\n            reg [9:0] a_exponent, b_exponent, z_exponent;\n            reg a_sign, b_sign, z_sign;\n            \n            // Register to hold the intermediate product of mantissas\n            reg [49:0] product;\n            // Rounding bits for normalization process\n            reg guard_bit, round_bit, sticky;\n            // Output register\n            reg [31:0] z_reg;\n            \n            // Synchronous block triggered on rising edge of the clock\n            @(posedge clk or posedge rst) begin\n            \n                // Check for asynchronous reset condition\n                if(rst == 1'b1) begin\n                    \n                    // Initialize the counter to zero on reset\n                    counter &lt;= 3'b0;\n                    \n                    // Reset the output register to zero\n                    z_reg &lt;= 32'h0;\n                \n                end else begin\n                \n                    case(counter)\n                        // Extract mantissa, exponent, and sign bits from input 'a' during the first cycle\n                        3'd0: begin\n                            a_mantissa[22:0] &lt;= a[22:0];\n                            a_exponent[9:0] &lt;= a[30:23] - 127; // Subtract bias value of 127\n                            a_sign &lt;= a[31]; // Assign sign bit of 'a'\n                            \n                            // Normalize mantissa by adding hidden bit if necessary\n                            if(a_exponent[9]) begin\n                                a_mantissa[23] &lt;= 1'b1;\n                            end else begin\n                                a_mantissa[23] &lt;= 1'b0;\n                            end\n                        end\n                        \n                        // Extract mantissa, exponent, and sign bits from input 'b' during the second cycle\n                        3'd1: begin\n                            b_mantissa[22:0] &lt;= b[22:0];\n                            b_exponent[9:0] &lt;= b[30:23] - 127; // Subtract bias value of 127\n                            b_sign &lt;= b[31]; // Assign sign bit of 'b'\n                            \n                            // Normalize mantissa by adding hidden bit if necessary\n                            if(b_exponent[9]) begin\n                                b_mantissa[23] &lt;= 1'b1;\n                            end else begin\n                                b_mantissa[23] &lt;= 1'b0;\n                            end\n                        end\n                        \n                        // Perform multiplication of mantissas during the third cycle\n                        3'd2: begin\n                            product[49:0] &lt;= {1'b0,a_mantissa} * {1'b0,b_mantissa}; // Multiply mantissas\n                            z_sign &lt;= a_sign ^ b_sign; // XOR the sign bits of 'a' and 'b'\n                            z_exponent[9:0] &lt;= a_exponent + b_exponent + 127; // Add biased exponents and subtract bias value\n                        end\n                        \n                        // Round the result during the fourth cycle\n                        3'd3: begin\n                            // Determine rounding bits for normalization\n                            guard_bit &lt;= product[24];\n                            round_bit &lt;= product[23];\n                            sticky &lt;= |product[22:0]; // OR reduction operator to determine if any bits after guard and round bits are non-zero\n                            \n                            // Calculate new exponent and adjust mantissa based on rounding bits\n                            if(guard_bit &amp;&amp; ((round_bit || sticky || product[24]))) begin\n                                product[49:25] &lt;= product[49:25] + 1'b1;\n                            end\n                            // Check for overflow in exponent\n                            if(product[49]) begin\n                                z_exponent &lt;= z_exponent + 1'b1;\n                                product[49:25] &lt;= product[49:25] >> 1;\n                            end\n                        end\n                        \n                        // Generate final output during the fifth cycle\n                        3'd4: begin\n                            // Assign normalized mantissa to output\n                            z_mantissa &lt;= product[48:25];\n                            \n                            // Handle special cases such as NaN and Infinity\n                            if((a_exponent == 128 &amp;&amp; a_mantissa != 0) || (b_exponent == 128 &amp;&amp; b_mantissa != 0)) begin\n                                z_reg &lt;= NAN;\n                            end else if(z_exponent >= 127) begin\n                                z_reg &lt;= INFINITY;\n                            end else begin\n                                z_reg[31] &lt;= z_sign; // Assign sign bit of output\n                                z_reg[30:23] &lt;= z_exponent[7:0] + 127; // Add bias value back to exponent\n                                z_reg[22:0] &lt;= z_mantissa[22:0]; // Assign mantissa to output\n                            end\n                        end\n                    endcase\n                    \n                    // Increment the counter for the next cycle\n                    counter &lt;= counter + 1;\n                    \n                end\n            end\n        end\n        \n        // Assign the final output to the port 'z'\n        assign z = z_reg;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:39:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   39 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-INITIALDLY: testbench.v:10:6: Non-blocking assignment '<=' in initial/final block\n                                     : ... This will be executed as a blocking assignment '='!\n   10 |  clk <= 0;\n      |      ^~\n                     ... For warning description see https://verilator.org/warn/INITIALDLY?v=5.048\n                     ... Use \"/* verilator lint_off INITIALDLY */\" and lint_on around source to disable this message.\n%Warning-INITIALDLY: testbench.v:11:6: Non-blocking assignment '<=' in initial/final block\n                                     : ... This will be executed as a blocking assignment '='!\n   11 |  rst <= 1;\n      |      ^~\n%Warning-INITIALDLY: testbench.v:13:10: Non-blocking assignment '<=' in initial/final block\n                                      : ... This will be executed as a blocking assignment '='!\n   13 |   #5 clk <= ~clk;\n      |          ^~\n%Warning-INITIALDLY: testbench.v:16:17: Non-blocking assignment '<=' in initial/final block\n                                      : ... This will be executed as a blocking assignment '='!\n   16 | initial #13 rst <= 0;\n      |                 ^~\nmake: Entering directory '/tmp/comba_float_multi_kr6ue8mp/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfmultiplier_tb.cpp Vfmultiplier_tb___024root__0.cpp Vfmultiplier_tb__main.cpp Vfmultiplier_tb___024root__Slow.cpp Vfmultiplier_tb___024root__0__Slow.cpp Vfmultiplier_tb__Syms__Slow.cpp > Vfmultiplier_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vfmultiplier_tb__ALL.o Vfmultiplier_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vfmultiplier_tb__ALL.a    -pthread -lpthread -latomic   -o Vfmultiplier_tb\nrm Vfmultiplier_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_float_multi_kr6ue8mp/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.048 MB sources in 3 modules, into 0.044 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.243 s (elab=0.001, cvt=0.004, bld=1.235); cpu 0.009 s on 1 threads; allocated 30.547 MB\n\n[RUN]\n=========== Test completed with           1/20 failures ===========\n- testbench.v:35: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 243ps; walltime 0.000 s; speed 1.630 us/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 866.7,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 60.89
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 113,
+          "elapsed_s": 103.54
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 126,
+          "elapsed_s": 100.77
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 91,
+          "elapsed_s": 72.98
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 127,
+          "elapsed_s": 84.58
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 115,
+          "elapsed_s": 55.28
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 121,
+          "elapsed_s": 84.2
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 136,
+          "elapsed_s": 177.15
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 122,
+          "elapsed_s": 78.47
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 86,
+          "elapsed_s": 48.84
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

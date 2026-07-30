@@ -1,0 +1,100 @@
+{
+  "module_name": "fsm",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fsm",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fsm (\n    input IN, \n    input CLK, \n    input RST, \n    output MATCH\n);\n// Internal signals\nreg [2:0] ST_cr, ST_nt;\n// State encoding\nparameter [2:0] S0 = 3'b000;\nparameter [2:0] S1 = 3'b001;\nparameter [2:0] S2 = 3'b010;\nparameter [2:0] S3 = 3'b011;\nparameter [2:0] S4 = 3'b100;\nparameter [2:0] S5 = 3'b101;\n// Next state logic\nalways @(*) begin\n    case(ST_cr)\n        S0: ST_nt = (IN == 1'b1) ? S1 : S0;\n        S1: ST_nt = (IN == 1'b0) ? S2 : S1;\n        S2: ST_nt = (IN == 1'b0) ? S3 : S0;\n        S3: ST_nt = (IN == 1'b1) ? S4 : S0;\n        S4: ST_nt = (IN == 1'b1) ? S5 : S2;\n        S5: ST_nt = (IN == 1'b0) ? S2 : S1;\n        default: ST_nt = S0;\n    endcase\nend\n// Current state update logic\nalways @(posedge CLK or posedge RST) begin\n    if(RST) ST_cr <= S0;\n    else ST_cr <= ST_nt;\nend\n// Combinational logic for MATCH\nassign MATCH = (RST) ? 1'b0 :\n               (ST_cr == S4 && IN == 1'b1) ? 1'b1 :\n               1'b0;\nendmodule\n",
+    "xml_description": "<module id=\"fsm\">\n    <description>Detection circuit for a single-bit input IN using a Mealy FSM.</description>\n    <ports>\n        <input id=\"IN\">Input signal to be detected.</input>\n        <input id=\"CLK\">Clock signal for synchronous operation.</input>\n        <input id=\"RST\">Reset signal to initialize the FSM.</input>\n        <output id=\"MATCH\">Output signal indicating a match condition.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">State representing IDLE.</parameter>\n        <parameter id=\"S1\">State representing S1.</parameter>\n        <parameter id=\"S2\">State representing S2.</parameter>\n        <parameter id=\"S3\">State representing S3.</parameter>\n        <parameter id=\"S4\">State representing S4.</parameter>\n        <parameter id=\"S5\">State representing S5.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"next_state\" type=\"reg\" width_description=\"[3:0]\">Next state register.&lt;/signal>\n        &lt;signal id=\"current_state\" type=\"reg\" width_description=\"[3:0]\">Current state register.&lt;/signal>\n        \n        // State encoding\n        parameter [3:0] IDLE = 4'b0000;\n        parameter [3:0] S1 = 4'b0001;\n        parameter [3:0] S2 = 4'b0010;\n        parameter [3:0] S3 = 4'b0011;\n        parameter [3:0] S4 = 4'b0100;\n        parameter [3:0] S5 = 4'b0101;\n        \n        // Next state logic\n        always @(*) begin\n            case(current_state)\n                IDLE: next_state = (IN == 1'b1) ? S1 : IDLE;\n                S1: next_state = (IN == 1'b0) ? S2 : S1;\n                S2: next_state = (IN == 1'b0) ? S3 : IDLE;\n                S3: next_state = (IN == 1'b1) ? S4 : IDLE;\n                S4: next_state = (IN == 1'b1) ? S5 : IDLE;\n                S5: next_state = (IN == 1'b0) ? S2 : IDLE;\n                default: next_state = IDLE;\n            endcase\n        end\n        \n        // Current state update logic\n        always @(posedge CLK or posedge RST) begin\n            if(RST) current_state &lt;= IDLE;\n            else current_state &lt;= next_state;\n        end\n    </logic_description>\n    \n    <implementation>\n        // Sequential logic block triggered on changes in IN, CLK, or RST\n        always @(IN or CLK or RST) begin\n            // Check if RST is active\n            if (RST) begin\n                // Set MATCH to 0 when RST is asserted\n                MATCH &lt;= 1'b0;\n            end else begin\n                // Update MATCH based on the current state\n                case (current_state)\n                    IDLE: MATCH &lt;= 1'b0;\n                    S1: MATCH &lt;= 1'b0;\n                    S2: MATCH &lt;= 1'b0;\n                    S3: MATCH &lt;= 1'b0;\n                    S4: MATCH &lt;= 1'b0;\n                    S5: MATCH &lt;= 1'b1;\n                    default: MATCH &lt;= 1'b0;\n                endcase\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_fsm_z34gw85u/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfsm.cpp Vfsm___024root__0.cpp Vfsm__Trace__0.cpp Vfsm__ConstPool__0__Slow.cpp Vfsm___024root__Slow.cpp Vfsm___024root__0__Slow.cpp Vfsm__Syms__Slow.cpp Vfsm__Trace__0__Slow.cpp Vfsm__TraceDecls__0__Slow.cpp > Vfsm__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vfsm__ALL.o Vfsm__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vfsm__ALL.a    -pthread -lpthread -latomic   -o Vfsm\nrm Vfsm__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_fsm_z34gw85u/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.027 MB sources in 2 modules, into 0.039 MB in 9 C++ files needing 0.000 MB\n- Verilator: Walltime 0.347 s (elab=0.000, cvt=0.004, bld=0.338); cpu 0.009 s on 0 threads; allocated 30.539 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 5,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 189.2,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 80,
+          "elapsed_s": 29.9
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 48.15
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 80,
+          "elapsed_s": 29.42
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 80,
+          "elapsed_s": 29.46
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 37,
+          "elapsed_s": 52.26
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

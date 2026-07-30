@@ -1,0 +1,160 @@
+{
+  "module_name": "traffic_light",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "traffic_light",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module traffic_light(\n    input rst_n, input clk, input pass_request,\n    output [7:0] clock, output red, yellow, green\n);\n// Add your code here\nreg [7:0]cnt;\nreg [1:0]state;\nreg p_red, p_yellow, p_green;\nassign red = p_red;\nassign yellow = p_yellow;\nassign green = p_green;\nlocalparam idle = 2'b00;\nlocalparam s1_red = 2'b01;\nlocalparam s2_yellow = 2'b10;\nlocalparam s3_green = 2'b11;\nalways@(*) begin\n    case(state)\n        idle: begin\n            state <= s1_red;\n            p_red <= 1'd0;\n            p_yellow <= 1'd0;\n            p_green <= 1'd0;\n        end \n        s1_red:begin\n            if(cnt == 8'd3) begin\n                state <= s3_green;\n                p_red <= 1'd0;\n            end else begin\n                state <= s1_red;\n                p_red <= 1'd1;\n            end\n        end \n        s2_yellow:begin\n            if(cnt == 8'd3) begin\n                state <= s1_red;\n                p_yellow <= 1'd0;\n            end else begin\n                state <= s2_yellow;\n                p_yellow <= 1'd1;\n            end\n        end \n        s3_green:begin\n            if(cnt == 8'd3) begin\n                state <= s2_yellow;\n                p_green <= 1'd0;\n            end else begin\n                state <= s3_green;\n                p_green <= 1'd1;\n            end\n        end\n        default :begin\n            state <= idle;\n            p_red <= 1'd0;\n            p_yellow <= 1'd0;\n            p_green <= 1'd0;\n        end\n    endcase\nend\nalways@(posedge clk,negedge rst_n)begin\n    if(!rst_n)begin\n        cnt <= 8'd10;\n    end else if(pass_request && green && (cnt > 10)) begin\n        cnt <= 8'd10;\n    end else if(!green && p_green)begin\n        cnt <= 8'd60;\n    end else if(!yellow && p_yellow)begin\n        cnt <= 8'd5;\n    end else if(!red && p_red)begin\n        cnt <= 8'd10;\n    end else begin\n        cnt <= cnt - 8'd1;\n    end\nend\nassign clock = cnt;\nendmodule\n",
+    "xml_description": "<module id=\"traffic_light\">\n\t<!--Traffic Light-->\n\t\n\t<!--Description: Implement the logic of a traffic light controller with red, yellow, green lights, and pedestrian crossing button, following the timing constraints mentioned above. Note: do not use the actual clock cycle for your design, but rather use the 8-bit output clock to represent the number of clock cycles passed. For example, if the green light lasts for 60 clock cycles, you should set the output clock to 60 instead of waiting for 60 real clock cycles. Also, please remember that the red light duration can be reduced due to pedestrian requests.-->\n    \n    <!--Input Ports-->\n    <input id=\"rst_n\">Reset signal (active low).</input>\n    <input id=\"clk\">Clock signal.</input>\n    <input id=\"pass_request\">Request signal for allowing vehicles to pass.</input>\n    <!--Output Ports-->\n    <output id=\"clock\" width_description=\"[7:0]\">An 8-bit output representing the count value of the internal counter.</output>\n    <output id=\"red\">Output signal representing the state of the red light.</output>\n    <output id=\"yellow\">Output signal representing the state of the yellow light.</output>\n    <output id=\"green\">Output signal representing the state of the green light.</output>\n    <!--Parameter Description-->\n    <parameter_description>\n    \t<parameter name=\"idle\">Initial state where all signals are set to 0. Transition to s1_red state occurs immediately.</parameter>\n    \t<parameter name=\"s1_red\">Sets the red signal to 1 and waits for a count of 3 before transitioning to s3_green state. Otherwise, it remains in s1_red state.</parameter>\n    \t<parameter name=\"s2_yellow\">Sets the yellow signal to 1 and waits for a count of 3 before transitioning to s1_red state. Otherwise, it remains in s2_yellow state.</parameter>\n    \t<parameter name=\"s3_green\">Sets the green signal to 1 and waits for a count of 3 before transitioning to s2_yellow state. Otherwise, it remains in s3_green state.</parameter>\n    </parameter_description>\n    <!--Logic Description-->\n    <logic_description type=\"sequential_logic\">\n    \treg [7:0]cnt;\n    \treg [1:0]state;\n    \treg p_red, p_yellow, p_green;\n    \talways@(*) begin\n    \t\tcase(state)\n    \t\t\tidle: begin\n    \t\t\t\tstate &lt;= s1_red;\n    \t\t\t\tp_red &lt;= 1'd0;\n    \t\t\t\tp_yellow &lt;= 1'd0;\n    \t\t\t\tp_green &lt;= 1'd0;\n    \t\t\tend\n    \t\t\ts1_red:begin\n    \t\t\t\tif(cnt == 8'd3) begin\n    \t\t\t\t\tstate &lt;= s3_green;\n    \t\t\t\t\tp_red &lt;= 1'd0;\n    \t\t\t\tend else begin\n    \t\t\t\t\tstate &lt;= s1_red;\n    \t\t\t\t\tp_red &lt;= 1'd1;\n    \t\t\t\tend\n    \t\t\tend\n    \t\t\ts2_yellow:begin\n    \t\t\t\tif(cnt == 8'd3) begin\n    \t\t\t\t\tstate &lt;= s1_red;\n    \t\t\t\t\tp_yellow &lt;= 1'd0;\n    \t\t\t\tend else begin\n    \t\t\t\t\tstate &lt;= s2_yellow;\n    \t\t\t\t\tp_yellow &lt;= 1'd1;\n    \t\t\t\tend\n    \t\t\tend\n    \t\t\ts3_green:begin\n    \t\t\t\tif(cnt == 8'd3) begin\n    \t\t\t\t\tstate &lt;= s2_yellow;\n    \t\t\t\t\tp_green &lt;= 1'd0;\n    \t\t\t\tend else begin\n    \t\t\t\t\tstate &lt;= s3_green;\n    \t\t\t\t\tp_green &lt;= 1'd1;\n    \t\t\t\tend\n    \t\t\tend\n    \t\t\tdefault :begin\n    \t\t\t\tstate &lt;= idle;\n    \t\t\t\tp_red &lt;= 1'd0;\n    \t\t\t\tp_yellow &lt;= 1'd0;\n    \t\t\t\tp_green &lt;= 1'd0;\n    \t\t\tend\n    \t\tendcase\n    \tend\n    \talways@(posedge clk,negedge rst_n)begin\n    \t\tif(!rst_n)begin\n    \t\t\tcnt &lt;= 8'd10;\n    \t\tend else if(pass_request &amp;&amp; green) begin\n    \t\t\tcnt &lt;= 8'd10;\n    \t\tend else if(~green &amp;&amp; p_green)begin\n    \t\t\tcnt &lt;= 8'd60;\n    \t\tend else if(~yellow &amp;&amp; p_yellow)begin\n    \t\t\tcnt &lt;= 8'd5;\n    \t\tend else if(~red &amp;&amp; p_red)begin\n    \t\t\tcnt &lt;= 8'd10;\n    \t\tend else begin\n    \t\t\tcnt &lt;= cnt - 8'd1;\n    \t\tend\n    \tend\n    \tassign red = p_red;\n    \tassign yellow = p_yellow;\n    \tassign green = p_green;\n    </logic_description>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module traffic_light(\n      |        ^~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_traffic_light;\n      |        ^~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-COMBDLY: TopModule.sv:44:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   44 |                 state <= s2_yellow;\n      |                       ^~\n                  ... For warning description see https://verilator.org/warn/COMBDLY?v=5.048\n                  ... Use \"/* verilator lint_off COMBDLY */\" and lint_on around source to disable this message.\n                  *** See https://verilator.org/warn/COMBDLY?v=5.048 before disabling this,\n                  else you may end up with different sim results.\n%Warning-COMBDLY: TopModule.sv:45:25: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   45 |                 p_green <= 1'd0;\n      |                         ^~\n%Warning-COMBDLY: TopModule.sv:47:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   47 |                 state <= s3_green;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:48:25: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   48 |                 p_green <= 1'd1;\n      |                         ^~\n%Warning-COMBDLY: TopModule.sv:35:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   35 |                 state <= s1_red;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:36:26: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   36 |                 p_yellow <= 1'd0;\n      |                          ^~\n%Warning-COMBDLY: TopModule.sv:38:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   38 |                 state <= s2_yellow;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:39:26: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   39 |                 p_yellow <= 1'd1;\n      |                          ^~\n%Warning-COMBDLY: TopModule.sv:26:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   26 |                 state <= s3_green;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:27:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   27 |                 p_red <= 1'd0;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:29:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   29 |                 state <= s1_red;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:30:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   30 |                 p_red <= 1'd1;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:19:19: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   19 |             state <= s1_red;\n      |                   ^~\n%Warning-COMBDLY: TopModule.sv:20:19: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   20 |             p_red <= 1'd0;\n      |                   ^~\n%Warning-COMBDLY: TopModule.sv:21:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   21 |             p_yellow <= 1'd0;\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:22:21: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   22 |             p_green <= 1'd0;\n      |                     ^~\n%Warning-LATCH: TopModule.sv:16:1: Latch inferred for signal 'tb_traffic_light.uut.p_green' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   16 | always@(*) begin\n      | ^~~~~~\n                ... For warning description see https://verilator.org/warn/LATCH?v=5.048\n                ... Use \"/* verilator lint_off LATCH */\" and lint_on around source to disable this message.\n%Warning-LATCH: TopModule.sv:16:1: Latch inferred for signal 'tb_traffic_light.uut.p_yellow' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   16 | always@(*) begin\n      | ^~~~~~\n%Warning-LATCH: TopModule.sv:16:1: Latch inferred for signal 'tb_traffic_light.uut.p_red' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   16 | always@(*) begin\n      | ^~~~~~\n%Warning-UNOPTFLAT: TopModule.sv:7:10: Signal unoptimizable: Circular combinational logic: 'tb_traffic_light.uut.state'\n    7 | reg [1:0]state;\n      |          ^~~~~\n                    ... For warning description see https://verilator.org/warn/UNOPTFLAT?v=5.048\n                    ... Use \"/* verilator lint_off UNOPTFLAT */\" and lint_on around source to disable this message.\n                    TopModule.sv:7:10:      Example path: tb_traffic_light.uut.state\n                    TopModule.sv:16:1:      Example path: ALWAYS\n                    TopModule.sv:7:10:      Example path: tb_traffic_light.uut.state\nmake: Entering directory '/tmp/comba_traffic_light_v4qqe9_u/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_traffic_light.cpp Vtb_traffic_light___024root__0.cpp Vtb_traffic_light__main.cpp Vtb_traffic_light___024root__Slow.cpp Vtb_traffic_light___024root__0__Slow.cpp Vtb_traffic_light__Syms__Slow.cpp > Vtb_traffic_light__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_traffic_light__ALL.o Vtb_traffic_light__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_traffic_light__ALL.a    -pthread -lpthread -latomic   -o Vtb_traffic_light\nrm Vtb_traffic_light__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_traffic_light_v4qqe9_u/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 3 modules, into 0.045 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.332 s (elab=0.001, cvt=0.006, bld=0.320); cpu 0.012 s on 1 threads; allocated 30.543 MB\n\n[RUN]\nAt time                   40, clock =   7, red = 1, yellow = 0, green = 0\n%Error-DIDNOTCONVERGE: testbench.v:3: Active region did not converge after '--converge-limit' of 10000 tries\nAborting...\n\n[RUN FAILED] exit code 1",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 432.22,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 95,
+          "elapsed_s": 33.78
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 31.56
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 107,
+          "elapsed_s": 37.01
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 104,
+          "elapsed_s": 48.22
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 36.52
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 81,
+          "elapsed_s": 33.36
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 98,
+          "elapsed_s": 72.92
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 98,
+          "elapsed_s": 41.7
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 103,
+          "elapsed_s": 40.1
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 75,
+          "elapsed_s": 57.05
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

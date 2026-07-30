@@ -1,0 +1,11 @@
+<module id="right_shifter">
+    <description>Implement a right shifter. The module performs an 8-bit right shift on a 1-bit input by first initializing the q register to 0. On each rising edge of the clock, the module shifts the contents of the q register to the right by one bit and inserts the new input bit d into the most significant position of the register.</description>
+    <ports>
+        <input id="clk">Clock signal used for synchronous operation.</input>
+        <input id="d">Input signal to be right-shifted.</input>
+        <output id="q">Output signal representing the result of the right shift operation.</output>
+    </ports>
+    <implementation>The register is defined as reg [7:0] q and initialized to 0 using the initial statement. The value of q is right-shifted by 1 bit using the <![CDATA[ >>]]> operator: <![CDATA[ q <= (q >> 1)]]>.
+The most significant bit (q[7]) of the register is assigned the value of the input signal (d): <![CDATA[ q[7] <= d]]>.
+</implementation>
+</module>

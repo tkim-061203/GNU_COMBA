@@ -1,0 +1,162 @@
+{
+  "module_name": "fsm",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fsm",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fsm #(\n    parameter s0 = 3'b000,\n    parameter s1 = 3'b001,\n    parameter s2 = 3'b010,\n    parameter s3 = 3'b011,\n    parameter s4 = 3'b100,\n    parameter s5 = 3'b101\n) (\n    input IN,\n    output reg MATCH,\n    input CLK,\n    input RST\n);\n\nparameter S0 = 3'b000;\nparameter S1 = 3'b001;\nparameter S2 = 3'b010;\nparameter S3 = 3'b011;\nparameter S4 = 3'b100;\nparameter S5 = 3'b101;\n\nreg [2:0] current_state, next_state;\n\nalways @(*) begin\n    case (current_state)\n        S0: next_state = IN ? S1 : S0;\n        S1: next_state = !IN ? S2 : S1;\n        S2: next_state = !IN ? S3 : S1;\n        S3: next_state = IN ? S4 : S0;\n        S4: next_state = IN ? S5 : S0;\n        S5: next_state = IN ? S1 : S0;\n        default: next_state = S0;\n    endcase\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        current_state <= S0;\n    end else begin\n        current_state <= next_state;\n    end\nend\n\nassign MATCH = (current_state == S5 && IN == 1);\nendmodule\n",
+    "xml_description": "<module id=\"fsm\">\n    <description>Mealy FSM detection circuit that detects a single-bit input IN. When the input is 10011, output MATCH is 1, and MATCH is 0 in other cases. Support for continuous input and loop detection.</description>\n    <ports>\n        <input id=\"IN\">Input signal to the FSM.</input>\n        <input id=\"CLK\">Clock signal used for synchronous operation.</input>\n        <input id=\"RST\">Reset signal to initialize the FSM.</input>\n        <output id=\"MATCH\">Output signal indicating a match condition based on the FSM state.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"S0\">State S0.</parameter>\n        <parameter id=\"S1\">State S1.</parameter>\n        <parameter id=\"S2\">State S2.</parameter>\n        <parameter id=\"S3\">State S3.</parameter>\n        <parameter id=\"S4\">State S4.</parameter>\n        <parameter id=\"S5\">State S5.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;signal id=\"current_state\" type=\"reg\" width_description=\"[2:0]\">Current state register.&lt;/signal>\n        &lt;signal id=\"next_state\" type=\"reg\" width_description=\"[2:0]\">Next state register.&lt;/signal>\n        \n        &lt;always_comb>\n            case(current_state)\n                S0: next_state = IN ? S1 : S0;\n                S1: next_state = !IN ? S2 : S1;\n                S2: next_state = !IN ? S3 : S1;\n                S3: next_state = IN ? S4 : S0;\n                S4: next_state = IN ? S5 : S0;\n                S5: next_state = IN ? S1 : S0;\n                default: next_state = S0;\n            endcase\n        &lt;/always_comb>\n        \n        &lt;always_ff @(posedge CLK or posedge RST) begin\n            if(RST) current_state &lt;= S0;\n            else current_state &lt;= next_state;\n        end\n        \n        assign MATCH = (current_state == S5 &amp;&amp; IN == 1);\n    </logic_description>\n    \n    <implementation>\n        // Sequential logic block triggered on changes in IN, CLK, or RST\n        always @(IN, CLK, RST) begin\n            // Check if reset is active\n            if (RST) begin\n                MATCH = 0; // Set MATCH to 0 on reset\n            end else begin\n                // State transition logic\n                case (current_state)\n                    S0: begin\n                        if (IN == 1) begin\n                            current_state = S1; // Transition to state S1 if IN is 1\n                        end else begin\n                            current_state = S0; // Stay in state S0 if IN is not 1\n                        end\n                    end\n                    \n                    S1: begin\n                        if (IN == 0) begin\n                            current_state = S2; // Transition to state S2 if IN is 0\n                        end else begin\n                            current_state = S1; // Stay in state S1 if IN is not 0\n                        end\n                    end\n                    \n                    S2: begin\n                        if (IN == 0) begin\n                            current_state = S3; // Transition to state S3 if IN is 0\n                        end else begin\n                            current_state = S1; // Stay in state S1 if IN is not 0\n                        end\n                    end\n                    \n                    S3: begin\n                        if (IN == 1) begin\n                            current_state = S4; // Transition to state S4 if IN is 1\n                        end else begin\n                            current_state = S0; // Stay in state S0 if IN is not 1\n                        end\n                    end\n                    \n                    S4: begin\n                        if (IN == 1) begin\n                            current_state = S5; // Transition to state S5 if IN is 1\n                        end else begin\n                            current_state = S0; // Stay in state S0 if IN is not 1\n                        end\n                    end\n                    \n                    S5: begin\n                        if (IN == 1) begin\n                            current_state = S1; // Transition back to state S1 if IN is 1\n                        end else begin\n                            current_state = S0; // Stay in state S0 if IN is not 1\n                        end\n                    end\n                    \n                    default: current_state = S0; // Default state assignment\n                endcase\n                \n                // Output logic based on current state\n                if (current_state == S5 &amp;&amp; IN == 1) begin\n                    MATCH = 1; // Set MATCH to 1 if current state is S5 and IN is 1\n                end else begin\n                    MATCH = 0; // Otherwise, set MATCH to 0\n                end\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:67:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   67 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module fsm #(\n      |        ^~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module main();\n      |        ^~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_fsm_i28r7z7x/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmain.cpp Vmain___024root__0.cpp Vmain__main.cpp Vmain__ConstPool__0__Slow.cpp Vmain___024root__Slow.cpp Vmain___024root__0__Slow.cpp Vmain__Syms__Slow.cpp > Vmain__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vmain__ALL.o Vmain__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vmain__ALL.a    -pthread -lpthread -latomic   -o Vmain\nrm Vmain__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_fsm_i28r7z7x/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.045 MB sources in 3 modules, into 0.038 MB in 7 C++ files needing 0.000 MB\n- Verilator: Walltime 0.321 s (elab=0.001, cvt=0.005, bld=0.311); cpu 0.010 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n===========Error===========\n- testbench.v:65: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 158ns; walltime 0.000 s; speed 2.967 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 340.89,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 25.37
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 81,
+          "elapsed_s": 25.21
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 99,
+          "elapsed_s": 31.01
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 50,
+          "elapsed_s": 37.65
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 45,
+          "elapsed_s": 29.18
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 76,
+          "elapsed_s": 50.82
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 57,
+          "elapsed_s": 25.01
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 85,
+          "elapsed_s": 42.31
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 59,
+          "elapsed_s": 29.01
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 83,
+          "elapsed_s": 45.32
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

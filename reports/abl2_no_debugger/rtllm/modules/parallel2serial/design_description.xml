@@ -1,0 +1,26 @@
+<module id="parallel2serial">
+    <description>Implement a module for parallel-to-serial conversion, where every four input bits are converted to a serial one bit output (from MSB to LSB). The output signal valid_out is set to 1 to indicate the availability of valid serial output. When valid_out = 1, the most significant bit of d is output, and the remaining three bits are output sequentially in the following 3 cycles.</description>
+    <ports>
+        <input id="clk">Clock signal used for synchronous operation.</input>
+        <input id="rst_n">Reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>
+        <input id="d">4-bit parallel data input.</input>
+        <output id="valid_out">Valid signal indicating the availability of serial output.</output>
+        <output id="dout">Serial output representing the converted data.</output>
+    </ports>
+    <logic_description>
+        <description>
+            Notice that below descriptions are along with tags <![CDATA[ <logic />]]>.
+            With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+            With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+            With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+            With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+        </description>
+        <logic type="combinational_logic" id="dout">
+        1-bit combinational logic. <![CDATA[ <logic refid="dout" />]]> is the MSB of `data` register.
+        </logic>
+    </logic_description>
+    <implementation>On each clock cycle, if the counter (cnt) is 3, indicating the last bit of the parallel input, the module updates the data register (data) with the parallel input (d), resets the counter (cnt) to 0, and sets the valid signal (valid) to 1.
+Otherwise, the module increments the counter (cnt) by 1, sets the valid signal (valid) to 0, and shifts the data register (data) one bit to the left, with the most significant bit shifted to the least significant bit.
+Counter Register: If the reset signal (rst_n) is high, the register (cnt) is incremented by 1.
+</implementation>
+</module>

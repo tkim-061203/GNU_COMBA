@@ -1,0 +1,162 @@
+{
+  "module_name": "barrel_shifter",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "barrel_shifter",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module barrel_shifter (\n    input [7:0] in,\n    input [2:0] ctrl,\n    output [7:0] out\n);\n\nwire [7:0] s1, s2, s3;\n\nassign s1 = ctrl[2] ? {in[3:0], 4'b0000} : in;\n\nassign s2 = ctrl[1] ? {s1[5:0], 2'b00} : s1;\n\nassign s3 = ctrl[0] ? {s2[6:0], 1'b0} : s2;\n\nassign out = s3;\n\nendmodule\n\nmodule mux2X1( in0,in1,sel,out);\ninput in0,in1;\ninput sel;\noutput out;\nassign out=(sel)?in1:in0;\nendmodule\n",
+    "xml_description": "<module id=\"barrel_shifter\">\n    <description>A barrel shifter for rotating bits efficiently. This 8-bit barrel shifter takes an 8-bit input and shifts or rotates the bits based on a 3-bit control signal.</description>\n    <ports>\n        <input id=\"in\" width_description=\"[7:0]\">The 8-bit input to be shifted.</input>\n        <input id=\"ctrl\" width_description=\"[2:0]\">A 3-bit control signal indicating the number of positions to shift.</input>\n        <output id=\"out\" width_description=\"[7:0]\">The 8-bit shifted output.</output>\n    </ports>\n    <implementation>Implements a 8-bit barrel shifter with three stages of mux2X1s.</implementation>\n</module>",
+    "sc_log": "TopModule.sv:6: error: Unable to bind wire/reg/memory `sel' in `barrel_shifter'\nTopModule.sv:6: error: Unable to elaborate r-value: (sel)?(a):(b)\n2 error(s) during elaboration.\n",
+    "tb_log": "[COMPILE verilator]\nmake: Entering directory '/tmp/comba_barrel_shifter_stf35vip/obj_dir'\nmake: Nothing to be done for 'default'.\nmake: Leaving directory '/tmp/comba_barrel_shifter_stf35vip/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.009 s (elab=0.000, cvt=0.000, bld=0.008); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\n=========== Test completed with           4 failures ===========\n- testbench.v:31: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 80ps; walltime 0.000 s; speed 1.519 us/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:combinational_mismatch::0::": 6
+    },
+    "failure_type": "combinational_mismatch",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 341.51,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 35.73
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 25,
+          "elapsed_s": 29.95
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 25,
+          "elapsed_s": 24.73
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 23,
+          "elapsed_s": 48.11
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 34,
+          "elapsed_s": 30.13
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 25,
+          "elapsed_s": 27.64
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 23,
+          "elapsed_s": 35.2
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 22,
+          "elapsed_s": 31.8
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 24,
+          "elapsed_s": 22.25
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 9,
+          "ts_trial": 6,
+          "iter": 15,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 31,
+          "elapsed_s": 55.99
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 2,
+      "commits": 8,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

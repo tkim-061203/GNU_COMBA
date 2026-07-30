@@ -54,3 +54,5 @@ scratch/
 nohup.out
 configure~
 Makefile.bak*
+
+thesis/

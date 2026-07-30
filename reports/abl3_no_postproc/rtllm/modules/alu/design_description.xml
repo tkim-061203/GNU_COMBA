@@ -1,0 +1,101 @@
+<module id="alu">
+    <description>Implement an ALU for a 32-bit MIPS-ISA CPU. The “a” and “b” are the two operands of the ALU, the “aluc” is the opcode, and the “r” gives out the result. “zero” means if the result is zero, “carry” means if there is a carry bit, “negative” means if the result is negative, “overflow” means if the computation is overflow, the “flag” is the result of SLT and SLTU instructions. The supported operations and corresponding opcode are shown below:
+    parameter ADD = 6'b100000;
+    parameter ADDU = 6'b100001;
+    parameter SUB = 6'b100010;
+    parameter SUBU = 6'b100011;
+    parameter AND = 6'b100100;
+    parameter OR = 6'b100101;
+    parameter XOR = 6'b100110;
+    parameter NOR = 6'b100111;
+    parameter SLT = 6'b101010;
+    parameter SLTU = 6'b101011;
+    parameter SLL = 6'b000000;
+    parameter SRL = 6'b000010;
+    parameter SRA = 6'b000011;
+    parameter SLLV = 6'b000100;
+    parameter SRLV = 6'b000110;
+    parameter SRAV = 6'b000111;
+    parameter LUI = 6'b001111;
+</description>
+    <ports>
+        <input id="a">a 32-bit input operand.</input>
+        <input id="b">a 32-bit input operand.</input>
+        <input id="aluc">a 6-bit control signal for selecting the operation to be performed.</input>
+        <output id="r">a 32-bit output representing the result of the operation.</output>
+        <output id="zero">a 1-bit output indicating whether the result is zero.</output>
+        <output id="carry">a 1-bit output indicating whether a carry occurred during the operation.</output>
+        <output id="negative">a 1-bit output indicating whether the result is negative.</output>
+        <output id="overflow">a 1-bit output indicating whether an overflow occurred during the operation.</output>
+        <output id="flag">a 1-bit output representing a general flag, which is set based on specific operations (SLT and SLTU).</output>
+    </ports>
+    <parameter_description>
+        <parameter id="WIDTH" value="8"/>
+        <parameter id="DEPTH" value="16"/>
+        <parameter id="ADDR_WIDTH" value="$clog2(DEPTH)">Internal parameter.</parameter>
+        <parameter id="ADD" value="6'b100000"/>;
+        <parameter id="ADDU" value="6'b100001"/>;
+        <parameter id="SUB" value="6'b100010"/>;
+        <parameter id="SUBU" value="6'b100011"/>;
+        <parameter id="AND" value="6'b100100"/>;
+        <parameter id="OR" value="6'b100101"/>;
+        <parameter id="XOR" value="6'b100110"/>;
+        <parameter id="NOR" value="6'b100111"/>;
+        <parameter id="SLT" value="6'b101010"/>;
+        <parameter id="SLTU" value="6'b101011"/>;
+        <parameter id="SLL" value="6'b000000"/>;
+        <parameter id="SRL" value="6'b000010"/>;
+        <parameter id="SRA" value="6'b000011"/>;
+        <parameter id="SLLV" value="6'b000100"/>;
+        <parameter id="SRLV" value="6'b000110"/>;
+        <parameter id="SRAV" value="6'b000111"/>;
+        <parameter id="LUI" value="6'b001111"/>;
+    </parameter_description>
+    <logic_description>
+        <description>
+            Notice that below descriptions are along with tags <![CDATA[ <logic />]]>.
+            With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+            With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+            With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+            With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+        </description>
+        <logic type="combinational_logic" id="zero">
+        The output <![CDATA[ <logic refid="zero" />]]> flag is active if <![CDATA[ <logic refid="res" />]]> is all 0.
+        </logic>
+        <logic type="combinational_logic" id="carry">
+        The output <![CDATA[ <logic refid="carry" />]]> is equalled to the MSB of the <![CDATA[ <logic refid="res" />]]> in cases <![CDATA[ <parameter refid="ADD" />]]>, <![CDATA[ <parameter refid="ADDU" />]]>, <![CDATA[ <parameter refid="SUB" />]]> , and <![CDATA[ <parameter refid="SUBU" />]]> alu opcodes. otherwise, <![CDATA[ <logic refid="carry" />]]> is 0.
+        </logic>
+        <logic type="combinational_logic" id="overflow">
+        In case <![CDATA[ <parameter refid="ADD" />]]> ALU opcode, the output <![CDATA[ <logic refid="overflow" />]]> is active if (MSB of <![CDATA[ <input refid="a" />]]> is deactive, MSB of <![CDATA[ <input refid="b" />]]> is deactive, and MSB of <![CDATA[ <logic refid="r" />]]> is active) or (MSB of <![CDATA[ <input refid="a" />]]> is active, MSB of <![CDATA[ <input refid="b" />]]> is active, and MSB of <![CDATA[ <logic refid="r" />]]> is deactive). In case <![CDATA[ <parameter refid="SUB" />]]> ALU opcode, <![CDATA[ <logic refid="overflow" />]]> is active if (MSB of <![CDATA[ <input refid="a" />]]> is active, MSB of <![CDATA[ <input refid="b" />]]> is deactive, and MSB of <![CDATA[ <logic refid="r" />]]> is deactive) or (MSB of <![CDATA[ <input refid="a" />]]> is deactive, MSB of <![CDATA[ <input refid="b" />]]> is also deactive, and MSB of <![CDATA[ <logic refid="r" />]]> is active). Otherwise, <![CDATA[ <logic refid="overflow" />]]> is 0.
+        </logic>
+        <logic type="combinational_logic" id="r">
+        The output <![CDATA[ <logic refid="r" />]]> is assigned to the first 32 bits of <![CDATA[ <logic refid="res" />]]>.
+        </logic>
+        <logic type="combinational_logic" id="res">
+        The size of <![CDATA[ <logic refid="res" />]]> is 33 bits.
+        <![CDATA[ <switch value="<input refid="aluc">"/>]]>
+            <![CDATA[ <case values="<parameter refid="SLL" />, <parameter refid="SRL" />, or <parameter refid="SRA" />" />]]>
+                <![CDATA[ <logic refid="res" />]]> is result of appropriate shift operations between all 32-bit [0:31] <![CDATA[ <input refid="b" />]]> shifted by value of all 32-bit [0:31] <![CDATA[ <input refid="a" />]]>, not just the first 5-bit of <![CDATA[ <input refid="a" />]]>.
+            <![CDATA[ </case>]]>
+            <![CDATA[ <case values="<parameter refid="SLLV" />, <parameter refid="SRLV" />, or <parameter refid="SRAV" />" />]]>
+                <![CDATA[ <logic refid="res" />]]> is result of appropriate shift operations between 32-bit <![CDATA[ <input refid="b" />]]> and 5-bit <![CDATA[ <input refid="a" />]]>.
+            <![CDATA[ </case>]]>
+            <![CDATA[ <case values="<parameter refid="ADD" />, <parameter refid="ADDU" />, <parameter refid="SUB" />, <parameter refid="SUBU" />, <parameter refid="AND" />, <parameter refid="OR" />" />, <parameter refid="XOR" />" />, <parameter refid="NOR" />" />, <parameter refid="SLT" />" />, <parameter refid="SLTU" />" />, or <parameter refid="LUT" />" />]]>
+                <![CDATA[ <logic refid="res" />]]> is the operation result normally from ADD, ADDU, SUB, SUBU, AND, OR, XOR, NOR, SLT, SLTU, and LUI.
+            <![CDATA[ </case>]]>
+        <![CDATA[ </switch>]]>
+        </logic>
+        <logic type="combinational_logic" id="negative">
+        <![CDATA[ <logic refid="negative" />]]> is set to the MSB of the output <![CDATA[ <logic refid="r" />]]>.
+        </logic>
+        <logic type="combinational_logic" id="flag">
+        In case of <![CDATA[ <parameter refid="SLT" />]]> opcode, <![CDATA[ <logic refid="flag" />]]> is active if 32-bit signed <![CDATA[ <input refid="a" />]]> is less than 32-bit signed <![CDATA[ <input refid="b" />]]>. In case of <![CDATA[ <parameter refid="SLTU" />]]> opcode, <![CDATA[ <logic refid="flag" />]]> is active if 32-bit unsigned <![CDATA[ <input refid="a" />]]> is less than 32-bit unsigned <![CDATA[ <input refid="b" />]]>. Otherwise, <![CDATA[ <logic refid="flag" />]]> is set to 0.
+        </logic>
+    </logic_description>
+    <implementation>The module uses parameters to define the control signals for various operations, such as ADD, SUB, AND, OR, etc. 
+The module assigns the input operands to the signed wires and the output result <![CDATA[ <output refid="r" />]]> to the lower 32 bits [32:0] of the register <![CDATA[ <logic refid="res" />]]>. The <![CDATA[ <logic refid="flag" />]]> output is determined based on the control signal <![CDATA[ <input refid="aluc" />]]> and is set to '1' when the operation is SLT or SLTU, and '0' otherwise. The <![CDATA[ <output refid="zero" />]]> output is set to '1' when the result is all zeros, and '0' otherwise.
+Inside the always block, a case statement is used to perform the appropriate operation based on the control signal <![CDATA[ <input refid="aluc" />]]>. The result is assigned to the register <![CDATA[ <logic refid="res" />]]> accordingly. For the LUI operation, the upper 16 bits of <![CDATA[ <input refid="a" />]]> are concatenated with 16 zeros to form the result.
+If the control signal <![CDATA[ <input refid="aluc" />]]> does not match any defined operation, the result is assigned as '0'.
+Please provide correct `Logic description` fields above to achieve correctness for <![CDATA[ <module refid="alu" />]]> design in combinational logics.
+</implementation>
+</module>

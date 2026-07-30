@@ -1,0 +1,160 @@
+{
+  "module_name": "alu",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "alu",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module alu (\n    input [31:0] a, b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero, carry, negative, overflow, flag\n);\n// TODO: Please add your logic design here\n    \n    parameter ADD = 6'b100000;\n    parameter ADDU = 6'b100001;\n    parameter SUB = 6'b100010;\n    parameter SUBU = 6'b100011;\n    parameter AND = 6'b100100;\n    parameter OR = 6'b100101;\n    parameter XOR = 6'b100110;\n    parameter NOR = 6'b100111;\n    parameter SLT = 6'b101010;\n    parameter SLTU = 6'b101011;\n    parameter SLL = 6'b000000;\n    parameter SRL = 6'b000010;\n    parameter SRA = 6'b000011;\n    parameter SLLV = 6'b000100;\n    parameter SRLV = 6'b000110;\n    parameter SRAV = 6'b000111;\n    parameter LUI = 6'b001111;\n    wire signed [31:0] signed_a, signed_b;\n    reg [32:0] res;\n    assign signed_a = $signed(a);\n    assign signed_b = $signed(b);\n    assign r = res[31:0];\n    assign flag = (aluc == SLT || aluc == SLTU) ? ((aluc == SLT) ? ($signed(a) < $signed(b)) : (a < b)) : 1'b0;\n    assign zero = (res[31:0] == 0);\n    assign negative = res[31];\n    assign carry = (aluc == ADD || aluc == ADDU) ? res[32] : (aluc == SUB || aluc == SUBU) ? res[32] : 1'b0;\n    assign overflow = (aluc == ADD || aluc == ADDU) ? ((~a[31] & ~b[31] & res[31]) | (a[31] & b[31] & ~res[31])) : (aluc == SUB || aluc == SUBU) ? ((a[31] & ~b[31] & ~res[31]) | (~a[31] & b[31] & res[31])) : 1'b0;\n    always @(*) begin\n        case (aluc)\n            ADD: res <= signed_a + signed_b;\n            ADDU: res <= a + b;\n            SUB: res <= signed_a - signed_b;\n            SUBU: res <= a - b;\n            AND: res <= a & b;\n            OR: res <= a | b;\n            XOR: res <= a ^ b;\n            NOR: res <= ~(a | b);\n            SLT: res <= {31'h00000000, $signed(a) < $signed(b)};\n            SLTU: res <= {31'h00000000, a < b};\n            \n            //Shift Operations\n            SLL: res <= b << a[4:0];\n            SRL: res <= b >> a[4:0];\n            SRA: res <= signed_b >>> signed_a[4:0];\n            SLLV: res <= b << a[4:0];\n            SRLV: res <= b >> a[4:0];\n            SRAV: res <= signed_b >>> signed_a[4:0];\n            \n            //LUI Operation\n            LUI: res <= {a[15:0], 16'h0000};\n            \n            default: res <= 32'hzzzzzzzz;\n        endcase\n    end\nendmodule\n",
+    "xml_description": "<module id=\"alu\">\n    <description>An Arithmetic Logic Unit (ALU) designed for use in a 32-bit MIPS-ISA CPU. It performs arithmetic and logical operations based on the control signals provided.</description>\n    \n    <ports>\n        <input id=\"a\" width_description=\"[31:0]\">First operand input.</input>\n        <input id=\"b\" width_description=\"[31:0]\">Second operand input.</input>\n        <input id=\"aluc\" width_description=\"[5:0]\">Control signal for selecting the operation.</input>\n        <output id=\"r\" width_description=\"[31:0]\">Result of the operation.</output>\n        <output id=\"zero\">Zero flag indicating if the result is zero.</output>\n        <output id=\"carry\">Carry flag indicating if a carry occurred.</output>\n        <output id=\"negative\">Negative flag indicating if the result is negative.</output>\n        <output id=\"overflow\">Overflow flag indicating if an overflow occurred.</output>\n        <output id=\"flag\">General flag for operations like SLT and SLTU.</output>\n    </ports>\n    \n    <parameter_description>\n        <parameter id=\"ADD\" value=\"6'b100000\">Addition operation.</parameter>\n        <parameter id=\"ADDU\" value=\"6'b100001\">Unsigned Addition operation.</parameter>\n        <parameter id=\"SUB\" value=\"6'b100010\">Subtraction operation.</parameter>\n        <parameter id=\"SUBU\" value=\"6'b100011\">Unsigned Subtraction operation.</parameter>\n        <parameter id=\"AND\" value=\"6'b100100\">Bitwise AND operation.</parameter>\n        <parameter id=\"OR\" value=\"6'b100101\">Bitwise OR operation.</parameter>\n        <parameter id=\"XOR\" value=\"6'b100110\">Bitwise XOR operation.</parameter>\n        <parameter id=\"NOR\" value=\"6'b100111\">Bitwise NOR operation.</parameter>\n        <parameter id=\"SLT\" value=\"6'b101010\">Set Less Than operation.</parameter>\n        <parameter id=\"SLTU\" value=\"6'b101011\">Set Less Than Unsigned operation.</parameter>\n        <parameter id=\"SLL\" value=\"6'b000000\">Logical Left Shift operation.</parameter>\n        <parameter id=\"SRL\" value=\"6'b000010\">Logical Right Shift operation.</parameter>\n        <parameter id=\"SRA\" value=\"6'b000011\">Arithmetic Right Shift operation.</parameter>\n        <parameter id=\"SLLV\" value=\"6'b000100\">Variable Logical Left Shift operation.</parameter>\n        <parameter id=\"SRLV\" value=\"6'b000110\">Variable Logical Right Shift operation.</parameter>\n        <parameter id=\"SRAV\" value=\"6'b000111\">Variable Arithmetic Right Shift operation.</parameter>\n        <parameter id=\"LUI\" value=\"6'b001111\">Load Upper Immediate operation.</parameter>\n    </parameter_description>\n    \n    <logic_description type=\"combinational_logic\">\n        &lt;assign id=\"signed_a\">Signed[a];&lt;/assign>\n        &lt;assign id=\"signed_b\">Signed[b];&lt;/assign>\n        &lt;assign id=\"r\">res[31:0];&lt;/assign>\n        &lt;assign id=\"flag\">aluc == SLT || aluc == SLTU ? res[31]: 1'bz;&lt;/assign>\n        &lt;assign id=\"zero\">~|res[31:0] ? 1 : 0;&lt;/assign>\n        &lt;assign id=\"carry\">res[32];&lt;/assign>\n        &lt;assign id=\"negative\">res[31];&lt;/assign>\n        &lt;assign id=\"overflow\">res[32];&lt;/assign>\n    </logic_description>\n    \n    <implementation>\n        reg [32:0] res;\n        \n        always@(*) begin\n            casex(aluc)\n                ADD: res &lt;= signed_a + signed_b;\n                ADDU: res &lt;= a + b;\n                SUB: res &lt;= signed_a - signed_b;\n                SUBU: res &lt;= a - b;\n                AND: res &lt;= a &amp; b;\n                OR: res &lt;= a | b;\n                XOR: res &lt;= a ^ b;\n                NOR: res &lt;= ~(a | b);\n                SLT: res &lt;= {31'h00000000, $signed(a) &lt; $signed(b)};\n                SLTU: res &lt;= {31'h00000000, a &lt; b};\n                \n                //Shift Operations\n                SLL: res &lt;= b &lt;&lt; a[4:0];\n                SRL: res &lt;= b >> a[4:0];\n                SRA: res &lt;= signed_b >>> signed_a[4:0];\n                SLLV: res &lt;= b &lt;&lt; a[4:0];\n                SRLV: res &lt;= b >> a[4:0];\n                SRAV: res &lt;= signed_b >>> signed_a[4:0];\n                \n                //LUI Operation\n                LUI: res &lt;= {a[15:0], 16'h0000};\n                \n                default: res &lt;= 32'hzzzzzzzz;\n            endcase\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module alu (\n      |        ^~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module test_alu();\n      |        ^~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-COMBDLY: TopModule.sv:60:26: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   60 |             default: res <= 32'hzzzzzzzz;\n      |                          ^~\n                  ... For warning description see https://verilator.org/warn/COMBDLY?v=5.048\n                  ... Use \"/* verilator lint_off COMBDLY */\" and lint_on around source to disable this message.\n                  *** See https://verilator.org/warn/COMBDLY?v=5.048 before disabling this,\n                  else you may end up with different sim results.\n%Warning-COMBDLY: TopModule.sv:47:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   47 |             SLTU: res <= {31'h00000000, a < b};\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:46:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   46 |             SLT: res <= {31'h00000000, $signed(a) < $signed(b)};\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:45:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   45 |             NOR: res <= ~(a | b);\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:44:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   44 |             XOR: res <= a ^ b;\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:43:21: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   43 |             OR: res <= a | b;\n      |                     ^~\n%Warning-COMBDLY: TopModule.sv:42:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   42 |             AND: res <= a & b;\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:41:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   41 |             SUBU: res <= a - b;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:40:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   40 |             SUB: res <= signed_a - signed_b;\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:39:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   39 |             ADDU: res <= a + b;\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:38:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   38 |             ADD: res <= signed_a + signed_b;\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:58:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   58 |             LUI: res <= {a[15:0], 16'h0000};\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:55:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   55 |             SRAV: res <= signed_b >>> signed_a[4:0];\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:54:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   54 |             SRLV: res <= b >> a[4:0];\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:53:23: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   53 |             SLLV: res <= b << a[4:0];\n      |                       ^~\n%Warning-COMBDLY: TopModule.sv:52:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   52 |             SRA: res <= signed_b >>> signed_a[4:0];\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:51:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   51 |             SRL: res <= b >> a[4:0];\n      |                      ^~\n%Warning-COMBDLY: TopModule.sv:50:22: Non-blocking assignment '<=' in combinational logic process\n                                    : ... This will be executed as a blocking assignment '='!\n   50 |             SLL: res <= b << a[4:0];\n      |                      ^~\nmake: Entering directory '/tmp/comba_alu_3ti0ez3l/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtest_alu.cpp Vtest_alu___024root__0.cpp Vtest_alu__main.cpp Vtest_alu___024root__Slow.cpp Vtest_alu___024root__0__Slow.cpp Vtest_alu__Syms__Slow.cpp > Vtest_alu__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtest_alu__ALL.o Vtest_alu__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtest_alu__ALL.a    -pthread -lpthread -latomic   -o Vtest_alu\nrm Vtest_alu__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_alu_3ti0ez3l/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.048 MB sources in 3 modules, into 0.046 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.213 s (elab=0.001, cvt=0.009, bld=0.198); cpu 0.016 s on 1 threads; allocated 30.547 MB\n\n[RUN]\nFailed at opcode[0]=100000: got r=1000003d, expected=0000003d\nFailed at opcode[1]=100001: got r=1000003d, expected=0000003d\nFailed at opcode[2]=100010: got r=ffffffff, expected=fffffffb\nFailed at opcode[3]=100011: got r=ffffffff, expected=fffffffb\nFailed at opcode[4]=100100: got r=ffffffff, expected=00000000\nFailed at opcode[5]=100101: got r=ffffffff, expected=0000003d\nFailed at opcode[6]=100110: got r=ffffffff, expected=0000003d\nFailed at opcode[7]=100111: got r=ffffffff, expected=ffffffc2\nFailed at opcode[8]=101010: got r=ffffffff, expected=00000001\nFailed at opcode[9]=101011: got r=ffffffff, expected=00000001\nFailed at opcode[10]=000000: got r=ffffffff, expected=10000000\nFailed at opcode[11]=000010: got r=ffffffff, expected=00000000\nFailed at opcode[12]=000011: got r=ffffffff, expected=00000000\nFailed at opcode[13]=000100: got r=ffffffff, expected=10000000\nFailed at opcode[14]=000110: got r=ffffffff, expected=00000000\nFailed at opcode[15]=000111: got r=ffffffff, expected=00000000\nFailed at opcode[16]=001111: got r=ffffffff, expected=001c0000\n===========Error===========\n- testbench.v:89: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 175ns; walltime 0.000 s; speed 1.627 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 609.09,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 108,
+          "elapsed_s": 52.09
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 143,
+          "elapsed_s": 55.91
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 100,
+          "elapsed_s": 48.07
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 100,
+          "elapsed_s": 54.0
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 220,
+          "elapsed_s": 96.08
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 71,
+          "elapsed_s": 56.06
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 63,
+          "elapsed_s": 48.22
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 69,
+          "elapsed_s": 44.27
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 96,
+          "elapsed_s": 52.15
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 110,
+          "elapsed_s": 102.24
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,2 +1,5 @@
 Module,Syntax Pass Rate,TB Pass Rate,Syntax FR,Func FR
-adder_8bit,100%,100%,100.00%,100.00%
+asyn_fifo,100%,0%,100.00%,0.00%
+alu,100%,100%,100.00%,100.00%
+calendar,100%,100%,100.00%,100.00%
+signal_generator,100%,100%,100.00%,100.00%

@@ -1,0 +1,163 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 7,
+    "ts_trial": 6,
+    "total_iter": 13,
+    "gvd": "module multi_pipe_4bit #(\n    parameter size = 4,\n    parameter N = 2 * size\n) (\n    input \t\t\t\t\t\tclk,\n    input \t\t\t\t\t\trst_n,\n    input\t[size-1:0]\t\t\tmul_a,\n    input\t[size-1:0]\t\t\tmul_b,\n    output\treg\t[size*2-1:0]\tmul_out\n);\n\nreg [N-1:0] partial_products [size-1:0];\nreg [N-1:0] sums [size-1:0];\n\ngenerate\n    genvar i;\n    for (i = 0; i < size; i = i + 1) begin : multiply_block\n        if (i == 0) begin\n            assign partial_products[i] = {size{1'b0}};\n            assign sums[i] = mul_a << i;\n        end else begin\n            assign partial_products[i] = mul_a << i;\n            assign sums[i] = partial_products[i];\n        end\n    end\nendgenerate\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        mul_out <= 0;\n    end else begin\n        mul_out <= sums[size-1];\n    end\nend\n\nendmodule\n\nmodule verified_multi_pipe#(\n\tparameter size = 4\n)(\n\tinput \t\t\t\t\t\tclk \t\t,   \n\tinput \t\t\t\t\t\trst_n\t\t,\n\tinput\t[size-1:0]\t\t\tmul_a\t\t,\n\tinput\t[size-1:0]\t\t\tmul_b\t\t,\n \n \toutput\treg\t[size*2-1:0]\tmul_out\t\t\n);\n\nparameter N = 2 * size;\n\nreg     [N-1:0]     sum_tmp1                ;\nreg     [N-1:0]     sum_tmp2                ;\nwire    [N-1:0]     mul_a_extend            ;\nwire    [N-1:0]     mul_b_extend            ;\n\nwire    [N-1:0]     mul_result[size-1:0]    ;\n\ngenvar i;\ngenerate\n    for(i = 0; i < size; i = i + 1) begin:add\n        assign mul_result[i] = mul_b[i] ? mul_a_extend << i : 'd0;\n    end\nendgenerate\n\nassign mul_a_extend = {{size{1'b0}}, mul_a};\nassign mul_b_extend = {{size{1'b0}}, mul_b};\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        sum_tmp1 <= 'd0;\n        sum_tmp2 <= 'd0;\n    end\n    else begin\n        sum_tmp1 <= mul_result[0] + mul_result[1];\n        sum_tmp2 <= mul_result[2] + mul_result[3];\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        mul_out <= 'd0;\n    end\n    else begin\n        mul_out <= sum_tmp1 + sum_tmp2;\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n\t<description>4bit unsigned number pipeline multiplier. It consists of two levels of registers to store intermediate values and control the multiplication process.</description>\n\t<ports>\n\t\t<input id=\"clk\">Clock signal used for synchronous operation.</input>\n\t\t<input id=\"rst_n\">Active-low reset signal. Defined as 0 for chip reset and 1 for reset signal inactive.</input>\n\t\t<input id=\"mul_a\" width_description=\"[3:0]\">Input signal representing the multiplicand with a data width of \"size\" bits.</input>\n\t\t<input id=\"mul_b\" width_description=\"[3:0]\">Input signal representing the multiplier with a data width of \"size\" bits.</input>\n\t\t<output id=\"mul_out\" width_description=\"[7:0]\">Product output signal with a data width of 2*size bits.</output>\n\tendports\n\t<parameter_description>\n\t\t&lt;size value=\"4\">&lt;/size>\n\tendparameter_description\n\t\n\t<implementation>\n\t\t<!-- Extension of input signals -->\n\t\twire [size-1:0] mul_a_ext;\n\t\twire [size-1:0] mul_b_ext;\n\t\tassign mul_a_ext = {size{1'b0}} | mul_a;\n\t\tassign mul_b_ext = {size{1'b0}} | mul_b;\n\t\t\n\t\t// Generate partial products\n\t\tgenvar i;\n\t\tgenerate\n\t\t\tfor(i = 0; i &lt; size; i=i+1) begin : gen_partial_products\n\t\t\t\treg [2*size-1:0] pp_reg;\n\t\t\t\talways @(posedge clk or negedge rst_n) begin\n\t\t\t\t\tif(!rst_n) begin\n\t\t\t\t\t\tpp_reg &lt;= 'd0;\n\t\t\t\t\tend else begin\n\t\t\t\t\t\tif(mul_b_ext[i]) begin\n\t\t\t\t\t\t\tpp_reg &lt;= mul_a_ext &lt;&lt; i;\n\t\t\t\t\t\tend else begin\n\t\t\t\t\t\t\tpp_reg &lt;= 'd0;\n\t\t\t\t\t\tend\n\t\t\t\t\tend\n\t\t\t\tend\n\t\t\tend\n\t\tendgenerate\n\t\t\n\t\t// Add of partial products\n\t\treg [2*size-1:0] sum_reg[0:size-1];\n\t\tinteger j;\n\t\talways @(posedge clk or negedge rst_n) begin\n\t\t\tif(!rst_n) begin\n\t\t\t\tfor(j = 0; j &lt; size; j=j+1) begin\n\t\t\t\t\tsum_reg[j] &lt;= 'd0;\n\t\t\t\tend\n\t\t\tend else begin\n\t\t\t\tfor(j = 0; j &lt; size; j=j+1) begin\n\t\t\t\t\tsum_reg[j] &lt;= sum_reg[j] + pp_reg[j];\n\t\t\t\tend\n\t\t\tend\n\t\tend\n\t\t\n\t\t// Final product calculation\n\t\treg [2*size-1:0] mul_out_reg;\n\t\talways @(posedge clk or negedge rst_n) begin\n\t\t\tif(!rst_n) begin\n\t\t\t\tmul_out_reg &lt;= 'd0;\n\t\t\tend else begin\n\t\t\t\tmul_out_reg</implementation></parameter_description></ports></module>\n",
+    "sc_log": "TopModule.sv:32: syntax error\nTopModule.sv:37: error: Invalid module item.\nTopModule.sv:38: syntax error\nTopModule.sv:39: error: Invalid module item.\nTopModule.sv:41: syntax error\nTopModule.sv:41: error: Invalid module instantiation\nTopModule.sv:48: error: Invalid module item.\nTopModule.sv:49: syntax error\nTopModule.sv:50: error: Invalid module item.\nTopModule.sv:51: syntax error\nTopModule.sv:65: error: Invalid module item.\nTopModule.sv:67: error: 'N' has already been declared in this scope.\nTopModule.sv:3:      : It was declared here as a parameter.\nTopModule.sv:76: error: 'i' has already been declared in this scope.\nTopModule.sv:16:      : It was declared here as a genvar.\n",
+    "tb_log": "[COMPILE verilator]\nmake: Entering directory '/tmp/comba_multi_pipe_4bit_9hj50vqk/obj_dir'\nmake: Nothing to be done for 'default'.\nmake: Leaving directory '/tmp/comba_multi_pipe_4bit_9hj50vqk/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.009 s (elab=0.000, cvt=0.000, bld=0.008); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\n===========Test completed with         100 / 100 failures===========\n- testbench.v:55: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 3us; walltime 0.000 s; speed 12.182 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: syntax error": 1,
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 813.01,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 66.6
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 86,
+          "elapsed_s": 69.92
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 54.83
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 70.45
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 81.84
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 99,
+          "elapsed_s": 92.52
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 6,
+          "iter": 14,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 91,
+          "elapsed_s": 89.6
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 92,
+          "elapsed_s": 91.04
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 6,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 91,
+          "elapsed_s": 112.48
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 101,
+          "elapsed_s": 83.71
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 1,
+      "commits": 11,
+      "used_fallback": false,
+      "baseline_sc": 1,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "module_name": "asyn_fifo",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "asyn_fifo",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module asyn_fifo(\n    input wclk, rclk, wrstn, rrstn, winc, rinc,\n    input [WIDTH-1:0] wdata,\n    output wfull, rempty,\n    output [WIDTH-1:0] rdata\n);\n// TODO: Please add your logic design here\n// Parameter declaration\nparameter WIDTH = 8;\nparameter DEPTH = 16;\nlocalparam ADDR_WIDTH = $clog2(DEPTH);\n// Internal signal declaration\nreg [WIDTH-1:0] ram_data;\nreg [WIDTH-1:0] ram_rdata;\nreg [WIDTH-1:0] ram_wdata;\nreg [WIDTH-1:0] ram_rdata_out;\nreg [WIDTH-1:0] ram_wdata_in;\nreg [WIDTH-1:0] ram_rdata_in;\nreg [WIDTH-1:0] ram_wdata_out;\nreg [WIDTH-1:0] ram_rdata_out_in;\nreg [WIDTH-1:0] ram_wdata_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\nreg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\nreg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Asynchronous FIFO implementation with configurable parameters WIDTH and DEPTH.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal.</input>\n        <input id=\"rclk\">Read clock signal.</input>\n        <input id=\"wrstn\">Write reset signal.</input>\n        <input id=\"rrstn\">Read reset signal.</input>\n        <input id=\"winc\">Write increment signal.</input>\n        <input id=\"rinc\">Read increment signal.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input.</input>\n        <output id=\"wfull\">Write full signal.</output>\n        <output id=\"rempty\">Read empty signal.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output.</output>\n    </ports>\n    <parameter_description>\n        &lt;param id=\"WIDTH\">FIFO data width.&lt;/param>\n        &lt;param id=\"DEPTH\">FIFO depth.&lt;/param>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        // Define internal signals\n        reg [WIDTH-1:0] ram_data;\n        reg [WIDTH-1:0] ram_rdata;\n        reg [WIDTH-1:0] ram_wdata;\n        reg [WIDTH-1:0] ram_rdata_out;\n        reg [WIDTH-1:0] ram_wdata_in;\n        reg [WIDTH-1:0] ram_rdata_in;\n        reg [WIDTH-1:0] ram_wdata_out;\n        reg [WIDTH-1:0] ram_rdata_out_in;\n        reg [WIDTH-1:0] ram_wdata_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in;\n        reg [WIDTH-1:0] ram_wdata_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in_out;\n        reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out</logic_description></module>\n",
+    "sc_log": "TopModule.sv:123: syntax error\nI give up.\n",
+    "tb_log": "[COMPILE verilator]\n%Error: TopModule.sv:122:17: syntax error, unexpected end of file, expecting ',' or ';'\n  122 | reg [WIDTH-1:0] ram_rdata_in_out_in_out_in_out_in_out_in_out_in_out_in_out_in\n      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n        ... See the manual at https://verilator.org/verilator_doc.html?v=5.048 for more assistance.\n%Error: Cannot continue\n        ... This fatal error may be caused by the earlier error(s); resolve those first.\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1149.45,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 122,
+          "elapsed_s": 257.31
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 175,
+          "elapsed_s": 260.37
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 144,
+          "elapsed_s": 51.37
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 155,
+          "elapsed_s": 235.33
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 124,
+          "elapsed_s": 47.61
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 130,
+          "elapsed_s": 81.75
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 56.06
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 90,
+          "elapsed_s": 33.72
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 109,
+          "elapsed_s": 64.45
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 159,
+          "elapsed_s": 61.5
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

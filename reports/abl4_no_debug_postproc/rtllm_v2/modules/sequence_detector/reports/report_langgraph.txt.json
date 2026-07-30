@@ -1,0 +1,160 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module sequence_detector(\n    input clk, \n    input reset_n, \n    input data_in,\n    output sequence_detected\n);\n// Internal signals\nreg [2:0] current_state, next_state;\n// State definitions\nparameter IDLE = 3'b000;\nparameter S1 = 3'b001;\nparameter S2 = 3'b010;\nparameter S3 = 3'b011;\nparameter S4 = 3'b100;\n// Sequential logic block\nalways @(posedge clk or negedge reset_n) begin\n    if (!reset_n)\n        current_state <= IDLE;\n    else\n        current_state <= next_state;\nend\n// Combinational logic block\nalways @(*) begin\n    case(current_state)\n        IDLE: begin\n            if (data_in == 1'b1)\n                next_state = S1;\n            else\n                next_state = IDLE;\n        end\n        S1: begin\n            if (data_in == 1'b0)\n                next_state = S2;\n            else\n                next_state = IDLE;\n        end\n        S2: begin\n            if (data_in == 1'b0)\n                next_state = S3;\n            else\n                next_state = IDLE;\n        end\n        S3: begin\n            if (data_in == 1'b1)\n                next_state = S4;\n            else\n                next_state = IDLE;\n        end\n        S4: begin\n            if (data_in == 1'b1)\n                next_state = S1;\n            else\n                next_state = IDLE;\n        end\n        default: next_state = IDLE;\n    endcase\nend\n// Output assignment\nassign sequence_detected = (current_state == S4 && data_in == 1'b1) ? 1'b1 : 1'b0;\nendmodule\n",
+    "xml_description": "<module id=\"sequence_detector\">\n    <description>Design a sequence detector to detect the binary sequence 1001.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronization.</input>\n        <input id=\"reset_n\">Asynchronous active-low reset signal.</input>\n        <input id=\"data_in\">Binary input signal representing the incoming bitstream.</input>\n        <output id=\"sequence_detected\">Output signal indicating whether the sequence has been successfully detected.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Waiting for the start of the sequence.</parameter>\n        <parameter id=\"S1\">The first bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S2\">The second bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S3\">The third bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S4\">The fourth and final bit of the desired sequence is detected.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"current_state\" type=\"state\">Current state of the sequence detector.&lt;/reg>\n        &lt;reg id=\"next_state\" type=\"state\">Next state of the sequence detector.&lt;/reg>\n        \n        &lt;always @(posedge clk or negedge reset_n)>\n            if (~reset_n)\n                current_state &lt;= IDLE;\n            else\n                current_state &lt;= next_state;\n        &lt;/always>\n        \n        &lt;always @(*) begin\n            case(current_state)\n                IDLE: begin\n                    if(data_in == 1'b1)\n                        next_state = S1;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S1: begin\n                    if(data_in == 1'b0)\n                        next_state = S2;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S2: begin\n                    if(data_in == 1'b0)\n                        next_state = S3;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S3: begin\n                    if(data_in == 1'b1)\n                        next_state = S4;\n                    else\n                        next_state = IDLE;\n                end\n                \n                S4: begin\n                    if(data_in == 1'b1)\n                        next_state = S1;\n                    else\n                        next_state = IDLE;\n                end\n                \n                default: next_state = IDLE;\n            endcase\n        end\n        \n        &lt;assign sequence_detected = (current_state == S4 &amp;&amp; data_in == 1'b1)? 1'b1 : 1'b0;\n    </logic_description>\n    <implementation>The sequence detector detects the binary sequence 1001 using a sequential logic approach. It consists of four states: IDLE, S1, S2, and S3, representing the different stages of detecting the sequence. The state machine transitions between states based on the input data_in and the current state. The output sequence_detected is asserted when the sequence is completely detected.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:53:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   53 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-PINMISSING: testbench.v:8:23: Instance has missing pin: 'reset_n'\n    8 |     sequence_detector dut (\n      |                       ^~~\n                     TopModule.sv:3:11: ... Location of port declaration\n    3 |     input reset_n, \n      |           ^~~~~~~\n                     ... For warning description see https://verilator.org/warn/PINMISSING?v=5.048\n                     ... Use \"/* verilator lint_off PINMISSING */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module sequence_detector(\n      |        ^~~~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_sequence_detector();\n      |        ^~~~~~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:10:10: Pin not found: 'rst_n'\n                                     : ... Suggested alternative: 'reset_n'\n   10 |         .rst_n(rst_n),\n      |          ^~~~~\n                                     : ... Location of instance's module declaration\n    1 | module sequence_detector(\n      |        ^~~~~~~~~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 241.15,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 66,
+          "elapsed_s": 24.54
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 66,
+          "elapsed_s": 17.2
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 71,
+          "elapsed_s": 28.95
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 60,
+          "elapsed_s": 24.19
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 58,
+          "elapsed_s": 22.54
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 73,
+          "elapsed_s": 23.64
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 60,
+          "elapsed_s": 22.08
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 65,
+          "elapsed_s": 31.01
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 35,
+          "elapsed_s": 21.26
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 65,
+          "elapsed_s": 25.74
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

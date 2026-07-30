@@ -1,0 +1,47 @@
+$date
+	Tue Jul 21 13:55:52 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb $end
+$var wire 1 ! tb_mismatch $end
+$var wire 1 " z_ref $end
+$var wire 1 # z_dut $end
+$var wire 1 $ w $end
+$var wire 1 % tb_match $end
+$var wire 1 & reset $end
+$var reg 1 ' clk $end
+$var reg 160 ( stats1 [159:0] $end
+$var reg 1 ) strobe $end
+$upscope $end
+$scope module tb $end
+$scope module stim1 $end
+$var wire 1 ' clk $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+0)
+b0 (
+0'
+x&
+1%
+x$
+x#
+x"
+0!
+$end
+#5
+1#
+0&
+0$
+b1 (
+1'

@@ -1,0 +1,160 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module sequence_detector (\n    input clk,\n    input reset_n,\n    input data_in,\n    output sequence_detected\n);\n    // Define states\n    localparam IDLE = 3'b000;\n    localparam S1   = 3'b001;\n    localparam S2   = 3'b010;\n    localparam S3   = 3'b011;\n    localparam S4   = 3'b100;\n    // Internal signals\n    reg [2:0] state, next_state;\n    // Sequential logic to update state\n    always @(posedge clk or negedge reset_n) begin\n        if (~reset_n)\n            state <= IDLE;\n        else\n            state <= next_state;\n    end\n    // Combinational logic for next state\n    always @(*) begin\n        case (state)\n            IDLE: next_state = (data_in) ? S1 : IDLE;\n            S1:   next_state = (~data_in) ? S2 : IDLE;\n            S2:   next_state = (~data_in) ? S3 : IDLE;\n            S3:   next_state = (data_in) ? S4 : IDLE;\n            S4:   next_state = (data_in) ? IDLE : S1;\n            default: next_state = IDLE;\n        endcase\n    end\n    // Output logic\n    assign sequence_detected = (state == S4);\nendmodule\n",
+    "xml_description": "<module id=\"sequence_detector\">\n    <description>Detects the specific 4-bit binary sequence '1001' using a finite state machine (FSM).</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronization.</input>\n        <input id=\"reset_n\">Reset signal to initialize the state machine.</input>\n        <input id=\"data_in\">1-bit binary input signal for the bitstream being fed into the sequence detector.</input>\n        <output id=\"sequence_detected\">1-bit output signal indicating whether the specific sequence has been detected.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Waiting for the start of the sequence.</parameter>\n        <parameter id=\"S1\">First bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S2\">Second bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S3\">Third bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S4\">Fourth and final bit of the desired sequence is detected.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"next_state\">Next state for the state machine.&lt;/signal>\n        \n        &lt;always_comb>\n            case(state)\n                IDLE: next_state = data_in ? S1 : IDLE;\n                S1: next_state = ~data_in ? S2 : IDLE;\n                S2: next_state = ~data_in ? S3 : IDLE;\n                S3: next_state = data_in ? S4 : IDLE;\n                S4: next_state = data_in ? IDLE : S1;\n                default: next_state = IDLE;\n            endcase\n        &lt;/always_comb>\n    </logic_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"state\">State variable for the state machine.&lt;/reg>\n        \n        &lt;always @(posedge clk or posedge reset_n) begin\n            if (reset_n)\n                state &lt;= IDLE;\n            else\n                state &lt;= next_state;\n        end\n        \n        &lt;assign sequence_detected = (state == S4);\n    </logic_description>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:53:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   53 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-PINMISSING: testbench.v:8:23: Instance has missing pin: 'reset_n'\n    8 |     sequence_detector dut (\n      |                       ^~~\n                     TopModule.sv:3:11: ... Location of port declaration\n    3 |     input reset_n,\n      |           ^~~~~~~\n                     ... For warning description see https://verilator.org/warn/PINMISSING?v=5.048\n                     ... Use \"/* verilator lint_off PINMISSING */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module sequence_detector (\n      |        ^~~~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_sequence_detector();\n      |        ^~~~~~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:10:10: Pin not found: 'rst_n'\n                                     : ... Suggested alternative: 'reset_n'\n   10 |         .rst_n(rst_n),\n      |          ^~~~~\n                                     : ... Location of instance's module declaration\n    1 | module sequence_detector (\n      |        ^~~~~~~~~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 283.45,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 66,
+          "elapsed_s": 24.11
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 71,
+          "elapsed_s": 18.44
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 71,
+          "elapsed_s": 34.02
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 61,
+          "elapsed_s": 23.84
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 71,
+          "elapsed_s": 22.14
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 66,
+          "elapsed_s": 21.36
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 74,
+          "elapsed_s": 46.82
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 71,
+          "elapsed_s": 31.38
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 35,
+          "elapsed_s": 26.84
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 59,
+          "elapsed_s": 34.49
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

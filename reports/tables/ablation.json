@@ -1,0 +1,96 @@
+{
+  "base": "full",
+  "variants": {
+    "full": "reports/base",
+    "abl1": "reports/abl1_no_cat",
+    "abl2": "reports/abl2_no_debugger",
+    "abl3": "reports/abl3_no_postproc",
+    "abl4": "reports/abl4_no_debug_postproc"
+  },
+  "metrics": {
+    "rtllm_syntax": {
+      "full": 100.0,
+      "abl1": null,
+      "abl2": 100.0,
+      "abl3": 100.0,
+      "abl4": 100.0
+    },
+    "rtllm_func": {
+      "full": 93.1,
+      "abl1": null,
+      "abl2": 89.66,
+      "abl3": 86.21,
+      "abl4": 82.76
+    },
+    "rtllm2_syntax": {
+      "full": 100.0,
+      "abl1": null,
+      "abl2": 98.0,
+      "abl3": 100.0,
+      "abl4": 100.0
+    },
+    "rtllm2_func": {
+      "full": 74.0,
+      "abl1": null,
+      "abl2": 68.0,
+      "abl3": 52.0,
+      "abl4": 62.0
+    },
+    "ve_zs_t0": {
+      "full": null,
+      "abl1": null,
+      "abl2": null,
+      "abl3": null,
+      "abl4": null
+    },
+    "ve_zs_t08": {
+      "full": null,
+      "abl1": null,
+      "abl2": null,
+      "abl3": null,
+      "abl4": null
+    },
+    "ve_os_t0": {
+      "full": null,
+      "abl1": null,
+      "abl2": null,
+      "abl3": null,
+      "abl4": null
+    },
+    "ve_os_t08": {
+      "full": null,
+      "abl1": null,
+      "abl2": null,
+      "abl3": null,
+      "abl4": null
+    },
+    "syntax_fr": {
+      "full": 100.0,
+      "abl1": null,
+      "abl2": null,
+      "abl3": null,
+      "abl4": null
+    },
+    "func_fr": {
+      "full": 89.66,
+      "abl1": null,
+      "abl2": null,
+      "abl3": null,
+      "abl4": null
+    },
+    "recovery": {
+      "full": 17.58,
+      "abl1": null,
+      "abl2": 35.16,
+      "abl3": 32.42,
+      "abl4": 33.52
+    },
+    "cost_mult": {
+      "full": 1.82,
+      "abl1": null,
+      "abl2": 2.84,
+      "abl3": 3.11,
+      "abl4": 2.98
+    }
+  }
+}

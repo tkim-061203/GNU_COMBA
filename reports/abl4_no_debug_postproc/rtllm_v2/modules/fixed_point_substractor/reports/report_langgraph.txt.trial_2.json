@@ -1,0 +1,160 @@
+{
+  "module_name": "fixed_point_substractor",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fixed_point_substractor",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fixed_point_subtractor (\n    parameter Q = 4, N = 8,\n    input [N-1:0] a, b,\n    output [N-1:0] c\n);\n    \n    reg [N-1:0] res;\n    \n    always @(*) begin\n        if ($signed(a) > $signed(b))\n            res = (a[N-2:0] - b[N-2:0]) + {{N-1{1'b0}}, ~a[N-1]};\n        else if ($signed(a) < $signed(b))\n            res = (b[N-2:0] - a[N-2:0]) + {{N-1{1'b0}}, ~b[N-1]};\n        else\n            res = 0;\n        \n        if (&res[N-2:0])\n            res[N-1] = 1'b0;\n    end\n    \n    assign c = res;\n    \nendmodule\n",
+    "xml_description": "<module id=\"fixed_point_subtractor\">\n    <description>Fixed-point subtractor with precision control.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[N-1:0]\">First input operand.</input>\n        <input id=\"b\" width_description=\"[N-1:0]\">Second input operand.</input>\n        <output id=\"c\" width_description=\"[N-1:0]\">Resulting value after subtraction.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"Q\">Number of fractional bits.</parameter>\n        <parameter id=\"N\">Total number of bits including integer and fractional parts.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"res\" width_description=\"[N-1:0]\" />\n        &lt;assign res = ($signed(a) > $signed(b)) ? ((a[N-2:0] - b[N-2:0]) + {N{~a[N-1]}}) : (($signed(a) &lt; $signed(b)) ? ((b[N-2:0] - a[N-2:0]) + {N{~b[N-1]}}) : 0);\n        &lt;assign c = (~|res[N-2:0]) ? ({1'b0,{(N-1){1'b0}}}) : res;\n    </logic_description>\n    <implementation>Implements fixed-point subtraction considering different cases based on signs and magnitudes of inputs a and b.</implementation>\n</module>",
+    "sc_log": "TopModule.sv:2: syntax error\nTopModule.sv:2: Errors in port declarations.\n",
+    "tb_log": "[COMPILE verilator]\n%Error: TopModule.sv:2:5: syntax error, unexpected parameter, expecting '['\n    2 |     parameter Q = 4, N = 8,\n      |     ^~~~~~~~~\n        ... See the manual at https://verilator.org/verilator_doc.html?v=5.048 for more assistance.\n%Error: TopModule.sv:3:5: syntax error, unexpected input, expecting IDENTIFIER or IDENTIFIER-for-pathpulse or randomize\n    3 |     input [N-1:0] a, b,\n      |     ^~~~~\n%Error: TopModule.sv:9:5: syntax error, unexpected always\n    9 |     always @(*) begin\n      |     ^~~~~~\n%Warning-EOFNEWLINE: testbench.v:76:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   76 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Error: Exiting due to 3 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 260.4,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 30,
+          "elapsed_s": 16.85
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 28,
+          "elapsed_s": 19.95
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 30,
+          "elapsed_s": 16.34
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 28,
+          "elapsed_s": 15.59
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 40,
+          "elapsed_s": 40.76
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 31,
+          "elapsed_s": 26.15
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 32,
+          "elapsed_s": 33.43
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 44,
+          "elapsed_s": 33.66
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 4,
+          "gvd_lines": 23,
+          "elapsed_s": 25.83
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 40,
+          "elapsed_s": 31.84
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

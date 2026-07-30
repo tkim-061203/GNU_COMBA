@@ -1,0 +1,403 @@
+{
+  "root": "RTLLM/modules",
+  "designs": 29,
+  "n_trials": 5,
+  "k": 5,
+  "syntax_pass_at_k": 100.0,
+  "func_pass_at_k": 93.1,
+  "syntax_distribution": {
+    "5/5": 29,
+    "4/5": 0,
+    "3/5": 0,
+    "2/5": 0,
+    "1/5": 0,
+    "0/5": 0
+  },
+  "func_distribution": {
+    "5/5": 23,
+    "4/5": 0,
+    "3/5": 1,
+    "2/5": 3,
+    "1/5": 0,
+    "0/5": 2
+  },
+  "per_design": [
+    {
+      "design": "JC_counter",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "RAM",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "accu",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_16bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_32bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_pipe_64bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "alu",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "asyn_fifo",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "calendar",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "counter_12",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "div_16bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "div_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "edge_detect",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "freq_div",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 2,
+      "statuses": [
+        "fail_ts",
+        "pass",
+        "pass",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "fsm",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_16bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_pipe_4bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_pipe_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "parallel2serial",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 2,
+      "statuses": [
+        "fail_ts",
+        "pass",
+        "fail_ts",
+        "fail_ts",
+        "pass"
+      ]
+    },
+    {
+      "design": "pe",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "pulse_detect",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 2,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "pass",
+        "fail_ts",
+        "pass"
+      ]
+    },
+    {
+      "design": "right_shifter",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "serial2parallel",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "signal_generator",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "synchronizer",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "traffic_light",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 3,
+      "statuses": [
+        "fail_ts",
+        "pass",
+        "pass",
+        "pass",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "width_8to16",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    }
+  ]
+}

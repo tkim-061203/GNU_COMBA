@@ -1,0 +1,162 @@
+{
+  "module_name": "barrel_shifter",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "barrel_shifter",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module barrel_shifter (\n    input [7:0] in,\n    input [2:0] ctrl,\n    output [7:0] out\n);\n\nwire [7:0] mux_out_1, mux_out_2;\n\nassign mux_out_1 = (ctrl[2]) ? {in[3:0], 4'b0} : in;\n\nassign mux_out_2 = (ctrl[1]) ? {mux_out_1[5:0], 2'b0} : mux_out_1;\n\nassign out = (ctrl[0]) ? {mux_out_2[6:0], 1'b0} : mux_out_2;\n\nendmodule\n\nmodule mux2X1( in0,in1,sel,out);\ninput in0,in1;\ninput sel;\noutput out;\nassign out=(sel)?in1:in0;\nendmodule\n",
+    "xml_description": "<module id=\"barrel_shifter\">\n    <description>A barrel shifter for rotating bits efficiently. This 8-bit barrel shifter takes an 8-bit input and shifts or rotates the bits based on a 3-bit control signal.</description>\n    <ports>\n        <input id=\"in\" width_description=\"[7:0]\">8-bit input to be shifted.</input>\n        <input id=\"ctrl\" width_description=\"[2:0]\">3-bit control signal that determines how many positions to shift. The control signal specifies the amount of shift, where each bit indicates a shift by 1, 2, or 4 positions.</input>\n        <output id=\"out\" width_description=\"[7:0]\">8-bit shifted output.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"NUM_STAGES\" value=\"3\">Number of stages in the barrel shifter.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;variable id=\"stage_out\" width_description=\"[7:0][NUM_STAGES-1:0]\">Array of wires representing outputs of each stage.&lt;/variable>\n        &lt;variable id=\"i\" width_description=\"[3:0]\">Loop index variable.&lt;/variable>\n        \n        // Assign initial stage output\n        assign stage_out[0] = in;\n        // Generate loop to iterate through stages\n        generate\n            genvar j;\n            for (j = 0; j &lt; NUM_STAGES; j = j + 1) begin : mux_loop\n                // Create mux2X1 instance\n                mux2X1 mux (\n                    .in(in),\n                    .sel(ctrl[j]),\n                    .out(stage_out[j+1])\n                );\n            end\n        endgenerate\n        \n        // Assign final stage output to output port\n        assign out = stage_out[NUM_STAGES];\n    </logic_description>\n    <implementation>\n        // The barrel shifter shifts the input 'in' based on the value of the 'ctrl' signal.\n        // The shifting happens in stages, where each stage shifts by 4, 2, or 1 position,\n        // as controlled by 'ctrl[2]', 'ctrl[1]', and 'ctrl[0]' respectively.\n        // The shifts are achieved using a series of 2-to-1 multiplexers ('mux2X1') that select between the shifted input and the original input.\n        // Each stage of multiplexers performs the shift, and the result is passed to the next stage for further shifting if required.\n        // When 'ctrl[2]' is high, the input is shifted by 4 positions.\n        // When 'ctrl[1]' is high, the intermediate result is shifted by 2 positions.\n        // When 'ctrl[0]' is high, the intermediate result is shifted by 1 position.\n        // The 'mux2X1' submodule is used to select between two input values based on the 'sel' signal,\n        // determining which bit is used in the shifted output at each stage.\n    </implementation>\n    <task>\n        &lt;id>rotate_left&lt;/id>\n        <description>Rotates the input left by the specified number of positions.</description>\n        &lt;parameters>\n            <parameter id=\"input\" width_description=\"[7:0]\">The input to be rotated.</parameter>\n            <parameter id=\"positions\" width_description=\"[2:0]\">The number of positions to rotate the input.</parameter>\n        &lt;/parameters>\n        &lt;returns>The rotated input.&lt;/returns>\n        <implementation>\n            // Implementation of the rotate_left task goes here.\n        </implementation>\n    </task>\n</module>",
+    "sc_log": "TopModule.sv:6: error: Unable to bind wire/reg/memory `sel' in `barrel_shifter'\nTopModule.sv:6: error: Unable to elaborate r-value: (sel)?(a):(b)\n2 error(s) during elaboration.\n",
+    "tb_log": "[COMPILE verilator]\nmake: Entering directory '/tmp/comba_barrel_shifter_3p7rcxfa/obj_dir'\nmake: Nothing to be done for 'default'.\nmake: Leaving directory '/tmp/comba_barrel_shifter_3p7rcxfa/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.010 s (elab=0.000, cvt=0.000, bld=0.009); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\n=========== Test completed with           4 failures ===========\n- testbench.v:31: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 80ps; walltime 0.000 s; speed 1.249 us/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:combinational_mismatch::0::": 6
+    },
+    "failure_type": "combinational_mismatch",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 531.15,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 35.59
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 23,
+          "elapsed_s": 29.82
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 25,
+          "elapsed_s": 25.46
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 28,
+          "elapsed_s": 37.24
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 25,
+          "elapsed_s": 26.11
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 93.77
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 22,
+          "elapsed_s": 38.88
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 40,
+          "elapsed_s": 45.56
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 9,
+          "ts_trial": 6,
+          "iter": 15,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 36,
+          "elapsed_s": 124.95
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 6,
+          "iter": 14,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 45,
+          "elapsed_s": 73.77
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 1,
+      "commits": 9,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

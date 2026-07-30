@@ -579,6 +579,13 @@ class TestE2EGraph:
                 return make_iverilog_result(0)
             return make_iverilog_result(0)
 
+        # Runtime sims (vvp/verilator exe) now go through _run_sim_process
+        # (process-group timeout guard). Route it through the same dispatcher,
+        # adapting the CompletedProcess mock to the (rc, out, err) tuple.
+        def mock_run_sim(cmd, cwd, timeout):
+            r = mock_subprocess_run(cmd)
+            return (r.returncode, r.stdout, r.stderr)
+
         original_isfile = os.path.isfile
         def mock_isfile(path):
             if "test.sv" in path or "tb.sv" in path or "tb.v" in path:
@@ -586,9 +593,10 @@ class TestE2EGraph:
             return original_isfile(path)
 
         with patch("comba_pipeline.subprocess.run", side_effect=mock_subprocess_run):
-            with patch("comba_pipeline.shutil.copy2"):
-                with patch("os.path.isfile", side_effect=mock_isfile):
-                    result = graph.invoke(state, {"recursion_limit": 150})
+            with patch("comba_pipeline._run_sim_process", side_effect=mock_run_sim):
+                with patch("comba_pipeline.shutil.copy2"):
+                    with patch("os.path.isfile", side_effect=mock_isfile):
+                        result = graph.invoke(state, {"recursion_limit": 150})
 
         return result
 

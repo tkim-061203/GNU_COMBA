@@ -414,6 +414,11 @@ class TestGuardE2E:
                 return next(sc_iter, CLEAN_SC)
             return next(tb_iter, TB_PASS)
 
+        # Runtime sims now route through _run_sim_process (process-group timeout).
+        def mock_run_sim(cmd, cwd, timeout):
+            r = mock_run(cmd)
+            return (r.returncode, r.stdout, r.stderr)
+
         original_isfile = os.path.isfile
         def mock_isfile(path):
             if "test.sv" in path or "tb.sv" in path or "tb.v" in path:
@@ -421,9 +426,10 @@ class TestGuardE2E:
             return original_isfile(path)
 
         with patch("comba_pipeline.subprocess.run", side_effect=mock_run):
-            with patch("comba_pipeline.shutil.copy2"):
-                with patch("os.path.isfile", side_effect=mock_isfile):
-                    return graph.invoke(state, {"recursion_limit": 200})
+            with patch("comba_pipeline._run_sim_process", side_effect=mock_run_sim):
+                with patch("comba_pipeline.shutil.copy2"):
+                    with patch("os.path.isfile", side_effect=mock_isfile):
+                        return graph.invoke(state, {"recursion_limit": 200})
 
     def test_e2e_baseline_captured_on_first_sc(self):
         """First SC run after generator → baseline_sc_count locked."""

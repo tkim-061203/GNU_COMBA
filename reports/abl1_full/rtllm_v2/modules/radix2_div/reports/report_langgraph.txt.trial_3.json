@@ -1,0 +1,151 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 10,
+    "ts_trial": 10,
+    "total_iter": 20,
+    "gvd": "module radix2_div (\n    input wire clk,\n    input wire rst,\n    input wire [7:0] dividend,\n    input wire [7:0] divisor,\n    input wire sign,\n    input wire opn_valid,\n    output reg res_valid,\n    input wire res_ready,\n    output reg [15:0] result\n);\n\nreg [7:0] dividend_abs;\nreg [7:0] divisor_abs;\nreg [7:0] remainder;\nreg [7:0] quotient;\nreg [3:0] cnt;\nreg [3:0] start_cnt;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        res_valid <= 0;\n        result <= 0;\n    end else if (opn_valid && !res_valid) begin\n        dividend_abs <= (sign && dividend[7]) ? ~dividend + 1 : dividend;\n        divisor_abs <= (sign && divisor[7]) ? ~divisor + 1 : divisor;\n        remainder <= dividend_abs;\n        quotient <= 0;\n        cnt <= 0;\n        start_cnt <= 1;\n        res_valid <= 0;\n    end else if (start_cnt) begin\n        if (cnt == 4'd8) begin\n            start_cnt <= 0;\n            result <= {remainder, quotient};\n            res_valid <= 1;\n        end else begin\n            cnt <= cnt + 1;\n            if (remainder >= divisor_abs) begin\n                remainder <= remainder - divisor_abs;\n                quotient <= quotient | 1'b1;\n            end\n            remainder = remainder << 1;\n            quotient = quotient << 1;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n    <description>A simplified radix-2 divider for 8-bit signed or unsigned integers.</description>\n    <ports>\n        <input id=\"clk\">The clock signal used for synchronous operation.</input>\n        <input id=\"rst\">The reset signal to initialize or reset the module.</input>\n        <input id=\"sign\">Indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">The dividend for division.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">The divisor for division.</input>\n        <input id=\"opn_valid\">A valid operation request is present.</input>\n        <output id=\"res_valid\">The result is valid and ready.</output>\n        <output id=\"result\" width_description=\"[15:0]\">The output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">0</parameter>\n        <parameter id=\"DIVIDE\">1</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"state\" width_description=\"1\">The current state of the divider.&lt;/reg>\n        &lt;reg id=\"next_state\" width_description=\"1\">The next state of the divider.&lt;/reg>\n        &lt;reg id=\"res_valid_reg\" width_description=\"1\">Register to hold the result validity flag.&lt;/reg>\n        &lt;reg id=\"start_cnt\" width_description=\"1\">Flag to indicate the start of the division process.&lt;/reg>\n        &lt;reg id=\"cnt\" width_description=\"4\">Counter to keep track of the number of iterations.&lt;/reg>\n        &lt;reg id=\"neg_divisor\" width_description=\"[8:0]\">Negative divisor for subtraction.&lt;/reg>\n        &lt;reg id=\"remainder\" width_description=\"[8:0]\">Remainder during division.&lt;/reg>\n        &lt;reg id=\"quotient\" width_description=\"[8:0]\">Quotient during division.&lt;/reg>\n        &lt;reg id=\"SR\" width_description=\"[9:0]\">Shift register for storing the dividend.&lt;/reg>\n        &lt;wire id=\"sub_result\" width_description=\"[9:0]\">Result of subtraction between SR and NEG_DIVISOR.&lt;/wire>\n        &lt;wire id=\"carry_out\">Carry-out from the subtraction operation.&lt;/wire>\n    </logic_description>\n    <implementation>\n        // State machine for controlling the division process\n        always @(posedge clk or posedge rst) begin\n            if (rst) begin\n                state &lt;= IDLE;\n            end else begin\n                state &lt;= next_state;\n            end\n        end\n        \n        // Next state logic\n        always @(*) begin\n            case(state)\n                IDLE: begin\n                    if (opn_valid &amp;&amp; !res_valid_reg) begin\n                        next_state = DIVIDE;\n                    end else begin\n                        next_state = IDLE;\n                    end\n                end\n                DIVIDE: begin\n                    if (!start_cnt || cnt == 8) begin\n                        next_state = IDLE;\n                    end else begin\n                        next_state = DIVIDE;\n                    end\n                end\n                default: next_state = IDLE;\n            endcase\n        end\n        \n        // Output logic\n        always @(posedge clk or posedge rst) begin\n            if (rst) begin\n                res_valid_reg &lt;= 0;\n                start_cnt &lt;= 0;\n                cnt &lt;= 0;\n                neg_divisor &lt;= 0;\n                remainder &lt;= 0;\n                quotient &lt;= 0;\n                SR &lt;= 0;\n            end else begin\n                case(state)\n                    IDLE: begin\n                        if (opn_valid &amp;&amp; !res_valid_reg) begin\n                            start_cnt &lt;= 1;\n                            cnt &lt;= 1;\n                            neg_divisor &lt;= {~(|divisor[7:0]), divisor};\n                            remainder &lt;= 0;\n                            quotient &lt;= 0;\n                            SR &lt;= {1'b0, dividend} &lt;&lt; 1;\n                        end\n                    end\n                    DIVIDE: begin\n                        if (start_cnt) begin\n                            if (&amp;cnt) begin\n                                start_cnt &lt;= 0;\n                                cnt &lt;= 0;\n                                SR &lt;= {sub_result[8], sub_result[8:0]};\n                                res_valid_reg &lt;= 1;\n                            end else begin\n                                cnt &lt;= cnt + 1;\n                                SR &lt;= {carry_out, SR[8:1]};\n                            end\n                        end\n                    end\n                endcase\n            end\n        end\n        \n        // Subtraction logic\n        assign sub_result = SR - neg_divisor;\n        \n        // Carry-out logic\n        assign carry_out = ~sub_result[9];\n        \n        // Result assignment\n        assign result = {remainder[8:0], quotient[8:0]};\n        assign res_valid = res_valid_reg;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div (\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-BLKSEQ: TopModule.sv:43:23: Blocking assignment '=' in sequential logic process\n                                   : ... note: In instance 'radix2_div_tb.uut'\n                                   : ... Suggest using delayed assignment '<='\n   43 |             remainder = remainder << 1;\n      |                       ^\n                 ... For warning description see https://verilator.org/warn/BLKSEQ?v=5.048\n                 ... Use \"/* verilator lint_off BLKSEQ */\" and lint_on around source to disable this message.\n%Warning-BLKSEQ: TopModule.sv:44:22: Blocking assignment '=' in sequential logic process\n                                   : ... note: In instance 'radix2_div_tb.uut'\n                                   : ... Suggest using delayed assignment '<='\n   44 |             quotient = quotient << 1;\n      |                      ^\nmake: Entering directory '/tmp/comba_radix2_div_vl3srupq/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vradix2_div_tb.cpp Vradix2_div_tb___024root__0.cpp Vradix2_div_tb__main.cpp Vradix2_div_tb___024root__Slow.cpp Vradix2_div_tb___024root__0__Slow.cpp Vradix2_div_tb__Syms__Slow.cpp > Vradix2_div_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vradix2_div_tb__ALL.o Vradix2_div_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vradix2_div_tb__ALL.a    -pthread -lpthread -latomic   -o Vradix2_div_tb\nrm Vradix2_div_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_radix2_div_vl3srupq/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 3 modules, into 0.055 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.326 s (elab=0.001, cvt=0.006, bld=0.313); cpu 0.013 s on 1 threads; allocated 30.539 MB\n\n[RUN]\nError: dividend=100, divisor= 10, sign=0, expected=000a, got=0000\nError: dividend=156, divisor= 10, sign=1, expected=00f6, got=0000\nError: dividend=100, divisor=246, sign=1, expected=00f6, got=0000\nError: dividend=156, divisor=246, sign=1, expected=000a, got=0000\nError: dividend=123, divisor=123, sign=0, expected=0001, got=0000\nError: dividend=123, divisor=251, sign=0, expected=7b00, got=0000\nError: dividend=255, divisor=  7, sign=0, expected=0324, got=0000\n===========Failed=========== (7 errors)\n- testbench.v:86: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 330ns; walltime 0.000 s; speed 3.474 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:timeout::0::": 4,
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 9,
+      "max_samples": 10,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1249.3,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 6,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 54,
+          "elapsed_s": 129.05
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 50,
+          "elapsed_s": 106.91
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 7,
+          "gvd_lines": 54,
+          "elapsed_s": 85.43
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 7,
+          "gvd_lines": 49,
+          "elapsed_s": 118.42
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 7,
+          "gvd_lines": 52,
+          "elapsed_s": 132.35
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 54,
+          "elapsed_s": 127.34
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 55,
+          "elapsed_s": 128.68
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 56,
+          "elapsed_s": 249.09
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 6,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 8,
+          "gvd_lines": 58,
+          "elapsed_s": 172.02
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 18,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

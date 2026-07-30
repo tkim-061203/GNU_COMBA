@@ -1,0 +1,160 @@
+{
+  "module_name": "fixed_point_adder",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fixed_point_adder",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fixed_point_adder(\n    parameter Q = 4,\n    parameter N = 8,\n    input [N-1:0] a,\n    input [N-1:0] b,\n    output [N-1:0] c\n);\n    \n    reg [N-1:0] res;\n    assign c = res;\n    always @(*) begin\n        if ((a[N-1] == b[N-1])) begin\n            // Absolute value addition\n            res = a + b;\n            res[N-1] = a[N-1];\n        end else begin\n            // Absolute value subtraction\n            if (a > b) begin\n                res = a - b;\n                res[N-1] = 0;\n            end else if (b > a) begin\n                res = b - a;\n                res[N-1] = ~(|res);\n            end\n        end\n    end\n    \nendmodule\n",
+    "xml_description": "<module id=\"fixed_point_adder\">\n    <description>A parameterized fixed-point adder for arithmetic operations with fixed precision.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[N-1:0]\">First N-bit fixed-point input operand.</input>\n        <input id=\"b\" width_description=\"[N-1:0]\">Second N-bit fixed-point input operand.</input>\n        <output id=\"c\" width_description=\"[N-1:0]\">N-bit output representing the result of the fixed-point addition.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"Q\">Number of fractional bits (precision).</parameter>\n        <parameter id=\"N\">Total number of bits, including integer and fractional parts.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;assign id=\"res\">\n            if ((a[N-1] == b[N-1])) begin\n                // Absolute value addition\n                res = a + b;\n                res[N-1] = a[N-1];\n            end else begin\n                // Absolute value subtraction\n                if (a > b) begin\n                    res = a - b;\n                    res[N-1] = 0;\n                end else if (b > a) begin\n                    res = b - a;\n                    res[N-1] = ~(|res);\n                end\n            end\n        &lt;/assign>\n    </logic_description>\n    <implementation>Implements fixed-point addition/subtraction based on the sign bits of inputs 'a' and 'b'. Handles overflow conditions and maintains consistency in precision.</implementation>\n</module>",
+    "sc_log": "TopModule.sv:2: syntax error\nTopModule.sv:2: Errors in port declarations.\n",
+    "tb_log": "[COMPILE verilator]\n%Error: TopModule.sv:2:5: syntax error, unexpected parameter, expecting '['\n    2 |     parameter Q = 4,\n      |     ^~~~~~~~~\n        ... See the manual at https://verilator.org/verilator_doc.html?v=5.048 for more assistance.\n%Error: TopModule.sv:3:5: syntax error, unexpected parameter, expecting IDENTIFIER or IDENTIFIER-for-pathpulse or randomize\n    3 |     parameter N = 8,\n      |     ^~~~~~~~~\n%Error: TopModule.sv:4:5: syntax error, unexpected input, expecting IDENTIFIER or IDENTIFIER-for-pathpulse or randomize\n    4 |     input [N-1:0] a,\n      |     ^~~~~\n%Error: TopModule.sv:10:5: syntax error, unexpected assign\n   10 |     assign c = res;\n      |     ^~~~~~\n%Warning-EOFNEWLINE: testbench.v:58:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   58 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Error: Exiting due to 4 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 5,
+      "best_temperature": 0.5,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 203.18,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 34,
+          "elapsed_s": 19.94
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 26,
+          "elapsed_s": 17.26
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 52,
+          "elapsed_s": 20.91
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 27,
+          "elapsed_s": 12.83
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 26,
+          "elapsed_s": 27.95
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 28,
+          "elapsed_s": 11.74
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 43,
+          "elapsed_s": 27.94
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 44,
+          "elapsed_s": 34.2
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 33,
+          "elapsed_s": 13.96
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 31,
+          "elapsed_s": 16.44
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,0 +1,10 @@
+<module id="counter_12">
+    <description>Implement a module of a counter design that requires counting from 4 'b0000 to 4' d11. The counting can be controlled by the input signal valid_count. That is, the count is paused if valid_count is 0. The counter increments on each clock cycle when the valid_count signal is active and resets to 0 when the reset signal (rst_n) is active.</description>
+    <ports>
+        <input id="rst_n">Reset signal (active low)</input>
+        <input id="clk">Clock signal.</input>
+        <input id="valid_count">Signal to enable counting.</input>
+        <output id="out">4-bit output representing the current count value.</output>
+    </ports>
+    <implementation>If the reset signal is active (!rst_n), the counter is reset to 0 by assigning the value 4'b0000 to the output register (out). If the valid_count signal is 1, the counter increments. It checks if the current count value (out) is equal to 4'd11 (maximum count value). If it is, the counter wraps around and resets to 0 by assigning the value 4'b0000 to the output register (out). Otherwise, it increments the output register by 1. If the valid_count = 0, the counter will stop, and the output register (out) remains unchanged.</implementation>
+</module>

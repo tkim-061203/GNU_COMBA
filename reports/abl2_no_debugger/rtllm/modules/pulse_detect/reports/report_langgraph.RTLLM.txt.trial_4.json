@@ -1,0 +1,160 @@
+{
+  "module_name": "pulse_detect",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "pulse_detect",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module pulse_detect #(\n    parameter s0 = 2'b00,\n    parameter s1 = 2'b01,\n    parameter s2 = 2'b10,\n    parameter s3 = 2'b11\n) (\n    input clk,\n    input rst_n,\n    input data_in,\n    output reg data_out\n);\n\nreg [1:0] state, next_state;\n\nlocalparam STATE_S0 = 2'b00;\nlocalparam STATE_S1 = 2'b01;\nlocalparam STATE_S2 = 2'b10;\nlocalparam STATE_S3 = 2'b11;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) state <= STATE_S0; else state <= next_state; \nend\n\nalways @(*) begin\n    case (state)\n        STATE_S0: begin\n            if (data_in == 1'b0) next_state = STATE_S1; else next_state = STATE_S0; \n        end\n        \n        STATE_S1: begin\n            if (data_in == 1'b1) next_state = STATE_S2; else next_state = STATE_S1; \n        end\n        \n        STATE_S2: begin\n            if (data_in == 1'b0) next_state = STATE_S3; else next_state = STATE_S0; \n        end\n        \n        STATE_S3: begin\n            if (data_in == 1'b1) next_state = STATE_S2; else next_state = STATE_S1; \n        end\n        \n        default: next_state = STATE_S0; \n    endcase\nend\n\nalways @(*) begin\n    case (state)\n        STATE_S0: data_out = 1'b0; \n        STATE_S1: data_out = 1'b0; \n        STATE_S2: data_out = (data_in == 1'b0) ? 1'b1 : 1'b0; \n        STATE_S3: data_out = 1'b0; \n        default: data_out = 1'b0; \n    endcase\nend\nendmodule\n",
+    "xml_description": "<module id=\"pulse_detect\">\n    <description>Pulse Detection Unit: Detects rising edges of a one-bit input signal and generates a pulse output when detected.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operations.</input>\n        <input id=\"rst_n\">Asynchronous reset signal (active low).</input>\n        <input id=\"data_in\">One-bit input signal for pulse detection.</input>\n        <output id=\"data_out\">Output signal indicating the presence of pulses.</output>\n    </ports>\n    <parameter_description>\n        <!-- Parameter Description Section -->\n        <parameter id=\"STATE_INIT\">Initial state of the FSM.</parameter>\n        <parameter id=\"STATE_DATA_IN\">State after detecting data_in = 1.</parameter>\n        <parameter id=\"STATE_WAIT\">State waiting for data_in to return to 0.</parameter>\n        <parameter id=\"STATE_PULSE\">State indicating the end of a pulse.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        <!-- Sequential Logic Description Section -->\n        &lt;reg id=\"state\">Register to store the current state of the FSM.&lt;/reg>\n        \n        <!-- State Transition Logic -->\n        &lt;always_comb>\n            case(state)\n                STATE_INIT: begin\n                    if(data_in == 1'b1) begin\n                        next_state &lt;= STATE_DATA_IN;\n                    end else begin\n                        next_state &lt;= STATE_INIT;\n                    end\n                end\n                \n                STATE_DATA_IN: begin\n                    if(data_in == 1'b0) begin\n                        next_state &lt;= STATE_WAIT;\n                    end else begin\n                        next_state &lt;= STATE_DATA_IN;\n                    end\n                end\n                \n                STATE_WAIT: begin\n                    if(data_in == 1'b0) begin\n                        next_state &lt;= STATE_PULSE;\n                    end else begin\n                        next_state &lt;= STATE_WAIT;\n                    end\n                end\n                \n                STATE_PULSE: begin\n                    next_state &lt;= STATE_INIT;\n                end\n                \n                default: next_state &lt;= STATE_INIT;\n            endcase\n        &lt;/always_comb>\n        \n        // Register Update Logic\n        always @(posedge clk or negedge rst_n) begin\n            if(~rst_n) begin\n                state &lt;= STATE_INIT;\n            end else begin\n                state &lt;= next_state;\n            end\n        end\n        \n        // Output Generation Logic\n        always @(posedge clk or negedge rst_n) begin\n            if(~rst_n) begin\n                data_out &lt;= 1'b0;\n            end else begin\n                case(state)\n                    STATE_INIT: begin\n                        data_out &lt;= 1'b0;\n                    end\n                    \n                    STATE_DATA_IN: begin\n                        data_out &lt;= 1'b0;\n                    end\n                    \n                    STATE_WAIT: begin\n                        data_out &lt;= 1'b0;\n                    end\n                    \n                    STATE_PULSE: begin\n                        data_out &lt;= 1'b1;\n                    end\n                    \n                    default: data_out &lt;= 1'b0;\n                endcase\n            end\n        end\n    </logic_description>\n    \n    <implementation>\n        <!-- Combinational Logic Description Section -->\n        // Add your implementation here\n        \n        // Data Type Definitions\n        reg [1:0] state;\n        reg [1:0] next_state;\n        reg data_out;\n        \n        // State Encoding\n        localparam STATE_INIT     = 2'd0,\n                   STATE_DATA_IN  = 2'd1,\n                   STATE_WAIT     = 2'd2,\n                   STATE_PULSE    = 2'd3;\n                   \n        // Next State Logic\n        always @(*) begin\n            case(state)\n                STATE_INIT: begin\n                    if(data_in == 1'b1) begin\n                        next_state = STATE_DATA_IN;\n                    end else begin\n                        next_state = STATE_INIT;\n                    end\n                end\n                \n                STATE_DATA_IN: begin\n                    if(data_in == 1'b0) begin\n                        next_state = STATE_WAIT;\n                    end else begin\n                        next_state = STATE_DATA_IN;\n                    end\n                end\n                \n                STATE_WAIT: begin\n                    if(data_in == 1'b0) begin\n                        next_state = STATE_PULSE;\n                    end else begin\n                        next_state = STATE_WAIT;\n                    end\n                end\n                \n                STATE_PULSE: begin\n                    next_state = STATE_INIT;\n                end\n                \n                default: next_state = STATE_INIT;\n            endcase\n        end\n        \n        // Output Logic\n        always @(*) begin\n            case(state)\n                STATE_INIT: begin\n                    data_out = 1'b0;\n                end\n                \n                STATE_DATA_IN: begin\n                    data_out = 1'b0;\n                end\n                \n                STATE_WAIT: begin\n                    data_out = 1'b0;\n                end\n                \n                STATE_PULSE: begin\n                    data_out = 1'b1;\n                end\n                \n                default: data_out = 1'b0;\n            endcase\n        end\n        \n        // Sequential Logic Block\n        always @(posedge clk or negedge rst_n) begin\n            if(~rst_n) begin\n                state &lt;= STATE_INIT;\n            end else begin\n                state &lt;= next_state;\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-UNUSEDPARAM: pulse_detect.v:2:15: Parameter is not used: 's0'\n                                         : ... note: In instance 'pulse_detect'\n    2 |     parameter s0 = 2'b00,\n      |               ^~\n                      ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.048\n                      ... Use \"/* verilator lint_off UNUSEDPARAM */\" and lint_on around source to disable this message.\n%Warning-UNUSEDPARAM: pulse_detect.v:3:15: Parameter is not used: 's1'\n                                         : ... note: In instance 'pulse_detect'\n    3 |     parameter s1 = 2'b01,\n      |               ^~\n%Warning-UNUSEDPARAM: pulse_detect.v:4:15: Parameter is not used: 's2'\n                                         : ... note: In instance 'pulse_detect'\n    4 |     parameter s2 = 2'b10,\n      |               ^~\n%Warning-UNUSEDPARAM: pulse_detect.v:5:15: Parameter is not used: 's3'\n                                         : ... note: In instance 'pulse_detect'\n    5 |     parameter s3 = 2'b11\n      |               ^~\nmake: Entering directory '/tmp/comba_pulse_detect_8xi994xq/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vpulse_detect.cpp Vpulse_detect___024root__0.cpp Vpulse_detect__Trace__0.cpp Vpulse_detect__ConstPool__0__Slow.cpp Vpulse_detect___024root__Slow.cpp Vpulse_detect___024root__0__Slow.cpp Vpulse_detect__Syms__Slow.cpp Vpulse_detect__Trace__0__Slow.cpp Vpulse_detect__TraceDecls__0__Slow.cpp > Vpulse_detect__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vpulse_detect__ALL.o Vpulse_detect__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vpulse_detect__ALL.a    -pthread -lpthread -latomic   -o Vpulse_detect\nrm Vpulse_detect__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_pulse_detect_8xi994xq/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.042 MB in 9 C++ files needing 0.000 MB\n- Verilator: Walltime 1.293 s (elab=0.000, cvt=0.004, bld=1.284); cpu 0.009 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 252.98,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 73,
+          "elapsed_s": 22.87
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 68,
+          "elapsed_s": 23.34
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 89,
+          "elapsed_s": 24.36
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 19.2
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 95,
+          "elapsed_s": 30.65
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 26.72
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 82,
+          "elapsed_s": 20.74
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 47,
+          "elapsed_s": 19.45
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 30.55
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 55,
+          "elapsed_s": 35.1
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

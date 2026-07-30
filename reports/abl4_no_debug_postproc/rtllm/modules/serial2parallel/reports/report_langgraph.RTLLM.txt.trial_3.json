@@ -1,0 +1,136 @@
+{
+  "module_name": "serial2parallel",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "serial2parallel",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module serial2parallel (\n\tinput clk, rst_n, din_valid,\n\tinput din_serial,\n\toutput reg [7:0] dout_parallel,\n\toutput reg dout_valid\n);\n//==============================================//\n//             Parameter and Integer            //\n//==============================================//\ninteger i;\nlocalparam IDLE \t\t\t= 2'b00;\nlocalparam LOADING \t\t= 2'b01;\nlocalparam OUTPUTTING \t= 2'b10;\n//==============================================//\n//            FSM State Declaration             //\n//==============================================//\nreg [1:0] curr_state, next_state;\n//==============================================//\n//                 Reg Declaration              //\n//==============================================//\nreg [3:0] cnt;\n//==============================================//\n//                  Wire Declaration            //\n//==============================================//\n//==============================================//\n//            Continuous Assignment             //\n//==============================================//\n//==============================================//\n//               Always Block                   //\n//==============================================//\n// Sequential always block\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tcurr_state <= IDLE;\n\tend\n\telse begin\n\t\tcurr_state <= next_state;\n\tend\nend\n// Combinational always block\nalways@(*) begin\n\tcase(curr_state)\n\t\tIDLE: begin\n\t\t\tif(din_valid)\n\t\t\t\tnext_state = LOADING;\n\t\t\telse\n\t\t\t\tnext_state = IDLE;\n\t\tend\n\t\t\n\t\tLOADING: begin\n\t\t\tif(cnt==4'd8)\n\t\t\t\tnext_state = OUTPUTTING;\n\t\t\telse\n\t\t\t\tnext_state = LOADING;\n\t\tend\n\t\t\t\n\t\tdefault: begin\n\t\t\tnext_state = IDLE;\n\t\tend\t\n\tendcase\nend\n//==============================================//\n//                  Output Block                //\n//==============================================//\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tcnt <= 4'd0;\n\tend\n\telse begin\n\t\tcase(curr_state)\n\t\t\tIDLE: begin\n\t\t\t\tcnt <= 4'd0;\n\t\t\tend\n\t\t\t\n\t\t\tLOADING: begin\n\t\t\t\tcnt <= cnt + 4'd1;\n\t\t\tend\n\t\t\t\n\t\t\tdefault: begin\n\t\t\t\tcnt <= 4'd0;\n\t\t\tend\n\t\tendcase\n\tend\nend\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tfor(i=0;i<8;i=i+1) begin\n\t\t\tdout_parallel[i] <= 1'd0;\n\t\tend\n\tend\n\telse begin\n\t\tcase(curr_state)\n\t\t\tLOADING: begin\n\t\t\t\tdout_parallel[cnt] <= din_serial;\n\t\t\tend\n\t\t\t\t\n\t\t\tdefault: begin\n\t\t\t\tfor(i=0;i<8;i=i+1) begin\n\t\t\t\t\tdout_parallel[i] <= dout_parallel[i];\n\t\t\t\tend\n\t\t\tend\n\t\tendcase\n\tend\nend\nalways@(posedge clk or negedge rst_n) begin\n\tif(!rst_n) begin\n\t\tdout_valid <= 1'd0;\n\tend\n\telse begin\n\t\tcase(curr_state)\n\t\t\tOUTPUTTING: begin\n\t\t\t\tdout_valid <= 1'd1;\n\t\t\tend\n\t\t\t\n\t\t\tdefault: begin\n\t\t\t\tdout_valid <= 1'd0;\n\t\t\tend\n\t\tendcase\n\tend\nend\nendmodule\n",
+    "xml_description": "<module id=\"serial2parallel\">\n    <description>A series-parallel conversion circuit that converts serial input data to parallel output data.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Reset signal (active low).</input>\n        <input id=\"din_serial\">Serial input data.</input>\n        <input id=\"din_valid\">Validity signal for input data.</input>\n        <output id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data (8 bits wide).</output>\n        <output id=\"dout_valid\">Validity signal for the output data.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\" value=\"2'b00\">Idle state.</parameter>\n        <parameter id=\"LOADING\" value=\"2'b01\">Loading state.</parameter>\n        <parameter id=\"OUTPUTTING\" value=\"2'b10\">Outputting state.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;reg id=\"state\" width_description=\"[1:0]\">State register.&lt;/reg>\n        &lt;reg id=\"next_state\" width_description=\"[1:0]\">Next state register.&lt;/reg>\n        &lt;reg id=\"cnt\" width_description=\"[3:0]\">Counter register.&lt;/reg>\n        &lt;reg id=\"dout_parallel\" width_description=\"[7:0]\">Parallel output data register.&lt;/reg>\n        &lt;reg id=\"dout_valid\">Valid output signal register.&lt;/reg>\n        \n        // State encoding\n        &lt;assign next_state = IDLE;\n        &lt;assign next_state = (state == IDLE &amp;&amp; din_valid) ? LOADING :\n                             (state == LOADING &amp;&amp; cnt == 4'd8) ? OUTPUTTING : \n                             (state == OUTPUTTING) ? IDLE : IDLE;\n                             \n        &lt;always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                state &lt;= IDLE;\n            end else begin\n                state &lt;= next_state;\n            end\n        end\n        \n        &lt;always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt &lt;= 4'd0;\n            end else begin\n                case(state)\n                    IDLE: begin\n                        cnt &lt;= 4'd0;\n                    end\n                    LOADING: begin\n                        cnt &lt;= cnt + 1;\n                    end\n                    default: begin\n                        cnt &lt;= 4'd0;\n                    end\n                endcase\n            end\n        end\n        \n        &lt;always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                dout_parallel &lt;= 8'd0;\n            end else begin\n                case(state)\n                    LOADING: begin\n                        dout_parallel[cnt] &lt;= din_serial;\n                    end\n                    default: begin\n                        dout_parallel &lt;= dout_parallel;\n                    end\n                endcase\n            end\n        end\n        \n        &lt;always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                dout_valid &lt;= 1'b0;\n            end else begin\n                case(state)\n                    OUTPUTTING: begin\n                        dout_valid &lt;= 1'b1;\n                    end\n                    default: begin\n                        dout_valid &lt;= 1'b0;\n                    end\n                endcase\n            end\n        end\n    </logic_description>\n    \n    <implementation></implementation>\n    <task></task>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTHTRUNC: serial2parallel.v:94:18: Bit extraction of var[7:0] requires 3 bit index, not 4 bits.\n                                            : ... note: In instance 'serial2parallel'\n   94 |     dout_parallel[cnt] <= din_serial;\n      |                  ^\n                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.048\n                     ... Use \"/* verilator lint_off WIDTHTRUNC */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_serial2parallel_0z7cv3nw/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vserial2parallel.cpp Vserial2parallel___024root__0.cpp Vserial2parallel__Trace__0.cpp Vserial2parallel___024root__Slow.cpp Vserial2parallel___024root__0__Slow.cpp Vserial2parallel__Syms__Slow.cpp Vserial2parallel__Trace__0__Slow.cpp Vserial2parallel__TraceDecls__0__Slow.cpp > Vserial2parallel__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vserial2parallel__ALL.o Vserial2parallel__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vserial2parallel__ALL.a    -pthread -lpthread -latomic   -o Vserial2parallel\nrm Vserial2parallel__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_serial2parallel_0z7cv3nw/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.048 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.348 s (elab=0.001, cvt=0.005, bld=0.338); cpu 0.010 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 8,
+      "max_samples": 10,
+      "best_sample_idx": 7,
+      "best_temperature": 0.7,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 206.24,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 24.71
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 21,
+          "elapsed_s": 25.98
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 26,
+          "elapsed_s": 18.8
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 25.6
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 62,
+          "elapsed_s": 29.88
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 38,
+          "elapsed_s": 18.51
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 61,
+          "elapsed_s": 18.63
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 121,
+          "elapsed_s": 44.13
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

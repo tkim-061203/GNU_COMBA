@@ -1,0 +1,162 @@
+{
+  "module_name": "asyn_fifo",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "asyn_fifo",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module asyn_fifo #(\n    parameter DEPTH = 16,\n    parameter WIDTH = 8,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output wire\t\t\t\twfull,\n    output wire\t\t\t\trempty,\n    output wire [WIDTH-1:0]\trdata\n);\n\n\ninteger i;\nreg [ADDR_WIDTH:0] wptr, rptr, wptr_buff, wptr_syn, rptr_buff, rptr_syn;\nreg [WIDTH-1:0] rdata_reg;\nwire wen, ren;\n\ndual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH)) ram(\n\t.wclk(wclk),\n\t.wenc(wen),\n\t.waddr(wptr[ADDR_WIDTH-1:0]),\n\t.wdata(wdata),\n\t.rclk(rclk),\n\t.renc(ren),\n\t.raddr(rptr[ADDR_WIDTH-1:0]),\n\t.rdata(rdata_reg)\n);\n\nalways@(posedge wclk or negedge wrstn) begin\n\tif(!wrstn) begin\n\t\twptr_buff <= 4'd0;\n\tend\n\telse begin\n\t\twptr_buff <= wptr;\n\tend\nend\n\nalways@(posedge rclk or negedge rrstn) begin\n\tif(!rrstn) begin\n\t\trptr_buff <= 4'd0;\n\tend\n\telse begin\n\t\trptr_buff <= rptr;\n\tend\nend\n\nalways@(posedge wclk or negedge wrstn) begin\n\tif(!wrstn) begin\n\t\twptr <= 4'd0;\n\tend\n\telse begin\n\t\twptr <= wptr + winc;\n\tend\nend\n\nalways@(negedge rclk or negedge rrstn) begin\n\tif(!rrstn) begin\n\t\trptr <= 4'd0;\n\tend\n\telse begin\n\t\trptr <= rptr + rinc;\n\tend\nend\n\nalways@(posedge rclk or negedge rrstn) begin\n\tif(!rrstn) begin\n\t\twptr_syn <= 4'd0;\n\tend\n\telse begin\n\t\twptr_syn <= wptr_buff;\n\tend\nend\n\nalways@(posedge wclk or negedge wrstn) begin\n\tif(!wrstn) begin\n\t\trptr_syn <= 4'd0;\n\tend\n\telse begin\n\t\trptr_syn <= rptr_buff;\n\tend\nend\n\nassign wen = winc && !wfull;\nassign ren = rinc && !rempty;\nassign wfull = (wptr == {~rptr_syn[ADDR_WIDTH:ADDR_WIDTH-1], rptr_syn[ADDR_WIDTH-2:0]});\nassign rempty = (rptr == wptr_syn);\n\nassign rdata = rdata_reg;\nendmodule\n\nmodule dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n(\n\t input wclk\t,\n\t input wenc\t,\n\t input [$clog2(DEPTH)-1:0] waddr  ,\n\t input [WIDTH-1:0] wdata ,\n\t input rclk\t,\n\t input renc\t,\n\t input [$clog2(DEPTH)-1:0] raddr ,\n\t output reg [WIDTH-1:0] rdata \t\t\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n\tif(wenc)\n\t\tRAM_MEM[waddr] <= wdata;\nend \n\nalways @(posedge rclk) begin\n\tif(renc)\n\t\trdata <= RAM_MEM[raddr];\nend \n\nendmodule\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Asynchronous FIFO implementation using a dual-port RAM module.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal used for synchronous write operations.</input>\n        <input id=\"rclk\">Read clock signal used for synchronous read operations.</input>\n        <input id=\"wrstn\">Write reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"rrstn\">Read reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"winc\">Write increment signal. Used to trigger write operations.</input>\n        <input id=\"rinc\">Read increment signal. Used to trigger read operations.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input. The width [WIDTH-1:0] is configurable and represents the data to be written into the FIFO.</input>\n        <output id=\"wfull\">Write full signal. Indicates if the FIFO is full and cannot accept further write operations.</output>\n        <output id=\"rempty\">Read empty signal. Indicates if the FIFO is empty and cannot provide any data for read operations.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output. The width [WIDTH-1:0] is configurable and represents the data read from the FIFO.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\" value=\"8\">Data width parameter.</parameter>\n        <parameter id=\"DEPTH\" value=\"16\">FIFO depth parameter.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        // Combinational logic to calculate the binary representation of the write pointer\n        assign waddr_bin[3] = wptr[3];\n        assign waddr_bin[2] = wptr[3]^wptr[2];\n        assign waddr_bin[1] = wptr[2]^wptr[1];\n        assign waddr_bin[0] = wptr[1]^wptr[0];\n        \n        // Combinational logic to calculate the binary representation of the read pointer\n        assign raddr_bin[3] = rptr[3];\n        assign raddr_bin[2] = rptr[3]^rptr[2];\n        assign raddr_bin[1] = rptr[2]^rptr[1];\n        assign raddr_bin[0] = rptr[1]^rptr[0];\n    </logic_description>\n    <logic_description type=\"sequential_logic\">\n        // Sequential logic block triggered on the positive edge of the write clock\n        always @(posedge wclk or negedge wrstn) begin\n            if(~wrstn) begin\n                // Reset the write pointer to 0 on reset signal\n                wptr &lt;= 4'd0;\n            end else begin\n                // Update the write pointer based on the write increment signal\n                wptr &lt;= wptr + winc;\n            end\n        end\n        \n        // Sequential logic block triggered on the negative edge of the read clock\n        always @(negedge rclk or negedge rrstn) begin\n            if(~rrstn) begin\n                // Reset the read pointer to 0 on reset signal\n                rptr &lt;= 4'd0;\n            end else begin\n                // Update the read pointer based on the read increment signal\n                rptr &lt;= rptr + rinc;\n            end\n        end\n    </logic_description>\n    <logic_description type=\"sequential_logic\">\n        // Sequential logic block triggered on the positive edge of the write clock\n        always @(posedge wclk or negedge wrstn) begin\n            if(~wrstn) begin\n                // Reset the write pointer buffer to 0 on reset signal\n                wptr_buff &lt;= 4'd0;\n            end else begin\n                // Store the previous value of the write pointer in the buffer\n                wptr_buff &lt;= wptr;\n            end\n        end\n        \n        // Sequential logic block triggered on the positive edge of the read clock\n        always @(posedge rclk or negedge rrstn) begin\n            if(~rrstn) begin\n                // Reset the read pointer buffer to 0 on reset signal\n                rptr_buff &lt;= 4'd0;\n            end else begin\n                // Store the previous value of the read pointer in the buffer\n                rptr_buff &lt;= rptr;\n            end\n        end\n    </logic_description>\n    <logic_description type=\"combinational_logic\">\n        // Combinational logic to check if the FIFO is full\n        assign wfull = (wptr == {~rptr_buff[3], rptr_buff[2:0]});\n        \n        // Combinational logic to check if the FIFO is empty\n        assign rempty = (rptr_syn == wptr);\n    </logic_description>\n    <implementation>\n        // Instantiation of dual-port RAM module\n        dual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH)) ram(\n            .wclk(wclk),\n            .wenc(winc &amp; !wfull),\n            .waddr(waddr_bin),\n            .wdata(wdata),\n            .rclk(rclk),\n            .renc(rinc &amp; !rempty),\n            .raddr(raddr_bin),\n            .rdata(rdata)\n        );\n    </implementation>\n    <task>\n        &lt;id>update_pointer_buffer&lt;/id>\n        <description>Update the pointer buffers on the rising edges of the write and read clocks.</description>\n        &lt;sequence>\n            &lt;step>On the positive edge of the write clock:&lt;/step>\n            &lt;substeps>\n                &lt;if condition=\"not(wrstn)\">\n                    &lt;then>Set the write pointer buffer to 0.&lt;/then>\n                &lt;/if>\n                &lt;else>\n                    &lt;then>Store the previous value of the write pointer in the buffer.&lt;/then>\n                &lt;/else>\n            &lt;/substeps>\n            &lt;step>On the positive edge of the read clock:&lt;/step>\n            &lt;substeps>\n                &lt;if condition=\"not(rrstn)\">\n                    &lt;then>Set the read pointer buffer to 0.&lt;/then>\n                &lt;/if>\n                &lt;else>\n                    &lt;then>Store the previous value of the read pointer in the buffer.&lt;/then>\n                &lt;/else>\n            &lt;/substeps>\n        &lt;/sequence>\n    </task>\n    <task>\n        &lt;id>check_full_empty&lt;/id>\n        <description>Check if the FIFO is full or empty and update the corresponding flags.</description>\n        &lt;sequence>\n            &lt;step>Compare the current write and read pointers (wptr and rptr_syn).&lt;/step>\n            &lt;substeps>\n                &lt;if condition=\"wptr equals {~rptr_buff[3], rptr_buff[2:0]}\">\n                    &lt;then>Set the write full flag to 1.&lt;/then>\n                &lt;/if>\n                &lt;else>\n                    &lt;then>Set the write full flag to 0.&lt;/then>\n                &lt;/else>\n                \n                &lt;if condition=\"rptr_syn equals wptr\">\n                    &lt;then>Set the read empty flag to 1.&lt;/then>\n                &lt;/if>\n                &lt;else>\n                    &lt;then>Set the read empty flag to 0.&lt;/then>\n                &lt;/else>\n            &lt;/substeps>\n        &lt;/sequence>\n    </task>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:115:10: Missing newline at end of file (POSIX 3.206).\n                                       : ... Suggest add newline.\n  115 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module asyn_fifo #(\n      |        ^~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module asyn_fifo_tb;\n      |        ^~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:97:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n   97 | module dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n      |        ^~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module asyn_fifo_tb;\n      |        ^~~~~~~~~~~~\nmake: Entering directory '/tmp/comba_asyn_fifo_vf_j_7r0/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vasyn_fifo_tb.cpp Vasyn_fifo_tb___024root__0.cpp Vasyn_fifo_tb_std__03a__03asemaphore__Vclpkg__0.cpp Vasyn_fifo_tb_std__03a__03aprocess__Vclpkg__0.cpp Vasyn_fifo_tb__main.cpp Vasyn_fifo_tb___024root__Slow.cpp Vasyn_fifo_tb___024root__0__Slow.cpp Vasyn_fifo_tb___024unit__Slow.cpp Vasyn_fifo_tb_std__Slow.cpp Vasyn_fifo_tb_std__03a__03asemaphore__Vclpkg__Slow.cpp Vasyn_fifo_tb_std__03a__03aprocess__Vclpkg__Slow.cpp Vasyn_fifo_tb__Syms__Slow.cpp > Vasyn_fifo_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vasyn_fifo_tb__ALL.o Vasyn_fifo_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vasyn_fifo_tb__ALL.a    -pthread -lpthread -latomic   -o Vasyn_fifo_tb\nrm Vasyn_fifo_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_asyn_fifo_vf_j_7r0/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.048 MB sources in 9 modules, into 0.076 MB in 12 C++ files needing 0.000 MB\n- Verilator: Walltime 0.333 s (elab=0.002, cvt=0.008, bld=0.316); cpu 0.017 s on 1 threads; allocated 30.539 MB\n\n[RUN]\nFailed at step 0 (t=560): wfull=0/exp 1, rempty=0/exp 0, rdata=ab/exp 01\nFailed at step 1 (t=570): wfull=0/exp 1, rempty=0/exp 0, rdata=ab/exp 01\nFailed at step 2 (t=580): wfull=0/exp 1, rempty=0/exp 0, rdata=ac/exp ab\nFailed at step 3 (t=590): wfull=0/exp 0, rempty=0/exp 0, rdata=ac/exp ab\nFailed at step 4 (t=600): wfull=0/exp 0, rempty=0/exp 0, rdata=ad/exp ac\n===========Error===========\n- testbench.v:52: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 1us; walltime 0.000 s; speed 5.308 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 5,
+      "best_temperature": 0.5,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 944.11,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 155,
+          "elapsed_s": 259.38
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 122,
+          "elapsed_s": 80.89
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 126,
+          "elapsed_s": 39.29
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 107,
+          "elapsed_s": 62.15
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 136,
+          "elapsed_s": 129.6
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 121,
+          "elapsed_s": 74.42
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 170,
+          "elapsed_s": 71.95
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 175,
+          "elapsed_s": 66.51
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 92,
+          "elapsed_s": 29.87
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 211,
+          "elapsed_s": 130.04
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

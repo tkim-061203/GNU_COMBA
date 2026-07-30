@@ -1,0 +1,16 @@
+<module id="accu">
+    <description>Implement a module to achieve serial input data accumulation output, input is 8bit data. The valid_in will be set to 1 before the first data comes in. Whenever the module receives 4 input data, the data_out outputs 4 received data accumulation results and sets the valid_out to be 1 (will last only 1 cycle).</description>
+    <ports>
+        <input id="clk">Clock input for synchronization.</input>
+        <input id="rst_n">Active-low reset signal.</input>
+        <input id="data_in" width_description="[7:0]">8-bit input data for addition.</input>
+        <input id="valid_in">Input signal indicating readiness for new data.</input>
+        <output id="valid_out">Output signal indicating when 4 input data accumulation is reached.</output>
+        <output id="data_out" width_description="[9:0]">10-bit output data representing the accumulated sum.</output>
+    </ports>
+    <implementation>When valid_in is 1, data_in is a valid input. 
+Accumulate valid input data_in values directly to the output data_out. 
+There is no output when there are fewer than four data_in inputs in the interim. Along with the output data_out, a cycle of valid_out=1 will appear as a signal. 
+The valid_out signal is set to 1 when the data_out outputs 4 received data accumulation results. Otherwise, it is set to 0.
+    </implementation>
+</module>

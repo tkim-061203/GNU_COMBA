@@ -1,0 +1,162 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module multi_pipe_4bit #(\n    parameter size = 4,\n    parameter N = 2 * size\n) (\n    input \t\t\t\t\t\tclk,\n    input \t\t\t\t\t\trst_n,\n    input\t[size-1:0]\t\t\tmul_a,\n    input\t[size-1:0]\t\t\tmul_b,\n    output\treg\t[size*2-1:0]\tmul_out\n);\n\nreg [N-1:0] product;\nreg [N-1:0] sum;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) product <= 0; else product <= {product[N-1], product[N-1:size+1]} + {{size{1'b0}}, mul_a} * {size{mul_b[0]}};\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) sum <= 0; else sum <= product;\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) mul_out <= 0; else mul_out <= sum;\nend\n\nendmodule\n\nmodule verified_multi_pipe#(\n\tparameter size = 4\n)(\n\tinput \t\t\t\t\t\tclk \t\t,   \n\tinput \t\t\t\t\t\trst_n\t\t,\n\tinput\t[size-1:0]\t\t\tmul_a\t\t,\n\tinput\t[size-1:0]\t\t\tmul_b\t\t,\n \n \toutput\treg\t[size*2-1:0]\tmul_out\t\t\n);\n\nparameter N = 2 * size;\n\nreg     [N-1:0]     sum_tmp1                ;\nreg     [N-1:0]     sum_tmp2                ;\nwire    [N-1:0]     mul_a_extend            ;\nwire    [N-1:0]     mul_b_extend            ;\n\nwire    [N-1:0]     mul_result[size-1:0]    ;\n\ngenvar i;\ngenerate\n    for(i = 0; i < size; i = i + 1) begin:add\n        assign mul_result[i] = mul_b[i] ? mul_a_extend << i : 'd0;\n    end\nendgenerate\n\nassign mul_a_extend = {{size{1'b0}}, mul_a};\nassign mul_b_extend = {{size{1'b0}}, mul_b};\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        sum_tmp1 <= 'd0;\n        sum_tmp2 <= 'd0;\n    end\n    else begin\n        sum_tmp1 <= mul_result[0] + mul_result[1];\n        sum_tmp2 <= mul_result[2] + mul_result[3];\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        mul_out <= 'd0;\n    end\n    else begin\n        mul_out <= sum_tmp1 + sum_tmp2;\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>A 4bit unsigned number pipeline multiplier. Consists of two levels of registers to store intermediate values and control the multiplication process.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Multiplicand input signal.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Multiplier input signal.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product output signal.</output>\n    </ports>\n    <parameter_description>\n        &lt;param id=\"size\">Size parameter for the multiplier.&lt;/param>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"add_reg\" width_description=\"[7:0]\" description=\"Register to hold intermediate sums during addition.\">&lt;/reg>\n        &lt;reg id=\"partial_product\" width_description=\"[7:0]\" description=\"Register to hold intermediate partial products during multiplication.\">&lt;/reg>\n    </logic_description>\n    <implementation>\n        Extending inputs by adding 'size' zeros at MSB positions.\n        genvar i;\n        wire [7:0] mul_a_ext;\n        assign mul_a_ext = {4'd0,mul_a};\n        \n        wire [7:0] mul_b_ext;\n        assign mul_b_ext = {4'd0,mul_b};\n        \n        // Multiplying each bit of the multiplier with the multiplicand and shifting accordingly.\n        generate\n            for(i = 0;i&lt;size;i=i+1)begin : mul_gen_loop\n                wire [7:0] temp_partial_product;\n                \n                if(mul_b[i]==1'b1) begin\n                    assign temp_partial_product = mul_a_ext &lt;&lt; i;\n                end\n                else begin\n                    assign temp_partial_product = 'd0;\n                end\n                \n                // Adding the current partial product to the register holding the previous sums.\n                always @(posedge clk,negedge rst_n) begin\n                    if(!rst_n) begin\n                        partial_product &lt;= 'd0;\n                    end\n                    else begin\n                        partial_product &lt;= temp_partial_product + partial_product;\n                    end\n                end\n            end\n        endgenerate\n        \n        // Storing the sum in the register after one clock cycle.\n        always @(posedge clk,negedge rst_n) begin\n            if(!rst_n) begin\n                add_reg &lt;= 'd0;\n            end\n            else begin\n                add_reg &lt;= partial_product;\n            end\n        end\n        \n        // Calculating the final product based on the stored sum in the register.\n        always @(posedge clk,negedge rst_n) begin\n            if(!rst_n) begin\n                mul_out &lt;= 'd0;\n            end\n            else begin\n                mul_out &lt;= add_reg;\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:57:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   57 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module multi_pipe_4bit #(\n      |        ^~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module multi_pipe_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:29:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n   29 | module verified_multi_pipe#(\n      |        ^~~~~~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module multi_pipe_tb;\n      |        ^~~~~~~~~~~~~\nmake: Entering directory '/tmp/comba_multi_pipe_4bit_xcb6ysu9/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_pipe_tb.cpp Vmulti_pipe_tb___024root__0.cpp Vmulti_pipe_tb__main.cpp Vmulti_pipe_tb___024root__Slow.cpp Vmulti_pipe_tb___024root__0__Slow.cpp Vmulti_pipe_tb__Syms__Slow.cpp > Vmulti_pipe_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vmulti_pipe_tb__ALL.o Vmulti_pipe_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vmulti_pipe_tb__ALL.a    -pthread -lpthread -latomic   -o Vmulti_pipe_tb\nrm Vmulti_pipe_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_multi_pipe_4bit_xcb6ysu9/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 4 modules, into 0.038 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.413 s (elab=0.001, cvt=0.004, bld=1.403); cpu 0.010 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n===========Test completed with          97 / 100 failures===========\n- testbench.v:55: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 3us; walltime 0.000 s; speed 9.558 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 879.31,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 68.88
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 76.49
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 14,
+          "gvd_lines": 102,
+          "elapsed_s": 93.57
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 19,
+          "gvd_lines": 102,
+          "elapsed_s": 72.06
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 64.27
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 95,
+          "elapsed_s": 63.38
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 103,
+          "elapsed_s": 218.49
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 16,
+          "gvd_lines": 102,
+          "elapsed_s": 66.76
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 79,
+          "elapsed_s": 73.26
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 94,
+          "elapsed_s": 82.14
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

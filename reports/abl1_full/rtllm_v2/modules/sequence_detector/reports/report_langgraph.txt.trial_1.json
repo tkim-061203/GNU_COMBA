@@ -1,0 +1,150 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 1,
+    "total_iter": 3,
+    "gvd": "module sequence_detector #(\n    parameter IDLE = 5'b00001,\n    parameter S1   = 5'b00010,\n    parameter S2   = 5'b00100,\n    parameter S3   = 5'b01000,\n    parameter S4   = 5'b10000\n) (\n    input  clk,\n    input  rst_n,\n    input  data_in,\n    output sequence_detected\n);\n\n    reg [4:0] current_state, next_state;\n\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            current_state <= IDLE;\n        end else begin\n            current_state <= next_state;\n        end\n    end\n\n    always @(*) begin\n        case (current_state)\n            IDLE: begin\n                if (data_in == 1'b1) begin\n                    next_state = S1;\n                end else begin\n                    next_state = IDLE;\n                end\n            end\n            S1: begin\n                if (data_in == 1'b0) begin\n                    next_state = S2;\n                end else begin\n                    next_state = S1;\n                end\n            end\n            S2: begin\n                if (data_in == 1'b0) begin\n                    next_state = S3;\n                end else begin\n                    next_state = S1;\n                end\n            end\n            S3: begin\n                if (data_in == 1'b1) begin\n                    next_state = S4;\n                end else begin\n                    next_state = IDLE;\n                end\n            end\n            S4: begin\n                next_state = IDLE;\n            end\n            default: begin\n                next_state = IDLE;\n            end\n        endcase\n    end\n\n    assign sequence_detected = (current_state == S4);\n\nendmodule\n",
+    "xml_description": "<module id=\"sequence_detector\">\n    <description>Detects a specific 4-bit binary sequence 1001 using a sequential logic block and an FSM.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronization.</input>\n        <input id=\"reset_n\">Asynchronous reset signal to initialize the state machine.</input>\n        <input id=\"data_in\">1-bit input signal representing the current bit of the sequence being detected.</input>\n        <output id=\"sequence_detected\">1-bit output signal indicating whether the specific sequence has been detected.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Waiting for the start of the sequence.</parameter>\n        <parameter id=\"S1\">The first bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S2\">The second bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S3\">The third bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S4\">The fourth and final bit of the desired sequence is detected, setting the output sequence_detected high.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"current_state\">Sequential register to hold the current state of the state machine.&lt;/reg>\n        &lt;reg id=\"next_state\">Sequential register to hold the next state of the state machine.&lt;/reg>\n        \n        &lt;always @(posedge clk or posedge reset_n)> // Sequential logic block triggered on positive edge of clk or reset_n\n            if (reset_n == 1'b1) begin\n                current_state &lt;= IDLE; // Initialize current_state to IDLE state when reset_n is high\n            end else begin\n                current_state &lt;= next_state; // Update current_state with next_state value on each clock cycle\n            end\n        &lt;/always>\n        \n        &lt;always @(*)> // Combinational logic block to determine the next state based on current_state and data_in\n            case(current_state)\n                IDLE: begin\n                    if(data_in == 1'b1) begin\n                        next_state = S1; // Transition to S1 state if data_in is 1\n                    end else begin\n                        next_state = IDLE; // Stay in IDLE state if data_in is not 1\n                    end\n                end\n                \n                S1: begin\n                    if(data_in == 1'b0) begin\n                        next_state = S2; // Transition to S2 state if data_in is 0\n                    end else begin\n                        next_state = S1; // Stay in S1 state if data_in is not 0\n                    end\n                end\n                \n                S2: begin\n                    if(data_in == 1'b0) begin\n                        next_state = S3; // Transition to S3 state if data_in is 0\n                    end else begin\n                        next_state = S1; // Stay in S1 state if data_in is not 0\n                    end\n                end\n                \n                S3: begin\n                    if(data_in == 1'b1) begin\n                        next_state = S4; // Transition to S4 state if data_in is 1\n                    end else begin\n                        next_state = IDLE; // Go back to IDLE state if data_in is not 1\n                    end\n                end\n                \n                default: next_state = IDLE; // Default case to handle unexpected states\n            endcase\n        &lt;/always>\n        \n        &lt;assign sequence_detected = (current_state == S4); // Assign output signal sequence_detected based on current_state\n        \n    </logic_description>\n    <implementation>Implements a sequence detector using a sequential logic block and an FSM to detect the specific sequence 1001.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:53:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   53 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module sequence_detector #(\n      |        ^~~~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_sequence_detector();\n      |        ^~~~~~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_sequence_detector_4rrbjcdl/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_sequence_detector.cpp Vtb_sequence_detector___024root__0.cpp Vtb_sequence_detector__main.cpp Vtb_sequence_detector__ConstPool__0__Slow.cpp Vtb_sequence_detector___024root__Slow.cpp Vtb_sequence_detector___024root__0__Slow.cpp Vtb_sequence_detector__Syms__Slow.cpp > Vtb_sequence_detector__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_sequence_detector__ALL.o Vtb_sequence_detector__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_sequence_detector__ALL.a    -pthread -lpthread -latomic   -o Vtb_sequence_detector\nrm Vtb_sequence_detector__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_sequence_detector_4rrbjcdl/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.046 MB sources in 3 modules, into 0.040 MB in 7 C++ files needing 0.000 MB\n- Verilator: Walltime 0.325 s (elab=0.001, cvt=0.005, bld=0.315); cpu 0.010 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n=========== Your Design Passed ===========\n- testbench.v:50: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 108ns; walltime 0.000 s; speed 2.284 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'": 1
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 9,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 600.67,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 62,
+          "elapsed_s": 70.11
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 62,
+          "elapsed_s": 69.21
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 62,
+          "elapsed_s": 79.22
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 64,
+          "elapsed_s": 67.7
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 62,
+          "elapsed_s": 63.68
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 62,
+          "elapsed_s": 83.97
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 53,
+          "elapsed_s": 66.21
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 64,
+          "elapsed_s": 70.76
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 1,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 65,
+          "elapsed_s": 29.82
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 2,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 0
+    }
+  }
+}

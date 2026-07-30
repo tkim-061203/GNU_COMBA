@@ -1,0 +1,162 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module radix2_div (\n    input wire clk,\n    input wire rst,\n    input wire [7:0] dividend,\n    input wire [7:0] divisor,\n    input wire sign,\n    input wire opn_valid,\n    output reg res_valid,\n    input wire res_ready,\n    output wire [15:0] result\n);\n\nwire [7:0] abs_dividend, abs_divisor;\nwire [15:0] partial_result;\nreg [15:0] SR;\nreg [7:0] NEG_DIVISOR;\nreg [3:0] cnt;\nreg start_cnt;\nreg [15:0] dividend_extended;\nreg [15:0] divisor_extended;\nreg div_sign, div_sign_d;\nreg opn_valid_d;\n\nalways @(posedge clk or posedge rst) begin\n    if(rst) begin\n        opn_valid_d <= 0;\n        div_sign <= 0;\n        div_sign_d <= 0;\n    end\n    else begin\n        opn_valid_d <= opn_valid;\n        div_sign <= sign;\n        div_sign_d <= div_sign;\n    end\nend\nassign abs_dividend = (div_sign_d && (dividend != 0)) ? (~dividend + 1) : dividend;\nassign abs_divisor = (div_sign_d && (divisor != 0)) ? (~divisor + 1) : divisor;\nassign result = (div_sign_d && ((dividend > 0 || divisor == 0))) ? ~SR + 1 : SR;\nassign res_valid = rst ? 0 : (cnt[3] ? 1 : (opn_valid_d & ~res_valid) ? 1 : (res_valid & opn_valid_d) ? 0 : res_valid);\nassign partial_result = {{8{~cnt[3]}}, abs_dividend << 1};\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        SR <= 16'b0;\n        NEG_DIVISOR <= 16'b0;\n        cnt <= 0;\n        start_cnt <= 0;\n    end else begin\n        if (opn_valid_d && !res_valid) begin\n            SR <= {abs_dividend, 8'b0}; \n            NEG_DIVISOR <= (~abs_divisor + 1); \n            cnt <= 1;\n            start_cnt <= 1;\n        end else if (start_cnt) begin\n            if (cnt[3]) begin\n                start_cnt <= 0;\n                cnt <= 0;\n                SR <= {partial_result[15:8] + partial_result[7], partial_result[7:0]};\n            end else begin\n                cnt <= cnt + 1;\n                if (partial_result[15:8] >= abs_divisor) begin\n                    SR <= {partial_result[15:8] - abs_divisor, partial_result[7:0], 1'b1};\n                end else begin\n                    SR <= {partial_result[15:8], partial_result[7:0], 1'b0};\n                end\n            end\n        end\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n    <description>A simplified radix-2 divider for 8-bit signed or unsigned integers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst\">The reset signal to initialize or reset the module.</input>\n        <input id=\"sign\">Indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">The dividend input signal representing the number to be divided.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">The divisor input signal representing the number by which to divide.</input>\n        <input id=\"opn_valid\">Indicates that a valid operation request is present.</input>\n        <output id=\"res_valid\">Indicates the result is valid and ready.</output>\n        <output id=\"result\" width_description=\"[15:0]\">Contains the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n    </ports>\n    \n    <implementation>\n        When opn_valid is high and res_valid is low, save the inputs dividend and divisor.\n        Initialize the shift register SR with the absolute value of the dividend shifted left by one bit.\n        Set NEG_DIVISOR to the negated absolute value of the divisor.\n        Set the counter cnt to 1 and start_cnt to 1 to begin the division process.\n        \n        If start_cnt is high, perform the following steps:\n            If cnt[7] is set, indicating that the most significant bit is set,\n                clear cnt and start_cnt.\n                Update SR with the final remainder and quotient.\n            Otherwise, increment the counter cnt.\n            Perform subtraction based on the current state of the counter cnt and update SR accordingly.\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div (\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-UNOPTFLAT: testbench.v:10:10: Signal unoptimizable: Circular combinational logic: 'radix2_div_tb.res_valid'\n   10 |     wire res_valid;\n      |          ^~~~~~~~~\n                    ... For warning description see https://verilator.org/warn/UNOPTFLAT?v=5.048\n                    ... Use \"/* verilator lint_off UNOPTFLAT */\" and lint_on around source to disable this message.\n                    testbench.v:10:10:      Example path: radix2_div_tb.res_valid\n                    testbench.v:10:10:      Example path: ASSIGNW\n                    testbench.v:10:10:      Example path: radix2_div_tb.res_valid\nmake: Entering directory '/tmp/comba_radix2_div_k28kqvdl/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vradix2_div_tb.cpp Vradix2_div_tb___024root__0.cpp Vradix2_div_tb__main.cpp Vradix2_div_tb___024root__Slow.cpp Vradix2_div_tb___024root__0__Slow.cpp Vradix2_div_tb__Syms__Slow.cpp > Vradix2_div_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vradix2_div_tb__ALL.o Vradix2_div_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vradix2_div_tb__ALL.a    -pthread -lpthread -latomic   -o Vradix2_div_tb\nrm Vradix2_div_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_radix2_div_k28kqvdl/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.048 MB sources in 3 modules, into 0.072 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.262 s (elab=0.001, cvt=0.008, bld=0.247); cpu 0.015 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n%Error-DIDNOTCONVERGE: testbench.v:3: Active region did not converge after '--converge-limit' of 10000 tries\nAborting...\n\n[RUN FAILED] exit code 1",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 956.81,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 70,
+          "elapsed_s": 31.8
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 330,
+          "elapsed_s": 261.39
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 278,
+          "elapsed_s": 260.34
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 7,
+          "gvd_lines": 129,
+          "elapsed_s": 70.77
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 204,
+          "elapsed_s": 67.24
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 7,
+          "gvd_lines": 134,
+          "elapsed_s": 80.8
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 92,
+          "elapsed_s": 59.17
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 69,
+          "elapsed_s": 43.41
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 7,
+          "gvd_lines": 101,
+          "elapsed_s": 60.65
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 69,
+          "elapsed_s": 21.25
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

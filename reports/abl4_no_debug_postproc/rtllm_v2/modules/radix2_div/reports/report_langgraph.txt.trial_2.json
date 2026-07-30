@@ -1,0 +1,160 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module radix2_div(\n    input clk, \n    input rst, \n    input sign, \n    input [7:0] dividend, \n    input [7:0] divisor, \n    input opn_valid, \n    output reg res_valid, \n    output reg [15:0] result\n);\n// Internal signals\nreg [7:0] abs_dividend;\nreg [7:0] neg_divisor;\nreg [15:0] SR;\nreg [3:0] cnt;\nreg start_cnt;\n// Combinational logic\nwire [7:0] sub_result;\nwire [7:0] mux_result;\n// Behavioral modeling\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        abs_dividend <= 0;\n        neg_divisor <= 0;\n        SR <= 0;\n        cnt <= 0;\n        start_cnt <= 0;\n    end else begin\n        if (opn_valid && !res_valid) begin\n            abs_dividend <= (sign && dividend[7]) ? (~dividend + 1) : dividend;\n            neg_divisor <= (sign && divisor[7]) ? (~divisor + 1) : divisor;\n            SR <= {abs_dividend << 1};\n            cnt <= 1;\n            start_cnt <= 1;\n        end\n    end\nend\n// Combinational logic for division operation\nalways @(*) begin\n    if (start_cnt) begin\n        if (cnt[3]) begin\n            cnt = 0;\n            start_cnt = 0;\n            SR = {sub_result, SR[7:1]};\n        end else begin\n            cnt = cnt + 1;\n            SR = {mux_result, SR[7:1]};\n        end\n    end\nend\n// Subtraction operation\nassign sub_result = SR[15:8] - neg_divisor;\n// Multiplexer selection based on carry_out\nassign mux_result = sub_result[7] ? SR[15:8] : sub_result;\n// Output assignment\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        res_valid <= 0;\n    end else begin\n        res_valid <= cnt[3] || (res_valid && res_valid);\n    end\nend\nalways @(*) begin\n    if (res_valid) begin\n        result = {SR[15:8], SR[7:0]};\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n    <description>A simplified radix-2 divider for 8-bit signed/unsigned integers.</description>\n    <ports>\n        <input id=\"clk\">The clock signal.</input>\n        <input id=\"rst\">The reset signal to initialize the module.</input>\n        <input id=\"sign\">Indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">The dividend input.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">The divisor input.</input>\n        <input id=\"opn_valid\">A valid operation request signal.</input>\n        <output id=\"res_valid\">A signal indicating that the result is valid.</output>\n        <output id=\"result\" width_description=\"[15:0]\">The result, containing remainder and quotient.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"N\" value=\"8\">The number of bits for the dividend and divisor.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"signed_dividend\" width_description=\"[N-1:0]\">The signed representation of the dividend.&lt;/signal>\n        &lt;signal id=\"abs_dividend\" width_description=\"[N-1:0]\">The absolute value of the dividend.&lt;/signal>\n        &lt;signal id=\"neg_divisor\" width_description=\"[N-1:0]\">The negative value of the divisor.&lt;/signal>\n        &lt;signal id=\"start_cnt\" width_description=\"[N-1:0]\">Start counter for the division process.&lt;/signal>\n        &lt;signal id=\"cnt\" width_description=\"[N-1:0]\">Counter for the division process.&lt;/signal>\n        &lt;signal id=\"SR\" width_description=\"[2*N-1:0]\">Shift register for storing intermediate results.&lt;/signal>\n        &lt;signal id=\"sub_result\" width_description=\"[N-1:0]\">Subtraction result.&lt;/signal>\n        &lt;signal id=\"carry_out\" width_description=\"[N-1:0]\">Carry-out result.&lt;/signal>\n        &lt;signal id=\"mux_result\" width_description=\"[N-1:0]\">Multiplexed result.&lt;/signal>\n    </logic_description>\n    <implementation>\n        // Sequential logic for saving inputs and initializing variables\n        always @(posedge clk or posedge rst) begin\n            if(rst) begin\n                abs_dividend &lt;= 0;\n                neg_divisor &lt;= 0;\n                SR &lt;= 0;\n                cnt &lt;= 0;\n                start_cnt &lt;= 0;\n            end else begin\n                if(opn_valid &amp;&amp; ~res_valid) begin\n                    abs_dividend &lt;= (sign &amp; dividend[N-1]) ? (~dividend + 1) : dividend;\n                    neg_divisor &lt;= (sign &amp; divisor[N-1]) ? (~divisor + 1) : divisor;\n                    SR &lt;= {abs_dividend &lt;&lt; 1};\n                    cnt &lt;= 1;\n                    start_cnt &lt;= 1;\n                end\n            end\n        end\n        \n        // Combinational logic for performing division operations\n        always @(*) begin\n            if(start_cnt) begin\n                if(cnt[3]) begin\n                    cnt = 0;\n                    start_cnt = 0;\n                    SR = {sub_result, SR[7:1]};\n                end else begin\n                    cnt = cnt + 1;\n                    SR = {mux_result, SR[7:1]};\n                end\n            end\n        end\n        // Subtraction operation\n        assign sub_result = SR[2 * N - 1 -: N] - neg_divisor;\n        \n        // Mux selection based on carry_out\n        assign mux_result = sub_result[N-1] ? SR[2 * N - 1 -: N] : sub_result;\n        \n        // Output assignment\n        assign res_valid = (cnt == 0);\n        assign result = {SR[2 * N - 1 -: N], SR[7:0]};\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div(\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:22:10: Pin not found: 'res_ready'\n   22 |         .res_ready(res_ready),\n      |          ^~~~~~~~~\n                                     : ... Location of instance's module declaration\n    1 | module radix2_div(\n      |        ^~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 7,
+      "best_temperature": 0.7,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1004.92,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 95,
+          "elapsed_s": 46.25
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 327,
+          "elapsed_s": 283.33
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 276,
+          "elapsed_s": 274.27
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 128,
+          "elapsed_s": 71.63
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 203,
+          "elapsed_s": 64.95
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 133,
+          "elapsed_s": 80.26
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 89,
+          "elapsed_s": 58.05
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 68,
+          "elapsed_s": 44.71
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 60.51
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 68,
+          "elapsed_s": 20.96
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

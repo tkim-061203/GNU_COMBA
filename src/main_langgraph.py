@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from multiprocess import Pool
+from multiprocess import TimeoutError as MPTimeoutError
 
 # ──────────────────────────────────────────────────────────────
 # Watchdog: per-(problem,sample) wall-time cap (Unix only via SIGALRM)
@@ -570,7 +571,29 @@ def main():
                        "fail_extraction": 0,
                        "timeout": 0, "error": 0, "other": 0}
         pbar = tqdm(total=len(sets), desc="Pipeline runs")
-        for result in pool.imap_unordered(do_process, sets):
+        # Pull results with a per-result timeout instead of a plain for-loop.
+        # If a worker DIES mid-task, multiprocess.Pool cannot recover that task's
+        # result and a bare `for result in imap_unordered(...)` hangs forever
+        # waiting for it — this deadlocked a full e1_t8 run on 2026-07-20 (all
+        # 156x20 samples were generated, but the process never exited). Each task
+        # self-caps at WALL_TIMEOUT_SEC via the SIGALRM watchdog, so with live
+        # workers results stream steadily; no result for STALL_SEC means a worker
+        # died. We stop collecting and proceed — canonical metrics come from the
+        # per-sample JSONs already on disk (collect_samples below), so the only
+        # cost of a lost result is one missed progress-bar tick.
+        STALL_SEC = max(WALL_TIMEOUT_SEC * 3, 300)
+        result_iter = pool.imap_unordered(do_process, sets)
+        got = 0
+        while got < len(sets):
+            try:
+                result = result_iter.next(timeout=STALL_SEC)
+            except MPTimeoutError:
+                print(f"\n[pool] no result for {STALL_SEC}s after {got}/{len(sets)} "
+                      f"— a worker likely died; proceeding with on-disk samples.")
+                break
+            except StopIteration:
+                break
+            got += 1
             try:
                 _prob, _idx, status = result
             except Exception:
@@ -587,7 +610,9 @@ def main():
             )
             pbar.update(1)
         pbar.close()
-        print(f"Live tally: {live_counts}")
+        print(f"Live tally: {live_counts} (collected {got}/{len(sets)})")
+        # Do not wait on a possibly-wedged pool; we have all disk output.
+        pool.terminate()
 
     if opts.no_aggregate:
         print("Skip aggregation (--no-aggregate).")

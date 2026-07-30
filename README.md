@@ -192,7 +192,7 @@ Used for processing Verilog codebases to extract specific modules based on compl
                       --with-model-submanual=http://localhost:8001/v1 \
                       --with-task=code-complete-iccad2023
    ```
-3. **Run LangGraph inference** (spawns 10 parallel workers by default; tune with `--with-jobs`):
+3. **Run LangGraph inference** (spawns 15 parallel workers by default; tune with `--with-jobs`):
    ```bash
    make langgraph
    ```
@@ -208,16 +208,19 @@ Used for processing Verilog codebases to extract specific modules based on compl
 - `--with-quiet`: Only show progress bar during LangGraph inference (default: True).
 - `--with-description-type`: (Batch mode) Specify `xml` or `txt` for processing design descriptions.
 - `--with-self-consistency`: Enable Best-of-N multi-sampling (default: 1). Disable per-run with `make langgraph SC=0`.
-- `--with-max-samples`: Max samples for self-consistency (default: 5).
-- `--with-jobs`: Parallel worker processes for LangGraph inference (default: 10). Note: Best-of-N candidates run *sequentially* inside each worker, so effective concurrency = jobs.
+- `--with-max-samples`: Max samples for self-consistency (default: 10 — same value `make all_RTLLM` runs with).
+- `--with-jobs`: Parallel worker processes for LangGraph inference (default: 15 — same value the RTLLM targets run with). Note: Best-of-N candidates run *sequentially* inside each worker, so effective concurrency = jobs.
 
 > [!NOTE]
 > **Best-of-N runtime tuning (env flags).** These override the Coordinated Best-of-N behavior at run time without reconfiguring:
-> - `COMBA_MAX_SAMPLES` (default 5): N candidates per run.
+> - `COMBA_MAX_SAMPLES` (Makefile default 10): N candidates per run. 10 lands V1 at 93.1% vs 88.3% at 5 — the extra samples recover every near-threshold module.
 > - `COMBA_SC_MEMORY` (default 0): set `=1` to feed the previous failed sample's top error into the next sample's generator prompt. Off until validated by A/B.
 > - `COMBA_SC_VOTE` (default 0): set `=1` to pick the largest cluster of functionally-equivalent candidates (within the best status tier) instead of plain best-score selection.
 > - `COMBA_EARLY_EXIT` (default 1): stop as soon as a sample passes.
 > - `COMBA_WALL_BUDGET` (default 1200s): per-problem wall-clock cap.
+> - `COMBA_PIPELINE_TIMEOUT` (default 600s): per-pipeline wall-clock cap.
+> - `COMBA_XML_ESCAPE` (default 1 in the Makefile): repair converter XML (escape embedded Verilog, alias tags, close truncations) before validation — required for strict `pydantic-xml` envs.
+> - `COMBA_LLM_SEED` (default 42): base seed for reproducible LLM sampling; the benchmark offsets it per trial. Empty = unseeded.
 >
 > The per-sample temperature schedule is anchored to `--with-temperature`: sample 0 is always `0.0` (greedy), samples 1..N-1 ramp up `+0.1` each from the configured base (capped at `1.2`).
 
@@ -238,21 +241,22 @@ RTLLM modules use C++ testbenches and require **Verilator** for simulation inste
 
 1. **Verify Prerequisites**:
    - Ensure `verilator` is installed (`verilator --version`).
-   - Use the `kim_VE` conda environment.
+   - Use the `test_VE` conda environment. The Makefile pins it (`CONDA_ENV := test_VE`), so `make` targets do not depend on which env is active — but a bare `python3 src/benchmark_langgraph.py` would land in conda *base*, which lacks `pydantic-xml` and silently disables XML validation.
 
 2. **Run Full Benchmark**:
    ```bash
    make RTLLM
    ```
-   This command executes Pipeline 3 on the RTLLM dataset (found in `RTLLM/modules`) with 5 trials per design and saves aggregated reports to `RTLLM/reports/fixrate`.
+   This command executes Pipeline 3 on the RTLLM dataset (found in `RTLLM/modules`) with 5 trials per design and saves aggregated reports to `reports/rtllm/fixrate` (RTLLM_v2 → `reports/rtllm_v2/fixrate`).
 
    > [!NOTE]
-   > **Estimated Runtime**: Completion typically takes **20–40 minutes** for the full suite (30 designs × 5 trials) when using the default 10 parallel workers.
+   > **Estimated Runtime**: Completion typically takes **20–40 minutes** for the full suite (29 designs × 5 trials; RTLLM_v2 has 50) when using the default 15 parallel workers (`LANGGRAPH_JOBS`).
 
 3. **Targeted Testing**:
    To test specific designs or change trial counts:
    ```bash
-   python3 src/benchmark_langgraph.py --dataset rtllm --trials 1 --designs JC_counter,FIFO_8bit
+   conda run --no-capture-output -n test_VE python3 src/benchmark_langgraph.py \
+       --dataset rtllm --trials 1 --designs JC_counter,FIFO_8bit
    ```
 
 **Technical Integration:**
@@ -294,51 +298,101 @@ Common setup configurations use the `eX_tY` naming convention (e: examples, t: t
 **2. Multi-Agent Inference with LangGraph (Pipeline 3 - Using `make langgraph`)**
 In this Multi-Agent setup, both generator and debugger models are used simultaneously. The pipeline automatically performs iterative error correction using LLM-driven feedback.
 
+> [!TIP]
+> **Running all four configs: `make VerilogEval`.** The four `eX_tY` blocks below can be
+> driven manually (one build directory at a time), or swept in one command from the repo
+> root. `make VerilogEval` runs, **sequentially, for each config in `VEVAL_CONFIGS`**
+> (default `e0_t0 e0_t8 e1_t0 e1_t8`):
+>
+> 1. `mkdir -p VE_testbench/langgraph/.build_sample_<cfg>`
+> 2. `configure` in that directory with the config's own `--with-temperature` /
+>    `--with-samples` / `--with-examples`, plus `--with-self-consistency=$(SC)`,
+>    `--with-max-samples=$(COMBA_MAX_SAMPLES)` and `--with-jobs=$(LANGGRAPH_JOBS)`
+>    **taken from the root `Makefile`**, so the sweep always matches what
+>    `make all_RTLLM` runs with.
+> 3. `make langgraph` inside that directory.
+> 4. Copy `summary.txt`, `summary.csv`, `error_problems.txt` from the build directory's
+>    `reports/`, and write a generated `run_info.txt` (config, finish timestamp, build
+>    dir, examples/temperature/samples, SC, max-samples, jobs, LLM seed, conda env,
+>    langgraph exit code, **elapsed time**) — all into `reports/verilogeval/<cfg>/`.
+>
+> **Timing.** Each config's `make langgraph` is wall-clock timed and reported live
+> (`elapsed HH:MM:SS` on its end line) and stored in that config's `run_info.txt`. When
+> the sweep finishes, a per-config table plus the **TOTAL** sweep time (which also covers
+> the `configure` and copy steps) is printed and written to
+> `reports/verilogeval/sweep_timing.txt`:
+>
+> ```
+> VerilogEval sweep timing
+> finished : 2026-07-19T19:33:59+07:00
+> configs  : e0_t0 e0_t8 e1_t0 e1_t8
+>
+>   config  elapsed   (langgraph only)
+>   e0_t0   00:41:12  (2472 s, rc=0)
+>   ...
+>
+>   TOTAL   06:15:40  (22540 s, includes configure + report copy)
+> ```
+>
+> Failure handling: if **`make langgraph`** fails for a config, the sweep continues —
+> that config's reports are still collected if they exist, and the target exits non-zero
+> at the end listing every config that failed. If **`configure`** fails, or an unknown
+> config name is given, the sweep aborts immediately (exit 1 / exit 2) since that
+> indicates a setup problem rather than a benchmark result.
+> Run a subset with `make VerilogEval VEVAL_CONFIGS='e0_t0 e1_t0'`.
+>
+> `make -n VerilogEval` is **not** a dry run — GNU make executes recipe lines containing
+> `$(MAKE)` even under `-n`, which would run the `configure` steps for real. The target
+> detects `-n` and stops without doing anything.
+
 **Key features:**
 - **Automatic Renaming**: The pipeline automatically renames the generated module to `TopModule` in the simulation stage to satisfy `VerilogEval` testbench requirements.
 - **Iverilog Simulation**: Uses `iverilog` and `vvp` to provide precise functional feedback to the debugger agent.
 - **Dual GPU Routing**: Explicitly declare the Debugger URL (`--with-model-submanual`) to route tasks correctly between the two GPUs.
 
-- **Dual GPU LangGraph**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001. All configs below enable **Coordinated Best-of-N** via `--with-self-consistency=1 --with-max-samples=5` (N=5 candidates per run).
+- **Dual GPU LangGraph**: Routes Generation tasks to port 8000 and Debugger evaluation tasks to port 8001. All configs below enable **Coordinated Best-of-N** via `--with-self-consistency=1 --with-max-samples=10` (N=10 candidates per run) and `--with-jobs=15`, matching the knobs `make all_RTLLM` runs with (`SC_ENV` in the root `Makefile`).
+
+  > [!NOTE]
+  > **Parity with `make all_RTLLM`.** The RTLLM targets export `COMBA_MAX_SAMPLES=10 COMBA_PIPELINE_TIMEOUT=600 COMBA_WALL_BUDGET=1200 COMBA_XML_ESCAPE=1 COMBA_LLM_SEED=42` with `--jobs 15`. `--with-max-samples` / `--with-jobs` cover the first and last of those; the remaining three are Makefile-level defaults that a fresh build directory inherits, so no extra configure flag is needed. `COMBA_FORCE_XML=1` is **RTLLM_v2-only** and is not applied to VerilogEval V1 runs.
 
   > [!WARNING]
-  > **High Resource Consumption with pass@k × Best-of-N**: The samples override has been removed. If you configure `--with-samples=20` and `--with-self-consistency=1 --with-max-samples=5`, the benchmark will run 20 independent trials per problem, and each trial will internally attempt up to 5 candidates. This results in up to `156 × 20 × 5 = 15,600` possible generations, which requires significant time and API credit. To run plain pass@k sampling instead (e.g. pass@20 without Best-of-N), configure with `--with-self-consistency=0` or run `make langgraph SC=0`.
+  > **High Resource Consumption with pass@k × Best-of-N**: The samples override has been removed. If you configure `--with-samples=20` and `--with-self-consistency=1 --with-max-samples=10`, the benchmark will run 20 independent trials per problem, and each trial will internally attempt up to 10 candidates. This results in up to `156 × 20 × 10 = 31,200` possible generations, which requires significant time and API credit. `COMBA_EARLY_EXIT=1` (default) keeps the real cost far below that ceiling — easy problems still settle on sample 0. To run plain pass@k sampling instead (e.g. pass@20 without Best-of-N), configure with `--with-self-consistency=0` or run `make langgraph SC=0`.
 
-  **`e0_t0`** — temp 0, examples 0. Default `make langgraph` → Best-of-5 (1 run/problem):
+  **`e0_t0`** — temp 0, examples 0. Default `make langgraph` → Best-of-10 (1 run/problem):
   ```bash
-  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0 --with-samples=1 --with-examples=0 \
-                     --with-self-consistency=1 --with-max-samples=5 \
+                     --with-self-consistency=1 --with-max-samples=10 --with-jobs=15 \
                      --with-model-manual=http://localhost:8000/v1 \
                      --with-model-submanual=http://localhost:8001/v1 \
                      --with-task=code-complete-iccad2023 --with-quiet=True
   ```
 
-  **`e0_t8`** — temp 0.8, examples 0. Default `make langgraph` → pass@20 × Best-of-5 (up to 100 runs/problem, 15,600 total generations). Run `make langgraph SC=0` to get plain pass@20:
+  **`e0_t8`** — temp 0.8, examples 0. Default `make langgraph` → pass@20 × Best-of-10 (up to 200 runs/problem, 31,200 total generations). Run `make langgraph SC=0` to get plain pass@20:
   ```bash
-  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0.8 --with-samples=20 --with-examples=0 \
-                     --with-self-consistency=1 --with-max-samples=5 \
+                     --with-self-consistency=1 --with-max-samples=10 --with-jobs=15 \
                      --with-model-manual=http://localhost:8000/v1 \
                      --with-model-submanual=http://localhost:8001/v1 \
                      --with-task=code-complete-iccad2023 --with-quiet=True
   ```
 
-  **`e1_t0`** — temp 0, examples 1. Default `make langgraph` → Best-of-5 (1 run/problem):
+  **`e1_t0`** — temp 0, examples 1. Default `make langgraph` → Best-of-10 (1 run/problem):
   ```bash
-  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0 --with-samples=1 --with-examples=1 \
-                     --with-self-consistency=1 --with-max-samples=5 \
+                     --with-self-consistency=1 --with-max-samples=10 --with-jobs=15 \
                      --with-model-manual=http://localhost:8000/v1 \
                      --with-model-submanual=http://localhost:8001/v1 \
                      --with-task=code-complete-iccad2023 --with-quiet=True
   ```
 
-  **`e1_t8`** — temp 0.8, examples 1. Default `make langgraph` → pass@20 × Best-of-5 (up to 100 runs/problem, 15,600 total generations). Run `make langgraph SC=0` to get plain pass@20:
+  **`e1_t8`** — temp 0.8, examples 1. Default `make langgraph` → pass@20 × Best-of-10 (up to 200 runs/problem, 31,200 total generations). Run `make langgraph SC=0` to get plain pass@20:
   ```bash
-  ../../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
+  ../../../configure --with-provider=openai --with-model=generator --with-max_token=4096 \
                      --with-temperature=0.8 --with-samples=20 --with-examples=1 \
-                     --with-self-consistency=1 --with-max-samples=5 \
+                     --with-self-consistency=1 --with-max-samples=10 --with-jobs=15 \
                      --with-model-manual=http://localhost:8000/v1 \
                      --with-model-submanual=http://localhost:8001/v1 \
                      --with-task=code-complete-iccad2023 --with-quiet=True
@@ -399,6 +453,10 @@ passes. See **[README_openwebui.md](README_openwebui.md)** for the full guide an
 - **`make RTLLM`**: Run Pipeline 3 on the **RTLLM** dataset (uses Verilator by default).
 - **`make RTLLM_v2`**: Run Pipeline 3 on the **RTLLM_v2** dataset (uses Verilator by default).
 - **`make all_RTLLM`**: Run both RTLLM and RTLLM_v2 benchmarks.
+- **`make VerilogEval`**: Sweep all four `eX_tY` configs on VerilogEval V1 **sequentially**. For each config it creates/refreshes `VE_testbench/langgraph/.build_sample_<cfg>`, runs `configure` with that config's flags, runs `make langgraph` inside it, then copies `summary.txt` / `summary.csv` / `error_problems.txt` plus a generated `run_info.txt` (config, timestamp, seed, env, elapsed) into `reports/verilogeval/<cfg>/`. Per-config and total wall-clock times are printed at the end and saved to `reports/verilogeval/sweep_timing.txt`.
+  - Subset: `make VerilogEval VEVAL_CONFIGS='e0_t0 e1_t0'`.
+  - A config whose `make langgraph` fails does not abort the sweep; the target exits non-zero at the end listing every config that failed. A `configure` failure or an unknown config name aborts immediately.
+  - `make -n VerilogEval` is **not** a dry run — GNU make executes recipe lines containing `$(MAKE)` even under `-n`. The target detects `-n` and stops without doing anything.
 - **`make default`**: Run standard non-agentic LLM inference (Pipeline 2).
 
 ### Data Preparation (Pipeline 1)

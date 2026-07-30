@@ -14,6 +14,7 @@ Usage:
         print(f"Module: {module.id}")
 """
 
+import os
 import re
 import logging
 from typing import Optional, List, Literal, Tuple
@@ -40,9 +41,10 @@ class IO(IDModel):
 
 
 class Ports(BaseXmlModel, tag="ports"):
-    """Port list container."""
-    input: List[IO] = element()
-    output: List[IO] = element()
+    """Port list container. Lists default to empty: some designs legitimately
+    have no inputs (e.g. clkgenerator) or no outputs."""
+    input: List[IO] = element(default_factory=list)
+    output: List[IO] = element(default_factory=list)
 
 
 class Parameter(IDModel):
@@ -70,8 +72,10 @@ class PartialLogicDescription(IDModel):
 
 
 class LogicDescription(BaseXmlModel, tag="logic_description", search_mode="unordered"):
-    """Logic description section with typed logic elements."""
-    description: str = element()
+    """Logic description section with typed logic elements. The <description>
+    child is optional: the converter usually emits only typed <logic> children
+    (or prose text), and rejecting those blocks fails otherwise-good XML."""
+    description: str = element(default="")
     logic: List[PartialLogicDescription] = element(default=None)
 
 
@@ -109,10 +113,82 @@ class Modules(RootXmlModel, tag="modules"):
 # Module-level regex: fences with optional language tag, anywhere in text.
 _FENCE_RE = re.compile(r"```[a-zA-Z]*\s*\n?|```", re.MULTILINE)
 
+# Stray-special escaping (opt-in via COMBA_XML_ESCAPE=1).
+# The converter LLM often leaks Verilog into XML text ("out <= 4'd0", "a & b"),
+# which breaks well-formedness. These rewrite only *stray* specials:
+#   & not already part of an entity        -> &amp;
+#   < not followed by a plausible tag char -> &lt;   (catches "<=", "< 5")
+# Already-valid XML is untouched (idempotent), so it is safe to apply always
+# when the flag is on.
+_STRAY_AMP_RE = re.compile(r"&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)")
+# Escape any '<' that does not start a known schema tag. The converter embeds
+# raw Verilog in text nodes ('<always @(...)>', 'i < 8', 'a <= b'), and the
+# old letter-based heuristic ('<' before a letter = tag) let constructs like
+# '<always' through as bogus tags — the #1 cause of malformed converter XML.
+_XML_TAGS = (
+    "modules", "module", "description", "ports", "input", "output",
+    "parameter_description", "parameter", "logic_description", "logic",
+    "implementation", "task",
+)
+_STRAY_LT_RE = re.compile(r"<(?!/?(?:%s)[\s/>]|!|\?)" % "|".join(_XML_TAGS))
+
+def _escape_stray_specials(text: str) -> str:
+    text = _STRAY_AMP_RE.sub("&amp;", text)
+    text = _STRAY_LT_RE.sub("&lt;", text)
+    return text
+
+
+# <constant>/<state>/<state_value> are what the converter LLM invents for
+# parameter_description children (the prompt says "FSM states, named constants"
+# and never shows the real tag); the schema wants <parameter>.
+_CONSTANT_TAG_RE = re.compile(r"<(/?)(?:constant|state_value|state)\b")
+# Verilog reflex: the LLM closes the XML document with 'endmodule'.
+_TRAILING_ENDMODULE_RE = re.compile(r"\bendmodule\s*$")
+_OPEN_OR_CLOSE_TAG_RE = re.compile(
+    r"<(/?)(%s)\b[^>]*?(/?)>" % "|".join(_XML_TAGS)
+)
+
+
+def _normalize_converter_quirks(text: str) -> str:
+    """Deterministically repair the converter's recurring XML mistakes:
+    tag aliases, Verilog-style closers, and truncated documents."""
+    text = _CONSTANT_TAG_RE.sub(r"<\1parameter", text)
+
+    # Output truncated mid-tag (e.g. '<parameter id="STAGE'): trim back to the
+    # last complete '>' so the auto-closer below appends to well-formed text.
+    if text.rfind("<") > text.rfind(">"):
+        text = text[: text.rfind("<")].rstrip()
+
+    # 'endmodule' used to close the document instead of </module>
+    if "<module" in text and "</module>" not in text:
+        text, n = _TRAILING_ENDMODULE_RE.subn("</module>", text)
+
+    # Auto-close tags left open by output truncation (best effort: the parse
+    # then succeeds and validation reports precisely which field is missing).
+    stack = []
+    for m in _OPEN_OR_CLOSE_TAG_RE.finditer(text):
+        closing, name, selfclose = m.group(1), m.group(2), m.group(3)
+        if selfclose:
+            continue
+        if closing:
+            if name in stack:
+                while stack and stack[-1] != name:
+                    stack.pop()
+                if stack:
+                    stack.pop()
+        else:
+            stack.append(name)
+    if stack:
+        text = text.rstrip() + "".join(f"</{t}>" for t in reversed(stack)) + "\n"
+    return text
+
+
 def _clean_xml(xml_text: str) -> str:
     """Strip markdown fences and whitespace from XML text.
 
     Handles: ``` , ```xml , ```verilog , inline fences, leading/trailing.
+    With COMBA_XML_ESCAPE=1, additionally escapes stray '&'/'<' left by the
+    LLM (Verilog operators inside text nodes) so more XML parses cleanly.
     """
     text = xml_text.strip()
     # Prefer extracting content between first fence pair if both exist.
@@ -121,7 +197,14 @@ def _clean_xml(xml_text: str) -> str:
         text = text[fences[0].end():fences[-1].start()]
     else:
         text = _FENCE_RE.sub("", text)
-    return text.strip()
+    text = text.strip()
+    if os.environ.get("COMBA_XML_ESCAPE", "0") == "1":
+        # Normalize BEFORE escaping: the escaper only whitelists schema tags,
+        # so alias tags like <constant>/<state> must be renamed first or they
+        # get escaped into text and become unreachable.
+        text = _normalize_converter_quirks(text)
+        text = _escape_stray_specials(text)
+    return text
 
 
 def _try_parse(xml_text: str) -> Tuple[bool, Optional[Module], Optional[str]]:
@@ -175,7 +258,11 @@ def validate_xml(
 
     # Step 3: Auto-retry with LLM
     if llm is None:
-        logger.warning(f"[XML] Invalid (no LLM for auto-fix): {error}")
+        # Downgraded from warning: in tolerant mode (COMBA_XML_STRICT unset)
+        # invalid XML is expected and handled at graph level, so this would
+        # otherwise flood benchmark logs. node_converter still cprints a
+        # per-module "XML invalid" line.
+        logger.info(f"[XML] Invalid (no LLM for auto-fix): {error}")
         return False, None, error
 
     current_xml = cleaned

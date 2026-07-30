@@ -1,0 +1,138 @@
+{
+  "module_name": "asyn_fifo",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "asyn_fifo",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module asyn_fifo #(\n    parameter DEPTH = 16,\n    parameter WIDTH = 8,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output wire\t\t\t\twfull,\n    output wire\t\t\t\trempty,\n    output reg [WIDTH-1:0]\trdata\n);\n\nendmodule\n\nmodule dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n(\n\t input wclk\t,\n\t input wenc\t,\n\t input [$clog2(DEPTH)-1:0] waddr  ,\n\t input [WIDTH-1:0] wdata ,\n\t input rclk\t,\n\t input renc\t,\n\t input [$clog2(DEPTH)-1:0] raddr ,\n\t output reg [WIDTH-1:0] rdata \t\t\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n\tif(wenc)\n\t\tRAM_MEM[waddr] <= wdata;\nend \n\nalways @(posedge rclk) begin\n\tif(renc)\n\t\trdata <= RAM_MEM[raddr];\nend \n\nendmodule\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>An asynchronous FIFO with configurable parameters for bit-width and depth.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal.</input>\n        <input id=\"rclk\">Read clock signal.</input>\n        <input id=\"wrstn\">Write reset signal.</input>\n        <input id=\"rrstn\">Read reset signal.</input>\n        <input id=\"winc\">Write increment signal.</input>\n        <input id=\"rinc\">Read increment signal.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input.</input>\n        <output id=\"wfull\">Write full signal.</output>\n        <output id=\"rempty\">Read empty signal.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">FIFO bit-width.</parameter>\n        <parameter id=\"DEPTH\">FIFO depth.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        // Define the dual-port RAM instance here\n        // Connect the ports to the corresponding signals\n        // Instantiate the dual-port RAM module\n        // Connect the write port\n        // Connect the read port\n        // Implement the write and read controllers\n        // Implement the read pointer synchronizer\n        // Implement the write pointer synchronizer\n        // Implement the full and empty condition logic\n        // Implement the gray code conversion logic\n        // Implement the pointer buffers\n        // Assign the outputs based on the internal logic\n    </logic_description>\n    <implementation>\n        // Detailed behavior of the module goes here\n        // This section should include all the necessary logic and functionality\n        // Ensure that the implementation follows the provided description\n        // You may use Verilog statements or other programming constructs as needed\n    </implementation>\n    <!-- Add any additional sections or tags as required -->\n</module>",
+    "sc_log": "TopModule.sv:20: error: Unable to bind parameter `DATA_WIDTH' in `asyn_fifo'\nTopModule.sv:21: error: Unable to bind wire/reg/memory `wenc' in `asyn_fifo'\nTopModule.sv:21: error: Unable to elaborate condition expression.\nTopModule.sv:28: error: Unable to bind parameter `DATA_WIDTH' in `asyn_fifo'\nTopModule.sv:29: error: Unable to bind wire/reg/memory `renc' in `asyn_fifo'\nTopModule.sv:29: error: Unable to elaborate condition expression.\n6 error(s) during elaboration.\n",
+    "tb_log": "[COMPILE verilator]\nmake: Entering directory '/tmp/comba_asyn_fifo_21tggzcr/obj_dir'\nmake: Nothing to be done for 'default'.\nmake: Leaving directory '/tmp/comba_asyn_fifo_21tggzcr/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.011 s (elab=0.000, cvt=0.000, bld=0.011); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\nFailed at step 0 (t=560): wfull=0/exp 1, rempty=0/exp 0, rdata=00/exp 01\nFailed at step 1 (t=570): wfull=0/exp 1, rempty=0/exp 0, rdata=00/exp 01\nFailed at step 2 (t=580): wfull=0/exp 1, rempty=0/exp 0, rdata=00/exp ab\nFailed at step 3 (t=590): wfull=0/exp 0, rempty=0/exp 0, rdata=00/exp ab\nFailed at step 4 (t=600): wfull=0/exp 0, rempty=0/exp 0, rdata=00/exp ac\n===========Error===========\n- testbench.v:52: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 1us; walltime 0.000 s; speed 2.258 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 8,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1248.43,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 153,
+          "elapsed_s": 250.55
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 210,
+          "elapsed_s": 243.84
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 150,
+          "elapsed_s": 58.09
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 190,
+          "elapsed_s": 246.24
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 78.56
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 11,
+          "ts_trial": 6,
+          "iter": 17,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 94,
+          "elapsed_s": 192.05
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 96.97
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 6,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 96,
+          "elapsed_s": 82.13
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 1,
+      "commits": 9,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

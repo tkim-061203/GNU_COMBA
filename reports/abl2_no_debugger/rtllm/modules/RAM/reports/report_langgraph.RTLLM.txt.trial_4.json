@@ -1,0 +1,76 @@
+{
+  "module_name": "RAM",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "RAM",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module RAM #(\n    parameter WIDTH=6,\n    parameter DEPTH=8\n) (\n    input clk,\n    input rst_n,\n    input write_en,\n    input [$clog2(DEPTH)-1:0]write_addr,\n    input [WIDTH-1:0]write_data,\n    input read_en,\n    input [$clog2(DEPTH)-1:0]read_addr,\n    output reg [WIDTH-1:0]read_data\n);\n\nreg [5:0] RAM [2**6-1:0];\n\ninteger i;\ninitial begin\n\tfor(i = 0; i < 2**6; i = i + 1) begin\n\t\tRAM[i] = 6'b000000;\n\tend\nend\n\nalways @(posedge clk or negedge rst_n) begin\n\tif (!rst_n) begin\n\t\t\n\t\tfor(i = 0; i < 2**6; i = i + 1) begin\n\t\t\tRAM[i] <= 6'b000000;\n\t\tend\n\tend else if (write_en) begin\n\t\t\n\t\tRAM[write_addr] <= write_data;\n\tend\nend\n\nalways @(posedge clk or negedge rst_n) begin\n\tif (!rst_n) begin\n\t\t\n\t\tread_data <= 6'b000000;\n\tend else if (read_en) begin\n\t\t\n\t\tread_data <= RAM[read_addr];\n\tend else begin\n\t\t\n\t\tread_data <= 6'b000000;\n\tend\nend\nendmodule\n",
+    "xml_description": "<module id=\"RAM\">\n    <description>A dual-port RAM with a depth of 8 and a bit width of 6, initialized with all zeros.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"write_en\">Write enable signal for initiating a write operation.</input>\n        <input id=\"write_addr\" width_description=\"[5:0]\">Address for the write operation.</input>\n        <input id=\"write_data\" width_description=\"[5:0]\">Data to be written to the RAM.</input>\n        <input id=\"read_en\">Read enable signal for initiating a read operation.</input>\n        <input id=\"read_addr\" width_description=\"[5:0]\">Address for the read operation.</input>\n        <output id=\"read_data\" width_description=\"[5:0]\">Output data read from the RAM.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">6</parameter>\n        <parameter id=\"DEPTH\">8</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;reg id=\"read_data\" width_description=\"[5:0]\">Register to store the read data.&lt;/reg>\n    </logic_description>\n    <implementation>\n        // Define the RAM array\n        reg [DEPTH - 1 : 0] RAM [2**WIDTH-1:0];\n        \n        // Initialize the RAM contents to 0\n        integer i;\n        initial begin\n            for(i = 0; i &lt; 2**WIDTH; i = i + 1) begin\n                RAM[i] = {DEPTH{1'b0}};\n            end\n        end\n        \n        // Sequential logic for writing data to the RAM\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                // Reset the RAM contents to 0\n                for(i = 0; i &lt; 2**WIDTH; i = i + 1) begin\n                    RAM[i] &lt;= {DEPTH{1'b0}};\n                end\n            end else if (write_en) begin\n                // Write data to the RAM at the specified address\n                RAM[write_addr] &lt;= write_data;\n            end\n        end\n        \n        // Sequential logic for reading data from the RAM\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                // Reset the read data register to 0\n                read_data &lt;= {DEPTH{1'b0}};\n            end else if (read_en) begin\n                // Read data from the RAM at the specified address\n                read_data &lt;= RAM[read_addr];\n            end else begin\n                // Clear the read data register if read_en is not active\n                read_data &lt;= {DEPTH{1'b0}};\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-VARHIDDEN: RAM.v:15:11: Declaration of signal hides declaration in upper scope: 'RAM'\n   15 | reg [5:0] RAM [2**6-1:0];\n      |           ^~~\n                    RAM.v:1:8: ... Location of original declaration\n    1 | module RAM #(\n      |        ^~~\n                    ... For warning description see https://verilator.org/warn/VARHIDDEN?v=5.048\n                    ... Use \"/* verilator lint_off VARHIDDEN */\" and lint_on around source to disable this message.\n%Warning-WIDTHEXPAND: RAM.v:32:6: Bit extraction of array[63:0] requires 6 bit index, not 3 bits.\n                                : ... note: In instance 'RAM'\n   32 |   RAM[write_addr] <= write_data;\n      |      ^\n                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.048\n                      ... Use \"/* verilator lint_off WIDTHEXPAND */\" and lint_on around source to disable this message.\n%Warning-WIDTHEXPAND: RAM.v:42:19: Bit extraction of array[63:0] requires 6 bit index, not 3 bits.\n                                 : ... note: In instance 'RAM'\n   42 |   read_data <= RAM[read_addr];\n      |                   ^\nmake: Entering directory '/tmp/comba_RAM_ehi388ut/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include VRAM.cpp VRAM___024root__0.cpp VRAM__Trace__0.cpp VRAM___024root__Slow.cpp VRAM___024root__0__Slow.cpp VRAM__Syms__Slow.cpp VRAM__Trace__0__Slow.cpp VRAM__TraceDecls__0__Slow.cpp > VRAM__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o VRAM__ALL.o VRAM__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o VRAM__ALL.a    -pthread -lpthread -latomic   -o VRAM\nrm VRAM__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_RAM_ehi388ut/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.027 MB sources in 2 modules, into 0.034 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.330 s (elab=0.001, cvt=0.005, bld=0.320); cpu 0.010 s on 0 threads; allocated 30.539 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 3,
+      "max_samples": 10,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 62.52,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 45,
+          "elapsed_s": 20.84
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 46,
+          "elapsed_s": 19.82
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 21.85
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

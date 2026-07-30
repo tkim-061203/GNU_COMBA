@@ -1,0 +1,41 @@
+Please act as a professional verilog designer.
+
+Implement a traffic light, with three small red, yellow and green indicators and a pedestrian button. Under normal circumstances, the motor vehicle lane indicator light according to 60 clock cycles of green, 5 clock cycles of yellow, 10 clock cycles of red. When the pedestrian button is pressed, if the remaining green time is greater than 10 clocks, it is shortened to 10 clocks, and if it is less than 10 clocks, it remains unchanged. The lane light and the sidewalk light should be paired, when the lane light is green or yellow, the sidewalk light is red; When the lane light is red, the sidewalk light is green, and for the sake of simplicity, only the lane light is considered.
+
+Module name:
+    traffic_light
+Input ports:
+    rst_n: Reset signal (active low).
+    clk: Clock signal.
+    pass_request: Request signal for allowing vehicles to pass.
+
+Output ports:
+    clock[7:0]: An 8-bit output representing the count value of the internal counter.
+    red, yellow, green: Output signals representing the state of the traffic lights.
+
+Parameter Description:
+- idle: 0. IDLE state
+- s1_red: 1. Red light state
+- s2_yellow: 2. Yellow light state
+- s3_green: 3. Green light state
+
+Logic description:
+Notice that below descriptions are along with keywords `sequential` and `combinational`.
+With a `combinational` logic, must construct this logic as interal wire declaration. Or this `combinational` logic can be declared as a `reg` but only be used in always(*) block.
+With a `sequential` logic, must construct this logic as `reg` declaration. Must update this logic, in an always block,  based on other `combinational` or `sequential` logic states.
+With a `sequential logic operation`, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+With a `combinational logic operation`, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+- cnt: `sequential logic`. Internal counter. If `rst_n` is deactive, `cnt` is 10 decimal. Otherwise, if `pass_request` is active and `green` is active and `cnt` is greater than 10, `cnt` is 10 decimal. Otherwise, if `green` is deactive and `p_green` is active, `cnt` is 60 decimal. Otherwise, if `yellow` is deactive and `p_yellow` is active, `cnt` is 5 decimal. Otherwise, if `red` is deactive and `p_red` is active, `cnt` is 10 decimal. Otherwise, `cnt` is decremented by 1 on every positive edge of the clock.
+- state: `sequential logic`. If `rst_n` is deactive, `state` is `idle`. Otherwise, in case `state` is `idle`, `state` is `s1_red`. In case `state` is `s1_red`, if `cnt` counts to 3 decimal, `state` is `s3_green`, else `state` is `s1_red`. In case `state` is `s2_yellow`, if `cnt` counts to 3 decimal, `state` is `s1_red`, else `state` is `s2_yellow`. In case `state` is `s3_green`, if `cnt` counts to 3 decimal, `state` is `s2_yellow`, else `state` is `s3_green`.
+- p_red, p_green, p_yellow: sequential logic. If `rst_n` is deactive, `p_red`, `p_green`, and `p_yellow` is reset to 0. Otherwise, `red` is set to 1 if `state` is `s1_red`, `yellow` is set to 1 if `state` is `s2_yellow`, and green is set to 1 if `state` is `s3_green`.
+- red, green, yellow: sequential logic. If `rst_n` is deactive, `red`, `green`, and `yellow` is reset to 0. Otherwise, `red` is set to `p_red`, `yellow` is set to `p_yellow`, and green is set to `p_green`.
+
+Implementation:
+The following is the design track we recommend:
+The first always block is responsible for the state transition logic, based on description of sequential logic `state`. Notice that the the `state` only change when the counter `cnt` reaches 3 decimal.
+The second always block is responsible for internal counter `cnt` logic.
+The assign statement assigns the value of the internal counter (cnt) to the output clock.
+The final always block handles the output signals. It assigns the previous values (p_red, p_yellow, p_green) to the output signals (red, yellow, green) on the positive edge of the clock or negative edge of the reset signal.
+Notice to handle `sequencial logic` for `state` and `cnt` correctly.
+
+Give me the complete code.

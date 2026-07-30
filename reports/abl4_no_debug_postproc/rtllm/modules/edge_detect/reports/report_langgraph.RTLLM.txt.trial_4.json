@@ -1,0 +1,136 @@
+{
+  "module_name": "edge_detect",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "edge_detect",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module edge_detect(\n    input clk, \n    input rst_n, \n    input a, \n    output rise, \n    output down\n);\n    localparam RISE = 1'b1;\n    localparam DOWN = 1'b1;\n    localparam ZERO = 1'b0;\n    reg prev_a;\n    reg rise_reg;\n    reg down_reg;\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            prev_a <= ZERO;\n            rise_reg <= ZERO;\n            down_reg <= ZERO;\n        end else begin\n            prev_a <= a;\n            if ((prev_a == ZERO && a == RISE)) begin\n                rise_reg <= RISE;\n            end else begin\n                rise_reg <= ZERO;\n            end\n            \n            if ((prev_a == RISE && a == ZERO)) begin\n                down_reg <= DOWN;\n            end else begin\n                down_reg <= ZERO;\n            end\n        end\n    end\n    \n    assign rise = rise_reg;\n    assign down = down_reg;\nendmodule\n",
+    "xml_description": "<module id=\"edge_detect\">\n    <description>Detects rising and falling edges of a slow-changing 1-bit signal 'a' and outputs corresponding signals 'rise' and 'down'.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"a\">Slow-changing 1-bit input signal.</input>\n        <output id=\"rise\">Rising edge detected, output 1.</output>\n        <output id=\"down\">Falling edge detected, output 1.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"RISE\">1'b1</parameter>\n        <parameter id=\"DOWN\">1'b1</parameter>\n        <parameter id=\"ZERO\">1'b0</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;signal id=\"prev_a\" type=\"reg\" width_description=\"[0:0]\" init_value=\"ZERO\">Previous value of signal 'a'&lt;/signal>\n        &lt;signal id=\"rise_reg\" type=\"reg\" width_description=\"[0:0]\" init_value=\"ZERO\">Register to hold the rising edge status&lt;/signal>\n        &lt;signal id=\"down_reg\" type=\"reg\" width_description=\"[0:0]\" init_value=\"ZERO\">Register to hold the falling edge status&lt;/signal>\n        \n        &lt;always @(posedge clk or negedge rst_n)> <!-- Always block triggered on the positive edge of the clock or negative edge of reset -->\n            if (~rst_n) begin // If reset signal is active\n                prev_a &lt;= ZERO; // Initialize previous value of 'a' to zero\n                rise_reg &lt;= ZERO; // Initialize rising edge register to zero\n                down_reg &lt;= ZERO; // Initialize falling edge register to zero\n            end else begin // If reset signal is not active\n                prev_a &lt;= a; // Update previous value of 'a' with current value of 'a'\n                \n                // Check for rising edge\n                if ((prev_a == ZERO &amp;&amp; a == RISE)) begin\n                    rise_reg &lt;= RISE; // Set rising edge register to one\n                end else begin\n                    rise_reg &lt;= ZERO; // Reset rising edge register\n                end\n                \n                // Check for falling edge\n                if ((prev_a == RISE &amp;&amp; a == ZERO)) begin\n                    down_reg &lt;= DOWN; // Set falling edge register to one\n                end else begin\n                    down_reg &lt;= ZERO; // Reset falling edge register\n                end\n            end\n        &lt;/endalways>\n    </logic_description>\n    \n    <implementation>Edge detection logic based on sequential logic.</implementation>\n    \n    <task id=\"reset_task\">\n        <description>Resets the module's state variables.</description>\n        &lt;block>\n            &lt;assign id=\"prev_a\" value=\"ZERO\"/>\n            &lt;assign id=\"rise_reg\" value=\"ZERO\"/>\n            &lt;assign id=\"down_reg\" value=\"ZERO\"/>\n        &lt;/block>\n    </task>\n    \n    <task id=\"detect_edges_task\">\n        <description>Detects rising and falling edges.</description>\n        &lt;block>\n            &lt;if condition=\"(prev_a == ZERO &amp;&amp; a == RISE)\">\n                &lt;assign id=\"rise_reg\" value=\"RISE\"/>\n            &lt;/if>\n            &lt;else>\n                &lt;assign id=\"rise_reg\" value=\"ZERO\"/>\n            &lt;/else>\n            \n            &lt;if condition=\"(prev_a == RISE &amp;&amp; a == ZERO)\">\n                &lt;assign id=\"down_reg\" value=\"DOWN\"/>\n            &lt;/if>\n            &lt;else>\n                &lt;assign id=\"down_reg\" value=\"ZERO\"/>\n            &lt;/else>\n        &lt;/block>\n    </task>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_edge_detect_o6m7u7qa/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vedge_detect.cpp Vedge_detect___024root__0.cpp Vedge_detect__Trace__0.cpp Vedge_detect___024root__Slow.cpp Vedge_detect___024root__0__Slow.cpp Vedge_detect__Syms__Slow.cpp Vedge_detect__Trace__0__Slow.cpp Vedge_detect__TraceDecls__0__Slow.cpp > Vedge_detect__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vedge_detect__ALL.o Vedge_detect__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vedge_detect__ALL.a    -pthread -lpthread -latomic   -o Vedge_detect\nrm Vedge_detect__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_edge_detect_o6m7u7qa/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.027 MB sources in 2 modules, into 0.038 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.474 s (elab=0.000, cvt=0.004, bld=0.466); cpu 0.008 s on 0 threads; allocated 30.539 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 8,
+      "max_samples": 10,
+      "best_sample_idx": 7,
+      "best_temperature": 0.7,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 167.82,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 21,
+          "elapsed_s": 11.12
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 49,
+          "elapsed_s": 19.94
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 59,
+          "elapsed_s": 29.56
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 28,
+          "elapsed_s": 19.15
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 21.86
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 20,
+          "elapsed_s": 18.27
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 32,
+          "elapsed_s": 25.19
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 37,
+          "elapsed_s": 22.74
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

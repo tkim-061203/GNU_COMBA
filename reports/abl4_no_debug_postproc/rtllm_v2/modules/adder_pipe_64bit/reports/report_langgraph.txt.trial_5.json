@@ -1,0 +1,124 @@
+{
+  "module_name": "adder_pipe_64bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "adder_pipe_64bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module adder_pipe_64bit(\n    input clk, \n    input rst_n, \n    input i_en, \n    input [63:0] adda, \n    input [63:0] addb, \n    output [64:0] result, \n    output o_en\n);\n// Internal registers for pipeline stages\nreg [63:0] adda_reg [0:7];\nreg [63:0] addb_reg [0:7];\nreg [64:0] result_reg [0:7];\nreg [6:0] carry_in_reg [0:7];\nreg o_en_reg [0:7];\n// Pipeline stage 1\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[0] <= 64'd0;\n        addb_reg[0] <= 64'd0;\n        result_reg[0] <= 65'd0;\n        carry_in_reg[0] <= 7'd0;\n        o_en_reg[0] <= 1'b0;\n    end else begin\n        adda_reg[0] <= adda;\n        addb_reg[0] <= addb;\n        result_reg[0] <= adda_reg[0] + addb_reg[0] + carry_in_reg[0][0];\n        carry_in_reg[0][1] <= result_reg[0][64];\n        o_en_reg[0] <= i_en;\n    end\nend\n// Pipeline stage 2\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[1] <= 64'd0;\n        addb_reg[1] <= 64'd0;\n        result_reg[1] <= 65'd0;\n        carry_in_reg[1] <= 7'd0;\n        o_en_reg[1] <= 1'b0;\n    end else begin\n        adda_reg[1] <= adda_reg[0];\n        addb_reg[1] <= addb_reg[0];\n        result_reg[1] <= adda_reg[1] + addb_reg[1] + carry_in_reg[1][0];\n        carry_in_reg[1][1] <= result_reg[1][64];\n        o_en_reg[1] <= o_en_reg[0];\n    end\nend\n// Pipeline stage 3\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[2] <= 64'd0;\n        addb_reg[2] <= 64'd0;\n        result_reg[2] <= 65'd0;\n        carry_in_reg[2] <= 7'd0;\n        o_en_reg[2] <= 1'b0;\n    end else begin\n        adda_reg[2] <= adda_reg[1];\n        addb_reg[2] <= addb_reg[1];\n        result_reg[2] <= adda_reg[2] + addb_reg[2] + carry_in_reg[2][0];\n        carry_in_reg[2][1] <= result_reg[2][64];\n        o_en_reg[2] <= o_en_reg[1];\n    end\nend\n// Pipeline stage 4\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[3] <= 64'd0;\n        addb_reg[3] <= 64'd0;\n        result_reg[3] <= 65'd0;\n        carry_in_reg[3] <= 7'd0;\n        o_en_reg[3] <= 1'b0;\n    end else begin\n        adda_reg[3] <= adda_reg[2];\n        addb_reg[3] <= addb_reg[2];\n        result_reg[3] <= adda_reg[3] + addb_reg[3] + carry_in_reg[3][0];\n        carry_in_reg[3][1] <= result_reg[3][64];\n        o_en_reg[3] <= o_en_reg[2];\n    end\nend\n// Pipeline stage 5\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[4] <= 64'd0;\n        addb_reg[4] <= 64'd0;\n        result_reg[4] <= 65'd0;\n        carry_in_reg[4] <= 7'd0;\n        o_en_reg[4] <= 1'b0;\n    end else begin\n        adda_reg[4] <= adda_reg[3];\n        addb_reg[4] <= addb_reg[3];\n        result_reg[4] <= adda_reg[4] + addb_reg[4] + carry_in_reg[4][0];\n        carry_in_reg[4][1] <= result_reg[4][64];\n        o_en_reg[4] <= o_en_reg[3];\n    end\nend\n// Pipeline stage 6\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[5] <= 64'd0;\n        addb_reg[5] <= 64'd0;\n        result_reg[5] <= 65'd0;\n        carry_in_reg[5] <= 7'd0;\n        o_en_reg[5] <= 1'b0;\n    end else begin\n        adda_reg[5] <= adda_reg[4];\n        addb_reg[5] <= addb_reg[4];\n        result_reg[5] <= adda_reg[5] + addb_reg[5] + carry_in_reg[5][0];\n        carry_in_reg[5][1] <= result_reg[5][64];\n        o_en_reg[5] <= o_en_reg[4];\n    end\nend\n// Pipeline stage 7\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[6] <= 64'd0;\n        addb_reg[6] <= 64'd0;\n        result_reg[6] <= 65'd0;\n        carry_in_reg[6] <= 7'd0;\n        o_en_reg[6] <= 1'b0;\n    end else begin\n        adda_reg[6] <= adda_reg[5];\n        addb_reg[6] <= addb_reg[5];\n        result_reg[6] <= adda_reg[6] + addb_reg[6] + carry_in_reg[6][0];\n        carry_in_reg[6][1] <= result_reg[6][64];\n        o_en_reg[6] <= o_en_reg[5];\n    end\nend\n// Pipeline stage 8\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg[7] <= 64'd0;\n        addb_reg[7] <= 64'd0;\n        result_reg[7] <= 65'd0;\n        carry_in_reg[7] <= 7'd0;\n        o_en_reg[7] <= 1'b0;\n    end else begin\n        adda_reg[7] <= adda_reg[6];\n        addb_reg[7] <= addb_reg[6];\n        result_reg[7] <= adda_reg[7] + addb_reg[7] + carry_in_reg[7][0];\n        carry_in_reg[7][1] <= result_reg[7][64];\n        o_en_reg[7] <= o_en_reg[6];\n    end\nend\n// Assign outputs\nassign o_en = o_en_reg[7];\nassign result = result_reg[7];\nendmodule\n",
+    "xml_description": "<module id=\"adder_pipe_64bit\">\n    <description>A 64-bit ripple carry adder with pipelined stages.</description>\n    <ports>\n        <input id=\"clk\">Clock input.</input>\n        <input id=\"rst_n\">Active low reset signal.</input>\n        <input id=\"i_en\">Enable signal for addition operation.</input>\n        <input id=\"adda\" width_description=\"[63:0]\">64-bit input operand A.</input>\n        <input id=\"addb\" width_description=\"[63:0]\">64-bit input operand B.</input>\n        <output id=\"result\" width_description=\"[64:0]\">65-bit output representing the sum of adda and addb.</output>\n        <output id=\"o_en\">Output enable signal indicating the availability of the result.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Idle state.</parameter>\n        <parameter id=\"STAGE1\">Stage 1 of the pipeline.</parameter>\n        <parameter id=\"STAGE2\">Stage 2 of the pipeline.</parameter>\n        <parameter id=\"STAGE3\">Stage 3 of the pipeline.</parameter>\n        <parameter id=\"STAGE4\">Stage 4 of the pipeline.</parameter>\n        <parameter id=\"STAGE5\">Stage 5 of the pipeline.</parameter>\n        <parameter id=\"STAGE6\">Stage 6 of the pipeline.</parameter>\n        <parameter id=\"STAGE7\">Stage 7 of the pipeline.</parameter>\n        <parameter id=\"STAGE8\">Stage 8 of the pipeline.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"i_en_reg\">Register to store the value of i_en.&lt;/reg>\n        &lt;reg id=\"i_en_reg2\">Second register to store the value of i_en.&lt;/reg>\n        &lt;reg id=\"i_en_reg3\">Third register to store the value of i_en.&lt;/reg>\n        &lt;reg id=\"i_en_reg4\">Fourth register to store the value of i_en.&lt;/reg>\n        &lt;reg id=\"i_en_reg5\">Fifth register to store the value of i_en.&lt;/reg>\n        &lt;reg id=\"i_en_reg6\">Sixth register to store the value of i_en.&lt;/reg>\n        &lt;reg id=\"i_en_reg7\">Seventh register to store the value of i_en.&lt;/reg>\n        &lt;reg id=\"i_en_reg8\">Eighth register to store the value of i_en.&lt;/reg>\n        \n        &lt;reg id=\"o_en_reg\">Register to store the value of o_en.&lt;/reg>\n        &lt;reg id=\"o_en_reg2\">Second register to store the value of o_en.&lt;/reg>\n        &lt;reg id=\"o_en_reg3\">Third register to store the value of o_en.&lt;/reg>\n        &lt;reg id=\"o_en_reg4\">Fourth register to store the value of o_en.&lt;/reg>\n        &lt;reg id=\"o_en_reg5\">Fifth register to store the value of o_en.&lt;/reg>\n        &lt;reg id=\"o_en_reg6\">Sixth register to store the value of o_en.&lt;/reg>\n        &lt;reg id=\"o_en_reg7\">Seventh register to store the value of o_en.&lt;/reg>\n        &lt;reg id=\"o_en_reg8\">Eighth register to store the value of o_en.&lt;/reg>\n        \n        &lt;reg id=\"carry_in_reg\">Register to store the carry-in value.&lt;/reg>\n        &lt;reg id=\"carry_in_reg2\">Second register to store the carry-in value.&lt;/reg>\n        &lt;reg id=\"carry_in_reg3\">Third register to store the carry-in value.&lt;/reg>\n        &lt;reg id=\"carry_in_reg4\">Fourth register to store the carry-in value.&lt;/reg>\n        &lt;reg id=\"carry_in_reg5\">Fifth register to store the carry-in value.&lt;/reg>\n        &lt;reg id=\"carry_in_reg6\">Sixth register to store the carry-in value.&lt;/reg>\n        &lt;reg id=\"carry_in_reg7\">Seventh register to store the carry-in value.&lt;/reg>\n        &lt;reg id=\"carry_in_reg8\">Eighth register to store the carry-in value.&lt;/reg>\n        \n        &lt;reg id=\"sum_reg\">Register to store the sum value.&lt;/reg>\n        &lt;reg id=\"sum_reg2\">Second register to store the sum value.&lt;/reg>\n        &lt;reg id=\"sum_reg3\">Third register to store the sum value.&lt;/reg>\n        &lt;reg id=\"sum_reg4\">Fourth register to store the sum value.&lt;/reg>\n        &lt;reg id=\"sum_reg5\">Fifth register to store the sum value.&lt;/reg>\n        &lt;reg id=\"sum_reg6\">Sixth register to store the sum value.&lt;/reg>\n        &lt;reg id=\"sum_reg7\">Seventh register to store the sum value.&lt;/reg>\n        &lt;reg id=\"sum_reg8\">Eighth register to store the sum value.&lt;/reg>\n        \n        &lt;reg id=\"adda_reg\">Register to store the value of adda.&lt;/reg>\n        &lt;reg id=\"adda_reg2\">Second register to store the value of adda.&lt;/reg>\n        &lt;reg id=\"adda_reg3\">Third register to store the value of adda.&lt;/reg>\n        &lt;reg id=\"adda_reg4\">Fourth register to store the value of adda.&lt;/reg>\n        &lt;reg id=\"adda_reg5\">Fifth register to store the value of adda.&lt;/reg>\n        &lt;reg id=\"adda_reg6\">Sixth register to store the value of adda.&lt;/reg>\n        &lt;reg id=\"adda_reg7\">Seventh register to store the value of adda.&lt;/reg>\n        &lt;reg id=\"adda_reg8\">Eighth register to store the value of adda.&lt;/reg>\n        \n        &lt;reg id=\"addb_reg\">Register to store the value of addb.&lt;/reg>\n        &lt;reg id=\"addb_reg2\">Second register to store the value of addb.&lt;/reg>\n        &lt;reg id=\"addb_reg3\">Third register to store the value of addb.&lt;/reg>\n        &lt;reg id=\"addb_reg4\">Fourth register to store the value of addb.&lt;/reg>\n        &lt;reg id=\"addb_reg5\">Fifth register to store the value of addb.&lt;/reg>\n        &lt;reg id=\"addb_reg6\">Sixth register to store the value of addb.&lt;/reg>\n        &lt;reg id=\"addb_reg7\">Seventh register to store the value of addb.&lt;/reg>\n        &lt;reg id=\"addb_reg8\">Eighth register to store the value of addb.&lt;/reg>\n        \n        &lt;always @(posedge clk or negedge rst_n)>\n            if (~rst_n) begin\n                i_en_reg &lt;= 1'b0;\n                i_en_reg2 &lt;= 1'b0;\n                i_en_reg3 &lt;= 1'b0;\n                i_en_reg4 &lt;= 1'b0;\n                i_en_reg5 &lt;= 1'b0;\n                i_en_reg6 &lt;= 1'b0;\n                i_en_reg7 &lt;= 1'b0;\n                i_en_reg8 &lt;= 1'b0;\n                \n                o_en_reg &lt;= 1'b0;\n                o_en_reg2 &lt;= 1'b0;\n                o_en_reg3 &lt;= 1'b0;\n                o_en_reg4 &lt;= 1'b0;\n                o_en_reg5 &lt;= 1'b0;\n                o_en_reg6 &lt;= 1'b0;\n                o_en_reg7 &lt;= 1'b0;\n                o_en_reg8 &lt;= 1'b0;\n                \n                carry_in_reg &lt;= 1'b0;\n                carry_in_reg2 &lt;= 1'b0;\n                carry_in_reg3 &lt;= 1'b0;\n                carry_in_reg4 &lt;= 1'b0;\n                carry_in_reg5 &lt;= 1'b0;\n                carry_in_reg6 &lt;= 1'b0;\n                carry_in_reg7 &lt;= 1'b0;\n                carry_in_reg8 &lt;= 1'b0;\n                \n                sum_reg &lt;= 1'b0;\n                sum_reg2 &lt;= 1'b0;\n                sum_reg3 &lt;= 1'b0;\n                sum_reg4 &lt;= 1'b0;\n                sum_reg5 &lt;= 1'b0;\n                sum_reg6 &lt;= 1'b0;\n                sum_reg7 &lt;= 1'b0;\n                sum_reg8 &lt;= 1'b0;\n                \n                adda_reg &lt;= 1'b0;\n                adda_reg2 &lt;= 1'b0;\n                adda_reg3 &lt;= 1'b0;\n                adda_reg4 &lt;= 1'b0;\n                adda_reg5 &lt;= 1'b0;\n                adda_reg6 &lt;= 1'b0;\n                adda_reg7 &lt;= 1'b0;\n                adda_reg8 &lt;= 1'b0;\n                \n                addb_reg &lt;= 1'b0;\n                addb_reg2 &lt;= 1'b0;\n                addb_reg3 &lt;= 1'b0;\n                addb_reg4 &lt;= 1'b0;\n                addb_reg5 &lt;= 1'b0;\n                addb_reg6 &lt;= 1'b0;\n                addb_reg7 &lt;= 1'b0;\n                addb_reg8 &lt;= 1'b0;\n            end else begin\n                i_en_reg &lt;= i_en;\n                i_en_reg2 &lt;= i_en_reg;\n                i_en_reg3 &lt;= i_en_reg2;\n                i_en_reg4 &lt;= i_en_reg3;\n                i_en_reg5 &lt;= i_en_reg4;\n                i_en_reg6 &lt;= i_en_reg5;\n                i_en_reg7 &lt;= i_en_reg6;\n                i_en_reg8 &lt;= i_en_reg7;\n                \n                o_en_reg &lt;= i_en_reg8;\n                o_en_reg2 &lt;= o_en_reg;\n                o_en_reg3 &lt;= o_en_reg2;\n                o_en_reg4 &lt;= o_en_reg3;\n                o_en_reg5 &lt;= o_en_reg4;\n                o_en_reg6 &lt;= o_en_reg5;\n                o_en_reg7 &lt;= o_en_reg6;\n                o_en_reg8 &lt;= o_en_reg7;\n                \n                carry_in_reg &lt;= i_en_reg ? 1'b0 : carry_in_reg8;\n                carry_in_reg2 &lt;= carry_in_reg;\n                carry_in_reg3 &lt;= carry_in_reg2;\n                carry_in_reg4 &lt;= carry_in_reg3;\n                carry_in_reg5 &lt;= carry_in_reg4;\n                carry_in_reg6 &lt;= carry_in_reg5;\n                carry_in_reg7 &lt;= carry_in_reg6;\n                carry_in_reg8 &lt;= carry_in_reg7;\n                \n                sum_reg &lt;= i_en_reg ? adda[0] + addb[0] + carry_in_reg8 : sum_reg8;\n                sum_reg2 &lt;= sum_reg;\n                sum_reg3 &lt;= sum_reg2;\n                sum_reg4 &lt;= sum_reg3;\n                sum_reg5 &lt;= sum_reg4;\n                sum_reg6 &lt;= sum_reg5;\n                sum_reg7 &lt;= sum_reg6;\n                sum_reg8 &lt;= sum_reg7;\n                \n                adda_reg &lt;= i_en_reg ? adda : adda_reg8;\n                adda_reg2 &lt;= adda_reg;\n                adda_reg3 &lt;= adda_reg2;\n                adda_reg4 &lt;= adda_reg3;\n                adda_reg5 &lt;= adda_reg4;\n                adda_reg6 &lt;= adda_reg5;\n                adda_reg7 &lt;= adda_reg6;\n                adda_reg8 &lt;= adda_reg7;\n                \n                addb_reg &lt;= i_en_reg ? addb : addb_reg8;\n                addb_reg2 &lt;= addb_reg;\n                addb_reg3 &lt;= addb_reg2;\n                addb_reg4 &lt;= addb_reg3;\n                addb_reg5 &lt;= addb_reg4;\n                addb_reg6 &lt;= addb_reg5;\n                addb_reg7 &lt;= addb_reg6;\n                addb_reg8 &lt;= addb_reg7;\n            end\n        end\n        \n        &lt;assign o_en = o_en_reg8;\n        assign result = {sum_reg8, adda_reg8};\n    </logic_description>\n    \n    <implementation>\n        // Register declarations\n        reg [63:0] adda_reg, addb_reg;\n        reg [64:0] result_reg;\n        reg [6:0] carry_in_reg;\n        reg o_en_reg;\n        \n        // Sequential logic for pipeline stages\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                adda_reg &lt;= 64'd0;\n                addb_reg &lt;= 64'd0;\n                result_reg &lt;= 65'd0;\n                carry_in_reg &lt;= 7'd0;\n                o_en_reg &lt;= 1'b0;\n            end else begin\n                adda_reg &lt;= adda;\n                addb_reg &lt;= addb;\n                result_reg &lt;= adda_reg + addb_reg + carry_in_reg;\n                carry_in_reg &lt;= result_reg[64];\n                o_en_reg &lt;= i_en;\n            end\n        end\n        \n        // Assign outputs\n        assign o_en = o_en_reg;\n        assign result = result_reg;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:79:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   79 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:66:6: Parameter not found: 'DATA_WIDTH'\n   66 |     .DATA_WIDTH(DATA_WIDTH),\n      |      ^~~~~~~~~~\n                                    : ... Location of instance's module declaration\n    1 | module adder_pipe_64bit(\n      |        ^~~~~~~~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error-PINNOTFOUND: testbench.v:67:6: Parameter not found: 'STG_WIDTH'\n   67 |     .STG_WIDTH(STG_WIDTH)\n      |      ^~~~~~~~~\n                                    : ... Location of instance's module declaration\n    1 | module adder_pipe_64bit(\n      |        ^~~~~~~~~~~~~~~~\n%Error: Exiting due to 2 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 7,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1230.37,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 221,
+          "elapsed_s": 285.51
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 221,
+          "elapsed_s": 253.07
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 220,
+          "elapsed_s": 239.42
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 218,
+          "elapsed_s": 230.33
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 147,
+          "elapsed_s": 82.12
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 90,
+          "elapsed_s": 50.1
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 142,
+          "elapsed_s": 89.81
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

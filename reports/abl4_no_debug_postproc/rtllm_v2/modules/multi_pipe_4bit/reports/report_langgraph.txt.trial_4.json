@@ -1,0 +1,160 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_pipe_4bit (\n\tinput clk,\n\tinput rst_n,\n\tinput [3:0] mul_a,\n\tinput [3:0] mul_b,\n\toutput reg [7:0] mul_out \n);\n\t\n\t// Extension logic for inputs\n\twire [4:0] mul_a_ext;\n\twire [4:0] mul_b_ext;\n\t\n\tassign mul_a_ext = {1'b0, mul_a}; \n\tassign mul_b_ext = {1'b0, mul_b};\n\t\n\t// Stage 1 Registers\n\treg [7:0] sum_tmp1, sum_tmp2;\n\t\n\t// Partial product generation\n\tgenvar i;\n\tgenerate\n\t\tfor(i = 0; i < 4; i = i + 1) begin : pp_gen_loop\n\t\t\talways @(posedge clk or negedge rst_n) begin\n\t\t\t\tif (!rst_n) begin\n\t\t\t\t\tsum_tmp1[i] <= 0;\n\t\t\t\tend else if (mul_b_ext[i]) begin\n\t\t\t\t\tsum_tmp1[i] <= mul_a_ext[i];\n\t\t\t\tend else begin\n\t\t\t\t\tsum_tmp1[i] <= 0;\n\t\t\t\tend\n\t\t\tend\n\t\tend\n\tendgenerate\n\t\n\t// Stage 2 Registers\n\talways @(posedge clk or negedge rst_n) begin\n\t\tif (!rst_n) begin\n\t\t\tsum_tmp2 <= 0;\n\t\tend else begin\n\t\t\tsum_tmp2 <= ((mul_b_ext[2] ? mul_a_ext[2] : 0) + (mul_b_ext[3] ? mul_a_ext[3] : 0)) << 2;\n\t\tend\n\tend\n\t\n\t// Final output computation\n\talways @(posedge clk or negedge rst_n) begin\n\t\tif (!rst_n) begin\n\t\t\tmul_out <= 0;\n\t\tend else begin\n\t\t\tmul_out <= sum_tmp1 + sum_tmp2;\n\t\tend\n\tend\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n\t<description>4bit unsigned number pipeline multiplier</description>\n\t<ports>\n\t\t<input id=\"clk\">Clock signal used for synchronous operation.</input>\n\t\t<input id=\"rst_n\">Active-low reset signal. Defined as 0 for chip reset and 1 for reset signal inactive.</input>\n\t\t<input id=\"mul_a\" width_description=\"[3:0]\">Input signal representing the multiplicand with a data width of 'size' bits.</input>\n\t\t<input id=\"mul_b\" width_description=\"[3:0]\">Input signal representing the multiplier with a data width of 'size' bits.</input>\n\t\t<output id=\"mul_out\" width_description=\"[7:0]\">Product output signal with a data width of 2*size bits.</output>\n\tendports\n\t\n\t<parameter_description>\n\t\t&lt;param id=\"size\" value=\"4\"/> <!-- Parameter representing the size of the input operands -->\n\tendparameter_description\n\t\n\t<implementation>\n\t\t<!-- Extend input signals to fit the multiplication operation -->\n\t\twire [size-1:0] mul_a_ext;\n\t\twire [size-1:0] mul_b_ext;\n\t\t\n\t\tassign mul_a_ext = {mul_a[size-1],mul_a};\n\t\tassign mul_b_ext = {mul_b[size-1],mul_b}; // Extend input signals\n\t\t\n\t\t// Define registers to hold partial products\n\t\treg [2*size-1:0] pp_reg[0:size-1];\n\t\t// Generate loop to create partial products based on the multiplier's bits\n\t\tgenvar i;\n\t\tgenerate\n\t\t\tfor(i=0;i&lt;size;i=i+1) begin : pp_gen_loop\n\t\t\t\talways@(posedge clk,negedge rst_n)begin\n\t\t\t\t\tif(!rst_n)begin\n\t\t\t\t\t\tpp_reg[i]&lt;=0;\n\t\t\t\t\tend else if(mul_b_ext[i]==1'b1)begin\n\t\t\t\t\t\tpp_reg[i]&lt;={mul_a_ext,i}; // Left shift the multiplicand by i positions\n\t\t\t\t\tend else begin\n\t\t\t\t\t\tpp_reg[i]&lt;=0; // Set the register to 0 if the bit is 0\n\t\t\t\t\tend\n\t\t\t\tend\n\t\t\tend\n\t\tendgenerate\n\t\t\n\t\t// Register to hold intermediate sums\n\t\treg [2*size-1:0] sreg[0:size-1]; // Array of registers to hold sums\n\t\t\n\t\tinteger j,k,l;\n\t\t// Combinational logic for adding partial products in pipelined stages\n\t\talways@(*)begin\n\t\t\tsreg[0]=pp_reg[0];\n\t\t\tfor(j=1;j&lt;size;j=j+1)begin\n\t\t\t\tsreg[j]=sreg[j-1]+pp_reg[j];\n\t\t\tend\n\t\tend\n\t\t// Output register to hold the final product\n\t\treg [2*size-1:0] mul_out_reg;\n\t\t\n\t\t// Assign the final product output\n\t\talways@(posedge clk,negedge rst_n)begin\n\t\t\tif(!rst_n)begin\n\t\t\t\tmul_out_reg&lt;=0; // Reset the output register\n\t\t\tend else begin\n\t\t\t\tmul_out_reg</implementation></parameter_description></ports></module>\n",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:57:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   57 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module multi_pipe_4bit (\n      |        ^~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module multi_pipe_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:11:22: Parameter not found: 'size'\n   11 |   multi_pipe_4bit #(.size(4)) dut (\n      |                      ^~~~\n                                     : ... Location of instance's module declaration\n    1 | module multi_pipe_4bit (\n      |        ^~~~~~~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 544.89,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 57,
+          "elapsed_s": 33.88
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 40.63
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 58,
+          "elapsed_s": 62.33
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 46,
+          "elapsed_s": 32.59
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 50,
+          "elapsed_s": 27.57
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 41.62
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 60,
+          "elapsed_s": 197.21
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 53,
+          "elapsed_s": 32.93
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 4,
+          "gvd_lines": 59,
+          "elapsed_s": 36.21
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 52,
+          "elapsed_s": 39.93
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

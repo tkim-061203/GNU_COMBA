@@ -1,0 +1,160 @@
+{
+  "module_name": "alu",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "alu",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module alu(\n    input [31:0] a, b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero, carry, negative, overflow, flag\n);\n// Add your code here\n    parameter ADD = 6'b100000;\n    parameter ADDU = 6'b100001;\n    parameter SUB = 6'b100010;\n    parameter SUBU = 6'b100011;\n    parameter AND = 6'b100100;\n    parameter OR = 6'b100101;\n    parameter XOR = 6'b100110;\n    parameter NOR = 6'b100111;\n    parameter SLT = 6'b101010;\n    parameter SLTU = 6'b101011;\n    parameter SLL = 6'b000000;\n    parameter SRL = 6'b000010;\n    parameter SRA = 6'b000011;\n    parameter SLLV = 6'b000100;\n    parameter SRLV = 6'b000110;\n    parameter SRAV = 6'b000111;\n    parameter LUI = 6'b001111;\n    \n    wire signed [31:0] signed_a, signed_b;\n    reg [31:0] res;\n    reg [4:0] shift_amount;\n    assign signed_a = $signed(a);\n    assign signed_b = $signed(b);\n    assign r = res[31:0];\n    assign zero = (res == 0) ? 1 : 0;\n    assign negative = (res[31] == 1) ? 1 : 0;\n    assign carry = (res > 32'hFFFFFFFF) ? 1 : 0;\n    assign overflow = ((aluc == ADD && (signed_a + signed_b >= 32'h80000000)) ||\n                      (aluc == SUB && (signed_a - signed_b <= -32'h80000000))) ? 1 : 0;\n    assign flag = (aluc == SLT || aluc == SLTU) ? 1 : 1'bz;\n    always @(*) begin\n        case(aluc)\n            ADD: res = signed_a + signed_b;\n            ADDU: res = a + b;\n            SUB: res = signed_a - signed_b;\n            SUBU: res = a - b;\n            AND: res = a & b;\n            OR: res = a | b;\n            XOR: res = a ^ b;\n            NOR: res = ~(a | b);\n            SLT: res = (signed_a < signed_b) ? 1 : 0;\n            SLTU: res = (a < b) ? 1 : 0;\n            SLL: shift_amount = b[4:0];\n            SRL: shift_amount = b[4:0];\n            SRA: shift_amount = b[4:0];\n            SLLV: shift_amount = a[4:0];\n            SRLV: shift_amount = a[4:0];\n            SRAV: shift_amount = a[4:0];\n            LUI: res = {a[15:0], 16'b0};\n            default: res = 32'bz;\n        endcase\n    end\n    \nendmodule\n",
+    "xml_description": "<module id=\"alu\">\n    <description>ALU for a 32-bit MIPS-ISA CPU.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[31:0]\">First operand.</input>\n        <input id=\"b\" width_description=\"[31:0]\">Second operand.</input>\n        <input id=\"aluc\" width_description=\"[5:0]\">Control signal for selecting the operation.</input>\n        <output id=\"r\" width_description=\"[31:0]\">Result of the operation.</output>\n        <output id=\"zero\">Zero flag.</output>\n        <output id=\"carry\">Carry flag.</output>\n        <output id=\"negative\">Negative flag.</output>\n        <output id=\"overflow\">Overflow flag.</output>\n        <output id=\"flag\">Flag for SLT and SLTU operations.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"ADD\">6'b100000</parameter>\n        <parameter id=\"ADDU\">6'b100001</parameter>\n        <parameter id=\"SUB\">6'b100010</parameter>\n        <parameter id=\"SUBU\">6'b100011</parameter>\n        <parameter id=\"AND\">6'b100100</parameter>\n        <parameter id=\"OR\">6'b100101</parameter>\n        <parameter id=\"XOR\">6'b100110</parameter>\n        <parameter id=\"NOR\">6'b100111</parameter>\n        <parameter id=\"SLT\">6'b101010</parameter>\n        <parameter id=\"SLTU\">6'b101011</parameter>\n        <parameter id=\"SLL\">6'b000000</parameter>\n        <parameter id=\"SRL\">6'b000010</parameter>\n        <parameter id=\"SRA\">6'b000011</parameter>\n        <parameter id=\"SLLV\">6'b000100</parameter>\n        <parameter id=\"SRLV\">6'b000110</parameter>\n        <parameter id=\"SRAV\">6'b000111</parameter>\n        <parameter id=\"LUI\">6'b001111</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;assign id=\"signed_a\" width_description=\"[31:0]\">Signed version of 'a'&lt;/assign>\n        &lt;assign id=\"signed_b\" width_description=\"[31:0]\">Signed version of 'b'&lt;/assign>\n        &lt;assign id=\"res\" width_description=\"[31:0]\">Register to hold the result of the operation&lt;/assign>\n        &lt;assign id=\"shift_amount\" width_description=\"[4:0]\">Shift amount for shifting operations&lt;/assign>\n        &lt;assign id=\"flag\" width_description=\"[0:0]\">Flag for SLT and SLTU operations&lt;/assign>\n        \n        &lt;assign signed_a = $signed(a);\n        &lt;assign signed_b = $signed(b);\n        &lt;assign res[31:0] = r;\n        &lt;assign flag = (aluc == SLT || aluc == SLTU) ? 1 : 1'bz;\n        &lt;assign zero = (res == 0) ? 1 : 0;\n        &lt;assign negative = (res[31] == 1) ? 1 : 0;\n        &lt;assign carry = (res > 32'hFFFFFFFF) ? 1 : 0;\n        &lt;assign overflow = ((aluc == ADD &amp;&amp; (signed_a + signed_b >= 32'h80000000)) ||\n                           (aluc == SUB &amp;&amp; (signed_a - signed_b &lt;= -32'h80000000))) ? 1 : 0;\n    </logic_description>\n    <implementation>\n        reg [31:0] res;\n        reg [4:0] shift_amount;\n        always @(*) begin\n            case(aluc)\n                ADD: res = signed_a + signed_b;\n                ADDU: res = a + b;\n                SUB: res = signed_a - signed_b;\n                SUBU: res = a - b;\n                AND: res = a &amp; b;\n                OR: res = a | b;\n                XOR: res = a ^ b;\n                NOR: res = ~(a | b);\n                SLT: res = (signed_a &lt; signed_b) ? 1 : 0;\n                SLTU: res = (a &lt; b) ? 1 : 0;\n                SLL: shift_amount = b[4:0];\n                SRL: shift_amount = b[4:0];\n                SRA: shift_amount = b[4:0];\n                SLLV: shift_amount = a[4:0];\n                SRLV: shift_amount = a[4:0];\n                SRAV: shift_amount = a[4:0];\n                LUI: res = {a[15:0], 16'b0};\n                default: res = 32'bz;\n            endcase\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module alu(\n      |        ^~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module test_alu();\n      |        ^~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-CMPCONST: TopModule.sv:34:25: Comparison is constant due to limited range\n                                     : ... note: In instance 'test_alu.uut'\n   34 |     assign carry = (res > 32'hFFFFFFFF) ? 1 : 0;\n      |                         ^\n                   ... For warning description see https://verilator.org/warn/CMPCONST?v=5.048\n                   ... Use \"/* verilator lint_off CMPCONST */\" and lint_on around source to disable this message.\n%Warning-LATCH: TopModule.sv:38:5: Latch inferred for signal 'test_alu.uut.shift_amount' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   38 |     always @(*) begin\n      |     ^~~~~~\n                ... For warning description see https://verilator.org/warn/LATCH?v=5.048\n                ... Use \"/* verilator lint_off LATCH */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_alu_necugid0/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtest_alu.cpp Vtest_alu___024root__0.cpp Vtest_alu__main.cpp Vtest_alu___024root__Slow.cpp Vtest_alu___024root__0__Slow.cpp Vtest_alu__Syms__Slow.cpp > Vtest_alu__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtest_alu__ALL.o Vtest_alu__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtest_alu__ALL.a    -pthread -lpthread -latomic   -o Vtest_alu\nrm Vtest_alu__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_alu_necugid0/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 3 modules, into 0.039 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.311 s (elab=0.001, cvt=0.007, bld=0.297); cpu 0.014 s on 1 threads; allocated 30.547 MB\n\n[RUN]\nFailed at opcode[2]=100010: got r=ffffffff, expected=fffffffb\nFailed at opcode[3]=100011: got r=ffffffff, expected=fffffffb\nFailed at opcode[4]=100100: got r=ffffffff, expected=00000000\nFailed at opcode[5]=100101: got r=ffffffff, expected=0000003d\nFailed at opcode[6]=100110: got r=ffffffff, expected=0000003d\nFailed at opcode[7]=100111: got r=ffffffff, expected=ffffffc2\nFailed at opcode[8]=101010: got r=ffffffff, expected=00000001\nFailed at opcode[9]=101011: got r=ffffffff, expected=00000001\nFailed at opcode[10]=000000: got r=ffffffff, expected=10000000\nFailed at opcode[11]=000010: got r=ffffffff, expected=00000000\nFailed at opcode[12]=000011: got r=ffffffff, expected=00000000\nFailed at opcode[13]=000100: got r=ffffffff, expected=10000000\nFailed at opcode[14]=000110: got r=ffffffff, expected=00000000\nFailed at opcode[15]=000111: got r=ffffffff, expected=00000000\nFailed at opcode[16]=001111: got r=ffffffff, expected=001c0000\n===========Error===========\n- testbench.v:89: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 175ns; walltime 0.000 s; speed 2.271 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 610.3,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 108,
+          "elapsed_s": 52.57
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 101,
+          "elapsed_s": 55.26
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 55.44
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 61,
+          "elapsed_s": 43.03
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 66,
+          "elapsed_s": 56.47
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 73,
+          "elapsed_s": 64.76
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 95,
+          "elapsed_s": 81.55
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 130,
+          "elapsed_s": 78.71
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 142,
+          "elapsed_s": 82.04
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 79,
+          "elapsed_s": 40.47
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

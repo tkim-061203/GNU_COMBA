@@ -1,0 +1,52 @@
+{
+  "module_name": "RAM",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "RAM",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module RAM (\n    input clk, rst_n, write_en, read_en,\n    input [5:0] write_addr, read_addr,\n    input [5:0] write_data,\n    output reg [5:0] read_data\n);\n// Define the RAM array\nreg [7 - 1 : 0] RAM [2**6-1:0]; \ninteger i;\n// Initialize the RAM contents to 000000\ninitial begin\n    for (i = 0; i < 2**6; i = i + 1) begin\n        RAM[i] = 6'b000000;\n    end\nend\n// Sequential logic for writing data to the RAM\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        // Reset the RAM contents to 000000\n        for (i = 0; i < 2**6; i = i + 1) begin\n            RAM[i] <= 6'b000000;\n        end\n    end else if (write_en == 1) begin\n        // Write data to the RAM at the specified address\n        RAM[write_addr] <= write_data;\n    end\nend\n// Sequential logic for reading data from the RAM\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        // Reset the read_data register to 000000\n        read_data <= 6'b000000;\n    end else if (read_en == 1) begin\n        // Read data from the RAM at the specified address\n        read_data <= RAM[read_addr];\n    end else begin\n        // Clear the read_data register if read_en is not active\n        read_data <= 6'b000000;\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"RAM\">\n    <description>A dual-port RAM with a depth of 8 and a bit width of 6, initialized to 000000. Supports simultaneous read and write operations.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"write_en\">Write enable signal for initiating write operations.</input>\n        <input id=\"write_addr\" width_description=\"[5:0]\">Address for write operations.</input>\n        <input id=\"write_data\" width_description=\"[5:0]\">Data to be written to the RAM.</input>\n        <input id=\"read_en\">Read enable signal for initiating read operations.</input>\n        <input id=\"read_addr\" width_description=\"[5:0]\">Address for read operations.</input>\n        <output id=\"read_data\" width_description=\"[5:0]\">Output data read from the RAM.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">6</parameter>\n        <parameter id=\"DEPTH\">8</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;reg id=\"read_data\" width_description=\"[5:0]\">Register to hold the read data.&lt;/reg>\n        \n        &lt;always_comb>\n            if (!rst_n) begin\n                read_data &lt;= 6'b000000;\n            end else if (read_en == 1) begin\n                read_data &lt;= RAM[read_addr];\n            end else begin\n                read_data &lt;= 6'b000000;\n            end\n        &lt;/always_comb>\n    </logic_description>\n    <implementation>\n        // Define the RAM array\n        reg [DEPTH - 1 : 0] RAM [2**WIDTH-1:0]; \n        \n        // Initialize the RAM contents to 000000\n        integer i;\n        initial begin\n            for (i = 0; i &lt; 2**WIDTH; i = i + 1) begin\n                RAM[i] = 6'b000000;\n            end\n        end\n        \n        // Sequential logic for writing data to the RAM\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                // Reset the RAM contents to 000000\n                for (i = 0; i &lt; 2**WIDTH; i = i + 1) begin\n                    RAM[i] &lt;= 6'b000000;\n                end\n            end else if (write_en == 1) begin\n                // Write data to the RAM at the specified address\n                RAM[write_addr] &lt;= write_data;\n            end\n        end\n        \n        // Sequential logic for reading data from the RAM\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                // Reset the read_data register to 000000\n                read_data &lt;= 6'b000000;\n            end else if (read_en == 1) begin\n                // Read data from the RAM at the specified address\n                read_data &lt;= RAM[read_addr];\n            end else begin\n                // Clear the read_data register if read_en is not active\n                read_data &lt;= 6'b000000;\n            end\n        end\n    </implementation>\n    \n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module RAM (\n      |        ^~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_RAM;\n      |        ^~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_RAM_7zdm33v8/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_RAM.cpp Vtb_RAM___024root__0.cpp Vtb_RAM__main.cpp Vtb_RAM___024root__Slow.cpp Vtb_RAM___024root__0__Slow.cpp Vtb_RAM__Syms__Slow.cpp > Vtb_RAM__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_RAM__ALL.o Vtb_RAM__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_RAM__ALL.a    -pthread -lpthread -latomic   -o Vtb_RAM\nrm Vtb_RAM__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_RAM_7zdm33v8/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.045 MB sources in 3 modules, into 0.035 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.314 s (elab=0.001, cvt=0.007, bld=0.301); cpu 0.013 s on 1 threads; allocated 30.539 MB\n\n[RUN]\n===========Your Design Passed===========\n- testbench.v:79: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 11us; walltime 0.001 s; speed 20.808 ms/s\n- Verilator: cpu 0.001 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 10,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 27.04,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 41,
+          "elapsed_s": 27.03
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

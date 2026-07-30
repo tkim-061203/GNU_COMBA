@@ -1,0 +1,28 @@
+<module id="JC_counter">
+    <description>Implement a 64-bit Johnson counter (torsional ring counter), and the state of the similar 4-bit Johnson counter example is as follows: 0000, 1000, 1100, 1110, 1111, 0111, 0011, 0001, 0000.</description>
+    <ports>
+        <input id="clk">Clock signal used for synchronous operation.</input>
+        <input id="rst_n">Active-low reset signal to initialize the counter.</input>
+        <output id="Q">64-bit register representing the current count value.</output>
+    </ports>
+    <logic_description>
+        <description>
+            Notice that below descriptions are along with tags <![CDATA[ <logic />]]>.
+            With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+            With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+            With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+            With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+        </description>
+        <logic type="sequential_logic_operation" id="Q_right_increament_shifting">
+        The current <![CDATA[ <output refid="Q">]]> is a concatenation of 1-bit 1 and 63 bits [63:1] of <![CDATA[ <logic refid="Q">]]>.
+        </logic>
+        <logic type="sequential_logic_operation" id="Q_right_decreament_shifting">
+        The current <![CDATA[ <output refid="Q">]]> is a concatenation of 1-bit 0 and 63 bits [63:1] of <![CDATA[ <output refid="Q">]]>.
+        </logic>
+    </logic_description>
+    <implementation>On every rising edge of the clock signal (clk) or the falling edge of the reset signal (rst_n), the counter value is updated.
+If the reset signal (rst_n) is low, indicating a reset condition, the counter value (Q) is set to 0.
+Otherwise, if the least significant bit (Q[0]) is 0, the counter increments by shifting the current value `Q` based on `Q_right_increament_shifting`.
+If the least significant bit (Q[0]) is 1, the counter decrements by shifting the current value based on `Q_right_decreament_shifting`.
+</implementation>
+</module>

@@ -1,0 +1,160 @@
+{
+  "module_name": "radix2_div",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "radix2_div",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module radix2_div(\n    input clk, rst, sign, opn_valid,\n    input [7:0] dividend, divisor,\n    output res_valid,\n    output [15:0] result\n);\n// YOUR IMPLEMENTATION HERE\nreg sign_reg;\nreg [7:0] dividend_reg;\nreg [7:0] divisor_reg;\nreg [8:0] neg_divisor_reg;\nreg [16:0] sr_reg;\nreg [3:0] cnt_reg;\nreg start_cnt_reg;\nreg res_valid_reg;\nreg [15:0] result_reg;\nassign result = result_reg;\nassign res_valid = res_valid_reg;\nalways@(posedge clk or posedge rst) begin\n    if(rst==1'b1) begin\n        sign_reg <= 1'b0;\n        dividend_reg <= 8'h00;\n        divisor_reg <= 8'h00;\n        neg_divisor_reg <= 9'h000;\n        sr_reg <= 17'h00000;\n        cnt_reg <= 4'h0;\n        start_cnt_reg <= 1'b0;\n        res_valid_reg <= 1'b0;\n        result_reg <= 16'h0000;\n    end\n    else begin\n        if((opn_valid==1'b1)&&(res_valid_reg==1'b0)) begin\n            sign_reg <= sign;\n            dividend_reg <= dividend;\n            divisor_reg <= divisor;\n            if(sign_reg==1'b1) begin\n                neg_divisor_reg <= {1'b1,~divisor_reg}+1;\n            end\n            else begin\n                neg_divisor_reg <= {1'b0,divisor_reg};\n            end\n            sr_reg <= {8'h00,dividend_reg,1'b0};\n            cnt_reg <= 4'd1;\n            start_cnt_reg <= 1'b1;\n        end\n        if(start_cnt_reg==1'b1) begin\n            if(cnt_reg[3]==1'b1) begin\n                cnt_reg <= 4'd0;\n                start_cnt_reg <= 1'b0;\n                result_reg <= {sr_reg[15:8],sr_reg[7]};\n                res_valid_reg <= 1'b1;\n            end\n            else begin\n                cnt_reg <= cnt_reg+1;\n                if(sr_reg[16]==1'b0) begin\n                    sr_reg <= sr_reg-neg_divisor_reg;\n                end\n                if(sr_reg[16]==1'b0) begin\n                    sr_reg <= {sr_reg[15:0],1'b1};\n                end\n                else begin\n                    sr_reg <= {sr_reg[15:0],1'b0};\n                end\n            end\n        end\n        if(rst==1'b1||cnt_reg!=4'd0||start_cnt_reg==1'b1) begin\n            res_valid_reg <= 1'b0;\n        end\n    end\nend\nendmodule\n",
+    "xml_description": "<module id=\"radix2_div\">\n    <description>Implements a simplified radix-2 divider for 8-bit signed/unsigned integers.</description>\n    <ports>\n        <input id=\"clk\">Clock signal.</input>\n        <input id=\"rst\">Reset signal.</input>\n        <input id=\"sign\">Sign mode selection (1 for signed, 0 for unsigned).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">Dividend input.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">Divisor input.</input>\n        <input id=\"opn_valid\">Valid operation signal.</input>\n        <output id=\"res_valid\">Result validity signal.</output>\n        <output id=\"result\" width_description=\"[15:0]\">Result containing remainder and quotient.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Idle state.</parameter>\n        <parameter id=\"DIVIDE\">Division state.</parameter>\n        <parameter id=\"DONE\">Done state.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"sign_reg\" width_description=\"[0:0]\">Register to hold the sign mode.&lt;/reg>\n        &lt;reg id=\"dividend_reg\" width_description=\"[7:0]\">Register to hold the dividend.&lt;/reg>\n        &lt;reg id=\"divisor_reg\" width_description=\"[7:0]\">Register to hold the divisor.&lt;/reg>\n        &lt;reg id=\"neg_divisor_reg\" width_description=\"[8:0]\">Register to hold the negative divisor.&lt;/reg>\n        &lt;reg id=\"sr_reg\" width_description=\"[16:0]\">Shift register for division.&lt;/reg>\n        &lt;reg id=\"cnt_reg\" width_description=\"[3:0]\">Counter for iterations.&lt;/reg>\n        &lt;reg id=\"start_cnt_reg\" width_description=\"[0:0]\">Start counter flag.&lt;/reg>\n        &lt;reg id=\"res_valid_reg\" width_description=\"[0:0]\">Result validity register.&lt;/reg>\n        &lt;reg id=\"result_reg\" width_description=\"[15:0]\">Result register.&lt;/reg>\n        \n        // Combinational logic assignments\n        &lt;assign id=\"result\" src=\"result_reg\"/>\n        &lt;assign id=\"res_valid\" src=\"res_valid_reg\"/>\n    </logic_description>\n    <implementation>\n        Always block triggered on the rising edge of the clock or reset\n        if (rst == 1'b1) begin\n            // Reset all registers and flags\n            sign_reg &lt;= 1'b0;\n            dividend_reg &lt;= 8'h00;\n            divisor_reg &lt;= 8'h00;\n            neg_divisor_reg &lt;= 9'h000;\n            sr_reg &lt;= 17'h00000;\n            cnt_reg &lt;= 4'h0;\n            start_cnt_reg &lt;= 1'b0;\n            res_valid_reg &lt;= 1'b0;\n            result_reg &lt;= 16'h0000;\n        end else begin\n            // Check if there's a valid operation and result isn't valid\n            if ((opn_valid == 1'b1) &amp;&amp; (res_valid_reg == 1'b0)) begin\n                // Save the sign mode\n                sign_reg &lt;= sign;\n                \n                // Save the dividend and divisor\n                dividend_reg &lt;= dividend;\n                divisor_reg &lt;= divisor;\n                \n                // Calculate the negative divisor\n                if (sign_reg == 1'b1) begin\n                    neg_divisor_reg &lt;= {1'b1, ~divisor_reg} + 1;\n                end else begin\n                    neg_divisor_reg &lt;= {1'b0, divisor_reg};\n                end\n                \n                // Initialize the shift register with the dividend\n                sr_reg &lt;= {8'h00, dividend_reg, 1'b0}; // Shift left by 1 bit\n                cnt_reg &lt;= 4'd1; // Set counter to 1\n                start_cnt_reg &lt;= 1'b1; // Set start counter flag\n            end\n            \n            // Division process\n            if (start_cnt_reg == 1'b1) begin\n                // Check if the most significant bit of the counter is set\n                if (cnt_reg[3] == 1'b1) begin\n                    // Clear the counter and start counter flag\n                    cnt_reg &lt;= 4'd0;\n                    start_cnt_reg &lt;= 1'b0;\n                    \n                    // Update the result register with the remainder and quotient\n                    result_reg &lt;= {sr_reg[15:8], sr_reg[7]};\n                    res_valid_reg &lt;= 1'b1; // Set result validity\n                end else begin\n                    // Increment the counter\n                    cnt_reg &lt;= cnt_reg + 1;\n                    \n                    // Perform subtraction\n                    if (sr_reg[16] == 1'b0) begin\n                        sr_reg &lt;= sr_reg - neg_divisor_reg;\n                    end\n                    \n                    // Multiplexing logic to select between subtracted value and current shift register\n                    if (sr_reg[16] == 1'b0) begin\n                        sr_reg &lt;= {sr_reg[15:0], 1'b1}; // Insert carry-out\n                    end else begin\n                        sr_reg &lt;= {sr_reg[15:0], 1'b0}; // Insert zero\n                    end\n                end\n            end\n            \n            // Manage result validity\n            if (rst == 1'b1 || cnt_reg != 4'd0 || start_cnt_reg == 1'b1) begin\n                res_valid_reg &lt;= 1'b0; // Reset result validity\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module radix2_div(\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module radix2_div_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:22:10: Pin not found: 'res_ready'\n   22 |         .res_ready(res_ready),\n      |          ^~~~~~~~~\n                                     : ... Location of instance's module declaration\n    1 | module radix2_div(\n      |        ^~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 650.28,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 66,
+          "elapsed_s": 36.62
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 84,
+          "elapsed_s": 47.47
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 97,
+          "elapsed_s": 48.07
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 160,
+          "elapsed_s": 159.08
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 71,
+          "elapsed_s": 42.82
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 80,
+          "elapsed_s": 34.12
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 115,
+          "elapsed_s": 39.66
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 164,
+          "elapsed_s": 117.81
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 94,
+          "elapsed_s": 55.96
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 78,
+          "elapsed_s": 68.67
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

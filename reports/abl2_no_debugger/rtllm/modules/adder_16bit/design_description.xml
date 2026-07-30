@@ -1,0 +1,11 @@
+<module id="adder_16bit">
+    <description>Implement a module of a 16-bit full adder in combinational logic.</description>
+    <ports>
+        <input id="a" width_description="[15:0]">16-bit input operand A.</input>
+        <input id="b" width_description="[15:0]">16-bit input operand B.</input>
+        <input id="Cin">Carry-in input. The module name "Cin" is case-sensitive.</input>
+        <output id="y" width_description="[15:0]">16-bit output representing the sum of A and B.</output>
+        <output id="Co">Carry-out output. The module name "Co" is case-sensitive.</output>
+    </ports>
+    <implementation>In the adder_16bit module, you need to design a small bit-width adder(8-bit adder), which will be instantiated multiple times. The 8-bit adder module utilizes a series of bit-level adders (full adders) to perform the addition operation.</implementation>
+</module>

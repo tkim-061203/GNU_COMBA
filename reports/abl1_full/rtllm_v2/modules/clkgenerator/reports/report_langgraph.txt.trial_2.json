@@ -1,0 +1,162 @@
+{
+  "module_name": "clkgenerator",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "clkgenerator",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 6,
+    "ts_trial": 6,
+    "total_iter": 12,
+    "gvd": "module clkgenerator #(\n    parameter PERIOD = 10\n) (\n    output reg clk\n);\n\ninitial begin\n    clk = 0;\nend\n\nalways @(posedge clk or negedge clk) begin\n    clk <= ~clk;\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"clkgenerator\">\n    <description>Generates a periodic clock signal with a specified period.</description>\n    <ports>\n        <output id=\"clk\">The output clock signal.</output>\n    </ports>\n    <parameter_description>\n        &lt;param id=\"PERIOD\">The period of the clock signal.&lt;/param>\n    </parameter_description>\n    <implementation>Initializes the clock signal to 0 and toggles it every half of the specified period.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\nmake: Entering directory '/tmp/comba_clkgenerator_e34wtu4o/obj_dir'\nmake: Nothing to be done for 'default'.\nmake: Leaving directory '/tmp/comba_clkgenerator_e34wtu4o/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.010 s (elab=0.000, cvt=0.000, bld=0.009); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\nFailed at t=8: clk=0, expected=1\nFailed at t=18: clk=0, expected=1\nFailed at t=28: clk=0, expected=1\nFailed at t=38: clk=0, expected=1\nFailed at t=48: clk=0, expected=1\nFailed at t=58: clk=0, expected=1\nFailed at t=68: clk=0, expected=1\nFailed at t=78: clk=0, expected=1\nFailed at t=88: clk=0, expected=1\nFailed at t=98: clk=0, expected=1\n=========== Test completed with          10 failures ===========\n- testbench.v:30: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 103ps; walltime 0.000 s; speed 1.088 us/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 6
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 210.78,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 17.44
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 18.04
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 19.49
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 19.11
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 21.19
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 23.79
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 19.45
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 11,
+          "elapsed_s": 21.26
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 25.25
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 15,
+          "elapsed_s": 25.76
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 10,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

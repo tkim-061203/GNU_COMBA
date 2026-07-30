@@ -1,0 +1,13 @@
+config       : e0_t0
+finished     : 2026-07-23T00:48:53+07:00
+build dir    : /home/nntkim/GNU_COMBA/VE_testbench/langgraph/.build_sample_e0_t0
+examples     : 0
+temperature  : 0
+samples      : 1
+self-consist : 1
+max samples  : 10
+jobs         : 15
+llm seed     : 42
+conda env    : test_VE
+langgraph rc : 0
+elapsed      : 01:00:51 (3651 s)

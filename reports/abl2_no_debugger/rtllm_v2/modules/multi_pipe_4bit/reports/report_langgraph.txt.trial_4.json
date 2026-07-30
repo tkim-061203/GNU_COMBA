@@ -1,0 +1,162 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_pipe_4bit #(\n    parameter size = 4,\n    parameter N = 2 * size\n) (\n    input \t\t\t\t\t\tclk,\n    input \t\t\t\t\t\trst_n,\n    input\t[size-1:0]\t\t\tmul_a,\n    input\t[size-1:0]\t\t\tmul_b,\n    output\treg\t[size*2-1:0]\tmul_out\n);\n\t\n\treg [7:0] mul_a_ext, mul_b_ext;\n\t\n\talways@(*)\n\tbegin\n\t\tmul_a_ext={4'b0,mul_a};\n\tend\n\t\n\talways@(*)\n\tbegin\n\t\tmul_b_ext={4'b0,mul_b};\n\tend\n\n\twire [7:0] pp0, pp1, pp2, pp3;\n\t\n\tassign pp0=(mul_b_ext[0]==1)?mul_a_ext:'d0;\n\tassign pp1=(mul_b_ext[1]==1)?(mul_a_ext<<1):'d0;\n\tassign pp2=(mul_b_ext[2]==1)?(mul_a_ext<<2):'d0;\n\tassign pp3=(mul_b_ext[3]==1)?(mul_a_ext<<3):'d0;\n\n\treg [7:0] sum_tmp1, sum_tmp2;\n\t\n\talways@(posedge clk,negedge rst_n)\n\tbegin\n\t\tif(!rst_n) sum_tmp1 <= 8'd0; else sum_tmp1 <= pp0+pp1;\n\tend\n\t\n\talways@(posedge clk,negedge rst_n)\n\tbegin\n\t\tif(!rst_n) sum_tmp2 <= 8'd0; else sum_tmp2 <= pp2+pp3;\n\tend\n\n\treg [7:0] mul_out_temp;\n\t\n\talways@(posedge clk,negedge rst_n)\n\tbegin\n\t\tif(!rst_n) mul_out_temp <= 8'd0; else mul_out_temp <= sum_tmp1+sum_tmp2;\n\tend\n\t\n\tassign mul_out=mul_out_temp;\n\t\nendmodule\n\nmodule verified_multi_pipe#(\n\tparameter size = 4\n)(\n\tinput \t\t\t\t\t\tclk \t\t,   \n\tinput \t\t\t\t\t\trst_n\t\t,\n\tinput\t[size-1:0]\t\t\tmul_a\t\t,\n\tinput\t[size-1:0]\t\t\tmul_b\t\t,\n \n \toutput\treg\t[size*2-1:0]\tmul_out\t\t\n);\n\nparameter N = 2 * size;\n\nreg     [N-1:0]     sum_tmp1                ;\nreg     [N-1:0]     sum_tmp2                ;\nwire    [N-1:0]     mul_a_extend            ;\nwire    [N-1:0]     mul_b_extend            ;\n\nwire    [N-1:0]     mul_result[size-1:0]    ;\n\ngenvar i;\ngenerate\n    for(i = 0; i < size; i = i + 1) begin:add\n        assign mul_result[i] = mul_b[i] ? mul_a_extend << i : 'd0;\n    end\nendgenerate\n\nassign mul_a_extend = {{size{1'b0}}, mul_a};\nassign mul_b_extend = {{size{1'b0}}, mul_b};\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        sum_tmp1 <= 'd0;\n        sum_tmp2 <= 'd0;\n    end\n    else begin\n        sum_tmp1 <= mul_result[0] + mul_result[1];\n        sum_tmp2 <= mul_result[2] + mul_result[3];\n    end\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if(!rst_n) begin\n        mul_out <= 'd0;\n    end\n    else begin\n        mul_out <= sum_tmp1 + sum_tmp2;\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>4bit unsigned number pipeline multiplier. It consists of two levels of registers to store intermediate values and control the multiplication process.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal. Defined as 0 for chip reset and 1 for reset signal inactive.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Input signal representing the multiplicand with a data width of \"size\" bits.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Input signal representing the multiplier with a data width of \"size\" bits.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product output signal with a data width of 2*size bits.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"size\">Number of bits in the operands.</parameter>\n    </parameter_description>\n    \n    <logic_description type=\"combinational_logic\">\n        &lt;reg id=\"mul_a_ext\" width_description=\"[size*2-1:0]\">Extended multiplicand.&lt;/reg>\n        &lt;reg id=\"mul_b_ext\" width_description=\"[size*2-1:0]\">Extended multiplier.&lt;/reg>\n        \n        &lt;assign value=\"'d0\" id=\"zero\" />\n        &lt;assign value=\"'d1\" id=\"one\" />\n        &lt;assign value=\"'d2\" id=\"two\" />\n        &lt;assign value=\"'d3\" id=\"three\" />\n        &lt;assign value=\"'d4\" id=\"four\" />\n        &lt;assign value=\"'d5\" id=\"five\" />\n        &lt;assign value=\"'d6\" id=\"six\" />\n        &lt;assign value=\"'d7\" id=\"seven\" />\n        &lt;assign value=\"'d8\" id=\"eight\" />\n        &lt;assign value=\"'d9\" id=\"nine\" />\n        &lt;assign value=\"'d10\" id=\"ten\" />\n        &lt;assign value=\"'d11\" id=\"eleven\" />\n        &lt;assign value=\"'d12\" id=\"twelve\" />\n        &lt;assign value=\"'d13\" id=\"thirteen\" />\n        &lt;assign value=\"'d14\" id=\"fourteen\" />\n        &lt;assign value=\"'d15\" id=\"fifteen\" />\n        &lt;assign value=\"'d16\" id=\"sixteen\" />\n        &lt;assign value=\"'d17\" id=\"seventeen\" />\n        &lt;assign value=\"'d18\" id=\"eighteen\" />\n        &lt;assign value=\"'d19\" id=\"nineteen\" />\n        &lt;assign value=\"'d20\" id=\"twenty\" />\n        &lt;assign value=\"'d21\" id=\"twenty_one\" />\n        &lt;assign value=\"'d22\" id=\"twenty_two\" />\n        &lt;assign value=\"'d23\" id=\"twenty_three\" />\n        &lt;assign value=\"'d24\" id=\"twenty_four\" />\n        &lt;assign value=\"'d25\" id=\"twenty_five\" />\n        &lt;assign value=\"'d26\" id=\"twenty_six\" />\n        &lt;assign value=\"'d27\" id=\"twenty_seven\" />\n        &lt;assign value=\"'d28\" id=\"twenty_eight\" />\n        &lt;assign value=\"'d29\" id=\"twenty_nine\" />\n        &lt;assign value=\"'d30\" id=\"thirty\" />\n        &lt;assign value=\"'d31\" id=\"thirty_one\" />\n        &lt;assign value=\"'d32\" id=\"thirty_two\" />\n        &lt;assign value=\"'d33\" id=\"thirty_three\" />\n        &lt;assign value=\"'d34\" id=\"thirty_four\" />\n        &lt;assign value=\"'d35\" id=\"thirty_five\" />\n        &lt;assign value=\"'d36\" id=\"thirty_six\" />\n        &lt;assign value=\"'d37\" id=\"thirty_seven\" />\n        &lt;assign value=\"'d38\" id=\"thirty_eight\" />\n        &lt;assign value=\"'d39\" id=\"thirty_nine\" />\n        &lt;assign value=\"'d40\" id=\"forty\" />\n        &lt;assign value=\"'d41\" id=\"forty_one\" />\n        &lt;assign value=\"'d42\" id=\"forty_two\" />\n        &lt;assign value=\"'d43\" id=\"forty_three\" />\n        &lt;assign value=\"'d44\" id=\"forty_four\" />\n        &lt;assign value=\"'d45\" id=\"forty_five\" />\n        &lt;assign value=\"'d46\" id=\"forty_six\" />\n        &lt;assign value=\"'d47\" id=\"forty_seven\" />\n        &lt;assign value=\"'d48\" id=\"forty_eight\" />\n        &lt;assign value=\"'d49\" id=\"forty_nine\" />\n        &lt;assign value=\"'d50\" id=\"fifty\" />\n        &lt;assign value=\"'d51\" id=\"fifty_one\" />\n        &lt;assign value=\"'d52\" id=\"fifty_two\" />\n        &lt;assign value=\"'d53\" id=\"fifty_three\" />\n        &lt;assign value=\"'d54\" id=\"fifty_four\" />\n        &lt;assign value=\"'d55\" id=\"fifty_five\" />\n        &lt;assign value=\"'d56\" id=\"fifty_six\" />\n        &lt;assign value=\"'d57\" id=\"fifty_seven\" />\n        &lt;assign value=\"'d58\" id=\"fifty_eight\" />\n        &lt;assign value=\"'d59\" id=\"fifty_nine\" />\n        &lt;assign value=\"'d60\" id=\"sixty\" />\n        &lt;assign value=\"'d61\" id=\"sixty_one\" />\n        &lt;assign value=\"'d62\" id=\"sixty_two\" />\n        &lt;assign value=\"'d63\" id=\"sixty_three\" />\n        &lt;assign value=\"'d64\" id=\"sixty_four\" />\n        &lt;assign value=\"'d65\" id=\"sixty_five\" />\n        &lt;assign value=\"'d66\" id=\"sixty_six\" />\n        &lt;assign value=\"'d67\" id=\"sixty_seven\" />\n        &lt;assign value=\"'d68\" id=\"sixty_eight\" />\n        &lt;assign value=\"'d69\" id=\"sixty_nine\" />\n        &lt;assign value=\"'d70\" id=\"seventy\" />\n        &lt;assign value=\"'d71\" id=\"seventy_one\" />\n        &lt;assign value=\"'d72\" id=\"seventy_two\" />\n        &lt;assign value=\"'d73\" id=\"seventy_three\" />\n        &lt;assign value=\"'d74\" id=\"seventy_four\" />\n        &lt;assign value=\"'d75\" id=\"seventy_five\" />\n        &lt;assign value=\"'d76\" id=\"seventy_six\" />\n        &lt;assign value=\"'d77\" id=\"seventy_seven\" />\n        &lt;assign value=\"'d78\" id=\"seventy_eight\" />\n        &lt;assign value=\"'d79\" id=\"seventy_nine\" />\n        &lt;assign value=\"'d80\" id=\"eighty\" />\n        &lt;assign value=\"'d81\" id=\"eighty_one\" />\n        &lt;assign value=\"'d82\" id=\"eighty_two\" />\n        &lt;assign value=\"'d83\" id=\"eighty_three\" />\n        &lt;assign value=\"'d84\" id=\"eighty_four\" />\n        &lt;assign value=\"'d85\" id=\"eighty_five\" />\n        &lt;assign value=\"'d86\" id=\"eighty_six\" />\n        &lt;assign value=\"'d87\" id=\"eighty_seven\" />\n        &lt;assign value=\"'d88\" id=\"eighty_eight\" />\n        &lt;assign value=\"'d89\" id=\"eighty_nine\" />\n        &lt;assign value=\"'d90\" id=\"ninty\" />\n        &lt;assign value=\"'d91\" id=\"ninty_one\" />\n        &lt;assign value=\"'d92\" id=\"ninty_two\" />\n        &lt;assign value=\"'d93\" id=\"ninty_three\" />\n        &lt;assign value=\"'d94\" id=\"ninty_four\" />\n        &lt;assign value=\"'d95\" id=\"ninty_five\" />\n        &lt;assign value=\"'d96\" id=\"ninty_six\" />\n        &lt;assign value=\"'d97\" id=\"ninty_seven\" />\n        &lt;assign value=\"'d98\" id=\"ninty_eight\" />\n        &lt;assign value=\"'d99\" id=\"ninty_nine\" />\n        &lt;assign value=\"'d100\" id=\"one_hundred\" />\n        &lt;assign value=\"'d101\" id=\"one_hundred_one\" />\n        &lt;assign value=\"'d102\" id=\"one_hundred_two\" />\n        &lt;assign value=\"'d103\" id=\"one_hundred_three\" />\n        &lt;assign value=\"'d104\" id=\"one_hundred_four\" />\n        &lt;assign value=\"'d105\" id=\"one_hundred_five\" />\n        &lt;assign value=\"'d106\" id=\"one_hundred_six\" />\n        &lt;assign value=\"'d107\" id=\"one_hundred_seven\" />\n        &lt;assign value=\"'d108\" id=\"one_hundred_eight\" />\n        &lt;assign value=\"'d109\" id=\"one_hundred_nine\" />\n        &lt;assign value=\"'d110\" id=\"one_hundred_ten\" />\n        &lt;assign value=\"'d111\" id=\"one_hundred_eleven\" />\n        &lt;assign value=\"'d112\" id=\"one_hundred_twelve\" />\n        &lt;assign value=\"'d113\" id=\"one_hundred_thirteen\" />\n        &lt;assign value=\"'d114\" id=\"one_hundred_fourteen\" />\n        &lt;assign value=\"'d115\" id=\"one_hundred_fifteen\" />\n        &lt;assign value=\"'d116\" id=\"one_hundred_sixteen\" />\n        &lt;assign value=\"'d117\" id=\"one_hundred_seventeen\" />\n        &lt;assign value=\"'d118\" id=\"one_hundred_eighteen\" />\n        &lt;assign value=\"'d119\" id=\"one_hundred_nineteen\" />\n        &lt;assign value=\"'d120\" id=\"one_hundred_twenty\" />\n        &lt;assign value=\"'d121\" id=\"one_hundred_twenty_one\" />\n        &lt;assign value=\"'d122\" id=\"one_hundred_twenty_two\" />\n        &lt;assign value=\"'d123\" id=\"one_hundred_twenty_three\" />\n        &lt;assign value=\"'d124\" id=\"one_hundred_twenty_four\" />\n        &lt;assign value=\"'d125\" id=\"one_hundred_twenty_five\" />\n        &lt;assign value=\"'d126\" id=\"one_hundred_twenty_six\" />\n        &lt;assign value=\"'d127\" id=\"one_hundred_twenty_seven\" />\n        &lt;assign value=\"'d128\" id=\"one_hundred_twenty_eight\" />\n        &lt;assign value=\"'d129\" id=\"one_hundred_twenty_nine\" />\n        &lt;assign value=\"'d130\" id=\"one_hundred_thirty\" />\n        &lt;assign value=\"'d131\" id=\"one_hundred_thirty_one\" />\n        &lt;assign value=\"'d132\" id=\"one_hundred_thirty_two\" />\n        &lt;assign value=\"'d133\" id=\"one_hundred_thirty_three\" />\n        &lt;assign value=\"'d134\" id=\"one_hundred_thirty_four\" />\n        &lt;assign value=\"'d135\" id=\"one_hundred_thirty_five\" />\n        &lt;assign value=\"'d136\" id=\"one_hundred_thirty_six\" />\n        &lt;assign value=\"'d137\" id=\"one_hundred_thirty_seven\" />\n        &lt;assign value=\"'d138\" id=\"one_hundred_thirty_eight\" />\n        &lt;assign value=\"'d139\" id=\"one_hundred_thirty_nine\" />\n        &lt;assign value=\"'d140\" id=\"one_hundred_forty\" />\n        &lt;assign value=\"'d141\" id=\"one_hundred_forty_one\" />\n        &lt;assign value=\"'d142\" id=\"one_hundred_forty_two\" />\n        &lt;assign value=\"'d143\" id=\"one_hundred_forty_three\" />\n        &lt;assign value=\"'d144\" id=\"one_hundred_forty_four\" />\n        &lt;assign value=\"'d145\" id=\"one_hundred_forty_five\" />\n        &lt;assign value=\"'d146\" id=\"one_hundred_forty_six\" />\n        &lt;assign value=\"'d147\" id=\"one_hundred_forty_seven\" />\n        &lt;assign value=\"'d148\" id=\"one_hundred_forty_eight\" />\n        &lt;assign value=\"'d149\" id=\"one_hundred_forty_nine\" />\n        &lt;assign value=\"'d150\" id=\"one_hundred_fifty\" />\n        &lt;assign value=\"'d151\" id=\"one_hundred_fifty_one\" />\n        &lt;assign value=\"'d152\" id=\"one_hundred_fifty_two\" />\n        &lt;assign value=\"'d153\" id=\"one_hundred_fifty_three\" />\n        &lt;assign value=\"'d154\" id=\"one_hundred_fifty_four\" />\n        &lt;assign value=\"'d155\" id=\"one_hundred_fifty_five\" />\n        &lt;assign value=\"'d156\" id=\"one_hundred_fifty_six\" />\n        &lt;assign value=\"'d157\" id=\"one_hundred_fifty_seven\" />\n        &lt;assign value=\"'d158\" id=\"one_hundred_fifty_eight\" />\n        &lt;assign value=\"'d159\" id=\"one_hundred_fifty_nine\" />\n        &lt;assign value=\"'d160\" id=\"one_hundred_sixty\" />\n        &lt;assign value=\"'d161\" id=\"one_hundred_sixty_one\" />\n        &lt;assign value=\"'d162\" id=\"one_hundred_sixty_two\" />\n        &lt;assign value=\"'d163\" id=\"one_hundred_sixty_three\" />\n        &lt;assign value=\"'d164\" id=\"one_hundred_sixty_four\" />\n        &lt;assign value=\"'d165\" id=\"one_hundred_sixty_five\" />\n        &lt;assign value=\"'d166\" id=\"one_hundred_sixty_six\" />\n        &lt;assign value=\"'d167\" id=\"one_hundred_sixty_seven\" />\n        &lt;assign value=\"'d168\" id=\"one_hundred_sixty_eight\" />\n        &lt;assign value=\"'d169\" id=\"one_hundred_sixty_nine\" />\n        &lt;assign value=\"'d170\" id=\"one_hundred_seventy\" />\n        &lt;assign value=\"'d171\" id=\"one_hundred_seventy_one\" />\n        &lt;assign value=\"'d172\" id=\"one_hundred_seventy_two\" />\n        &lt;assign value=\"'d173\" id=\"one_hundred_seventy_three\" />\n        &lt;assign value=\"'d174\" id=\"one_hundred_seventy_four\" />\n        &lt;assign value=\"'d175\" id=\"one_hundred_seventy_five\" />\n        &lt;assign value=\"'d176\" id=\"one_hundred_seventy_six\" />\n        &lt;assign value=\"'d177\" id=\"one_hundred_seventy_seven\" />\n        &lt;assign value=\"'d178\" id=\"one_hundred_seventy_eight\" />\n        &lt;assign value=\"'d179\" id=\"one_hundred_seventy_nine\" />\n        &lt;assign value=\"'d180\" id=\"one_hundred_eighty\" />\n        &lt;assign value=\"'d181\" id=\"one_hundred_eighty_one\" />\n        &lt;assign value=\"'d182\" id=\"one_hundred_eighty_two\" />\n        &lt;assign value=\"'d183\" id=\"one_hundred_eighty_three\" />\n        &lt;assign value=\"'d184\" id=\"one_hundred_eighty_four\" />\n        &lt;assign value=\"'d185\" id=\"one_hundred_eighty_five\" />\n        &lt;assign value=\"'d186\" id=\"one_hundred_eighty_six\" />\n        &lt;assign value=\"'d187\" id=\"one_hundred_eighty_seven\" />\n        &lt;assign value=\"'d188\" id=\"one_hundred_eighty_eight\" />\n        &lt;assign value=\"'d189\" id=\"one_hundred_eighty_nine\" />\n        &lt;assign value=\"'d190\" id=\"one_hundred_ninety\" />\n        &lt;assign value=\"'d191\" id=\"one_hundred_ninety_one\" />\n        &lt;assign value=\"'d192\" id=\"one_hundred_ninety_two\" />\n        &lt;assign value=\"'d193\" id=\"one_hundred_ninety_three\" />\n        &lt;assign value=\"'d194\" id=\"one_hundred_ninety_four\" />\n        &lt;assign value=\"'d195\" id=\"one_hundred_ninety_five\" />\n        &lt;assign value=\"'d196\" id=\"one_hundred_ninety_six\" />\n        &lt;assign value=\"'d197\" id=\"one_hundred_ninety_seven\" />\n        &lt;assign value=\"'d198\" id=\"one_hundred_ninety_eight\" />\n        &lt;assign value=\"'d199\" id=\"one_hundred_ninety_nine\" />\n        &lt;assign value=\"'d200\" id=\"two_hundred\" />\n        &lt;assign value=\"'d201\" id=\"two_hundred_one\" />\n        &lt;assign value=\"'d202\" id=\"two_hundred_two\" />\n        &lt;assign value=\"'d203\" id=\"two_hundred_three\" />\n        &lt;assign value=\"'d204\" id=\"two_hundred_four\" />\n        &lt;assign value=\"'d205\" id=\"two_hundred_five\" />\n        &lt;assign value=\"'d206\" id=\"two_hundred_six\" />\n        &lt;assign value=\"'d207\" id=\"two_hundred_seven\" />\n        &lt;assign value=\"'d208\" id=\"two_hundred_eight\" /></logic_description></module>\n",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:57:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   57 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module multi_pipe_4bit #(\n      |        ^~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module multi_pipe_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:54:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n   54 | module verified_multi_pipe#(\n      |        ^~~~~~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module multi_pipe_tb;\n      |        ^~~~~~~~~~~~~\nmake: Entering directory '/tmp/comba_multi_pipe_4bit_ueq4vuz3/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vmulti_pipe_tb.cpp Vmulti_pipe_tb___024root__0.cpp Vmulti_pipe_tb__main.cpp Vmulti_pipe_tb___024root__Slow.cpp Vmulti_pipe_tb___024root__0__Slow.cpp Vmulti_pipe_tb__Syms__Slow.cpp > Vmulti_pipe_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vmulti_pipe_tb__ALL.o Vmulti_pipe_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vmulti_pipe_tb__ALL.a    -pthread -lpthread -latomic   -o Vmulti_pipe_tb\nrm Vmulti_pipe_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_multi_pipe_4bit_ueq4vuz3/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.047 MB sources in 4 modules, into 0.039 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.326 s (elab=0.001, cvt=0.004, bld=0.316); cpu 0.011 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n===========Test completed with           2 / 100 failures===========\n- testbench.v:55: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 3us; walltime 0.000 s; speed 16.399 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::0::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 507.98,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 113,
+          "elapsed_s": 31.22
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 106,
+          "elapsed_s": 37.83
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 113,
+          "elapsed_s": 54.08
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 100,
+          "elapsed_s": 28.44
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 98,
+          "elapsed_s": 20.26
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 100,
+          "elapsed_s": 49.59
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 104,
+          "elapsed_s": 180.48
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 104,
+          "elapsed_s": 31.3
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 113,
+          "elapsed_s": 35.07
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 103,
+          "elapsed_s": 39.7
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

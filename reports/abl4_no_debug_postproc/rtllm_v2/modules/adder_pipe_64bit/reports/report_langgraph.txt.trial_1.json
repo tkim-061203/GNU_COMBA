@@ -1,0 +1,112 @@
+{
+  "module_name": "adder_pipe_64bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "adder_pipe_64bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module adder_pipe_64bit (\n    input clk, \n    input rst_n, \n    input i_en, \n    input [63:0] adda, \n    input [63:0] addb, \n    output [64:0] result, \n    output o_en\n);\n// Internal wires and registers\nreg [63:0] adda_reg, addb_reg;\nreg [64:0] sum_stage1, sum_stage2, sum_stage3, sum_stage4;\nreg [64:0] carry_stage1, carry_stage2, carry_stage3, carry_stage4;\nreg o_en_reg;\n// Pipeline stage 1\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        adda_reg <= 64'b0;\n        addb_reg <= 64'b0;\n        sum_stage1 <= 65'b0;\n        carry_stage1 <= 65'b0;\n    end else if (i_en) begin\n        adda_reg <= adda;\n        addb_reg <= addb;\n        sum_stage1 <= adda_reg + addb_reg;\n        carry_stage1 <= {1'b0, sum_stage1};\n    end\nend\n// Pipeline stage 2\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        sum_stage2 <= 65'b0;\n        carry_stage2 <= 65'b0;\n    end else begin\n        sum_stage2 <= sum_stage1;\n        carry_stage2 <= carry_stage1;\n    end\nend\n// Pipeline stage 3\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        sum_stage3 <= 65'b0;\n        carry_stage3 <= 65'b0;\n    end else begin\n        sum_stage3 <= sum_stage2;\n        carry_stage3 <= carry_stage2;\n    end\nend\n// Pipeline stage 4\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        sum_stage4 <= 65'b0;\n        carry_stage4 <= 65'b0;\n    end else begin\n        sum_stage4 <= sum_stage3;\n        carry_stage4 <= carry_stage3;\n    end\nend\n// Output enable generation\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        o_en_reg <= 1'b0;\n    end else begin\n        o_en_reg <= i_en;\n    end\nend\n// Assign outputs\nassign result = sum_stage4;\nassign o_en = o_en_reg;\nendmodule\n",
+    "xml_description": "<module id=\"adder_pipe_64bit\">\n    <description>A 64-bit ripple carry adder implemented with pipelined stages.</description>\n    <ports>\n        <input id=\"clk\">Clock input.</input>\n        <input id=\"rst_n\">Active low reset signal.</input>\n        <input id=\"i_en\">Enable signal for addition operation.</input>\n        <input id=\"adda\" width_description=\"[63:0]\">64-bit input operand A.</input>\n        <input id=\"addb\" width_description=\"[63:0]\">64-bit input operand B.</input>\n        <output id=\"result\" width_description=\"[64:0]\">65-bit output representing the sum of adda and addb.</output>\n        <output id=\"o_en\">Output enable signal indicating the availability of the result.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">State IDLE.</parameter>\n        <parameter id=\"STAGE1\">State STAGE1.</parameter>\n        <parameter id=\"STAGE2\">State STAGE2.</parameter>\n        <parameter id=\"STAGE3\">State STAGE3.</parameter>\n        <parameter id=\"STAGE4\">State STAGE4.</parameter>\n        <parameter id=\"STAGE5\">State STAGE5.</parameter>\n        <parameter id=\"STAGE6\">State STAGE6.</parameter>\n        <parameter id=\"STAGE7\">State STAGE7.</parameter>\n        <parameter id=\"STAGE8\">State STAGE8.</parameter>\n        <parameter id=\"STAGE9\">State STAGE9.</parameter>\n        <parameter id=\"STAGE10\">State STAGE10.</parameter>\n        <parameter id=\"STAGE11\">State STAGE11.</parameter>\n        <parameter id=\"STAGE12\">State STAGE12.</parameter>\n        <parameter id=\"STAGE13\">State STAGE13.</parameter>\n        <parameter id=\"STAGE14\">State STAGE14.</parameter>\n        <parameter id=\"STAGE15\">State STAGE15.</parameter>\n        <parameter id=\"STAGE16\">State STAGE16.</parameter>\n        <parameter id=\"STAGE17\">State STAGE17.</parameter>\n        <parameter id=\"STAGE18\">State STAGE18.</parameter>\n        <parameter id=\"STAGE19\">State STAGE19.</parameter>\n        <parameter id=\"STAGE20\">State STAGE20.</parameter>\n        <parameter id=\"STAGE21\">State STAGE21.</parameter>\n        <parameter id=\"STAGE22\">State STAGE22.</parameter>\n        <parameter id=\"STAGE23\">State STAGE23.</parameter>\n        <parameter id=\"STAGE24\">State STAGE24.</parameter>\n        <parameter id=\"STAGE25\">State STAGE25.</parameter>\n        <parameter id=\"STAGE26\">State STAGE26.</parameter>\n        <parameter id=\"STAGE27\">State STAGE27.</parameter>\n        <parameter id=\"STAGE28\">State STAGE28.</parameter>\n        <parameter id=\"STAGE29\">State STAGE29.</parameter>\n        <parameter id=\"STAGE30\">State STAGE30.</parameter>\n        <parameter id=\"STAGE31\">State STAGE31.</parameter>\n        <parameter id=\"STAGE32\">State STAGE32.</parameter>\n        <parameter id=\"STAGE33\">State STAGE33.</parameter>\n        <parameter id=\"STAGE34\">State STAGE34.</parameter>\n        <parameter id=\"STAGE35\">State STAGE35.</parameter>\n        <parameter id=\"STAGE36\">State STAGE36.</parameter>\n        <parameter id=\"STAGE37\">State STAGE37.</parameter>\n        <parameter id=\"STAGE38\">State STAGE38.</parameter>\n        <parameter id=\"STAGE39\">State STAGE39.</parameter>\n        <parameter id=\"STAGE40\">State STAGE40.</parameter>\n        <parameter id=\"STAGE41\">State STAGE41.</parameter>\n        <parameter id=\"STAGE42\">State STAGE42.</parameter>\n        <parameter id=\"STAGE43\">State STAGE43.</parameter>\n        <parameter id=\"STAGE44\">State STAGE44.</parameter>\n        <parameter id=\"STAGE45\">State STAGE45.</parameter>\n        <parameter id=\"STAGE46\">State STAGE46.</parameter>\n        <parameter id=\"STAGE47\">State STAGE47.</parameter>\n        <parameter id=\"STAGE48\">State STAGE48.</parameter>\n        <parameter id=\"STAGE49\">State STAGE49.</parameter>\n        <parameter id=\"STAGE50\">State STAGE50.</parameter>\n        <parameter id=\"STAGE51\">State STAGE51.</parameter>\n        <parameter id=\"STAGE52\">State STAGE52.</parameter>\n        <parameter id=\"STAGE53\">State STAGE53.</parameter>\n        <parameter id=\"STAGE54\">State STAGE54.</parameter>\n        <parameter id=\"STAGE55\">State STAGE55.</parameter>\n        <parameter id=\"STAGE56\">State STAGE56.</parameter>\n        <parameter id=\"STAGE57\">State STAGE57.</parameter>\n        <parameter id=\"STAGE58\">State STAGE58.</parameter>\n        <parameter id=\"STAGE59\">State STAGE59.</parameter>\n        <parameter id=\"STAGE60\">State STAGE60.</parameter>\n        <parameter id=\"STAGE61\">State STAGE61.</parameter>\n        <parameter id=\"STAGE62\">State STAGE62.</parameter>\n        <parameter id=\"STAGE63\">State STAGE63.</parameter>\n        <parameter id=\"STAGE64\">State STAGE64.</parameter>\n        <parameter id=\"STAGE65\">State STAGE65.</parameter>\n        <parameter id=\"STAGE66\">State STAGE66.</parameter>\n        <parameter id=\"STAGE67\">State STAGE67.</parameter>\n        <parameter id=\"STAGE68\">State STAGE68.</parameter>\n        <parameter id=\"STAGE69\">State STAGE69.</parameter>\n        <parameter id=\"STAGE70\">State STAGE70.</parameter>\n        <parameter id=\"STAGE71\">State STAGE71.</parameter>\n        <parameter id=\"STAGE72\">State STAGE72.</parameter>\n        <parameter id=\"STAGE73\">State STAGE73.</parameter>\n        <parameter id=\"STAGE74\">State STAGE74.</parameter>\n        <parameter id=\"STAGE75\">State STAGE75.</parameter>\n        <parameter id=\"STAGE76\">State STAGE76.</parameter>\n        <parameter id=\"STAGE77\">State STAGE77.</parameter>\n        <parameter id=\"STAGE78\">State STAGE78.</parameter>\n        <parameter id=\"STAGE79\">State STAGE79.</parameter>\n        <parameter id=\"STAGE80\">State STAGE80.</parameter>\n        <parameter id=\"STAGE81\">State STAGE81.</parameter>\n        <parameter id=\"STAGE82\">State STAGE82.</parameter>\n        <parameter id=\"STAGE83\">State STAGE83.</parameter>\n        <parameter id=\"STAGE84\">State STAGE84.</parameter>\n        <parameter id=\"STAGE85\">State STAGE85.</parameter>\n        <parameter id=\"STAGE86\">State STAGE86.</parameter>\n        <parameter id=\"STAGE87\">State STAGE87.</parameter>\n        <parameter id=\"STAGE88\">State STAGE88.</parameter>\n        <parameter id=\"STAGE89\">State STAGE89.</parameter>\n        <parameter id=\"STAGE90\">State STAGE90.</parameter>\n        <parameter id=\"STAGE91\">State STAGE91.</parameter>\n        <parameter id=\"STAGE92\">State STAGE92.</parameter>\n        <parameter id=\"STAGE93\">State STAGE93.</parameter>\n        <parameter id=\"STAGE94\">State STAGE94.</parameter>\n        <parameter id=\"STAGE95\">State STAGE95.</parameter>\n        <parameter id=\"STAGE96\">State STAGE96.</parameter>\n        <parameter id=\"STAGE97\">State STAGE97.</parameter>\n        <parameter id=\"STAGE98\">State STAGE98.</parameter>\n        <parameter id=\"STAGE99\">State STAGE99.</parameter>\n        <parameter id=\"STAGE100\">State STAGE100.</parameter>\n        <parameter id=\"STAGE101\">State STAGE101.</parameter>\n        <parameter id=\"STAGE102\">State STAGE102.</parameter>\n        <parameter id=\"STAGE103\">State STAGE103.</parameter>\n        <parameter id=\"STAGE104\">State STAGE104.</parameter>\n        <parameter id=\"STAGE105\">State STAGE105.</parameter>\n        <parameter id=\"STAGE106\">State STAGE106.</parameter>\n        <parameter id=\"STAGE107\">State STAGE107.</parameter>\n        <parameter id=\"STAGE108\">State STAGE108.</parameter>\n        <parameter id=\"STAGE109\">State STAGE109.</parameter>\n        <parameter id=\"STAGE110\">State STAGE110.</parameter>\n        <parameter id=\"STAGE111\">State STAGE111.</parameter>\n        <parameter id=\"STAGE112\">State STAGE112.</parameter>\n        <parameter id=\"STAGE113\">State STAGE113.</parameter>\n        <parameter id=\"STAGE114\">State STAGE114.</parameter>\n        <parameter id=\"STAGE115\">State STAGE115.</parameter>\n        <parameter id=\"STAGE116\">State STAGE116.</parameter>\n        <parameter id=\"STAGE117\">State STAGE117.</parameter>\n        <parameter id=\"STAGE118\">State STAGE118.</parameter>\n        <parameter id=\"STAGE119\">State STAGE119.</parameter>\n        <parameter id=\"STAGE120\">State STAGE120.</parameter>\n        <parameter id=\"STAGE121\">State STAGE121.</parameter>\n        <parameter id=\"STAGE122\">State STAGE122.</parameter>\n        <parameter id=\"STAGE123\">State STAGE123.</parameter>\n        <parameter id=\"STAGE124\">State STAGE124.</parameter>\n        <parameter id=\"STAGE125\">State STAGE125.</parameter>\n        <parameter id=\"STAGE126\">State STAGE126.</parameter>\n        <parameter id=\"STAGE127\">State STAGE127.</parameter>\n        <parameter id=\"STAGE128\">State STAGE128.</parameter>\n        <parameter id=\"STAGE129\">State STAGE129.</parameter>\n        <parameter id=\"STAGE130\">State STAGE130.</parameter>\n        <parameter id=\"STAGE131\">State STAGE131.</parameter>\n        <parameter id=\"STAGE132\">State STAGE132.</parameter>\n        <parameter id=\"STAGE133\">State STAGE133.</parameter>\n        <parameter id=\"STAGE134\">State STAGE134.</parameter>\n        <parameter id=\"STAGE135\">State STAGE135.</parameter>\n        <parameter id=\"STAGE136\">State STAGE136.</parameter>\n        <parameter id=\"STAGE137\">State STAGE137.</parameter>\n        <parameter id=\"STAGE138\">State STAGE138.</parameter>\n        <parameter id=\"STAGE139\">State STAGE139.</parameter>\n        <parameter id=\"STAGE140\">State STAGE140.</parameter>\n        <parameter id=\"STAGE141\">State STAGE141.</parameter>\n        <parameter id=\"STAGE142\">State STAGE142.</parameter>\n        <parameter id=\"STAGE143\">State STAGE143.</parameter>\n        <parameter id=\"STAGE144\">State STAGE144.</parameter>\n        <parameter id=\"STAGE145\">State STAGE145.</parameter>\n        <parameter id=\"STAGE146\">State STAGE146.</parameter>\n        <parameter id=\"STAGE147\">State STAGE147.</parameter>\n        <parameter id=\"STAGE148\">State STAGE148.</parameter>\n        <parameter id=\"STAGE149\">State STAGE149.</parameter>\n        <parameter id=\"STAGE150\">State STAGE150.</parameter>\n        <parameter id=\"STAGE151\">State STAGE151.</parameter>\n        <parameter id=\"STAGE152\">State STAGE152.</parameter>\n        <parameter id=\"STAGE153\">State STAGE153.</parameter>\n        <parameter id=\"STAGE154\">State STAGE154.</parameter>\n        <parameter id=\"STAGE155\">State STAGE155.</parameter>\n        <parameter id=\"STAGE156\">State STAGE156.</parameter>\n        <parameter id=\"STAGE157\">State STAGE157.</parameter>\n        <parameter id=\"STAGE158\">State STAGE158.</parameter>\n        <parameter id=\"STAGE159\">State STAGE159.</parameter>\n        <parameter id=\"STAGE160\">State STAGE160.</parameter>\n        <parameter id=\"STAGE161\">State STAGE161.</parameter>\n        <parameter id=\"STAGE162\">State STAGE162.</parameter>\n        <parameter id=\"STAGE163\">State STAGE163.</parameter>\n        <parameter id=\"STAGE164\">State STAGE164.</parameter>\n        <parameter id=\"STAGE165\">State STAGE165.</parameter>\n        <parameter id=\"STAGE166\">State STAGE166.</parameter>\n        <parameter id=\"STAGE167\">State STAGE167.</parameter>\n        <parameter id=\"STAGE168\">State STAGE168.</parameter>\n        <parameter id=\"STAGE169\">State STAGE169.</parameter>\n        <parameter id=\"STAGE170\">State STAGE170.</parameter>\n        <parameter id=\"STAGE171\">State STAGE171.</parameter>\n        <parameter id=\"STAGE172\">State STAGE172.</parameter>\n        <parameter id=\"STAGE173\">State STAGE173.</parameter>\n        <parameter id=\"STAGE174\">State STAGE174.</parameter>\n        <parameter id=\"STAGE175\">State STAGE175.</parameter>\n        <parameter id=\"STAGE176\">State STAGE176.</parameter>\n        <parameter id=\"STAGE177\">State STAGE177.</parameter>\n        <parameter id=\"STAGE178\">State STAGE178.</parameter>\n        <parameter id=\"STAGE179\">State STAGE179.</parameter>\n        <parameter id=\"STAGE180\">State STAGE180.</parameter>\n        <parameter id=\"STAGE181\">State STAGE181.</parameter>\n        <parameter id=\"STAGE182\">State STAGE182.</parameter>\n        <parameter id=\"STAGE183\">State STAGE183.</parameter>\n        <parameter id=\"STAGE184\">State STAGE184.</parameter>\n        <parameter id=\"STAGE185\">State STAGE185.</parameter>\n        <parameter id=\"STAGE186\">State STAGE186.</parameter>\n        <parameter id=\"STAGE187\">State STAGE187.</parameter>\n        <parameter id=\"STAGE188\">State STAGE188.</parameter>\n        <parameter id=\"STAGE189\">State STAGE189.</parameter>\n        <parameter id=\"STAGE190\">State STAGE190.</parameter>\n        <parameter id=\"STAGE191\">State STAGE191.</parameter>\n        <parameter id=\"STAGE192\">State STAGE192.</parameter>\n        <parameter id=\"STAGE193\">State STAGE193.</parameter>\n        <parameter id=\"STAGE194\">State STAGE194.</parameter>\n        <parameter id=\"STAGE195\">State STAGE195.</parameter>\n        <parameter id=\"STAGE196\">State STAGE196.</parameter>\n        <parameter id=\"STAGE197\">State STAGE197.</parameter>\n        <parameter id=\"STAGE198\">State STAGE198.</parameter>\n        <parameter id=\"STAGE199\">State STAGE199.</parameter>\n        <parameter id=\"STAGE200\">State STAGE200.</parameter>\n        <parameter id=\"STAGE201\">State STAGE201.</parameter>\n        <parameter id=\"STAGE202\">State STAGE202.</parameter>\n        <parameter id=\"STAGE203\">State STAGE203.</parameter>\n        <parameter id=\"STAGE204\">State STAGE204.</parameter>\n        <parameter id=\"STAGE205\">State STAGE205.</parameter></parameter_description></module>\n",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:79:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   79 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:66:6: Parameter not found: 'DATA_WIDTH'\n   66 |     .DATA_WIDTH(DATA_WIDTH),\n      |      ^~~~~~~~~~\n                                    : ... Location of instance's module declaration\n    1 | module adder_pipe_64bit (\n      |        ^~~~~~~~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error-PINNOTFOUND: testbench.v:67:6: Parameter not found: 'STG_WIDTH'\n   67 |     .STG_WIDTH(STG_WIDTH)\n      |      ^~~~~~~~~\n                                    : ... Location of instance's module declaration\n    1 | module adder_pipe_64bit (\n      |        ^~~~~~~~~~~~~~~~\n%Error: Exiting due to 2 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 6,
+      "max_samples": 10,
+      "best_sample_idx": 4,
+      "best_temperature": 0.4,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 1404.18,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 221,
+          "elapsed_s": 285.37
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 3,
+          "gvd_lines": 313,
+          "elapsed_s": 260.15
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 314,
+          "elapsed_s": 242.28
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 314,
+          "elapsed_s": 231.22
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 70,
+          "elapsed_s": 163.02
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 3,
+          "gvd_lines": 246,
+          "elapsed_s": 222.13
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

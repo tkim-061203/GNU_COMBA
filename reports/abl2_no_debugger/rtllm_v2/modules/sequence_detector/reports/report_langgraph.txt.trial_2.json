@@ -1,0 +1,162 @@
+{
+  "module_name": "sequence_detector",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "sequence_detector",
+    "description_type": "txt",
+    "final_status": "fail_sc",
+    "sc_trial": 1,
+    "ts_trial": 0,
+    "total_iter": 1,
+    "gvd": "module sequence_detector #(\n    parameter IDLE = 5'b00001,\n    parameter S1   = 5'b00010,\n    parameter S2   = 5'b00100,\n    parameter S3   = 5'b01000,\n    parameter S4   = 5'b10000\n) (\n    input  clk,\n    input  rst_n,\n    input  data_in,\n    output sequence_detected\n);\n    \n    \n    reg [2:0] state, next_state;\n    \n    always @(posedge clk or negedge reset_n) begin\n        if (~reset_n) state <= IDLE; else state <= next_state;\n    end\n    \n    always @(*) begin\n        case (state)\n            IDLE: next_state = (data_in) ? S1 : IDLE;\n            S1:   next_state = (~data_in) ? S2 : IDLE;\n            S2:   next_state = (~data_in) ? S3 : IDLE;\n            S3:   next_state = (data_in) ? S4 : IDLE;\n            S4:   next_state = (data_in) ? IDLE : S1;\n            default: next_state = IDLE;\n        endcase\n    end\n    \n    assign sequence_detected = (state == S4);\nendmodule\n",
+    "xml_description": "<module id=\"sequence_detector\">\n    <description>Detects the specific 4-bit binary sequence '1001' using a finite state machine (FSM).</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronization.</input>\n        <input id=\"reset_n\">Reset signal to initialize the state machine.</input>\n        <input id=\"data_in\">1-bit binary input signal for the bitstream being fed into the sequence detector.</input>\n        <output id=\"sequence_detected\">1-bit output signal indicating whether the specific sequence has been detected.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">Waiting for the start of the sequence.</parameter>\n        <parameter id=\"S1\">First bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S2\">Second bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S3\">Third bit of the desired sequence is detected.</parameter>\n        <parameter id=\"S4\">Fourth and final bit of the desired sequence is detected.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;signal id=\"next_state\">Next state for the state machine.&lt;/signal>\n        \n        &lt;always_comb>\n            case(state)\n                IDLE: next_state = data_in ? S1 : IDLE;\n                S1: next_state = ~data_in ? S2 : IDLE;\n                S2: next_state = ~data_in ? S3 : IDLE;\n                S3: next_state = data_in ? S4 : IDLE;\n                S4: next_state = data_in ? IDLE : S1;\n                default: next_state = IDLE;\n            endcase\n        &lt;/always_comb>\n    </logic_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"state\">State variable for the state machine.&lt;/reg>\n        \n        &lt;always @(posedge clk or posedge reset_n) begin\n            if (reset_n)\n                state &lt;= IDLE;\n            else\n                state &lt;= next_state;\n        end\n        \n        &lt;assign sequence_detected = (state == S4);\n    </logic_description>\n</module>",
+    "sc_log": "TopModule.sv:18: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'\nTopModule.sv:18: error: Unable to elaborate condition expression.\nElaboration failed\n",
+    "tb_log": null,
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: Unable to bind wire/reg/memory `reset_n' in `sequence_detector'": 1
+    },
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_sc",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 249.32,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 67,
+          "elapsed_s": 21.67
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 72,
+          "elapsed_s": 16.93
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 72,
+          "elapsed_s": 29.54
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 52,
+          "elapsed_s": 20.96
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 72,
+          "elapsed_s": 22.91
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 52,
+          "elapsed_s": 20.45
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 27.28
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 30.84
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 33,
+          "elapsed_s": 24.58
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 34.17
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 2
+    }
+  }
+}

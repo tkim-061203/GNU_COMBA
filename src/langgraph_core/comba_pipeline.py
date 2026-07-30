@@ -31,11 +31,72 @@ Usage:
 import os
 import re
 import json
+import signal
 import subprocess
 import shutil
 import tempfile
 from typing import Optional
 from typing_extensions import TypedDict
+
+
+def _run_sim_process(cmd: list, cwd: str, timeout: int) -> tuple:
+    """Run a simulator binary in its own process group; hard-kill the whole
+    group on ANY exit path. A testbench with no `$finish` loops forever, and
+    plain subprocess.run(capture_output=True, timeout=) can DEADLOCK there: it
+    kills the sim but then blocks reading the stdout pipe that an orphaned
+    grandchild still holds open. That is exactly what hung a v2 run for hours.
+    Here we killpg to release the pipe. Returns (returncode, stdout, stderr);
+    rc=124 on the sim's own timeout. FileNotFoundError propagates (caller
+    handles a missing tool).
+
+    CRITICAL — the group must be killed on the *worker* SIGALRM watchdog too.
+    main_langgraph.py arms signal.alarm(COMBA_PIPELINE_TIMEOUT) per sample; if
+    it fires while we are blocked in communicate(), the handler raises
+    PipelineTimeout, which skips the `except TimeoutExpired` branch. Because the
+    sim runs in its OWN session (start_new_session=True) it is NOT killed when
+    the worker is torn down — it reparents to init and burns a CPU core forever
+    (42 such orphans seen from one config on 2026-07-20). So we also killpg on
+    BaseException (PipelineTimeout, KeyboardInterrupt, …) and in a finally
+    safety net: nothing leaves this function with the child still alive."""
+    p = subprocess.Popen(
+        cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, start_new_session=True,
+    )
+
+    def _kill_group():
+        try:
+            os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            try:
+                p.kill()
+            except Exception:
+                pass
+
+    try:
+        out, err = p.communicate(timeout=timeout)
+        return p.returncode, out, err
+    except subprocess.TimeoutExpired:
+        _kill_group()
+        try:
+            out, err = p.communicate(timeout=10)
+        except Exception:
+            out, err = "", ""
+        note = f"\n[SIM TIMEOUT] killed after {timeout}s — testbench likely missing $finish"
+        return 124, out or "", (err or "") + note
+    except BaseException:
+        # Worker SIGALRM watchdog (PipelineTimeout) / KeyboardInterrupt / etc.
+        # Kill the detached group before the exception unwinds the worker, then
+        # reap the direct child so it does not linger as a zombie.
+        _kill_group()
+        try:
+            p.wait(timeout=5)
+        except Exception:
+            pass
+        raise
+    finally:
+        if p.poll() is None:
+            _kill_group()
+
 
 def cprint(*args, **kwargs):
     if os.environ.get("COMBA_QUIET", "0") != "1":
@@ -98,6 +159,23 @@ TS_SIMULATOR = os.environ.get("COMBA_TS_SIMULATOR", "auto").lower()
 
 # VerilogEval: task_description max chars sent to debugger
 _MAX_TASK_DESC_CHARS = 400
+
+
+# ── Ablation feature flags (AICAS revision) ───────────────────────────────
+# Read per-call so a benchmark subprocess can toggle them via env. Default ON.
+#   COMBA_USE_SANITIZER=0     → bypass Sanitizer (raw LLM output → syntax check)
+#   COMBA_USE_TED=0           → bypass TED (no error parsing; first syntax/TB
+#                               failure ends the run — measures post-processing)
+#   COMBA_USE_DEBUGGER_SLM=0  → never invoke Debugger SLM (TED still parses, but
+#                               routes to fail instead of patching)
+# Dataset categorization (#1) is a train-time choice, selected via the adapter
+# (COMBA_MODEL_NAME), not a pipeline runtime flag — so it has no gate here.
+def _use_module(env_name: str, default: bool = True) -> bool:
+    """Ablation toggle. Any of 0/false/no/off/empty disables the module."""
+    v = os.environ.get(env_name)
+    if v is None:
+        return default
+    return v.strip().lower() not in ("0", "false", "no", "off", "")
 
 
 # ── Shared error-key normalizer ──
@@ -186,6 +264,7 @@ class COMBAState(TypedDict):
     xml_valid: Optional[bool]          # None=not-checked, True=valid, False=invalid
     xml_retry_count: int               # converter retries used
     xml_retry_limit: int               # converter retry budget (default 2)
+    xml_error: Optional[str]           # last parser error (for retry feedback)
     module_name: Optional[str]
     benchmark_id: Optional[str]
 
@@ -376,6 +455,7 @@ def make_initial_state(
         xml_valid=None,
         xml_retry_count=0,
         xml_retry_limit=2,
+        xml_error=None,
         module_name=module_name or None,
         gvd=None,
         sgvd=None,
@@ -450,9 +530,27 @@ class COMBANodes:
             cprint("[SKIP] Valid XML already present.")
             return {}
 
+        # Retry feedback (opt-in via COMBA_XML_RETRY_FEEDBACK=1): on a retry,
+        # replay the failed XML + parser error so the LLM can actually fix it.
+        # Without this the retry is "blind" — at T=0 it regenerates the exact
+        # same invalid XML, making the retry budget useless.
+        conversation = []
+        if (os.environ.get("COMBA_XML_RETRY_FEEDBACK", "0") == "1"
+                and state.get("xml_valid") is False
+                and state.get("xml_description") and state.get("xml_error")):
+            conversation = [
+                ("ai", state["xml_description"]),
+                ("human",
+                 f"The XML above failed validation with this parser error:\n"
+                 f"{state['xml_error']}\n\n"
+                 f"Fix the XML (escape stray '<', '&', remove raw Verilog from "
+                 f"text nodes) and return ONLY the corrected COMBA XML."),
+            ]
+            cprint("  ↻ Retry with parser-error feedback")
+
         result = converterPromptTemplate.invoke({
             "user_input": state["nl_input"],
-            "conversation": [],
+            "conversation": conversation,
         })
         response = self._llm.invoke(result)
         xml_text = response.content.strip()
@@ -491,6 +589,7 @@ class COMBANodes:
         if not ok:
             # Bump retry counter; route_after_converter decides next hop.
             updates["xml_retry_count"] = state.get("xml_retry_count", 0) + 1
+            updates["xml_error"] = str(err)  # feeds retry-feedback conversation
             return updates
 
         # ── Valid path: keep existing side-effects ──
@@ -595,6 +694,25 @@ class COMBANodes:
 
         raw = state.get("_raw_llm_output") or ""
         retry_count = state.get("_sanitize_retry_count", 0)
+
+        # ── ABLATION (#3): Sanitizer disabled → pass raw output straight to
+        #    syntax check (no Over-Context Detection / Prompt Extraction /
+        #    Logic-Keyword check). Still set gvd + baseline so SC won't crash.
+        if not _use_module("COMBA_USE_SANITIZER"):
+            cprint("  🚫 ABLATION: Sanitizer disabled — using raw LLM output as GVD")
+            code = raw if raw.endswith("\n") else (raw + "\n" if raw else raw)
+            updates = {
+                "gvd": code,
+                "sanitize_result": {"code": code, "needs_retry": False,
+                                    "retry_prompt": None, "warnings": [],
+                                    "auto_fixed": False},
+                "_sanitize_retry_count": 0,
+            }
+            if state.get("_last_llm_source") == "generator":
+                updates["sgvd"] = code
+                if state.get("guard_baseline_gvd") is None:
+                    updates["guard_baseline_gvd"] = code
+            return updates
 
         result = verilog_sanitize(
             raw,
@@ -826,6 +944,12 @@ class COMBANodes:
         cprint(f"🐛 NODE: Debugger (phase={state['phase']})")
         cprint("=" * 60)
 
+        # ── ABLATION (#2): Debugger disabled — never invoke the SLM. Routers
+        #    short-circuit before reaching here, but guard defensively too.
+        if not _use_module("COMBA_USE_DEBUGGER_SLM"):
+            cprint("  🚫 ABLATION: Debugger disabled — no patch applied")
+            return {}
+
         phase = state["phase"]
         current_gvd = state["gvd"]
         error_desc = state["edp"] if phase == "sc" else state["tdp"]
@@ -1006,6 +1130,20 @@ class COMBANodes:
             ("tb.sv", None),
             ("tb.v", None),
         ]
+
+        # Aux data files the TB loads via $readmem (RTLLM_v2: reference.dat,
+        # reference.txt, tri_gen.txt, wfull/rempty/tdata.txt, …). Without them
+        # the reference arrays read as all-x/0 and every design fails.
+        for aux in os.listdir(dataset_dir):
+            if aux == "design_description.txt" or not aux.endswith((".dat", ".hex", ".mem", ".txt")):
+                continue
+            aux_src = os.path.join(dataset_dir, aux)
+            aux_dst = os.path.join(work_dir, aux)
+            if os.path.isfile(aux_src) and not os.path.isfile(aux_dst):
+                try:
+                    shutil.copy2(aux_src, aux_dst)
+                except Exception as e:
+                    cprint(f"  ⚠️ Warning: failed to copy TB data file {aux}: {e}")
 
         sv_files: list[str] = []
         for tb_name, ref_name in candidate_pairs:
@@ -1227,19 +1365,14 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                     "phase": "ts",
                 }
 
-            r2 = subprocess.run(
-                ["vvp", binary_out], cwd=work_dir,
-                capture_output=True, text=True, timeout=120,
-            )
-            tb_log_parts.append(f"[RUN]\n{r2.stderr}{r2.stdout}")
+            rc2, out2, err2 = _run_sim_process(["vvp", binary_out], work_dir, 120)
+            tb_log_parts.append(f"[RUN]\n{err2}{out2}")
 
-            if r2.returncode != 0:
-                tb_log_parts.append(f"[RUN FAILED] exit code {r2.returncode}")
+            if rc2 != 0:
+                tb_log_parts.append(f"[RUN FAILED] exit code {rc2}")
 
         except FileNotFoundError as e:
             tb_log_parts.append(f"error: command not found: {e}")
-        except subprocess.TimeoutExpired:
-            tb_log_parts.append("error: TB simulation timed out")
 
         return self._parse_tb_result(state, "\n".join(tb_log_parts), expect_passed_keyword=True)
 
@@ -1307,9 +1440,8 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                         "phase": "ts",
                     }
 
-            r2 = subprocess.run(
-                [exe], cwd=work_dir, capture_output=True, text=True, timeout=120,
-            )
+            rc2, out2, err2 = _run_sim_process([exe], work_dir, 120)
+            r2 = subprocess.CompletedProcess([exe], rc2, stdout=out2, stderr=err2)
             tb_log_parts.append(f"[RUN]\n{r2.stderr}{r2.stdout}")
 
             if r2.returncode != 0:
@@ -1492,9 +1624,8 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                     "phase": "ts",
                 }
 
-            r2 = subprocess.run(
-                [exe], cwd=work_dir, capture_output=True, text=True, timeout=60,
-            )
+            rc2, out2, err2 = _run_sim_process([exe], work_dir, 60)
+            r2 = subprocess.CompletedProcess([exe], rc2, stdout=out2, stderr=err2)
             tb_log_parts.append(f"[RUN]\n{r2.stderr}{r2.stdout}")
 
             # RTLLM C++: looser detection (no 'passed' keyword expected)
@@ -1620,6 +1751,31 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
 
         tdp = f"Topmost testbench failure:\n{topmost_failure}"
 
+        # Per-vector mismatch details. RTLLM-style SV testbenches print lines
+        # like "Failed at i=.., out=.., expected=.." or "Error: dividend=..,
+        # expected=.., got=.." — without them the debugger only sees a banner
+        # and has nothing concrete to reason about.
+        run_section = tb_log[tb_log.find("[RUN]"):] if "[RUN]" in tb_log else tb_log
+        detail_re = re.compile(r'expected|got\s*=|Failed at|mismatch', re.IGNORECASE)
+        detail_lines = []
+        for line in run_section.splitlines():
+            s = line.strip()
+            if not s or s.startswith("===="):
+                continue
+            if detail_re.search(s) and s not in detail_lines:
+                detail_lines.append(s)
+            if len(detail_lines) >= 8:
+                break
+        if detail_lines:
+            tdp += ("\n\nTestbench mismatch details (actual vs expected):\n"
+                    + "\n".join(detail_lines))
+        elif topmost_failure.startswith(("Testbench did not print", "Unknown testbench failure")):
+            # Silent TB: give the debugger at least the raw tail of the run
+            # output instead of nothing.
+            tail = [l.strip() for l in run_section.splitlines() if l.strip()][-6:]
+            if tail:
+                tdp += "\n\nRaw testbench output (tail):\n" + "\n".join(tail)
+
         # Trace lines + hints
         trace_lines = []
         hints = []
@@ -1720,6 +1876,10 @@ def _skip_tb_without_golden(state: COMBAState) -> bool:
 def route_after_sc(state: COMBAState) -> str:
     """After Guard SC — has errors? → TED_SC; clean → TB (or PASS if no golden TB)."""
     if state["sc_exception_count"] > 0:
+        # ABLATION (#3): no TED → syntax errors can't be repaired → fail now.
+        if not _use_module("COMBA_USE_TED"):
+            cprint("  🚫 ABLATION: TED disabled — unrepaired syntax error → end_fail_sc")
+            return "end_fail_sc"
         return "node_ted_syntax"
     if _skip_tb_without_golden(state):
         return "end_pass"
@@ -1729,6 +1889,10 @@ def route_after_sc(state: COMBAState) -> str:
 def route_after_ts(state: COMBAState) -> str:
     """After Guard TS — has failures? → classify_tb, else → PASS."""
     if state.get("tb_failure"):
+        # ABLATION (#3): no TED → TB failures can't be repaired → fail now.
+        if not _use_module("COMBA_USE_TED"):
+            cprint("  🚫 ABLATION: TED disabled — unrepaired TB failure → end_fail_ts")
+            return "end_fail_ts"
         return "node_classify_tb"
     return "end_pass"
 
@@ -1747,6 +1911,11 @@ def route_after_ted_syntax(state: COMBAState) -> str:
         return "node_tb_sim"
 
     if state["sc_trial"] >= MAX_SYNTAX_TRIALS:
+        return "end_fail_sc"
+
+    # ABLATION (#2): Debugger disabled → no SLM repair → fail now.
+    if not _use_module("COMBA_USE_DEBUGGER_SLM"):
+        cprint("  🚫 ABLATION: Debugger disabled — syntax error unrepaired → end_fail_sc")
         return "end_fail_sc"
 
     # MultiAttemptManager give-up check
@@ -1770,6 +1939,11 @@ def route_after_ted_tb(state: COMBAState) -> str:
         return "end_fail_ts"
 
     if state["ts_trial"] >= MAX_TS_TRIALS:
+        return "end_fail_ts"
+
+    # ABLATION (#2): Debugger disabled → no SLM repair → fail now.
+    if not _use_module("COMBA_USE_DEBUGGER_SLM"):
+        cprint("  🚫 ABLATION: Debugger disabled — TB failure unrepaired → end_fail_ts")
         return "end_fail_ts"
 
     mgr = state.get("multi_attempt_mgr")
@@ -1864,15 +2038,26 @@ def end_max_iter(state: COMBAState) -> dict:
 # Converter conditional routing (XML retry state machine)
 # ──────────────────────────────────────────────────────────────
 def route_after_converter(state: COMBAState) -> str:
-    """Branch on XML validity. Bounded retry, then fail-fast."""
+    """Branch on XML validity. Bounded retry, then tolerant pass-through.
+
+    Default is TOLERANT: after the retry budget, proceed to the generator with
+    the raw (unparseable) XML — the generator prompt combines the original NL
+    spec with the XML, so imperfect XML still works as guidance. This matches
+    the behaviour that produced the 07-03 baseline (where validation was a
+    silent no-op). Set COMBA_XML_STRICT=1 to fail-fast instead (end_fail_xml).
+    """
     if state.get("xml_valid") is False:
         retries = state.get("xml_retry_count", 0)
         limit = state.get("xml_retry_limit", 2)
         if retries < limit:
             cprint(f"  ↻ Retrying converter ({retries}/{limit})")
             return "node_converter"
-        cprint(f"  ✗ XML retry budget exhausted ({retries}/{limit})")
-        return "end_fail_xml"
+        if os.environ.get("COMBA_XML_STRICT", "0") == "1":
+            cprint(f"  ✗ XML retry budget exhausted ({retries}/{limit}) — STRICT: fail")
+            return "end_fail_xml"
+        cprint(f"  ⚠️ XML retry budget exhausted ({retries}/{limit}) — "
+               f"tolerant: proceeding with raw XML (COMBA_XML_STRICT=1 to fail fast)")
+        return "node_generator"
     return "node_generator"
 
 
@@ -1908,6 +2093,14 @@ def build_comba_graph(llm):
     the rolled-back state when a regression is detected.
     """
     nodes = COMBANodes(llm)
+
+    # ── Ablation config banner (traceability for AICAS revision) ──
+    cprint(
+        "  🧪 Ablation config: "
+        f"sanitizer={_use_module('COMBA_USE_SANITIZER')} "
+        f"ted={_use_module('COMBA_USE_TED')} "
+        f"debugger={_use_module('COMBA_USE_DEBUGGER_SLM')}"
+    )
 
     builder = StateGraph(COMBAState)
 
@@ -1975,14 +2168,16 @@ def build_comba_graph(llm):
     builder.add_conditional_edges(
         "node_guard_sc",
         route_after_sc,
-        {"node_ted_syntax": "node_ted_syntax", "node_tb_sim": "node_tb_sim", "end_pass": "end_pass"},
+        {"node_ted_syntax": "node_ted_syntax", "node_tb_sim": "node_tb_sim",
+         "end_pass": "end_pass", "end_fail_sc": "end_fail_sc"},
     )
 
     # After Guard TS → classify_tb (failed) or END (passed)
     builder.add_conditional_edges(
         "node_guard_ts",
         route_after_ts,
-        {"node_classify_tb": "node_classify_tb", "end_pass": "end_pass"},
+        {"node_classify_tb": "node_classify_tb", "end_pass": "end_pass",
+         "end_fail_ts": "end_fail_ts"},
     )
 
     # ── ADD: classifier → analyzer or ted_tb ──

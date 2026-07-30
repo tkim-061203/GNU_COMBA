@@ -80,6 +80,33 @@ def _count_logic_occurrences(code: str) -> int:
         count += len(re.findall(rf'\b{re.escape(kw)}\b', code))
     return count
 
+# Port declaration with optional width, tolerant of ANSI comma-continuations;
+# the lookahead keeps the name list from swallowing the next 'input'/'output'.
+_PORT_WIDTH_RE = re.compile(
+    r'\b(input|output|inout)\s+(?:(?:reg|wire|logic)\s+)?(?:signed\s+)?(\[[^\]]+\])?\s*'
+    r'([a-zA-Z_]\w*(?:\s*,\s*(?!(?:input|output|inout|reg|wire|logic|signed)\b)[a-zA-Z_]\w*)*)'
+)
+
+
+def _parse_port_widths(text: str) -> dict:
+    """Map port name -> bit width for numerically-sized declarations.
+    Parameterized widths ([WIDTH-1:0]) are skipped — not statically comparable."""
+    widths: dict = {}
+    for m in _PORT_WIDTH_RE.finditer(text):
+        rng = m.group(2)
+        if rng:
+            rm = re.match(r'\[\s*(\d+)\s*:\s*(\d+)\s*\]', rng)
+            if not rm:
+                continue
+            bits = abs(int(rm.group(1)) - int(rm.group(2))) + 1
+        else:
+            bits = 1
+        for name in re.split(r'\s*,\s*', m.group(3)):
+            if name.strip():
+                widths[name.strip()] = bits
+    return widths
+
+
 def run_structural_checks(code: str, expected_header: str = "", expected_module_name: str = "") -> list[str]:
     """Perform deep structural checks to catch logical corruption early."""
     warnings = []
@@ -156,6 +183,27 @@ def run_structural_checks(code: str, expected_header: str = "", expected_module_
         actual_ports = len(re.findall(r'\b(input|output|inout)\b', code))
         if expected_ports != actual_ports:
             warnings.append(f"Port count mismatch: expected {expected_ports} ports but found {actual_ports}")
+
+        # [10b] Port WIDTH mismatch — catches e.g. a 16-bit adder generated for a
+        # 32-bit spec, which passes the count check and then fails 100% of TB
+        # vectors. Scope the scan to the main module so helper sub-modules with
+        # identical port names don't false-positive.
+        scope = code
+        if expected_name:
+            mm = re.search(rf'\bmodule\s+{re.escape(expected_name)}\b', code)
+            if mm:
+                scope = code[mm.start():]
+                em = re.search(r'\bendmodule\b', scope)
+                if em:
+                    scope = scope[:em.start()]
+        expected_widths = _parse_port_widths(expected_header)
+        actual_widths = _parse_port_widths(scope)
+        for pname, ew in expected_widths.items():
+            aw = actual_widths.get(pname)
+            if aw is not None and aw != ew:
+                warnings.append(
+                    f"Port width mismatch: '{pname}' expected {ew}-bit but found {aw}-bit"
+                )
 
     if expected_name:
         decl = MODULE_DECL_RE.search(code)
@@ -605,6 +653,26 @@ def sanitize(
 
     if helper_results:
         code = code + "\n\n" + "\n\n".join(helper_results)
+
+    # Port-width mismatch is a whole-datapath error (e.g. 16-bit adder for a
+    # 32-bit spec): header alignment can't fix the body, and the TB will fail
+    # 100% of vectors. Escalate to a retry with explicit feedback. Keep the
+    # code so the pipeline still has a best-effort GVD if retries run out.
+    width_mismatches = [w for w in warnings if w.startswith("Port width mismatch")]
+    if width_mismatches and expected_header:
+        return SanitizeResult(
+            code=code,
+            needs_retry=True,
+            retry_prompt=(
+                "PORT WIDTH MISMATCH. The generated module's datapath widths do not "
+                "match the required interface:\n- " + "\n- ".join(width_mismatches) +
+                "\nThe module MUST use exactly this header:\n" + expected_header +
+                "\nRegenerate the COMPLETE module with ALL internal logic, registers "
+                "and loops sized for these port widths."
+            ),
+            warnings=warnings,
+            auto_fixed=auto_fixed,
+        )
 
     return SanitizeResult(
         code=code,

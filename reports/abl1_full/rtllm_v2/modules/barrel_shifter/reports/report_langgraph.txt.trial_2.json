@@ -1,0 +1,163 @@
+{
+  "module_name": "barrel_shifter",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "barrel_shifter",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 7,
+    "ts_trial": 6,
+    "total_iter": 13,
+    "gvd": "module barrel_shifter (\n    input [7:0] in,\n    input [2:0] ctrl,\n    output [7:0] out\n);\n\nwire [7:0] stage1_out;\nwire [7:0] stage2_out;\n\nassign stage1_out = (ctrl[2]) ? {in[3:0], 4'b0} : in;\n\nassign stage2_out = (ctrl[1]) ? {stage1_out[5:0], 2'b0} : stage1_out;\n\nassign out = (ctrl[0]) ? {stage2_out[6:0], 1'b0} : stage2_out;\n\nendmodule\n\nmodule mux2X1( in0,in1,sel,out);\ninput in0,in1;\ninput sel;\noutput out;\nassign out=(sel)?in1:in0;\nendmodule\n",
+    "xml_description": "<module id=\"barrel_shifter\">\n    <description>A barrel shifter for rotating bits efficiently. This 8-bit barrel shifter takes an 8-bit input and shifts or rotates the bits based on a 3-bit control signal.</description>\n    <ports>\n        <input id=\"in\" width_description=\"[7:0]\">8-bit input to be shifted.</input>\n        <input id=\"ctrl\" width_description=\"[2:0]\">3-bit control signal that determines how many positions to shift. The control signal specifies the amount of shift, where each bit indicates a shift by 1, 2, or 4 positions.</input>\n        <output id=\"out\" width_description=\"[7:0]\">8-bit shifted output.</output>\n    </ports>\n    <implementation>\n        <description>\n            The barrel shifter shifts the input 'in' based on the value of the 'ctrl' signal. The shifting happens in stages, where each stage shifts by 4, 2, or 1 position, as controlled by 'ctrl[2]', 'ctrl[1]', and 'ctrl[0]' respectively.\n            \n            The shifts are achieved using a series of 2-to-1 multiplexers ('mux2X1') that select between the shifted input and the original input. Each stage of multiplexers performs the shift, and the result is passed to the next stage for further shifting if required.\n            - When 'ctrl[2]' is high, the input is shifted by 4 positions.\n            - When 'ctrl[1]' is high, the intermediate result is shifted by 2 positions.\n            - When 'ctrl[0]' is high, the intermediate result is shifted by 1 position.\n            The 'mux2X1' submodule is used to select between two input values based on the 'sel' signal, determining which bit is used in the shifted output at each stage.\n        </description>\n        \n        &lt;example>\n            Given an input 'in = 8'hAB' and control signal 'ctrl = 3'b101', the output would be calculated as follows:\n            - Stage 0: 'in' is not shifted.\n            - Stage 1: 'in' is shifted by 4 positions using the first set of muxes. The output is '0xAB'.\n            - Stage 2: The previous output is shifted by 2 positions using the second set of muxes. The output remains '0xAB'.\n            - Stage 3: The final output is selected based on the last control bit. Since 'ctrl[0]' is high, the output is rotated by 1 position to the right, resulting in '0xB0'.\n            Therefore, the output for this example is '0xB0'.\n        &lt;/example>\n    </implementation>\n    <task id=\"mux2X1\">\n        <description>2-to-1 MUX for selecting between two inputs based on the sel signal.</description>\n        <input id=\"a\">First input.</input>\n        <input id=\"b\">Second input.</input>\n        <input id=\"sel\">Select signal.</input>\n        <output id=\"y\">Selected output.</output>\n        <implementation>\n            y &lt;= sel ? b : a;\n        </implementation>\n    </task>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:33:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   33 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_barrel_shifter_7gdox58c/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vbarrel_shifter_tb.cpp Vbarrel_shifter_tb___024root__0.cpp Vbarrel_shifter_tb__main.cpp Vbarrel_shifter_tb___024root__Slow.cpp Vbarrel_shifter_tb___024root__0__Slow.cpp Vbarrel_shifter_tb__Syms__Slow.cpp > Vbarrel_shifter_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vbarrel_shifter_tb__ALL.o Vbarrel_shifter_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vbarrel_shifter_tb__ALL.a    -pthread -lpthread -latomic   -o Vbarrel_shifter_tb\nrm Vbarrel_shifter_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_barrel_shifter_7gdox58c/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.043 MB sources in 4 modules, into 0.039 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.401 s (elab=0.001, cvt=0.004, bld=1.392); cpu 0.009 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n=========== Test completed with           4 failures ===========\n- testbench.v:31: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 80ps; walltime 0.000 s; speed 1.561 us/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: error: port ``a'' is not a port of mux0.": 1,
+      "TB:combinational_mismatch::0::": 6
+    },
+    "failure_type": "combinational_mismatch",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 461.76,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 35.03
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 29,
+          "elapsed_s": 39.47
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 25,
+          "elapsed_s": 25.97
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 6,
+          "iter": 14,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 55,
+          "elapsed_s": 68.8
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 34,
+          "elapsed_s": 28.72
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 44,
+          "elapsed_s": 69.9
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 37,
+          "elapsed_s": 67.51
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 22,
+          "elapsed_s": 37.31
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 7,
+          "ts_trial": 6,
+          "iter": 13,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 23,
+          "elapsed_s": 47.58
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 6,
+          "ts_trial": 6,
+          "iter": 12,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 41.48
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 1,
+      "commits": 11,
+      "used_fallback": false,
+      "baseline_sc": 12,
+      "final_sc": 0
+    }
+  }
+}

@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Ablation: per-module contribution. $\Delta$ vs Full in parentheses.}
+\label{tab:ablation}
+\begin{tabular}{lrrr}
+\toprule
+Metric & Full & \#2 no-debug & \#3 no-postproc \\
+\midrule
+RTLLM syntax pass@5 (\%) & 100.0 & 100.0 {\footnotesize (±0.0)} & 100.0 {\footnotesize (±0.0)} \\
+RTLLM func pass@5 (\%) & 93.1 & 82.8 {\footnotesize (-10.3)} & 82.8 {\footnotesize (-10.3)} \\
+RTLLM\_v2 syntax pass@5 (\%) & 100.0 & 98.0 {\footnotesize (-2.0)} & 100.0 {\footnotesize (±0.0)} \\
+RTLLM\_v2 func pass@5 (\%) & 72.0 & 64.0 {\footnotesize (-8.0)} & 58.0 {\footnotesize (-14.0)} \\
+RTLLM syntax fix-rate (\%) & 100.0 & — & — \\
+RTLLM func fix-rate (\%) & 85.5 & — & — \\
+Debugger recovery-rate (\%) & 18.7 & 31.9 {\footnotesize (+13.2)} & 32.4 {\footnotesize (+13.7)} \\
+Avg SC cost multiplier ($\times$) & 1.9 & 3.0 {\footnotesize (+1.1)} & 3.1 {\footnotesize (+1.2)} \\
+\bottomrule
+\end{tabular}
+\end{table}

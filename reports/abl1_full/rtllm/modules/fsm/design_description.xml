@@ -1,0 +1,38 @@
+<module id="fsm">
+    <description>Implement a Mealy Finite-State Machine (FSM) detection circuit that detects a single-bit input IN. When the input is 10011, output MATCH is 1, and MATCH is 0 in other cases. Support for continuous input and loop detection.</description>
+    <ports>
+        <input id="IN">Input signal to the FSM.</input>
+        <input id="CLK">Clock signal used for synchronous operation.</input>
+        <input id="RST">Reset signal to initialize the FSM.</input>
+        <output id="MATCH">Output signal indicating a match condition based on the FSM state.</output>
+    </ports>
+    <parameter_description>
+        <parameter id="s0" value="0">Initial state. Detect the 0th MSB 1.</parameter>
+        <parameter id="s1" value="1">State detecting 1th bit 0.</parameter>
+        <parameter id="s2" value="2">State detecting 2th bit 0.</parameter>
+        <parameter id="s3" value="3">State detecting 3th bit 1.</parameter>
+        <parameter id="s4" value="4">State detecting 4th LSB 1.</parameter>
+        <parameter id="s5" value="5">State detecting 2th bit 0. This case is check sequences with successive bits `1, 0, 0, 1, 1` such: 1, 0, 0, 1, `1, 0, 0, 1, 1`.</parameter>
+    </parameter_description>
+    <logic_description>
+        <description>
+            Notice that below descriptions are along with tags <![CDATA[ <logic />]]>.
+            With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+            With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+            With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+            With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+        </description>
+        <logic type="combinational_logic" id="MATCH">
+        If RST is active, the output signal MATCH is set to 0. Otherwise, `MATCH` is active if the current state `ST_cr` is `s4` and the input `IN` is active.
+        </logic>
+        <logic type="sequential_logic" id="ST_cr">
+        This logic updates FSM state based on `ST_nt`. Based on positive `CLK` and positive `RST`, if `RST` is active, `ST_cr` is `s0`, else `ST_cr` is `ST_nt`.
+        </logic>
+        <logic type="combinational_logic" id="ST_nt">
+        This logic selects next state of FSM based on the input `IN`. In case `ST_cr` is `s0`, `ST_nt` is `s0`, if `IN` is zero, else `ST_nt` is `s1`. In case `ST_cr` is `s1`, `ST_nt` is `s2`, if `IN` is zero, else `ST_nt` is `s1`. In case `ST_cr` is `s2`, `ST_nt` is `s3`, if `IN` is zero, else `ST_nt` is `s1`. In case `ST_cr` is `s3`, `ST_nt` is `s0`, if `IN` is zero, else `ST_nt` is `s4`. In case `ST_cr` is `s4`, `ST_nt` is `s2`, if `IN` is zero, else `ST_nt` is `s5`. In case `ST_cr` is `s5`, `ST_nt` is `s2`, if `IN` is zero, else `ST_nt` is `s1`.
+        </logic>
+    </logic_description>
+    <implementation>The module implements an FSM detection.
+Please make sure that you perform the `Logic description` correctly.
+</implementation>
+</module>

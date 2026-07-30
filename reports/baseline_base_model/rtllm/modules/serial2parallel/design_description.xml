@@ -1,0 +1,18 @@
+<module id="serial2parallel">
+    <description>Implement a series-parallel conversion circuit. It receives a serial input signal "din_serial" along with a control signal "din_valid" indicating the validity of the input data. The module operates on the rising edge of the clock signal "clk" and uses a synchronous design. The input din_serial is a single-bit data, and when the module receives 8 input data, the output dout_parallel outputs the 8-bit data, and the dout_valid is set to 1.</description>
+    <ports>
+        <input id="clk">Clock signal.</input>
+        <input id="rst_n">Reset signal (active low).</input>
+        <input id="din_serial">Serial input data.</input>
+        <input id="din_valid">Validity signal for input data.</input>
+        <output id="dout_parallel">Parallel output data (8 bits wide).</output>
+        <output id="dout_valid">Validity signal for the output data.</output>
+    </ports>
+    <implementation>State and Waveform Generation:
+The module utilizes a 4-bit counter (cnt) to keep track of the number of serial input data bits received. When (cnt) reachs 8, (cnt) is reset to 0. Otherwise, (cnt) is reset to 0 if (rst_n) is negative, else (cnt) increases 1 every positive (clk) edge.
+
+A `din_tmp` register is used to serialize the current `din_serial`. `din_tmp` is reset to 0 if (rst_n) is inactive. Otherwise, in every positive (clk), when `din_valid` is high and the (cnt) is less than or equal 7, `din_tmp` updates new `din_serial` by left shifting `din_tmp` and appending `din_serial` at the least significant bit of `din_tmp`.
+
+When (cnt) reachs decimal digit 8 (not decimal digit 7), `dout_valid` is set to 1 and `dout_parallel` is set to `din_tmp` at the same positive (clk). Otherwise, `dout_valid` and `dout_parallel` is 0.
+</implementation>
+</module>

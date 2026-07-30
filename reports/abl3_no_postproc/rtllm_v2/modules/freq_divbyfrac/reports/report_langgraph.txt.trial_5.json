@@ -1,0 +1,160 @@
+{
+  "module_name": "freq_divbyfrac",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "freq_divbyfrac",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module freq_divbyfrac (\n    input clk, \n    input rst_n, \n    output clk_div\n);\n// Parameter definitions\nparameter MUL2_DIV_CLK = 7;\n// Internal signals\nreg [3:0] cnt;\nreg clk_ave_r, clk_adjust_r;\n// Sequential logic\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        cnt <= 4'b0000;\n    end else if (cnt == MUL2_DIV_CLK - 1) begin\n        cnt <= 4'b0000;\n    end else begin\n        cnt <= cnt + 1;\n    end\nend\n// Combinational logic for average clock generation\nalways @* begin\n    if(cnt == 4'b0000 || cnt == 4'b0100) begin\n        clk_ave_r = 1'b1;\n    end else begin\n        clk_ave_r = 1'b0;\n    end\nend\n// Combinational logic for adjusted clock generation\nalways @* begin\n    if(cnt == 4'b0001 || cnt == 4'b0100) begin\n        clk_adjust_r = 1'b1;\n    end else begin\n        clk_adjust_r = 1'b0;\n    end\nend\n// Assign the fractional divided clock output\nassign clk_div = clk_adjust_r | clk_ave_r;\nendmodule\n",
+    "xml_description": "<module id=\"freq_divbyfrac\">\n    <description>Frequency Divider implementing fractional division by 3.5x using double edge clocking technique</description>\n    <ports>\n        <input id=\"clk\">Input Clock Signal</input>\n        <input id=\"rst_n\">Active Low Reset Signal</input>\n        <output id=\"clk_div\">Fractional Divided Clock Output</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"DIV_NUM\" value=\"7\">Number of divisions for fractional division</parameter>\n        <parameter id=\"HALF_CLK_PERIODE\" value=\"3\">Half of the clock periode</parameter>\n        <parameter id=\"SRC_CLK_PERIODE\" value=\"7\">Source clock periode</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"count\" width_description=\"[3:0]\">Count variable for fractional division&lt;/reg>\n        &lt;reg id=\"div_clk\" width_description=\"[1:0]\">Divided clock signal&lt;/reg>\n        &lt;wire id=\"src_clk_periode\">Source clock periode&lt;/wire>\n        &lt;assign src_clk_periode = DIV_NUM + HALF_CLK_PERIODE;\n        &lt;/assign>\n        &lt;always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                count &lt;= 0;\n            end else begin\n                if(count == SRC_CLK_PERIODE - 1) begin\n                    count &lt;= 0;\n                end else begin\n                    count &lt;= count + 1;\n                end\n            end\n        end\n        \n        &lt;always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                div_clk[0] &lt;= 0;\n            end else begin\n                if(count >= HALF_CLK_PERIODE &amp;&amp; count &lt; DIV_NUM) begin\n                    div_clk[0] &lt;= ~div_clk[0];\n                end\n            end\n        end\n        \n        &lt;always @(negedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                div_clk[1] &lt;= 0;\n            end else begin\n                if(count >= HALF_CLK_PERIODE &amp;&amp; count &lt; DIV_NUM) begin\n                    div_clk[1] &lt;= ~div_clk[1];\n                end\n            end\n        end\n    </logic_description>\n    <implementation>Double edge clocking technique used to implement fractional division by 3.5x</implementation>\n    <task>\n        &lt;id>reset_task&lt;/id>\n        <description>Resets the module's internal states.</description>\n        &lt;sequence>\n            &lt;statement>count &lt;= 0;&lt;/statement>\n            &lt;statement>div_clk &lt;= 0;&lt;/statement>\n        &lt;/sequence>\n    </task>\n    <task>\n        &lt;id>divide_by_half_clk_period_task&lt;/id>\n        <description>Divides the input clock by half its period.</description>\n        &lt;sequence>\n            &lt;if condition=\"count >= HALF_CLK_PERIODE &amp;&amp; count &lt; DIV_NUM\">\n                &lt;then>\n                    &lt;statement>div_clk &lt;= ~div_clk;&lt;/statement>\n                &lt;/then>\n            &lt;/if>\n        &lt;/sequence>\n    </task>\n    <task>\n        &lt;id>advance_div_clock_task&lt;/id>\n        <description>Advances the divided clock by half its period.</description>\n        &lt;sequence>\n            &lt;if condition=\"count >= HALF_CLK_PERIODE &amp;&amp; count &lt; DIV_NUM\">\n                &lt;then>\n                    &lt;statement>div_clk &lt;= ~div_clk;&lt;/statement>\n                &lt;/then>\n            &lt;/if>\n        &lt;/sequence>\n    </task>\n    <task>\n        &lt;id>phase_shift_div_clock_task&lt;/id>\n        <description>Phases shifts the divided clock by half its period.</description>\n        &lt;sequence>\n            &lt;if condition=\"count >= HALF_CLK_PERIODE &amp;&amp; count &lt; DIV_NUM\">\n                &lt;then>\n                    &lt;statement>div_clk &lt;= ~div_clk;&lt;/statement>\n                &lt;/then>\n            &lt;/if>\n        &lt;/sequence>\n    </task>\n    <task>\n        &lt;id>generate_output_clk_task&lt;/id>\n        <description>Generates the fractional divided clock output by combining the divided clocks.</description>\n        &lt;sequence>\n            &lt;statement>clk_div &lt;= |div_clk;&lt;/statement>\n        &lt;/sequence>\n    </task>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:55:2: Missing newline at end of file (POSIX 3.206).\n                                     : ... Suggest add newline.\n   55 |  \n      |  ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module freq_divbyfrac (\n      |        ^~~~~~~~~~~~~~\n                       testbench.v:2:8: ... Location of module with timescale\n    2 | module freq_divbyfrac_tb;\n      |        ^~~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_freq_divbyfrac_vy96omsn/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vfreq_divbyfrac_tb.cpp Vfreq_divbyfrac_tb___024root__0.cpp Vfreq_divbyfrac_tb__main.cpp Vfreq_divbyfrac_tb___024root__Slow.cpp Vfreq_divbyfrac_tb___024root__0__Slow.cpp Vfreq_divbyfrac_tb__Syms__Slow.cpp > Vfreq_divbyfrac_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vfreq_divbyfrac_tb__ALL.o Vfreq_divbyfrac_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vfreq_divbyfrac_tb__ALL.a    -pthread -lpthread -latomic   -o Vfreq_divbyfrac_tb\nrm Vfreq_divbyfrac_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_freq_divbyfrac_vy96omsn/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.044 MB sources in 3 modules, into 0.032 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.202 s (elab=0.001, cvt=0.004, bld=0.192); cpu 0.009 s on 1 threads; allocated 30.547 MB\n\n[RUN]\nFailed at          2: clk=1, clk_div=0 (expected           1)\nFailed at          6: clk=1, clk_div=1 (expected           0)\nFailed at          8: clk=1, clk_div=0 (expected           1)\nFailed at          9: clk=0, clk_div=0 (expected           1)\nFailed at         12: clk=1, clk_div=1 (expected           0)\nFailed at         13: clk=0, clk_div=1 (expected           0)\nFailed at         16: clk=1, clk_div=0 (expected           1)\n=========== Test completed with           7/20 failures ===========\n- testbench.v:27: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 130ns; walltime 0.000 s; speed 1.595 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 7,
+      "best_temperature": 0.7,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 726.17,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 312,
+          "elapsed_s": 255.85
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 277,
+          "elapsed_s": 239.78
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 61,
+          "elapsed_s": 25.62
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 61,
+          "elapsed_s": 25.54
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 58,
+          "elapsed_s": 24.41
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 68,
+          "elapsed_s": 26.04
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 21.79
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 39,
+          "elapsed_s": 27.38
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 37.89
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 73,
+          "elapsed_s": 41.86
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

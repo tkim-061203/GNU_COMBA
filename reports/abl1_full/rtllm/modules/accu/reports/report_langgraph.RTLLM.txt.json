@@ -1,0 +1,56 @@
+{
+  "module_name": "accu",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "accu",
+    "description_type": "RTLLM.txt",
+    "final_status": "pass",
+    "sc_trial": 10,
+    "ts_trial": 9,
+    "total_iter": 19,
+    "gvd": "module accu (\n    input               clk,\n    input               rst_n,\n    input       [7:0]   data_in,\n    input               valid_in,\n    output  reg         valid_out,\n    output  reg [9:0]   data_out\n);\n\nreg [9:0] accum;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        accum <= 0;\n        valid_out <= 0;\n    end else begin\n        if (valid_in) begin\n            accum <= accum + {data_in, 2'b0};\n            if (accum >= 10'd256) begin\n                data_out <= accum;\n                valid_out <= 1;\n                accum <= 0;\n            end else begin\n                valid_out <= 0;\n            end\n        end else begin\n            valid_out <= 0;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"accu\">\n    <description>Accumulates 4 input data and outputs the result.</description>\n    <ports>\n        <input id=\"clk\">Clock input for synchronization.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data for addition.</input>\n        <input id=\"valid_in\">Input signal indicating readiness for new data.</input>\n        <output id=\"valid_out\">Output signal indicating when 4 input data accumulation is reached.</output>\n        <output id=\"data_out\" width_description=\"[9:0]\">10-bit output data representing the accumulated sum.</output>\n    </ports>\n    <implementation>\n        // Sequential logic block triggered on the rising edge of clk or falling edge of rst_n\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                // Reset condition: Set all registers to zero\n                cnt &lt;= 0;\n                data_out_reg &lt;= 0;\n                valid_out_reg &lt;= 0;\n            end else begin\n                // Combinational logic based on valid_in and cnt\n                case ({valid_in, cnt})\n                    2'b00: begin\n                        // When valid_in is low and cnt is 0, do nothing\n                        cnt &lt;= 0;\n                        data_out_reg &lt;= 0;\n                        valid_out_reg &lt;= 0;\n                    end\n                    2'b01: begin\n                        // When valid_in is low and cnt is 1, increment cnt\n                        cnt &lt;= cnt + 1;\n                        data_out_reg &lt;= 0;\n                        valid_out_reg &lt;= 0;\n                    end\n                    2'b10: begin\n                        // When valid_in is high and cnt is 0, accumulate data_in\n                        cnt &lt;= cnt + 1;\n                        data_out_reg &lt;= data_in;\n                        valid_out_reg &lt;= 0;\n                    end\n                    2'b11: begin\n                        // When valid_in is high and cnt is 1, accumulate data_in\n                        cnt &lt;= cnt + 1;\n                        data_out_reg &lt;= data_in + data_out_reg;\n                        valid_out_reg &lt;= 0;\n                    end\n                    2'b12: begin\n                        // When valid_in is high and cnt is 2, accumulate data_in\n                        cnt &lt;= cnt + 1;\n                        data_out_reg &lt;= data_in + data_out_reg;\n                        valid_out_reg &lt;= 0;\n                    end\n                    2'b13: begin\n                        // When valid_in is high and cnt is 3, accumulate data_in\n                        cnt &lt;= cnt + 1;\n                        data_out_reg &lt;= data_in + data_out_reg;\n                        valid_out_reg &lt;= 1;\n                    end\n                    default: begin\n                        // Default case: Reset cnt and valid_out_reg\n                        cnt &lt;= 0;\n                        data_out_reg &lt;= 0;\n                        valid_out_reg &lt;= 0;\n                    end\n                endcase\n            end\n        end\n        // Assigning the output ports to their respective registers\n        assign valid_out = valid_out_reg;\n        assign data_out = data_out_reg;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\nmake: Entering directory '/tmp/comba_accu_ht8t_w9m/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vaccu.cpp Vaccu___024root__0.cpp Vaccu__Trace__0.cpp Vaccu___024root__Slow.cpp Vaccu___024root__0__Slow.cpp Vaccu__Syms__Slow.cpp Vaccu__Trace__0__Slow.cpp Vaccu__TraceDecls__0__Slow.cpp > Vaccu__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vaccu__ALL.o Vaccu__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vaccu__ALL.a    -pthread -lpthread -latomic   -o Vaccu\nrm Vaccu__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_accu_ht8t_w9m/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.027 MB sources in 2 modules, into 0.031 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.367 s (elab=0.000, cvt=0.003, bld=0.359); cpu 0.008 s on 0 threads; allocated 30.543 MB\n\n[RUN]\n",
+    "error": null,
+    "edtm": {
+      "TopModule.sv:N: syntax error": 1,
+      "TB:fsm_state_error::0::": 4,
+      "TB:fsm_state_error::3::logic": 4
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 1,
+      "max_samples": 10,
+      "best_sample_idx": 0,
+      "best_temperature": 0.0,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 83.6,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "pass",
+          "sc_trial": 10,
+          "ts_trial": 9,
+          "iter": 19,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 32,
+          "elapsed_s": 83.6
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 18,
+      "used_fallback": false,
+      "baseline_sc": 2,
+      "final_sc": 0
+    }
+  }
+}

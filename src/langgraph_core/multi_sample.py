@@ -59,6 +59,10 @@ DIVERSITY_HINTS = (
     "DIVERSITY HINT: Reconsider register vs wire choices and reset polarity.",
     "DIVERSITY HINT: Add explicit default cases and ensure all states are reachable.",
     "DIVERSITY HINT: Use parameter literals instead of hardcoded magic numbers.",
+    "DIVERSITY HINT: Mind signedness — use `signed` wires and `>>>` only on signed operands so arithmetic shifts sign-extend correctly.",
+    "DIVERSITY HINT: Derive status/flag outputs (zero, carry, negative, overflow) from the full-width internal result, not from a truncated slice.",
+    "DIVERSITY HINT: Cover every operation/case-item explicitly and re-check each against the spec's exact bit semantics.",
+    "DIVERSITY HINT: Check boundary values — zero, max-width, shift-by-0, shift-by-≥width, and sign-bit transitions.",
 )
 
 DIVERSITY_ENABLED = os.getenv("COMBA_DIVERSITY_HINTS", "1") == "1"

@@ -1,0 +1,160 @@
+{
+  "module_name": "asyn_fifo",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "asyn_fifo",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module asyn_fifo(\n\tinput wclk,rclk,wrstn,rrstn,winc,rinc,\n\toutput wfull,rempty,\n\tinput [WIDTH-1:0] wdata,\n\toutput [WIDTH-1:0] rdata\n);\n//Parameters\nparameter WIDTH = 8;\nparameter DEPTH = 16;\n//Internal wires and regs\nwire wen,ren;\nreg [$clog2(DEPTH):0] waddr_bin,raddr_bin;\nreg [$clog2(DEPTH):0] wptr,rptr;\nreg [$clog2(DEPTH):0] wptr_buff,rptr_buff;\nwire [$clog2(DEPTH):0] wptr_gray,rptr_gray;\nwire [$clog2(DEPTH):0] wptr_syn,rptr_syn;\n//Assignments\nassign wen=winc&(~wfull);\nassign ren=rinc&(~rempty);\nassign waddr=waddr_bin[$clog2(DEPTH)-1:0];\nassign raddr=raddr_bin[$clog2(DEPTH)-1:0];\n//Write Pointer Logic\nalways@(posedge wclk or negedge wrstn)begin\n\tif(!wrstn)begin\n\t\twaddr_bin<=0;\n\t\twptr<=0;\n\tend\n\telse begin\n\t\tif(winc&(~wfull))begin\n\t\t\twaddr_bin<=waddr_bin+1;\n\t\t\twptr<={wptr[$clog2(DEPTH)],^wptr[$clog2(DEPTH)-1:0]};\n\t\tend\n\tend\nend\n//Read Pointer Logic\nalways@(posedge rclk or negedge rrstn)begin\n\tif(!rrstn)begin\n\t\traddr_bin<=0;\n\t\trptr<=0;\n\tend\n\telse begin\n\t\tif(rinc&(~rempty))begin\n\t\t\traddr_bin<=raddr_bin+1;\n\t\t\trptr<={rptr[$clog2(DEPTH)],^rptr[$clog2(DEPTH)-1:0]};\n\t\tend\n\tend\nend\n//Gray Code Conversion\nassign wptr_gray=wptr^(wptr>>1);\nassign rptr_gray=rptr^(rptr>>1);\n//Buffer Registers\nalways@(posedge wclk or negedge wrstn)begin\n\tif(!wrstn)begin\n\t\twptr_buff<=0;\n\tend\n\telse begin\n\t\twptr_buff<=wptr_gray;\n\tend\nend\nalways@(posedge rclk or negedge rrstn)begin\n\tif(!rrstn)begin\n\t\trptr_buff<=0;\n\tend\n\telse begin\n\t\trptr_buff<=rptr_gray;\n\tend\nend\n//Full and Empty Signal Generation\nassign wptr_syn=wptr_buff^(wptr_buff>>1);\nassign rptr_syn=rptr_buff^(rptr_buff>>1);\nassign wfull=(wptr=={~rptr_syn[$clog2(DEPTH)],rptr_syn[$clog2(DEPTH)-1:0]});\nassign rempty=(rptr==wptr_syn);\nendmodule\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Asynchronous FIFO implementation with configurable parameters WIDTH and DEPTH.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal.</input>\n        <input id=\"rclk\">Read clock signal.</input>\n        <input id=\"wrstn\">Write reset signal.</input>\n        <input id=\"rrstn\">Read reset signal.</input>\n        <input id=\"winc\">Write increment signal.</input>\n        <input id=\"rinc\">Read increment signal.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input.</input>\n        <output id=\"wfull\">Write full signal.</output>\n        <output id=\"rempty\">Read empty signal.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output.</output>\n    </ports>\n    <parameter_description>\n        &lt;param id=\"WIDTH\">FIFO data width.&lt;/param>\n        &lt;param id=\"DEPTH\">FIFO depth.&lt;/param>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;assign id=\"wen\">winc &amp; ~wfull;&lt;/assign>\n        &lt;assign id=\"ren\">rinc &amp; ~rempty;&lt;/assign>\n    </logic_description>\n    <implementation>\n        // Dual-port RAM instance\n        dual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH)) ram_inst (\n            .wclk(wclk),\n            .wenc(wen),\n            .waddr(waddr),\n            .wdata(wdata),\n            .rclk(rclk),\n            .renc(ren),\n            .raddr(raddr),\n            .rdata(rdata)\n        );\n        // Write Pointer Logic\n        reg [$clog2(DEPTH):0] waddr_bin;\n        reg [$clog2(DEPTH):0] wptr;\n        \n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                waddr_bin &lt;= 0;\n                wptr &lt;= 0;\n            end else begin\n                if (winc &amp;&amp; !wfull) begin\n                    waddr_bin &lt;= waddr_bin + 1;\n                    wptr &lt;= {wptr[$clog2(DEPTH)], ^wptr[$clog2(DEPTH)-1:0]};\n                end\n            end\n        end\n        \n        // Read Pointer Logic\n        reg [$clog2(DEPTH):0] raddr_bin;\n        reg [$clog2(DEPTH):0] rptr;\n        \n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                raddr_bin &lt;= 0;\n                rptr &lt;= 0;\n            end else begin\n                if (rinc &amp;&amp; !rempty) begin\n                    raddr_bin &lt;= raddr_bin + 1;\n                    rptr &lt;= {rptr[$clog2(DEPTH)], ^rptr[$clog2(DEPTH)-1:0]};\n                end\n            end\n        end\n        \n        // Gray Code Conversion\n        wire [$clog2(DEPTH):0] wptr_gray;\n        wire [$clog2(DEPTH):0] rptr_gray;\n        \n        assign wptr_gray = wptr ^ (wptr >> 1);\n        assign rptr_gray = rptr ^ (rptr >> 1);\n        \n        // Buffer Registers\n        reg [$clog2(DEPTH):0] wptr_buff;\n        reg [$clog2(DEPTH):0] rptr_buff;\n        \n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                wptr_buff &lt;= 0;\n            end else begin\n                wptr_buff &lt;= wptr_gray;\n            end\n        end\n        \n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                rptr_buff &lt;= 0;\n            end else begin\n                rptr_buff &lt;= rptr_gray;\n            end\n        end\n        \n        // Full and Empty Signal Generation\n        wire [$clog2(DEPTH):0] wptr_syn;\n        wire [$clog2(DEPTH):0] rptr_syn;\n        \n        assign wptr_syn = wptr_buff ^ (wptr_buff >> 1);\n        assign rptr_syn = rptr_buff ^ (rptr_buff >> 1);\n        \n        assign wfull = (wptr == {~rptr_syn[$clog2(DEPTH)], rptr_syn[$clog2(DEPTH)-1:0]});\n        assign rempty = (rptr == wptr_syn);\n        \n        // Assigning Outputs\n        assign waddr = waddr_bin[$clog2(DEPTH)-1:0];\n        assign raddr = raddr_bin[$clog2(DEPTH)-1:0];\n    </implementation>\n    \n    <task>\n        <description>Task to implement the dual-port RAM functionality.</description>\n        &lt;step>Instantiate the dual-port RAM module with specified parameters.&lt;/step>\n        &lt;step>Connect the appropriate signals between the main module and the instantiated RAM module.&lt;/step>\n        &lt;step>Ensure proper synchronization between the write and read operations.&lt;/step>\n        &lt;step>Handle the full and empty conditions based on the comparison of pointers.&lt;/step>\n    </task>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:115:10: Missing newline at end of file (POSIX 3.206).\n                                       : ... Suggest add newline.\n  115 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module asyn_fifo(\n      |        ^~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module asyn_fifo_tb;\n      |        ^~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-IMPLICIT: TopModule.sv:20:8: Signal definition not found, creating implicitly: 'waddr'\n   20 | assign waddr=waddr_bin[$clog2(DEPTH)-1:0];\n      |        ^~~~~\n                   ... For warning description see https://verilator.org/warn/IMPLICIT?v=5.048\n                   ... Use \"/* verilator lint_off IMPLICIT */\" and lint_on around source to disable this message.\n%Warning-IMPLICIT: TopModule.sv:21:8: Signal definition not found, creating implicitly: 'raddr'\n                                    : ... Suggested alternative: 'waddr'\n   21 | assign raddr=raddr_bin[$clog2(DEPTH)-1:0];\n      |        ^~~~~\n%Warning-UNDRIVEN: TopModule.sv:5:21: Signal is not driven: 'rdata'\n                                    : ... note: In instance 'asyn_fifo_tb.dut'\n    5 |  output [WIDTH-1:0] rdata\n      |                     ^~~~~\n                   ... For warning description see https://verilator.org/warn/UNDRIVEN?v=5.048\n                   ... Use \"/* verilator lint_off UNDRIVEN */\" and lint_on around source to disable this message.\nmake: Entering directory '/tmp/comba_asyn_fifo_qnw29q4m/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vasyn_fifo_tb.cpp Vasyn_fifo_tb___024root__0.cpp Vasyn_fifo_tb_std__03a__03asemaphore__Vclpkg__0.cpp Vasyn_fifo_tb_std__03a__03aprocess__Vclpkg__0.cpp Vasyn_fifo_tb__main.cpp Vasyn_fifo_tb___024root__Slow.cpp Vasyn_fifo_tb___024root__0__Slow.cpp Vasyn_fifo_tb___024unit__Slow.cpp Vasyn_fifo_tb_std__Slow.cpp Vasyn_fifo_tb_std__03a__03asemaphore__Vclpkg__Slow.cpp Vasyn_fifo_tb_std__03a__03aprocess__Vclpkg__Slow.cpp Vasyn_fifo_tb__Syms__Slow.cpp > Vasyn_fifo_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vasyn_fifo_tb__ALL.o Vasyn_fifo_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vasyn_fifo_tb__ALL.a    -pthread -lpthread -latomic   -o Vasyn_fifo_tb\nrm Vasyn_fifo_tb__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_asyn_fifo_qnw29q4m/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.046 MB sources in 8 modules, into 0.079 MB in 12 C++ files needing 0.000 MB\n- Verilator: Walltime 0.199 s (elab=0.002, cvt=0.008, bld=0.182); cpu 0.017 s on 1 threads; allocated 30.539 MB\n\n[RUN]\nFailed at step 0 (t=560): wfull=0/exp 1, rempty=1/exp 0, rdata=00/exp 01\nFailed at step 1 (t=570): wfull=0/exp 1, rempty=1/exp 0, rdata=00/exp 01\nFailed at step 2 (t=580): wfull=0/exp 1, rempty=1/exp 0, rdata=00/exp ab\nFailed at step 3 (t=590): wfull=0/exp 0, rempty=1/exp 0, rdata=00/exp ab\nFailed at step 4 (t=600): wfull=0/exp 0, rempty=1/exp 0, rdata=00/exp ac\n===========Error===========\n- testbench.v:52: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 1us; walltime 0.000 s; speed 5.509 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 980.87,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 122,
+          "elapsed_s": 283.97
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 94,
+          "elapsed_s": 91.49
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 107,
+          "elapsed_s": 63.21
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 73,
+          "elapsed_s": 60.62
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 94,
+          "elapsed_s": 130.48
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 88,
+          "elapsed_s": 73.51
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 118,
+          "elapsed_s": 51.53
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 146,
+          "elapsed_s": 67.09
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 100,
+          "elapsed_s": 30.36
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 4,
+          "gvd_lines": 178,
+          "elapsed_s": 128.61
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

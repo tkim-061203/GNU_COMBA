@@ -1,0 +1,160 @@
+{
+  "module_name": "multi_pipe_4bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_4bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_pipe_4bit(\n    input clk, \n    input rst_n, \n    input [3:0] mul_a, \n    input [3:0] mul_b, \n    output [7:0] mul_out\n);\n// Extension of input signals\n    wire [7:0] mul_a_ext, mul_b_ext;\n    assign mul_a_ext = {4'b0, mul_a};\n    assign mul_b_ext = {4'b0, mul_b};\n    \n// Generation of partial products\n    wire [7:0] partial_products [3:0];\n    genvar i;\n    generate\n        for(i = 0; i < 4; i = i + 1) begin : gen_partial_products\n            assign partial_products[i] = (mul_b_ext[i]) ? (mul_a_ext << i) : 'd0;\n        end\n    endgenerate\n    \n// Registers for storing intermediate sums\n    reg [7:0] reg_sum [3:0];\n    integer j;\n    always @(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            for(j = 0; j < 4; j = j + 1) begin\n                reg_sum[j] <= 0;\n            end\n        end else begin\n            for(j = 0; j < 4; j = j + 1) begin\n                reg_sum[j] <= reg_sum[j] + partial_products[j];\n            end\n        end\n    end\n    \n// Final product calculation\n    reg [7:0] product;\n    always @(posedge clk or negedge rst_n) begin\n        if(!rst_n) begin\n            product <= 0;\n        end else begin\n            product <= reg_sum[0] + reg_sum[1] + reg_sum[2] + reg_sum[3];\n        end\n    end\n    \n// Output assignment\n    assign mul_out = product;\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_4bit\">\n    <description>4-bit Unsigned Number Pipeline Multiplier</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"mul_a\" width_description=\"[3:0]\">Multiplicand input signal.</input>\n        <input id=\"mul_b\" width_description=\"[3:0]\">Multiplier input signal.</input>\n        <output id=\"mul_out\" width_description=\"[7:0]\">Product output signal.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"size\" value=\"4\">Size parameter for the multiplier.</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;assign id=\"mul_a_ext\" width_description=\"[7:0]\">Extended multiplicand signal.&lt;/assign>\n        &lt;assign id=\"mul_b_ext\" width_description=\"[7:0]\">Extended multiplier signal.&lt;/assign>\n        &lt;assign id=\"partial_products\" width_description=\"[7:0][3:0]\">Array of partial products.&lt;/assign>\n        &lt;assign id=\"reg_sum\" width_description=\"[7:0][3:0]\">Register array for storing sums.&lt;/assign>\n        &lt;assign id=\"product\" width_description=\"[7:0]\">Final product signal.&lt;/assign>\n    </logic_description>\n    <implementation>\n        // Extend inputs\n        assign mul_a_ext = {4'b0, mul_a};\n        assign mul_b_ext = {4'b0, mul_b};\n        \n        // Generate partial products\n        genvar i;\n        generate\n            for (i = 0; i &lt; size; i = i + 1) begin : gen_partial_products\n                assign partial_products[i] = (mul_b_ext[i]) ? (mul_a_ext &lt;&lt; i) : 'd0;\n            end\n        endgenerate\n        \n        // Add partial products\n        integer j;\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                for (j = 0; j &lt; size; j = j + 1) begin\n                    reg_sum[j] &lt;= 0;\n                end\n            end else begin\n                for (j = 0; j &lt; size; j = j + 1) begin\n                    reg_sum[j] &lt;= reg_sum[j] + partial_products[j];\n                end\n            end\n        end\n        \n        // Calculate final product\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                product &lt;= 0;\n            end else begin\n                product &lt;= reg_sum[0] + reg_sum[1] + reg_sum[2] + reg_sum[3];\n            end\n        end\n        \n        // Assign outputs\n        assign mul_out = product;\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:57:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   57 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module multi_pipe_4bit(\n      |        ^~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module multi_pipe_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Error-PINNOTFOUND: testbench.v:11:22: Parameter not found: 'size'\n   11 |   multi_pipe_4bit #(.size(4)) dut (\n      |                      ^~~~\n                                     : ... Location of instance's module declaration\n    1 | module multi_pipe_4bit(\n      |        ^~~~~~~~~~~~~~~\n                    ... For error description see https://verilator.org/warn/PINNOTFOUND?v=5.048\n%Error: Exiting due to 1 error(s)\n\n[COMPILE FAILED]",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 2,
+      "best_temperature": 0.2,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 383.09,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 54,
+          "elapsed_s": 32.49
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 50,
+          "elapsed_s": 24.72
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 49,
+          "elapsed_s": 24.71
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 34.58
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 64,
+          "elapsed_s": 43.19
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 46,
+          "elapsed_s": 29.6
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 45.25
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 56,
+          "elapsed_s": 46.81
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 3,
+          "gvd_lines": 66,
+          "elapsed_s": 51.17
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 61,
+          "elapsed_s": 50.57
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

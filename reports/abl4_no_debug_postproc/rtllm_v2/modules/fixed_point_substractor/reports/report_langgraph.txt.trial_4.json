@@ -1,0 +1,160 @@
+{
+  "module_name": "fixed_point_substractor",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "fixed_point_substractor",
+    "description_type": "txt",
+    "final_status": "pass",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module fixed_point_subtractor (\n    input [N-1:0] a, b,\n    output [N-1:0] c\n);\n// Parameters\n    parameter Q = 16;\n    parameter N = 32;\n// Internal wires and regs\n    reg [N-1:0] res;\n    reg [N-1:0] temp;\n    reg [N-1:0] diff;\n// Combinational logic for subtraction\n    always @(*) begin\n        if(a[N-1] == b[N-1]) begin\n            // Same sign subtraction\n            diff = a[N-1:0] - b[N-1:0];\n            res = {diff[N-1:0]};\n        end else begin\n            // Different sign subtraction\n            temp = a[N-1:0] + b[N-1:0];\n            if(temp[N-1] == 1'b0 && a > b) begin\n                res = temp[N-1:0];\n                res[N-1] = 1'b1; // Positive sign\n            end else begin\n                res = temp[N-1:0];\n                res[N-1] = 1'b0; // Negative sign\n            end\n        end\n        \n        // Handle special case for zero\n        if(res == 0) begin\n            res[N-1] = 0; // Set the sign bit to 0\n        end\n    end\n    \n    // Output the result\n    assign c = res[N-1:0];\nendmodule\n",
+    "xml_description": "<module id=\"fixed_point_subtractor\">\n    <description>A module that implements a fixed-point subtractor for precise arithmetic operations with fixed precision.</description>\n    <ports>\n        <input id=\"a\" width_description=\"[N-1:0]\">First N-bit fixed-point input operand.</input>\n        <input id=\"b\" width_description=\"[N-1:0]\">Second N-bit fixed-point input operand.</input>\n        <output id=\"c\" width_description=\"[N-1:0]\">N-bit output representing the result of the fixed-point subtraction.</output>\n        \n        <parameter id=\"Q\" type=\"integer\" value=\"0\">Represents the number of fractional bits in the fixed-point representation.</parameter>\n        <parameter id=\"N\" type=\"integer\" value=\"0\">Represents the total number of bits (both integer and fractional) used for inputs and outputs.</parameter>\n    </ports>\n    \n    <parameter_description>\n        <parameter id=\"ZERO\" type=\"reg\" value=\"0\">Constant value 0.</parameter>\n        <parameter id=\"ONE\" type=\"reg\" value=\"1\">Constant value 1.</parameter>\n    </parameter_description>\n    \n    <logic_description>\n        &lt;sequential_logic id=\"res\" type=\"register\" width_description=\"[N-1:0]\" reset_value=\"[N-1:0]0\">Register to store the result of the subtraction operation.&lt;/sequential_logic>\n    </logic_description>\n    \n    <implementation>\n        // Implementing same-sign subtraction\n        assign c = ({N{a[N-1]}} == {N{b[N-1]}})? ((a[N-1:0] - b[N-1:0]) | {(N){~(|(a[N-1:0] ^ b[N-1:0]))}}): {{(N-Q+1){1'bx}}, (((a[N-1:0] + b[N-1:0]) &amp; {N{~a[N-1]}}) | (~((a[N-1:0] + b[N-1:0]) &amp; {N{a[N-1]}})))};\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:76:10: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   76 | endmodule\n      |          ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module fixed_point_subtractor (\n      |        ^~~~~~~~~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_fixed_point_subtractor;\n      |        ^~~~~~~~~~~~~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-LATCH: TopModule.sv:13:5: Latch inferred for signal 'tb_fixed_point_subtractor.uut.diff' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   13 |     always @(*) begin\n      |     ^~~~~~\n                ... For warning description see https://verilator.org/warn/LATCH?v=5.048\n                ... Use \"/* verilator lint_off LATCH */\" and lint_on around source to disable this message.\n%Warning-LATCH: TopModule.sv:13:5: Latch inferred for signal 'tb_fixed_point_subtractor.uut.res' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   13 |     always @(*) begin\n      |     ^~~~~~\n%Warning-LATCH: TopModule.sv:13:5: Latch inferred for signal 'tb_fixed_point_subtractor.uut.temp' (not all control paths of combinational always assign a value)\n                                 : ... Suggest use of always_latch for intentional latches\n   13 |     always @(*) begin\n      |     ^~~~~~\nmake: Entering directory '/tmp/comba_fixed_point_substractor_4fpemcte/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_fixed_point_subtractor.cpp Vtb_fixed_point_subtractor___024root__0.cpp Vtb_fixed_point_subtractor__main.cpp Vtb_fixed_point_subtractor___024root__Slow.cpp Vtb_fixed_point_subtractor___024root__0__Slow.cpp Vtb_fixed_point_subtractor__Syms__Slow.cpp > Vtb_fixed_point_subtractor__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_fixed_point_subtractor__ALL.o Vtb_fixed_point_subtractor__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_fixed_point_subtractor__ALL.a    -pthread -lpthread -latomic   -o Vtb_fixed_point_subtractor\nrm Vtb_fixed_point_subtractor__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_fixed_point_substractor_4fpemcte/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.045 MB sources in 3 modules, into 0.042 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.319 s (elab=0.001, cvt=0.004, bld=0.308); cpu 0.011 s on 1 threads; allocated 30.539 MB\n\n[RUN]\n=========== Your Design Passed ===========\n- testbench.v:73: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 1us; walltime 0.000 s; speed 16.568 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 9,
+      "best_temperature": 0.9,
+      "best_status": "pass",
+      "early_exit": true,
+      "vote_enabled": false,
+      "total_elapsed_s": 231.94,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 30,
+          "elapsed_s": 17.12
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 25,
+          "elapsed_s": 17.99
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 30,
+          "elapsed_s": 17.66
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 37,
+          "elapsed_s": 28.57
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 6,
+          "gvd_lines": 42,
+          "elapsed_s": 19.12
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 27,
+          "elapsed_s": 16.78
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 33,
+          "elapsed_s": 26.46
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 49,
+          "elapsed_s": 46.79
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 5,
+          "gvd_lines": 26,
+          "elapsed_s": 22.16
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "pass",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 38,
+          "elapsed_s": 19.31
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

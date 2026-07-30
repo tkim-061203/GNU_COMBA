@@ -1,0 +1,160 @@
+{
+  "module_name": "div_8bit",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "div_8bit",
+    "description_type": "RTLLM.txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module div_8bit(\n    input clk, input rst, input sign, input [7:0] dividend, input [7:0] divisor, input opn_valid, output res_ready, output [15:0] result, output res_valid\n);\n// Your design here\nreg res_valid_reg,res_ready_reg;\nreg [15:0] result_reg;\nreg start_cnt_reg;\nreg [3:0] cnt_reg;\nreg [8:0] neg_divisor_reg;\nreg [7:0] dividend_abs_reg,divisor_abs_reg;\nreg [17:0] sr_reg;\nwire [17:0] sub_result_wire;\nwire [17:0] mux_out_wire;\nwire carry_out_wire;\nassign sub_result_wire = sr_reg + {9'b0,neg_divisor_reg}; // Adder/Subtractor\nassign mux_out_wire = (sub_result_wire[17]) ? sr_reg : sub_result_wire;\nassign carry_out_wire = ~sub_result_wire[17];\nalways @(posedge clk or posedge rst) begin\n    if(rst) begin\n        res_valid_reg <= 1'b0;\n        res_ready_reg <= 1'b0;\n        result_reg <= 16'd0;\n        \n        start_cnt_reg <= 1'b0;\n        cnt_reg <= 4'd0;\n        neg_divisor_reg <= 9'd0;\n        dividend_abs_reg <= 8'd0;\n        divisor_abs_reg <= 8'd0;\n        sr_reg <= 18'd0;\n    end else begin\n        case(cnt_reg)\n            4'd0: begin\n                if(opn_valid && !res_valid_reg) begin\n                    dividend_abs_reg <= (sign & dividend[7]) ? (~dividend+1'b1) : dividend;\n                    divisor_abs_reg <= (sign & divisor[7]) ? (~divisor+1'b1) : divisor;\n                    neg_divisor_reg <= ~(divisor_abs_reg)+1'b1;\n                    \n                    sr_reg <= {1'b0,dividend_abs_reg} << 1;\n                    cnt_reg <= 4'd1;\n                    start_cnt_reg <= 1'b1;\n                end\n            end\n            \n            default: begin\n                if(start_cnt_reg) begin\n                    if(cnt_reg[3]) begin\n                        cnt_reg <= 4'd0;\n                        start_cnt_reg <= 1'b0;\n                        \n                        sr_reg <= mux_out_wire;\n                        result_reg <= {sr_reg[17:1],carry_out_wire};\n                        res_valid_reg <= 1'b1;\n                    end else begin\n                        cnt_reg <= cnt_reg + 1'b1;\n                        sr_reg <= {mux_out_wire[16:0],carry_out_wire};\n                    end\n                end\n            end\n        endcase\n        \n        if(res_valid_reg && res_ready_reg) begin\n            res_valid_reg <= 1'b0;\n        end\n    end\nend\nassign res_valid=res_valid_reg;\nassign res_ready=res_ready_reg;\nassign result=result_reg;\nassign start_cnt=start_cnt_reg;\nassign cnt=cnt_reg;\nassign neg_divisor=neg_divisor_reg;\nassign dividend_abs=dividend_abs_reg;\nassign divisor_abs=divisor_abs_reg;\nassign sr=sr_reg;\nendmodule\n",
+    "xml_description": "<module id=\"div_8bit\">\n    <description>Implement a simplified radix-2 divider on 8-bit signed or unsigned integers. and the inputs are two 8-bit operands. The module accepts a dividend and a divisor as inputs and provides a 16-bit result containing both the quotient and the remainder. The design supports both signed and unsigned division operations.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst\">The reset signal to initialize or reset the module.</input>\n        <input id=\"sign\">1-bit indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">8-bit input signal representing the dividend for division.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">8-bit input signal representing the divisor for division.</input>\n        <input id=\"opn_valid\">1-bit indicates that a valid operation request is present.</input>\n        <output id=\"res_ready\">1-bit indicates that the 16-bit output result has already been acknowledged.</output>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit the output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n        <output id=\"res_valid\">1-bit output signal indicating the result is valid and ready.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"IDLE\">State IDLE = 2'b00;</parameter>\n        <parameter id=\"DIVIDE\">State DIVIDE = 2'b01;</parameter>\n        <parameter id=\"DONE\">State DONE = 2'b10;</parameter>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        &lt;reg id=\"res_valid\" width_description=\"[0:0]\">1-bit output signal indicating the result is valid and ready.&lt;/reg>\n        &lt;reg id=\"res_ready\" width_description=\"[0:0]\">1-bit indicates that the 16-bit output result has already been acknowledged.&lt;/reg>\n        &lt;reg id=\"result\" width_description=\"[15:0]\">16-bit the output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.&lt;/reg>\n        \n        &lt;reg id=\"start_cnt\" width_description=\"[0:0]\">Start counter.&lt;/reg>\n        &lt;reg id=\"cnt\" width_description=\"[3:0]\">Counter.&lt;/reg>\n        &lt;reg id=\"neg_divisor\" width_description=\"[8:0]\">Negated divisor.&lt;/reg>\n        &lt;reg id=\"dividend_abs\" width_description=\"[7:0]\">Absolute value of the dividend.&lt;/reg>\n        &lt;reg id=\"divisor_abs\" width_description=\"[7:0]\">Absolute value of the divisor.&lt;/reg>\n        &lt;reg id=\"sr\" width_description=\"[9:0]\">Shift register.&lt;/reg>\n        &lt;wire id=\"sub_result\" width_description=\"[9:0]\">Subtraction result.&lt;/wire>\n        &lt;wire id=\"mux_out\" width_description=\"[9:0]\">Multiplexor output.&lt;/wire>\n        &lt;wire id=\"carry_out\" width_description=\"[0:0]\">Carry out.&lt;/wire>\n        &lt;assign sub_result = sr[9:0] + {1'b0,neg_divisor}; // Adder/Subtractor\n        &lt;assign mux_out = (sub_result[9]) ? sr : sub_result;\n        &lt;assign carry_out = ~sub_result[9];\n        &lt;always @(posedge clk or posedge rst) begin\n            if(rst) begin\n                res_valid &lt;= 1'b0;\n                res_ready &lt;= 1'b0;\n                result &lt;= 16'd0;\n                \n                start_cnt &lt;= 1'b0;\n                cnt &lt;= 4'd0;\n                neg_divisor &lt;= 9'd0;\n                dividend_abs &lt;= 8'd0;\n                divisor_abs &lt;= 8'd0;\n                sr &lt;= 10'd0;\n            end else begin\n                case(cnt)\n                    4'd0: begin\n                        if(opn_valid &amp;&amp; !res_valid) begin\n                            dividend_abs &lt;= (sign &amp; dividend[7]) ? (~dividend+1'b1) : dividend;\n                            divisor_abs &lt;= (sign &amp; divisor[7]) ? (~divisor+1'b1) : divisor;\n                            neg_divisor &lt;= ~(divisor_abs)+1'b1;\n                            \n                            sr &lt;= {1'b0,dividend_abs} &lt;&lt; 1;\n                            cnt &lt;= 4'd1;\n                            start_cnt &lt;= 1'b1;\n                        end\n                    end\n                    \n                    default: begin\n                        if(start_cnt) begin\n                            if(cnt[3]) begin\n                                cnt &lt;= 4'd0;\n                                start_cnt &lt;= 1'b0;\n                                \n                                sr &lt;= mux_out;\n                                result &lt;= {sr[9:1],carry_out};\n                                res_valid &lt;= 1'b1;\n                            end else begin\n                                cnt &lt;= cnt + 1'b1;\n                                sr &lt;= {mux_out[8:0],carry_out};\n                            end\n                        end\n                    end\n                endcase\n                \n                if(res_valid &amp;&amp; res_ready) begin\n                    res_valid &lt;= 1'b0;\n                end\n            end\n        end\n    </logic_description>\n    \n    <implementation>Design your implementation here!</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-IMPLICIT: div_8bit.v:69:8: Signal definition not found, creating implicitly: 'start_cnt'\n                                  : ... Suggested alternative: 'start_cnt_reg'\n   69 | assign start_cnt=start_cnt_reg;\n      |        ^~~~~~~~~\n                   ... For warning description see https://verilator.org/warn/IMPLICIT?v=5.048\n                   ... Use \"/* verilator lint_off IMPLICIT */\" and lint_on around source to disable this message.\n%Warning-IMPLICIT: div_8bit.v:70:8: Signal definition not found, creating implicitly: 'cnt'\n   70 | assign cnt=cnt_reg;\n      |        ^~~\n%Warning-IMPLICIT: div_8bit.v:71:8: Signal definition not found, creating implicitly: 'neg_divisor'\n                                  : ... Suggested alternative: 'divisor'\n   71 | assign neg_divisor=neg_divisor_reg;\n      |        ^~~~~~~~~~~\n%Warning-IMPLICIT: div_8bit.v:72:8: Signal definition not found, creating implicitly: 'dividend_abs'\n                                  : ... Suggested alternative: 'dividend'\n   72 | assign dividend_abs=dividend_abs_reg;\n      |        ^~~~~~~~~~~~\n%Warning-IMPLICIT: div_8bit.v:73:8: Signal definition not found, creating implicitly: 'divisor_abs'\n                                  : ... Suggested alternative: 'divisor'\n   73 | assign divisor_abs=divisor_abs_reg;\n      |        ^~~~~~~~~~~\n%Warning-IMPLICIT: div_8bit.v:74:8: Signal definition not found, creating implicitly: 'sr'\n   74 | assign sr=sr_reg;\n      |        ^~\n%Warning-WIDTHEXPAND: div_8bit.v:36:40: Operator NOT expects 9 bits on the LHS, but LHS's VARREF 'divisor_abs_reg' generates 8 bits.\n                                      : ... note: In instance 'div_8bit'\n   36 |                     neg_divisor_reg <= ~(divisor_abs_reg)+1'b1;\n      |                                        ^\n                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.048\n                      ... Use \"/* verilator lint_off WIDTHEXPAND */\" and lint_on around source to disable this message.\n%Warning-WIDTHEXPAND: div_8bit.v:38:55: Operator SHIFTL expects 18 bits on the LHS, but LHS's REPLICATE generates 9 bits.\n                                      : ... note: In instance 'div_8bit'\n   38 |                     sr_reg <= {1'b0,dividend_abs_reg} << 1;\n      |                                                       ^~\n%Warning-WIDTHTRUNC: div_8bit.v:51:36: Operator ASSIGNDLY expects 16 bits on the Assign RHS, but Assign RHS's REPLICATE generates 18 bits.\n                                     : ... note: In instance 'div_8bit'\n   51 |                         result_reg <= {sr_reg[17:1],carry_out_wire};\n      |                                    ^~\n                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.048\n                     ... Use \"/* verilator lint_off WIDTHTRUNC */\" and lint_on around source to disable this message.\n%Warning-WIDTHTRUNC: div_8bit.v:70:11: Operator ASSIGNW expects 1 bits on the Assign RHS, but Assign RHS's VARREF 'cnt_reg' generates 4 bits.\n                                     : ... note: In instance 'div_8bit'\n   70 | assign cnt=cnt_reg;\n      |           ^\n%Warning-WIDTHTRUNC: div_8bit.v:71:19: Operator ASSIGNW expects 1 bits on the Assign RHS, but Assign RHS's VARREF 'neg_divisor_reg' generates 9 bits.\n                                     : ... note: In instance 'div_8bit'\n   71 | assign neg_divisor=neg_divisor_reg;\n      |                   ^\n%Warning-WIDTHTRUNC: div_8bit.v:72:20: Operator ASSIGNW expects 1 bits on the Assign RHS, but Assign RHS's VARREF 'dividend_abs_reg' generates 8 bits.\n                                     : ... note: In instance 'div_8bit'\n   72 | assign dividend_abs=dividend_abs_reg;\n      |                    ^\n%Warning-WIDTHTRUNC: div_8bit.v:73:19: Operator ASSIGNW expects 1 bits on the Assign RHS, but Assign RHS's VARREF 'divisor_abs_reg' generates 8 bits.\n                                     : ... note: In instance 'div_8bit'\n   73 | assign divisor_abs=divisor_abs_reg;\n      |                   ^\n%Warning-WIDTHTRUNC: div_8bit.v:74:10: Operator ASSIGNW expects 1 bits on the Assign RHS, but Assign RHS's VARREF 'sr_reg' generates 18 bits.\n                                     : ... note: In instance 'div_8bit'\n   74 | assign sr=sr_reg;\n      |          ^\n%Warning-UNUSEDSIGNAL: div_8bit.v:69:8: Signal is not used: 'start_cnt'\n                                      : ... note: In instance 'div_8bit'\n   69 | assign start_cnt=start_cnt_reg;\n      |        ^~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.048\n                       ... Use \"/* verilator lint_off UNUSEDSIGNAL */\" and lint_on around source to disable this message.\n%Warning-UNUSEDSIGNAL: div_8bit.v:70:8: Signal is not used: 'cnt'\n                                      : ... note: In instance 'div_8bit'\n   70 | assign cnt=cnt_reg;\n      |        ^~~\n%Warning-UNUSEDSIGNAL: div_8bit.v:71:8: Signal is not used: 'neg_divisor'\n                                      : ... note: In instance 'div_8bit'\n   71 | assign neg_divisor=neg_divisor_reg;\n      |        ^~~~~~~~~~~\n%Warning-UNUSEDSIGNAL: div_8bit.v:72:8: Signal is not used: 'dividend_abs'\n                                      : ... note: In instance 'div_8bit'\n   72 | assign dividend_abs=dividend_abs_reg;\n      |        ^~~~~~~~~~~~\n%Warning-UNUSEDSIGNAL: div_8bit.v:73:8: Signal is not used: 'divisor_abs'\n                                      : ... note: In instance 'div_8bit'\n   73 | assign divisor_abs=divisor_abs_reg;\n      |        ^~~~~~~~~~~\n%Warning-UNUSEDSIGNAL: div_8bit.v:74:8: Signal is not used: 'sr'\n                                      : ... note: In instance 'div_8bit'\n   74 | assign sr=sr_reg;\n      |        ^~\nmake: Entering directory '/tmp/comba_div_8bit_s546tljs/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vdiv_8bit.cpp Vdiv_8bit___024root__0.cpp Vdiv_8bit__Trace__0.cpp Vdiv_8bit___024root__Slow.cpp Vdiv_8bit___024root__0__Slow.cpp Vdiv_8bit__Syms__Slow.cpp Vdiv_8bit__Trace__0__Slow.cpp Vdiv_8bit__TraceDecls__0__Slow.cpp > Vdiv_8bit__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vdiv_8bit__ALL.o Vdiv_8bit__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vdiv_8bit__ALL.a    -pthread -lpthread -latomic   -o Vdiv_8bit\nrm Vdiv_8bit__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_div_8bit_s546tljs/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.029 MB sources in 2 modules, into 0.050 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.476 s (elab=0.001, cvt=0.005, bld=0.464); cpu 0.012 s on 0 threads; allocated 30.543 MB\n\n[RUN]\nVdiv_8bit: ../tb.cpp:145: void div_8bitScb::writeOut(div_8bitOutTx*): Assertion `tx->result == result && \"TODO 3 Failed: Division logic result of the Verilog module is incorrect when res_valid is on\"' failed.\n\n# TODO 3 Failed at simtime 26\n# TODO 3 INPUT TRACE: in->dividend = 0x58, in->divisor = 0x8d, in->opn_valid = 0x0, in->res_ready = 0x0, in->sign = 0x1\n# TODO 3 OUTPUT TRACE: tx->res_valid = 0x1, tx->result = 0x7f\n# TODO 3 OUTPUT TRACE: remainder = 0x58, quotient = 0x0\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 3,
+      "best_temperature": 0.3,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 584.52,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 76,
+          "elapsed_s": 51.19
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 100,
+          "elapsed_s": 50.89
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 85,
+          "elapsed_s": 47.59
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 75,
+          "elapsed_s": 41.0
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 112,
+          "elapsed_s": 57.65
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 63,
+          "elapsed_s": 40.95
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 115,
+          "elapsed_s": 60.41
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 2,
+          "gvd_lines": 369,
+          "elapsed_s": 114.7
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 77,
+          "elapsed_s": 22.76
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 138,
+          "elapsed_s": 97.36
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

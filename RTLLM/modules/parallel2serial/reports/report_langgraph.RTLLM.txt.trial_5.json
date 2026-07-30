@@ -9,23 +9,23 @@
     "sc_trial": 1,
     "ts_trial": 1,
     "total_iter": 2,
-    "gvd": "module parallel2serial (\n    input wire clk,\n    input wire rst_n,\n    input wire [3:0]d,\n    output reg valid_out,\n    output reg dout\n);\n\nreg [1:0] cnt;\nreg [3:0] data;\nreg valid;\n\nalways @(*) begin\n    dout = data[3];\n    valid_out = valid;\nend\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        \n        cnt <= 2'b0;\n        data <= 4'b0;\n        valid <= 1'b0;\n    end else begin\n        \n        if (cnt == 2'b11) begin\n            \n            data <= d;\n            cnt <= 2'b0;\n            valid <= 1'b1;\n        end else begin\n            \n            data <= {data[2:0], data[3]};\n            cnt <= cnt + 1;\n            valid <= 1'b0;\n        end\n    end\nend\nendmodule\n",
-    "xml_description": "<module id=\"parallel2serial\">\n    <description>Parallel to serial converter, converting 4 parallel inputs to 1 serial output.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst_n\">Reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"d\" width_description=\"[3:0]\">4-bit parallel data input.</input>\n        <output id=\"valid_out\">Valid signal indicating the availability of serial output.</output>\n        <output id=\"dout\">Serial output representing the converted data.</output>\n    </ports>\n    <implementation>\n        Parallel to serial converter, converting 4 parallel inputs to 1 serial output.\n        The most significant bit of the parallel input is assigned to the serial output (dout).\n        On each clock cycle, if the counter (cnt) is 3, indicating the last bit of the parallel input,\n        the module updates the data register (data) with the parallel input (d),\n        resets the counter (cnt) to 0, and sets the valid signal (valid) to 1.\n        Otherwise, the module increments the counter (cnt) by 1, sets the valid signal (valid) to 0,\n        and shifts the data register (data) one bit to the left, with the most significant bit shifted to the least significant bit.\n        \n        Counter Register: If the reset signal (rst_n) is high, the register (cnt) is incremented by 1.\n    </implementation>\n</module>",
+    "gvd": "module parallel2serial (\n    input wire clk,\n    input wire rst_n,\n    input wire [3:0]d,\n    output reg valid_out,\n    output reg dout\n);\n\n    reg [1:0] cnt;\n    reg [3:0] data;\n\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            cnt <= 2'b00;\n            data <= 4'b0000;\n            valid_out <= 1'b0;\n        end else begin\n            if (cnt == 2'b11) begin\n                data <= d;\n                cnt <= 2'b00;\n                valid_out <= 1'b1;\n            end else begin\n                cnt <= cnt + 1'b1;\n                valid_out <= 1'b0;\n                data <= {data[2:0], data[3]};\n            end\n        end\n    end\n\n    assign dout = data[3];\n\nendmodule\n",
+    "xml_description": "<module id=\"parallel2serial\">\n    <description>Parallel-to-serial converter where every four input bits are converted to a serial one bit output (MSB to LSB).</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operations.</input>\n        <input id=\"rst_n\">Reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"d\" width_description=\"[3:0]\">4-bit parallel data input.</input>\n        <output id=\"valid_out\">Valid signal indicating the availability of serial output.</output>\n        <output id=\"dout\">Serial output representing the converted data.</output>\n    </ports>\n    <parameter_description>\n        <parameter name=\"DATA_WIDTH\">4</parameter>\n        <parameter name=\"SERIAL_WIDTH\">1</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"cnt\" width=\"2\">Counter register.&lt;/reg>\n        &lt;reg id=\"data\" width=\"4\">Data register.&lt;/reg>\n        &lt;wire id=\"valid\">Internal valid signal.&lt;/wire>\n    </logic_description>\n    <implementation>\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                cnt &lt;= 2'b00;\n                data &lt;= 4'b0000;\n                valid &lt;= 1'b0;\n            end else begin\n                if (cnt == 2'b11) begin\n                    data &lt;= d;\n                    cnt &lt;= 2'b00;\n                    valid &lt;= 1'b1;\n                end else begin\n                    cnt &lt;= cnt + 1'b1;\n                    valid &lt;= 1'b0;\n                    data &lt;= {data[2:0], d[cnt]};\n                end\n            end\n        end\n        assign dout = data[3];\n        assign valid_out = valid;\n    </implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator+cpp]\nmake[2]: Entering directory '/tmp/comba_parallel2serial_abz10x_h/obj_dir'\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o tb.o ../tb.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated.o /usr/share/verilator/include/verilated.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o verilated_vcd_c.o /usr/share/verilator/include/verilated_vcd_c.cpp\n/usr/bin/perl /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vparallel2serial.cpp Vparallel2serial__Trace.cpp Vparallel2serial__Slow.cpp Vparallel2serial__Syms.cpp Vparallel2serial__Trace__Slow.cpp > Vparallel2serial__ALL.cpp\ng++  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=1 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-shadow      -Os -c -o Vparallel2serial__ALL.o Vparallel2serial__ALL.cpp\nar -cr Vparallel2serial__ALL.a Vparallel2serial__ALL.o\nranlib Vparallel2serial__ALL.a\ng++    tb.o verilated.o verilated_vcd_c.o Vparallel2serial__ALL.a      -o Vparallel2serial\nmake[2]: Leaving directory '/tmp/comba_parallel2serial_abz10x_h/obj_dir'\n\n[RUN]\n",
+    "tb_log": "[COMPILE verilator+cpp]\nmake[1]: Entering directory '/tmp/comba_parallel2serial_dxzllv8h/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vparallel2serial.cpp Vparallel2serial___024root__0.cpp Vparallel2serial__Trace__0.cpp Vparallel2serial___024root__Slow.cpp Vparallel2serial___024root__0__Slow.cpp Vparallel2serial__Syms__Slow.cpp Vparallel2serial__Trace__0__Slow.cpp Vparallel2serial__TraceDecls__0__Slow.cpp > Vparallel2serial__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vparallel2serial__ALL.o Vparallel2serial__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vparallel2serial__ALL.a    -pthread -lpthread -latomic   -o Vparallel2serial\nrm Vparallel2serial__ALL.verilator_deplist.tmp\nmake[1]: Leaving directory '/tmp/comba_parallel2serial_dxzllv8h/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.027 MB sources in 2 modules, into 0.038 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 0.206 s (elab=0.000, cvt=0.003, bld=0.199); cpu 0.007 s on 0 threads; allocated 30.539 MB\n\n[RUN]\n",
     "error": null,
     "edtm": {},
     "failure_type": "",
     "vcd_status": "",
     "self_consistency": {
-      "samples_run": 4,
-      "max_samples": 5,
-      "best_sample_idx": 3,
-      "best_temperature": 0.3,
+      "samples_run": 2,
+      "max_samples": 10,
+      "best_sample_idx": 1,
+      "best_temperature": 0.1,
       "best_status": "pass",
       "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 133.46,
+      "total_elapsed_s": 87.63,
       "all_samples": [
         {
           "idx": 0,
@@ -36,44 +36,20 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 39.62
+          "gvd_lines": 30,
+          "elapsed_s": 67.42
         },
         {
           "idx": 1,
           "T": 0.1,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 38.62
-        },
-        {
-          "idx": 2,
-          "T": 0.2,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 41.81
-        },
-        {
-          "idx": 3,
-          "T": 0.3,
           "status": "pass",
           "sc_trial": 1,
           "ts_trial": 1,
           "iter": 2,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 39,
-          "elapsed_s": 13.42
+          "gvd_lines": 32,
+          "elapsed_s": 20.22
         }
       ]
     },

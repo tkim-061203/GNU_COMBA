@@ -1,0 +1,58 @@
+<module id="traffic_light">
+    <description>Implement a traffic light, with three small red, yellow and green indicators and a pedestrian button. Under normal circumstances, the motor vehicle lane indicator light according to 60 clock cycles of green, 5 clock cycles of yellow, 10 clock cycles of red. When the pedestrian button is pressed, if the remaining green time is greater than 10 clocks, it is shortened to 10 clocks, and if it is less than 10 clocks, it remains unchanged. The lane light and the sidewalk light should be paired, when the lane light is green or yellow, the sidewalk light is red; When the lane light is red, the sidewalk light is green, and for the sake of simplicity, only the lane light is considered.</description>
+    <ports>
+        <input id="rst_n">Reset signal (active low).</input>
+        <input id="clk">Clock signal.</input>
+        <input id="pass_request">Request signal for allowing vehicles to pass.</input>
+        <output id="clock">An 8-bit output representing the count value of the internal counter.</output>
+        <output id="red">Output signals representing the state of the traffic lights.</output>
+        <output id="yellow">Output signals representing the state of the traffic lights.</output>
+        <output id="green">Output signals representing the state of the traffic lights.</output>
+    </ports>
+    <parameter_description>
+        <parameter id="idle" value="0">IDLE state</parameter>
+        <parameter id="s1_red" value="1">Red light state</parameter>
+        <parameter id="s2_yellow" value="2">Yellow light state</parameter>
+        <parameter id="s3_green" value="3">Green light state</parameter>
+    </parameter_description>
+    <logic_description>
+        <description>
+            Notice that below descriptions are along with tags <![CDATA[ <logic />]]>.
+            With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+            With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+            With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+            With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+        </description>
+        <logic type="sequential_logic" id="cnt">
+        Internal counter. If <![CDATA[ <input refid="rst_n" />]]> is deactive, <![CDATA[ <logic refid="cnt" />]]> is 10 decimal. Otherwise, if <![CDATA[ <input refid="pass_request" />]]> is active and <![CDATA[ <output refid="green" />]]> is active and <![CDATA[ <logic refid="cnt" />]]> is greater than 10, <![CDATA[ <logic refid="cnt" />]]> is 10 decimal. Otherwise, if <![CDATA[ <output refid="green" />]]> is deactive and <![CDATA[ <logic refid="p_green" />]]> is active, <![CDATA[ <logic refid="cnt" />]]> is 60 decimal. Otherwise, if <![CDATA[ <output refid="yellow" />]]> is deactive and <![CDATA[ <logic refid="p_yellow" />]]> is active, <![CDATA[ <logic refid="cnt" />]]> is 5 decimal. Otherwise, if <![CDATA[ <output refid="red" />]]> is deactive and <![CDATA[ <logic refid="p_red" />]]> is active, <![CDATA[ <logic refid="cnt" />]]> is 10 decimal. Otherwise, <![CDATA[ <logic refid="cnt" />]]> is decremented by 1 on every positive edge of the clock.
+        </logic>
+        <logic type="sequential_logic" id="state">
+        If `rst_n` is deactive, `state` is `idle`. Otherwise, in case `state` is `idle`, `state` is `s1_red`. In case `state` is `s1_red`, if `cnt` counts to 3 decimal, `state` is `s3_green`, else `state` is `s1_red`. In case `state` is `s2_yellow`, if `cnt` counts to 3 decimal, `state` is `s1_red`, else `state` is `s2_yellow`. In case `state` is `s3_green`, if `cnt` counts to 3 decimal, `state` is `s2_yellow`, else `state` is `s3_green`.
+        </logic>
+        <logic type="sequential_logic" id="p_red">
+        If `rst_n` is deactive, `p_red` is reset to 0. Otherwise, `red` is set to 1 if `state` is `s1_red`.
+        </logic>
+        <logic type="sequential_logic" id="p_green">
+        If `rst_n` is deactive, `p_green` is reset to 0. Otherwise,  `green` is set to 1 if `state` is `s3_green`.
+        </logic>
+        <logic type="sequential_logic" id="p_yellow">
+        If `rst_n` is deactive, `p_yellow` is reset to 0. Otherwise, `yellow` is set to 1 if `state` is `s2_yellow`.
+        </logic>
+        <logic type="sequential_logic" id="red">
+        If `rst_n` is deactive, `red` is reset to 0. Otherwise, `red` is set to `p_red`.
+        </logic>
+        <logic type="sequential_logic" id="yellow">
+        If `rst_n` is deactive, `yellow` is reset to 0. Otherwise, `yellow` is set to `p_yellow`.
+        </logic>
+        <logic type="sequential_logic" id="green">
+        If `rst_n` is deactive, `green` is reset to 0. Otherwise, `green` is set to `p_green`.
+        </logic>
+    </logic_description>
+    <implementation>The following is the design track we recommend:
+The first always block is responsible for the state transition logic, based on description of sequential logic `state`. Notice that the the `state` only change when the counter `cnt` reaches 3 decimal.
+The second always block is responsible for internal counter `cnt` logic.
+The assign statement assigns the value of the internal counter (cnt) to the output clock.
+The final always block handles the output signals. It assigns the previous values (p_red, p_yellow, p_green) to the output signals (red, yellow, green) on the positive edge of the clock or negative edge of the reset signal.
+Notice to handle `sequencial logic` for `state` and `cnt` correctly.
+</implementation>
+</module>

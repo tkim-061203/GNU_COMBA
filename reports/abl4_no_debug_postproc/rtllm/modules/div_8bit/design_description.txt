@@ -1,0 +1,67 @@
+Please act as a professional verilog designer.
+
+Implement a simplified radix-2 divider on 8-bit signed or unsigned integers. and the inputs are two 8-bit operands. The module accepts a dividend and a divisor as inputs and provides a 16-bit result containing both the quotient and the remainder. The design supports both signed and unsigned division operations.
+
+Module name:
+    div_8bit
+Input ports:
+    clk: Clock signal used for synchronous operation.
+    rst: The reset signal to initialize or reset the module.
+    sign: 1-bit indicates if the operation is signed (1) or unsigned (0).
+    dividend: 8-bit input signal representing the dividend for division.
+    divisor: 8-bit input signal representing the divisor for division.
+    opn_valid: 1-bit indicates that a valid operation request is present.
+    res_ready: 1-bit indicates that the 16-bit output result has already been acknowledged.
+Output ports:
+    res_valid: 1-bit output signal indicating the result is valid and ready. res_valid must be constructed as combinational logic and not in any always block. So `res_valid` must not be declared as register.
+    result: 16-bit the output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.
+
+Logic description:
+Notice that below descriptions are along with keywords`sequencial` and `combinational`.
+With a `combinational` logic, must construct this logic as interal wire declaration. Or this `combinational` logic can be declared as a `reg` but only be used in always(*) block.
+With a `sequencial` logic, must construct this logic as `reg` declaration. Must update this logic, in an always block,  based on other `combinational` or `sequencial` logic states.
+With a `sequencial logic operation`, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+With a `combinational logic operation`, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+- divisor_extend: 9-bit combinational logic. `divisor_extend` is set to concatenation of bit 1 and input `divisor` if the input `sign` and MSB of input `divisor` is high. Otherwise, `divisor_extend` is set to concatenation of bit 0 and input divisor.
+- NEG_DIVISOR: 9-bit sequencial logic.
+- all_sub_result 10-bit combinational logic.
+- sub_result: 9-bit combinational logic. `sub_result` is the first 9-bit of `all_sub_result`.
+- sub_remainer_reg_divisor: combinational logic operation. 10-bit all_sub_result is set to summation of REMAINER and NEG_DIVISOR.
+- REMAINER: 8-bit combinational logic. This is a subsection of 8-bit MSB of `SR`.
+- QUOTIENT: 8-bit combinational logic. This is a subsection of 8-bit LSB of `SR`.
+- CO: 1-bit combinational logic. `CO` is set to the MSB of `all_sub_result`.
+- mux_result: 9-bit combinational logic. If `CO` is high, `mux_result` is set to `sub_result` else set to `REMAINER`.
+- quotient_shift: 7-bit combinational logic. quotient_shift is set to 7 [7:1] bits of `SR`.
+- SR_final_update: sequencial logic operation. First, the 8-bit MSB of SR is set to 8-bit mux_result. Then bit [0:0] of  SR is set to CO.
+- SR_shifting: sequencial logic operation. Concatenate `SR` from of first 7-bit of `mux_result`, 7-bit quotient_shift, 1-bit CO, and 1-bit zero.
+- dividend_abs: 8-bit combinational logic. If `sign` and the MSB of input `dividend` is high, dividend_abs is set to two's complement of the input dividend. Otherwise dividend_abs is set to the original input `dividend` only.
+- final_remainer: 8-bit combinational logic. `final_remainer` is set to two's complement of `REMAINER` if the `sign` bit and MSB of register dividend is high. Otherwise, `final_remainer` is set to `REMAINER`.
+- final_quotient: 8-bit combinational logic. `final_quotient` is set to two's complement of `QUOTIENT` if `is_final_quotient_sign` is high. Otherwise, `final_remainer` is set to QUOTIENT.
+- is_final_quotient_sign: 1-bit combinational logic. `is_final_quotient_sign` is result of the `and` logic of `sign` and the `xor` logic of MSB of `dividend` register and MSB of `divisor` register.
+
+Implementation:
+Operation Start:
+When opn_valid is high, res_valid is low, and start_cnt is low, the module saves the inputs dividend and divisor in to 2 8-bit corresponding regisers.
+Initializes the 16-bit shift register SR with the absolute value of the original input `dividend` (dividend_abs) shifted left by one bit.
+9-bit NEG_DIVISOR is set to `divisor_extend`, if the sign bit and MSB of divisor is high. Otherwise, sets 9-bit NEG_DIVISOR to two's complement of the `divisor_extend`.
+Sets the 4-bit counter cnt to 1 and start_cnt to 1 to begin the division process.
+
+Division Process(If start_cnt is high, the module performs the following steps):
+If most significant bit of cnt is set (the counter cnt reaches 8), the division is complete:
+cnt and start_cnt are cleared. Then, based on SR_final_update method, Updates the shift register SR with the final remainder and quotient.
+Otherwise, the counter cnt is incremented, and the shift register SR is updated based on the subtraction result `mux_result`:
+Based on `sub_remainer_reg_divisor`, compute the summation of `NEG_DIVISOR` and `REMAINER`.
+Uses a multiplexer to select the appropriate result based on the carry-out.
+Based on `SR_shifting`, updates SR.
+
+Result Validity:
+res_valid is managed based on the reset signal, the counter, and whether the result has been consumed, which is signaled by the input (res_ready).
+`res_valid` should be update directly, without passing middle register value.
+`res_valid` is set to zero if `rst` is high. 
+Otherwise, if `cnt` reaches 8, `res_ready` is set to 1. 
+Otherwise, if `res_valid` and `res_ready` is all high, `res_valid` is set to 0. Otherwise, `res_valid` is set to `res_valid`.
+
+Result operation:
+The output `result` is constructed as combinational logic and is set to concatenation of `final_remainer` and `final_quotient`. Notice that, because of combinational operation, the `result` must not be calculated in any always block.
+
+Give me the complete code.

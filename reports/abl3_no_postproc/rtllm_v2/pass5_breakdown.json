@@ -1,0 +1,676 @@
+{
+  "root": "reports/abl3_no_postproc/rtllm_v2/modules",
+  "designs": 50,
+  "n_trials": 5,
+  "k": 5,
+  "syntax_pass_at_k": 100.0,
+  "func_pass_at_k": 76.0,
+  "syntax_distribution": {
+    "5/5": 50,
+    "4/5": 0,
+    "3/5": 0,
+    "2/5": 0,
+    "1/5": 0,
+    "0/5": 0
+  },
+  "func_distribution": {
+    "5/5": 27,
+    "4/5": 2,
+    "3/5": 2,
+    "2/5": 1,
+    "1/5": 6,
+    "0/5": 12
+  },
+  "per_design": [
+    {
+      "design": "JC_counter",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "LFSR",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "LIFObuffer",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 2,
+      "statuses": [
+        "fail_ts",
+        "pass",
+        "fail_ts",
+        "fail_ts",
+        "pass"
+      ]
+    },
+    {
+      "design": "RAM",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "ROM",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "accu",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 1,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_16bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_32bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_bcd",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "adder_pipe_64bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "alu",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 1,
+      "statuses": [
+        "fail_ts",
+        "pass",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "asyn_fifo",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "barrel_shifter",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "calendar",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "clkgenerator",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "comparator_3bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "comparator_4bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 4,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "counter_12",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "div_16bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "edge_detect",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "fixed_point_adder",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 1,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "pass"
+      ]
+    },
+    {
+      "design": "fixed_point_substractor",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 1,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "pass",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "float_multi",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "freq_div",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "freq_divbyeven",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "freq_divbyfrac",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "freq_divbyodd",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 1,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "pass",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "fsm",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 4,
+      "statuses": [
+        "pass",
+        "fail_ts",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "instr_reg",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_16bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_booth_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "multi_pipe_4bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "multi_pipe_8bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 3,
+      "statuses": [
+        "fail_ts",
+        "pass",
+        "pass",
+        "fail_ts",
+        "pass"
+      ]
+    },
+    {
+      "design": "parallel2serial",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "pe",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "pulse_detect",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 3,
+      "statuses": [
+        "pass",
+        "fail_ts",
+        "pass",
+        "pass",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "radix2_div",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "right_shifter",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "ring_counter",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "sequence_detector",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "serial2parallel",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 1,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "pass"
+      ]
+    },
+    {
+      "design": "signal_generator",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "square_wave",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "sub_64bit",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "synchronizer",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "traffic_light",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 0,
+      "statuses": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ]
+    },
+    {
+      "design": "up_down_counter",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "design": "width_8to16",
+      "trials": 5,
+      "c_syntax": 5,
+      "c_func": 5,
+      "statuses": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    }
+  ]
+}

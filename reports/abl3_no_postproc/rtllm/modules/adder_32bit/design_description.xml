@@ -1,0 +1,105 @@
+<modules>
+    <module id="adder_32bit">
+        <description>Implement a module of a carry-lookahead 32-bit adder that uses the Carry-Lookahead Adder (CLA) architecture.</description>
+        <ports>
+            <input id="A" width_description="[32:1]">32-bit input operand A.</input>
+            <input id="B" width_description="[32:1]">32-bit input operand B.</input>
+            <output id="S" width_description="[32:1]">32-bit output representing the sum of A and B. The module name "S" is case-sensitive.</output>
+            <output id="C32">Carry-out output. The module name "C32" is case-sensitive.</output>
+        </ports>
+        <implementation>The top module adder_32bit consists of several instances of the 16 bit CLA block <![CDATA[ <module refid="cla_16bit" />]]>. And each <![CDATA[ <module refid="cla_16bit" />]]> is constructed from 4-bit CLA blocks from the <![CDATA[ <module refid="cla_4bit" />]]>.</implementation>
+    </module>
+    <module id="cla_16bit">
+    <description>A module of a carry-lookahead 4-bit adder that uses the Carry-Lookahead Adder (CLA) architecture.</description>
+        <ports>
+            <input id="a">16-bit input operand A.</input>
+            <input id="b">16-bit input operand b.</input>
+            <input id="cin">Carry input.</input>
+            <output id="sum">16-bit output representing the sum of A and B.</output>
+            <output id="cout">Carry output.</output>
+        </ports>
+        <logic_description>
+            <description>
+                Notice that below descriptions are along with tags <![CDATA[ <logic />]]>. These tags <![CDATA[ <logic />]]> could be described more detail in the below description in the <![CDATA[ <implementation />]]> tag.
+                With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+                With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+                With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+                With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+                With a <![CDATA[ <logic id="temp" />]]> tag with width_description and depth_description attributes declaration, such as <![CDATA[ <logic id="temp" width_description="[a:b]" depth_description="[c:d]"/>]]>, it must be declared as `wire [a:b] temp [c:d]` if its type is a `combinational_logic`. Otherwise, the logic must be declared as `reg [a:b] temp [c:d]` if its type is a `sequential_logic` or a `combinational_logic` driven in a `alway @(*)` block.
+            </description>
+            <logic type="combinational_logic" id="p">
+                <![CDATA[ <logic refid="p" />]]> is 4-bit carry propagation.
+                Each bit of the <![CDATA[ <logic refid="p" />]]> is is driven by a <![CDATA[ <output refid="p_group" />]]> from an instance of a <![CDATA[ <module refid="cla_4bit" />]]>.
+            </logic>
+            <logic type="combinational_logic" id="g">
+                <![CDATA[ <logic refid="g" />]]> is 4-bit carry generation.
+                Each bit of the <![CDATA[ <logic refid="g" />]]> is is driven by a <![CDATA[ <output refid="g_group" />]]> from an instance of a <![CDATA[ <module refid="cla_4bit" />]]>.
+            </logic>
+            <logic type="combinational_logic" id="c">
+                <![CDATA[ <logic refid="c" />]]> is 4-bit internal carry calculations.
+                Each bit of the <![CDATA[ <logic refid="c" />]]> is is driven by a <![CDATA[ <output refid="cout" />]]> from an instance of a <![CDATA[ <module refid="cla_4bit" />]]>.
+            </logic>
+        </logic_description>
+        <implementation>
+        Each 4 bits of <![CDATA[ <output refid="sum" />]]> is driven by a <![CDATA[ <output refid="sum" />]]> from an instance of a <![CDATA[ <module refid="cla_4bit" />]]>.
+        The <![CDATA[ <output refid="cout" />]]> is the MSB of the <![CDATA[ <logic refid="c" />]]>.
+        </implementation>
+    </module>
+    <module id="cla_4bit">
+    <description>A module of a carry-lookahead 4-bit adder that uses the Carry-Lookahead Adder (CLA) architecture.</description>
+        <ports>
+            <input id="a">4-bit input operand A.</input>
+            <input id="b">4-bit input operand b.</input>
+            <input id="cin">Carry input.</input>
+            <output id="sum">4-bit output representing the sum of A and B.</output>
+            <output id="cout">Carry output.</output>
+            <output id="g_group">Carry Generation Group.</output>
+            <output id="p_group">Carry Propagation Group.</output>
+        </ports>
+        <logic_description>
+            <description>
+                Notice that below descriptions are along with tags <![CDATA[ <logic />]]>. These tags <![CDATA[ <logic />]]> could be described more detail in the below description in the <![CDATA[ <implementation />]]> tag.
+                With a <![CDATA[ <logic type="combinational_logic" />]]>, must construct this logic as interal wire declaration. Or this <![CDATA[ <logic type="combinational_logic" />]]> can be declared as a `reg` but only be used in always(*) block.
+                With a <![CDATA[ <logic type="sequential_logic" />]]>, must construct this logic as `reg` declaration. Must update this logic, in an always block, based on other <![CDATA[ <logic type="sequential_logic" />]]> or <![CDATA[ <logic type="combinational_logic" />]]> states.
+                With a <![CDATA[ <logic type="sequential_logic_operation" />]]>, no declaration for this keyword. Just place this operation sequence in below mentioned description.
+                With a <![CDATA[ <logic type="combinational_logic_operation" />]]>, no declaration for this keyword. Just based on the keyword `assign` to construct description of this combinational logic operation.
+                With a <![CDATA[ <logic id="temp" />]]> tag with width_description and depth_description attributes declaration, such as <![CDATA[ <logic id="temp" width_description="[a:b]" depth_description="[c:d]"/>]]>, it must be declared as `wire [a:b] temp [c:d]` if its type is a `combinational_logic`. Otherwise, the logic must be declared as `reg [a:b] temp [c:d]` if its type is a `sequential_logic` or a `combinational_logic` driven in a `alway @(*)` block.
+            </description>
+            <logic type="combinational_logic" id="p">
+                <![CDATA[ <logic refid="p" />]]> is 4-bit carry propagation.
+                The 4-bit <![CDATA[ <logic refid="p" />]]> is bitwise-XOR result of <![CDATA[ <input refid="a" />]]> and <![CDATA[ <input refid="b" />]]>.
+            </logic>
+            <logic type="combinational_logic" id="g">
+                <![CDATA[ <logic refid="g" />]]> is 4-bit carry generation.
+                The 4-bit <![CDATA[ <logic refid="g" />]]> is bitwise-AND result of <![CDATA[ <input refid="a" />]]> and <![CDATA[ <input refid="b" />]]>.
+            </logic>
+            <logic type="combinational_logic" id="c">
+                <![CDATA[ <logic refid="c" />]]> is 5-bit for internal carry calculations.
+                The first bit c[0] is the <![CDATA[ <input refid="cin" />]]>
+
+                With the rest internal bits of <![CDATA[ <logic refid="c" />]]>, the calculation is as follows:
+                c[1] is set to g[0] XORing with the bitwise AND of p[0] and c[0], 
+                c[2] is set to g[1] XORing with the bitwise AND of p[1] and c[1], 
+                etc, 
+                c[4] is set to g[3] XORing with the bitwise AND of p[3] and c[3].
+            </logic>
+            <logic type="combinational_logic" id="p_group">
+                <![CDATA[ <logic refid="p_group" />]]> is a propagate signal to a higher-level CLA logic circuit.
+                <![CDATA[ <logic refid="p_group" />]]> is the bitwise AND operation of the 4 bits of the internal <![CDATA[ <logic refid="p" />]]>.
+            </logic>
+            <logic type="combinational_logic" id="g_group">
+                <![CDATA[ <logic refid="g_group" />]]> is a generate signal to a higher-level CLA logic circuit.
+                <![CDATA[ <logic refid="g_group" />]]> is the bitwise OR operation of the 4 elements:
+                    - The first element is the g[3].
+                    - The second element is the bitwise AND operation of g[2] and p[3].
+                    - The third element is the bitwise AND operation of g[1], p[3], and p[2].
+                    - The third element is the bitwise AND operation of g[0], p[3], p[2], and p[1].                  
+            </logic>
+        </logic_description>
+        <implementation>
+        The <![CDATA[ <output refid="sum" />]]> is the bitwise XOR of the 4-bit <![CDATA[ <logic refid="p" />]]> and the first 4 bits of <![CDATA[ <logic refid="c" />]]>.
+        The carry-lookahead 4-bit adder can also be used in a higher-level circuit by having each CLA logic circuit produce a propagate <![CDATA[ <output refid="p_group" />]]> and generate <![CDATA[ <output refid="g_group" />]]> signal to a higher-level CLA logic circuit. 
+        The <![CDATA[ <output refid="cout" />]]> is the MSB of the <![CDATA[ <logic refid="c" />]]>.
+        </implementation>
+    </module>
+</modules>

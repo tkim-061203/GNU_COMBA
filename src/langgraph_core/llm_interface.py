@@ -147,6 +147,22 @@ class COMBALlm(BaseChatModel):
             client = self._client_base
             model = self.model_base
 
+        # Reproducible sampling: with COMBA_LLM_SEED set, derive a per-request
+        # seed from (base seed, prompt, temperature). Same run config → same
+        # outputs (vLLM honors per-request seed), so run-to-run variance stops
+        # drowning real effects in benchmarks; different prompts/temps still
+        # sample differently. Unset → previous unseeded behavior.
+        seed = None
+        base_seed = os.environ.get("COMBA_LLM_SEED", "").strip()
+        if base_seed:
+            import zlib
+            prompt_blob = "\x1e".join(
+                f"{m.get('role','')}:{m.get('content','')}" for m in messages
+            )
+            seed = (int(base_seed) + zlib.crc32(
+                f"{prompt_blob}|T={temperature}".encode("utf-8", "ignore")
+            )) % (2 ** 31)
+
         import time
         for attempt in range(1, self.max_retries_llm + 1):
             try:
@@ -156,6 +172,7 @@ class COMBALlm(BaseChatModel):
                     messages=messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    seed=seed,
                 )
                 elapsed = (time.time() - t0) * 1000
 

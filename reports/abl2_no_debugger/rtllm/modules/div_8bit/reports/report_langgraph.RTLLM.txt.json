@@ -1,0 +1,162 @@
+{
+  "module_name": "div_8bit",
+  "description_type": "RTLLM.txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "div_8bit",
+    "description_type": "RTLLM.txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module div_8bit (\n    input wire clk,\n    input wire rst,\n    input wire [7:0] dividend,\n    input wire [7:0] divisor,\n    input wire sign,\n    input wire opn_valid,\n    output reg res_valid,\n    input wire res_ready,\n    output wire [15:0] result\n);\n\nreg [7:0] dividend_reg;\nreg [7:0] divisor_reg;\nreg [15:0] result_reg;\nreg [3:0] cnt;\nreg [3:0] start_cnt;\nreg [15:0] SR;\nreg [7:0] NEG_DIVISOR;\nreg [7:0] temp_result;\nreg [7:0] selected_result;\nreg [7:0] CARRY_OUT;\nreg [7:0] SHIFT_REGISTER;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        cnt <= 0;\n        start_cnt <= 0;\n    end else if (opn_valid && !res_valid) begin\n        dividend_reg <= dividend;\n        divisor_reg <= divisor;\n        result_reg <= {8'h00, dividend};\n        cnt <= 1;\n        start_cnt <= 1;\n    end else if (start_cnt) begin\n        if (cnt[3]) begin\n            cnt <= 0;\n            start_cnt <= 0;\n            result_reg <= {SR[15:8], SR[7:0]};\n        end else begin\n            cnt <= cnt + 1;\n            case ({CARRY_OUT})\n                8'd0: begin\n                    selected_result = SR[15:8];\n                    CARRY_OUT = 0;\n                end\n                default: begin\n                    selected_result = SR[15:8] - 1;\n                    CARRY_OUT = 1;\n                end\n            endcase\n            SHIFT_REGISTER = {selected_result, SR[7:1]};\n            SR <= {SHIFT_REGISTER, SR[0]};\n        end\n    end\nend\n\nassign res_valid = (rst || cnt == 8) ? 1'b0 :\n                   (res_valid && res_ready) ? 1'b0 : 1'b1;\nassign result = result_reg;\nendmodule\n",
+    "xml_description": "<module id=\"div_8bit\">\n    <description>Implement a simplified radix-2 divider on 8-bit signed or unsigned integers. and the inputs are two 8-bit operands. The module accepts a dividend and a divisor as inputs and provides a 16-bit result containing both the quotient and the remainder. The design supports both signed and unsigned division operations.</description>\n    <ports>\n        <input id=\"clk\">Clock signal used for synchronous operation.</input>\n        <input id=\"rst\">The reset signal to initialize or reset the module.</input>\n        <input id=\"sign\">1-bit indicates if the operation is signed (1) or unsigned (0).</input>\n        <input id=\"dividend\" width_description=\"[7:0]\">8-bit input signal representing the dividend for division.</input>\n        <input id=\"divisor\" width_description=\"[7:0]\">8-bit input signal representing the divisor for division.</input>\n        <input id=\"opn_valid\">1-bit indicates that a valid operation request is present.</input>\n        <input id=\"res_ready\">1-bit indicates that the 16-bit output result has already been acknowledged.</input>\n        <output id=\"res_valid\">1-bit output signal indicating the result is valid and ready.</output>\n        <output id=\"result\" width_description=\"[15:0]\">16-bit the output containing the remainder in the upper 8 bits and the quotient in the lower 8 bits.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"DIVIDEND\" type=\"integer\">The dividend input.</parameter>\n        <parameter id=\"DIVISOR\" type=\"integer\">The divisor input.</parameter>\n        <parameter id=\"RESULT\" type=\"integer\">The result output.</parameter>\n        <parameter id=\"COUNTER\" type=\"integer\">A counter for iterations.</parameter>\n        <parameter id=\"NEG_DIVISOR\" type=\"integer\">Negative value of the divisor.</parameter>\n        <parameter id=\"SHIFT_REGISTER\" type=\"integer\">Shift register for storing partial results.</parameter>\n        <parameter id=\"TEMP_RESULT\" type=\"integer\">Temporary variable for calculations.</parameter>\n        <parameter id=\"CARRY_OUT\" type=\"integer\">Carry-out signal from subtraction.</parameter>\n        <parameter id=\"SELECTED_RESULT\" type=\"integer\">Selected result from MUX.</parameter>\n    </parameter_description>\n    <logic_description>\n        &lt;reg id=\"DIVIDEND\" type=\"integer\">The dividend input.&lt;/reg>\n        &lt;reg id=\"DIVISOR\" type=\"integer\">The divisor input.&lt;/reg>\n        &lt;reg id=\"RESULT\" type=\"integer\">The result output.&lt;/reg>\n        &lt;reg id=\"COUNTER\" type=\"integer\">A counter for iterations.&lt;/reg>\n        &lt;reg id=\"NEG_DIVISOR\" type=\"integer\">Negative value of the divisor.&lt;/reg>\n        &lt;reg id=\"SHIFT_REGISTER\" type=\"integer\">Shift register for storing partial results.&lt;/reg>\n        &lt;reg id=\"TEMP_RESULT\" type=\"integer\">Temporary variable for calculations.&lt;/reg>\n        &lt;reg id=\"CARRY_OUT\" type=\"integer\">Carry-out signal from subtraction.&lt;/reg>\n        &lt;reg id=\"SELECTED_RESULT\" type=\"integer\">Selected result from MUX.&lt;/reg>\n        \n        &lt;wire id=\"DIVIDEND\" type=\"integer\">The dividend input.&lt;/wire>\n        &lt;wire id=\"DIVISOR\" type=\"integer\">The divisor input.&lt;/wire>\n        &lt;wire id=\"RESULT\" type=\"integer\">The result output.&lt;/wire>\n        &lt;wire id=\"COUNTER\" type=\"integer\">A counter for iterations.&lt;/wire>\n        &lt;wire id=\"NEG_DIVISOR\" type=\"integer\">Negative value of the divisor.&lt;/wire>\n        &lt;wire id=\"SHIFT_REGISTER\" type=\"integer\">Shift register for storing partial results.&lt;/wire>\n        &lt;wire id=\"TEMP_RESULT\" type=\"integer\">Temporary variable for calculations.&lt;/wire>\n        &lt;wire id=\"CARRY_OUT\" type=\"integer\">Carry-out signal from subtraction.&lt;/wire>\n        &lt;wire id=\"SELECTED_RESULT\" type=\"integer\">Selected result from MUX.&lt;/wire>\n    </logic_description>\n    <implementation>\n        // Internal signals\n        reg [7:0] dividend;\n        reg [7:0] divisor;\n        reg [15:0] result;\n        reg [3:0] cnt;\n        reg [3:0] start_cnt;\n        reg [15:0] SR;\n        reg [7:0] NEG_DIVISOR;\n        reg [7:0] temp_result;\n        reg [7:0] selected_result;\n        reg [7:0] CARRY_OUT;\n        reg [7:0] SHIFT_REGISTER;\n        // Sequential logic block\n        always @(posedge clk or posedge rst) begin\n            if (rst) begin\n                cnt &lt;= 0;\n                start_cnt &lt;= 0;\n            end else if (opn_valid &amp;&amp; !res_valid) begin\n                dividend &lt;= dividend;\n                divisor &lt;= divisor;\n                result &lt;= {8'h00, dividend};\n                cnt &lt;= 1;\n                start_cnt &lt;= 1;\n            end else if (start_cnt) begin\n                if (cnt[3]) begin\n                    cnt &lt;= 0;\n                    start_cnt &lt;= 0;\n                    result &lt;= {SR[15:8], SR[7:0]};\n                end else begin\n                    cnt &lt;= cnt + 1;\n                    case ({CARRY_OUT})\n                        8'd0: begin\n                            selected_result = SR[15:8];\n                            CARRY_OUT = 0;\n                        end\n                        default: begin\n                            selected_result = SR[15:8] - 1;\n                            CARRY_OUT = 1;\n                        end\n                    endcase\n                    SHIFT_REGISTER = {selected_result, SR[7:1]};\n                    SR &lt;= {SHIFT_REGISTER, SR[0]};\n                end\n            end\n        end\n        \n        // Combinational logic block\n        always @(*) begin\n            if (!rst) begin\n                res_valid = 0;\n            end else if (cnt == 8) begin\n                res_valid = 1;\n            end else if (res_valid &amp; res_ready) begin\n                res_valid = 0;\n            end else begin\n                res_valid = res_valid;\n            end\n        end\n    </implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator+cpp]\n%Warning-WIDTHTRUNC: div_8bit.v:52:28: Operator ASSIGN expects 8 bits on the Assign RHS, but Assign RHS's REPLICATE generates 15 bits.\n                                     : ... note: In instance 'div_8bit'\n   52 |             SHIFT_REGISTER = {selected_result, SR[7:1]};\n      |                            ^\n                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.048\n                     ... Use \"/* verilator lint_off WIDTHTRUNC */\" and lint_on around source to disable this message.\n%Warning-WIDTHEXPAND: div_8bit.v:53:16: Operator ASSIGNDLY expects 16 bits on the Assign RHS, but Assign RHS's REPLICATE generates 9 bits.\n                                      : ... note: In instance 'div_8bit'\n   53 |             SR <= {SHIFT_REGISTER, SR[0]};\n      |                ^~\n                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.048\n                      ... Use \"/* verilator lint_off WIDTHEXPAND */\" and lint_on around source to disable this message.\n%Warning-WIDTHTRUNC: div_8bit.v:35:14: Logical operator IF expects 1 bit on the If, but If's VARREF 'start_cnt' generates 4 bits.\n                                     : ... note: In instance 'div_8bit'\n   35 |     end else if (start_cnt) begin\n      |              ^~\n%Warning-BLKSEQ: div_8bit.v:44:37: Blocking assignment '=' in sequential logic process\n                                 : ... note: In instance 'div_8bit'\n                                 : ... Suggest using delayed assignment '<='\n   44 |                     selected_result = SR[15:8];\n      |                                     ^\n                 ... For warning description see https://verilator.org/warn/BLKSEQ?v=5.048\n                 ... Use \"/* verilator lint_off BLKSEQ */\" and lint_on around source to disable this message.\n%Warning-BLKSEQ: div_8bit.v:45:31: Blocking assignment '=' in sequential logic process\n                                 : ... note: In instance 'div_8bit'\n                                 : ... Suggest using delayed assignment '<='\n   45 |                     CARRY_OUT = 0;\n      |                               ^\n%Warning-BLKSEQ: div_8bit.v:48:37: Blocking assignment '=' in sequential logic process\n                                 : ... note: In instance 'div_8bit'\n                                 : ... Suggest using delayed assignment '<='\n   48 |                     selected_result = SR[15:8] - 1;\n      |                                     ^\n%Warning-BLKSEQ: div_8bit.v:49:31: Blocking assignment '=' in sequential logic process\n                                 : ... note: In instance 'div_8bit'\n                                 : ... Suggest using delayed assignment '<='\n   49 |                     CARRY_OUT = 1;\n      |                               ^\n%Warning-BLKSEQ: div_8bit.v:52:28: Blocking assignment '=' in sequential logic process\n                                 : ... note: In instance 'div_8bit'\n                                 : ... Suggest using delayed assignment '<='\n   52 |             SHIFT_REGISTER = {selected_result, SR[7:1]};\n      |                            ^\n%Warning-UNUSEDSIGNAL: div_8bit.v:6:16: Signal is not used: 'sign'\n                                      : ... note: In instance 'div_8bit'\n    6 |     input wire sign,\n      |                ^~~~\n                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.048\n                       ... Use \"/* verilator lint_off UNUSEDSIGNAL */\" and lint_on around source to disable this message.\n%Warning-UNUSEDSIGNAL: div_8bit.v:13:11: Signal is not used: 'dividend_reg'\n                                       : ... note: In instance 'div_8bit'\n   13 | reg [7:0] dividend_reg;\n      |           ^~~~~~~~~~~~\n%Warning-UNUSEDSIGNAL: div_8bit.v:14:11: Signal is not used: 'divisor_reg'\n                                       : ... note: In instance 'div_8bit'\n   14 | reg [7:0] divisor_reg;\n      |           ^~~~~~~~~~~\n%Warning-UNUSEDSIGNAL: div_8bit.v:19:11: Signal is not driven, nor used: 'NEG_DIVISOR'\n                                       : ... note: In instance 'div_8bit'\n   19 | reg [7:0] NEG_DIVISOR;\n      |           ^~~~~~~~~~~\n%Warning-UNUSEDSIGNAL: div_8bit.v:20:11: Signal is not driven, nor used: 'temp_result'\n                                       : ... note: In instance 'div_8bit'\n   20 | reg [7:0] temp_result;\n      |           ^~~~~~~~~~~\n%Warning-UNOPTFLAT: div_8bit.v:8:16: Signal unoptimizable: Circular combinational logic: 'res_valid'\n    8 |     output reg res_valid,\n      |                ^~~~~~~~~\n                    ... For warning description see https://verilator.org/warn/UNOPTFLAT?v=5.048\n                    ... Use \"/* verilator lint_off UNOPTFLAT */\" and lint_on around source to disable this message.\n                    div_8bit.v:8:16:      Example path: res_valid\n                    div_8bit.v:8:16:      Example path: ASSIGNW\n                    div_8bit.v:8:16:      Example path: res_valid\nmake: Entering directory '/tmp/comba_div_8bit_ttr6rwk0/obj_dir'\nccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o tb.o ../tb.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vcd_c.o /usr/local/share/verilator/include/verilated_vcd_c.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vdiv_8bit.cpp Vdiv_8bit___024root__0.cpp Vdiv_8bit__Trace__0.cpp Vdiv_8bit___024root__Slow.cpp Vdiv_8bit___024root__0__Slow.cpp Vdiv_8bit__Syms__Slow.cpp Vdiv_8bit__Trace__0__Slow.cpp Vdiv_8bit__TraceDecls__0__Slow.cpp > Vdiv_8bit__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=1 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=1 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vdiv_8bit__ALL.o Vdiv_8bit__ALL.cpp\ng++    tb.o verilated.o verilated_vcd_c.o verilated_threads.o Vdiv_8bit__ALL.a    -pthread -lpthread -latomic   -o Vdiv_8bit\nrm Vdiv_8bit__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_div_8bit_ttr6rwk0/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.028 MB sources in 2 modules, into 0.052 MB in 8 C++ files needing 0.000 MB\n- Verilator: Walltime 2.396 s (elab=0.001, cvt=0.006, bld=2.385); cpu 0.011 s on 0 threads; allocated 30.547 MB\n\n[RUN]\nVdiv_8bit: ../tb.cpp:145: void div_8bitScb::writeOut(div_8bitOutTx*): Assertion `tx->result == result && \"TODO 3 Failed: Division logic result of the Verilog module is incorrect when res_valid is on\"' failed.\n\n# TODO 3 Failed at simtime 12\n# TODO 3 INPUT TRACE: in->dividend = 0x8, in->divisor = 0x54, in->opn_valid = 0x0, in->res_ready = 0x0, in->sign = 0x1\n# TODO 3 OUTPUT TRACE: tx->res_valid = 0x1, tx->result = 0x0\n# TODO 3 OUTPUT TRACE: remainder = 0x8, quotient = 0x0\n",
+    "error": null,
+    "edtm": {
+      "TB:fsm_state_error::3::": 1
+    },
+    "failure_type": "fsm_state_error",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 5,
+      "best_temperature": 0.5,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 481.32,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 80,
+          "elapsed_s": 42.27
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 115,
+          "elapsed_s": 48.46
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 92,
+          "elapsed_s": 44.0
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 83,
+          "elapsed_s": 38.88
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 117,
+          "elapsed_s": 58.3
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 61,
+          "elapsed_s": 39.24
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 165,
+          "elapsed_s": 53.12
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 51,
+          "elapsed_s": 37.84
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 1,
+          "gvd_lines": 81,
+          "elapsed_s": 24.74
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 133,
+          "elapsed_s": 94.47
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

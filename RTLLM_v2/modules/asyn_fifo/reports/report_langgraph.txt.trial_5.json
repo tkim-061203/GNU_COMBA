@@ -6,42 +6,41 @@
     "module_name": "asyn_fifo",
     "description_type": "txt",
     "final_status": "fail_ts",
-    "sc_trial": 12,
+    "sc_trial": 8,
     "ts_trial": 6,
-    "total_iter": 18,
-    "gvd": "module asyn_fifo #(\n    parameter DEPTH = 16,\n    parameter WIDTH = 8,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output wire\t\t\t\twfull,\n    output wire\t\t\t\trempty,\n    output wire [WIDTH-1:0]\trdata\n);\n\nreg [ADDR_WIDTH-1:0] wr_ptr_sync1, wr_ptr_sync2;\nreg [ADDR_WIDTH-1:0] rd_ptr_sync1, rd_ptr_sync2;\n\nalways @(posedge wclk or negedge wrstn) begin\n    if (!wrstn) begin\n        wr_ptr_sync1 <= 0;\n        wr_ptr_sync2 <= 0;\n    end else begin\n        wr_ptr_sync1 <= wr_ptr_sync2;\n        wr_ptr_sync2 <= wr_ptr_sync1 + winc;\n    end\nend\n\nalways @(posedge rclk or negedge rrstn) begin\n    if (!rrstn) begin\n        rd_ptr_sync1 <= 0;\n        rd_ptr_sync2 <= 0;\n    end else begin\n        rd_ptr_sync1 <= rd_ptr_sync2;\n        rd_ptr_sync2 <= rd_ptr_sync1 + rinc;\n    end\nend\n\nreg [WIDTH-1:0] ram [DEPTH-1:0];\n\nalways @(posedge wclk or negedge wrstn) begin\n    if (!wrstn) begin\n        ram[0] <= 0;\n    end else begin\n        ram[wr_ptr_sync2] <= wdata;\n    end\nend\n\nassign rdata = ram[rd_ptr_sync2];\nassign rempty = (wr_ptr_sync2 == rd_ptr_sync2);\nassign wfull = ((wr_ptr_sync2 - rd_ptr_sync2) == DEPTH);\n\nendmodule\n\nmodule dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n(\n\t input wclk\t,\n\t input wenc\t,\n\t input [$clog2(DEPTH)-1:0] waddr  ,\n\t input [WIDTH-1:0] wdata ,\n\t input rclk\t,\n\t input renc\t,\n\t input [$clog2(DEPTH)-1:0] raddr ,\n\t output reg [WIDTH-1:0] rdata \t\t\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n\tif(wenc)\n\t\tRAM_MEM[waddr] <= wdata;\nend \n\nalways @(posedge rclk) begin\n\tif(renc)\n\t\trdata <= RAM_MEM[raddr];\nend \n\nendmodule\n",
-    "xml_description": "(Bypassed XML; Using TXT mode)",
-    "sc_log": "TopModule.sv:21: sorry: Assignment to an entire array or to an array slice is not yet supported.\nTopModule.sv:23: error: Unable to bind wire/reg/memory `waddr' in `asyn_fifo'\n2 error(s) during elaboration.\n",
-    "tb_log": "[COMPILE iverilog]\n\n[RUN]\nVCD info: dumpfile waveform.vcd opened for output.\nERROR: testbench.v:71: $readmemh: Unable to open wfull.txt for reading.\nERROR: testbench.v:72: $readmemh: Unable to open rempty.txt for reading.\nERROR: testbench.v:73: $readmemh: Unable to open tdata.txt for reading.\n===========Error===========\ntestbench.v:58: $finish called at 1050 (1ns)\n",
+    "total_iter": 14,
+    "gvd": "module asyn_fifo #(\n    parameter DEPTH = 16,\n    parameter WIDTH = 8,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output wire\t\t\t\twfull,\n    output wire\t\t\t\trempty,\n    output wire [WIDTH-1:0]\trdata\n);\n\nreg [ADDR_WIDTH-1:0] waddr_bin, raddr_bin;\nreg [ADDR_WIDTH-1:0] wptr, rptr;\nreg [ADDR_WIDTH-1:0] wptr_buff, rptr_buff;\nwire [ADDR_WIDTH-1:0] wptr_syn, rptr_syn;\n\ndual_port_RAM #(.WIDTH(WIDTH), .DEPTH(DEPTH)) dual_port_ram (\n    .wclk(wclk),\n    .wenc(winc),\n    .ren(rinc),  \n    .waddr(waddr_bin),\n    .raddr(raddr_bin),\n    .wdata(wdata),\n    .rdata(rdata)\n);\n\nalways @(posedge wclk or negedge wrstn) begin\n    if (!wrstn) begin\n        waddr_bin <= 0;\n        wptr <= 0;\n    end else if (winc && !wfull) begin\n        waddr_bin <= (waddr_bin + 1) % DEPTH;\n        wptr <= (wptr + 1) % DEPTH;\n    end\nend\n\nalways @(posedge rclk or negedge rrstn) begin\n    if (!rrstn) begin\n        raddr_bin <= 0;\n        rptr <= 0;\n    end else if (rinc && !rempty) begin\n        raddr_bin <= (raddr_bin + 1) % DEPTH;\n        rptr <= (rptr + 1) % DEPTH;\n    end\nend\n\nalways @(posedge wclk or negedge wrstn) begin\n    if (!wrstn) begin\n        wptr_buff <= 0;\n    end else begin\n        wptr_buff <= wptr;\n    end\nend\n\nalways @(posedge rclk or negedge rrstn) begin\n    if (!rrstn) begin\n        rptr_buff <= 0;\n    end else begin\n        rptr_buff <= rptr;\n    end\nend\n\nassign wfull = (wptr == {~rptr_syn[ADDR_WIDTH:ADDR_WIDTH-1], rptr_syn[ADDR_WIDTH-2:0]});\nassign rempty = (rptr == wptr_syn);\n\nendmodule\n\nmodule dual_port_RAM #(\n    parameter WIDTH = 8,\n    parameter DEPTH = 16\n)(\n    input wclk,\n    input rclk,\n    input wenc,\n    input ren,\n    input [$clog2(DEPTH)-1:0] waddr,\n    input [$clog2(DEPTH)-1:0] raddr,\n    input [WIDTH-1:0] wdata,\n    output reg [WIDTH-1:0] rdata\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n    if (wenc)\n        RAM_MEM[waddr] <= wdata;\nend\n\nalways @(posedge rclk) begin\n    rdata <= RAM_MEM[raddr];\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Asynchronous FIFO with configurable depth and width.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal used for synchronous write operations.</input>\n        <input id=\"rclk\">Read clock signal used for synchronous read operations.</input>\n        <input id=\"wrstn\">Write reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"rrstn\">Read reset signal. Defined as 0 for reset and 1 for reset signal inactive.</input>\n        <input id=\"winc\">Write increment signal. Used to trigger write operations.</input>\n        <input id=\"rinc\">Read increment signal. Used to trigger read operations.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input.</input>\n        <output id=\"wfull\">Write full signal. Indicates if the FIFO is full and cannot accept further write operations.</output>\n        <output id=\"rempty\">Read empty signal. Indicates if the FIFO is empty and cannot provide any data for read operations.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">8</parameter>\n        <parameter id=\"DEPTH\">16</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;signal id=\"waddr_bin\" type=\"reg\" width_description=\"[${$clog2(DEPTH)}-1:0]\">Write address register.&lt;/signal>\n        &lt;signal id=\"raddr_bin\" type=\"reg\" width_description=\"[${$clog2(DEPTH)}-1:0]\">Read address register.&lt;/signal>\n        &lt;signal id=\"wptr\" type=\"reg\" width_description=\"[${$clog2(DEPTH)}-1:0]\">Write pointer.&lt;/signal>\n        &lt;signal id=\"rptr\" type=\"reg\" width_description=\"[${$clog2(DEPTH)}-1:0]\">Read pointer.&lt;/signal>\n        &lt;signal id=\"wptr_buff\" type=\"reg\" width_description=\"[${$clog2(DEPTH)}-1:0]\">Write pointer buffer.&lt;/signal>\n        &lt;signal id=\"rptr_buff\" type=\"reg\" width_description=\"[${$clog2(DEPTH)}-1:0]\">Read pointer buffer.&lt;/signal>\n        &lt;signal id=\"wen\" type=\"wire\">Write enable signal.&lt;/signal>\n        &lt;signal id=\"ren\" type=\"wire\">Read enable signal.&lt;/signal>\n    </logic_description>\n    <implementation>\n        // Dual-port RAM instantiation\n        dual_port_RAM #(.WIDTH(WIDTH), .DEPTH(DEPTH)) dual_port_ram (\n            .wclk(wclk),\n            .renc(ren),\n            .wenc(wen),\n            .waddr(waddr_bin),\n            .raddr(raddr_bin),\n            .wdata(wdata),\n            .rdata(rdata)\n        );\n\n        // Write pointer logic\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                waddr_bin &lt;= 0;\n                wptr &lt;= 0;\n            end else if (winc &amp;&amp; !wfull) begin\n                waddr_bin &lt;= (waddr_bin + 1) % DEPTH;\n                wptr &lt;= (wptr + 1) % DEPTH;\n            end\n        end\n\n        // Read pointer logic\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                raddr_bin &lt;= 0;\n                rptr &lt;= 0;\n            end else if (rinc &amp;&amp; !rempty) begin\n                raddr_bin &lt;= (raddr_bin + 1) % DEPTH;\n                rptr &lt;= (rptr + 1) % DEPTH;\n            end\n        end\n\n        // Pointer buffers\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                wptr_buff &lt;= 0;\n            end else begin\n                wptr_buff &lt;= wptr;\n            end\n        end\n\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                rptr_buff &lt;= 0;\n            end else begin\n                rptr_buff &lt;= rptr;\n            end\n        end\n\n        // Full and empty signals\n        assign wfull = (wptr == ((~rptr_buff &lt;&lt; 1) | (rptr_buff &amp; 4'b0011)));\n        assign rempty = (rptr == wptr);\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:32: syntax error\nTopModule.sv:32: error: Malformed statement\nTopModule.sv:41: syntax error\nTopModule.sv:41: error: Malformed statement\nTopModule.sv:51: syntax error\nTopModule.sv:51: error: Malformed statement\nTopModule.sv:58: syntax error\nTopModule.sv:58: error: Malformed statement\nTopModule.sv:68: syntax error\nTopModule.sv:68: error: Malformed statement\nTopModule.sv:75: syntax error\nTopModule.sv:75: error: Malformed statement\n",
+    "tb_log": "[COMPILE verilator]\nmake[1]: Entering directory '/tmp/comba_asyn_fifo_tr5h_1a_/obj_dir'\nmake[1]: Nothing to be done for 'default'.\nmake[1]: Leaving directory '/tmp/comba_asyn_fifo_tr5h_1a_/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.010 s (elab=0.000, cvt=0.000, bld=0.009); cpu 0.001 s on 1 threads; allocated 30.156 MB\n\n[RUN]\nFailed at step 0 (t=560): wfull=0/exp 1, rempty=1/exp 0, rdata=00/exp 01\nFailed at step 1 (t=570): wfull=0/exp 1, rempty=1/exp 0, rdata=00/exp 01\nFailed at step 2 (t=580): wfull=0/exp 1, rempty=1/exp 0, rdata=00/exp ab\nFailed at step 3 (t=590): wfull=0/exp 0, rempty=1/exp 0, rdata=00/exp ab\nFailed at step 4 (t=600): wfull=0/exp 0, rempty=1/exp 0, rdata=00/exp ac\n===========Error===========\n- testbench.v:52: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 1us; walltime 0.000 s; speed 3.246 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
     "error": null,
     "edtm": {
-      "TopModule.sv:N: error: parameter `ADDR_WIDTH` not found in `asyn_fifo.ram_inst`.": 5,
-      "TopModule.sv:N: error: Unable to bind wire/reg/memory `waddr' in `asyn_fifo'": 1,
+      "TopModule.sv:N: error: port ``renc'' is not a port of dual_port_ram.": 2,
       "TB:fsm_state_error::0::": 6
     },
     "failure_type": "fsm_state_error",
-    "vcd_status": "ok",
+    "vcd_status": "",
     "self_consistency": {
-      "samples_run": 5,
-      "max_samples": 5,
-      "best_sample_idx": 0,
-      "best_temperature": 0.0,
+      "samples_run": 9,
+      "max_samples": 10,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
       "best_status": "fail_ts",
       "early_exit": false,
       "vote_enabled": false,
-      "total_elapsed_s": 487.47,
+      "total_elapsed_s": 1364.03,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "fail_ts",
-          "sc_trial": 12,
+          "sc_trial": 6,
           "ts_trial": 6,
-          "iter": 18,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 81,
-          "elapsed_s": 132.24
+          "gvd_lines": 109,
+          "elapsed_s": 124.97
         },
         {
           "idx": 1,
@@ -52,8 +51,8 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 109,
-          "elapsed_s": 95.44
+          "gvd_lines": 113,
+          "elapsed_s": 120.75
         },
         {
           "idx": 2,
@@ -64,20 +63,20 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 100,
-          "elapsed_s": 101.1
+          "gvd_lines": 136,
+          "elapsed_s": 121.63
         },
         {
           "idx": 3,
           "T": 0.3,
           "status": "fail_ts",
-          "sc_trial": 11,
+          "sc_trial": 10,
           "ts_trial": 6,
-          "iter": 17,
+          "iter": 16,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 88,
-          "elapsed_s": 87.36
+          "gvd_lines": 118,
+          "elapsed_s": 160.68
         },
         {
           "idx": 4,
@@ -88,16 +87,64 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 104,
-          "elapsed_s": 71.33
+          "gvd_lines": 97,
+          "elapsed_s": 122.57
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 13,
+          "ts_trial": 6,
+          "iter": 19,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 124,
+          "elapsed_s": 221.66
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 8,
+          "ts_trial": 6,
+          "iter": 14,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 99,
+          "elapsed_s": 141.51
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_ts",
+          "sc_trial": 9,
+          "ts_trial": 6,
+          "iter": 15,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 90,
+          "elapsed_s": 154.37
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 6,
+          "iter": 16,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 91,
+          "elapsed_s": 195.88
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 2,
-      "commits": 15,
+      "rollbacks": 3,
+      "commits": 10,
       "used_fallback": false,
-      "baseline_sc": 2,
+      "baseline_sc": 1,
       "final_sc": 0
     }
   }

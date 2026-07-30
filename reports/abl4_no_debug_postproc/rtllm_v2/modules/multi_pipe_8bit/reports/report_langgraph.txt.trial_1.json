@@ -1,0 +1,160 @@
+{
+  "module_name": "multi_pipe_8bit",
+  "description_type": "txt",
+  "self_consistency_enabled": true,
+  "samples": {
+    "module_name": "multi_pipe_8bit",
+    "description_type": "txt",
+    "final_status": "fail_ts",
+    "sc_trial": 1,
+    "ts_trial": 1,
+    "total_iter": 2,
+    "gvd": "module multi_pipe_8bit(\n    input clk, \n    input rst_n, \n    input mul_en_in, \n    input [7:0] mul_a, \n    input [7:0] mul_b, \n    output mul_en_out, \n    output [15:0] mul_out\n);\n// Internal signals and registers\nreg [1:0] mul_en_out_reg;\nreg [7:0] mul_a_reg;\nreg [7:0] mul_b_reg;\nreg [15:0] temp [0:7];\nreg [15:0] sum [0:4];\nreg [15:0] mul_out_reg;\n// Sequential logic to update input enable signal register\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        mul_en_out_reg <= 0;\n    end else begin\n        mul_en_out_reg <= {mul_en_out_reg[0], mul_en_in};\n    end\nend\n// Combinational logic to assign output enable signal\nassign mul_en_out = mul_en_out_reg[1];\n// Sequential logic to update multiplicand register\nalways @(posedge clk) begin\n    if (mul_en_out_reg[0]) begin\n        mul_a_reg <= mul_a;\n    end else begin\n        mul_a_reg <= 0;\n    end\nend\n// Sequential logic to update multiplier register\nalways @(posedge clk) begin\n    if (mul_en_out_reg[0]) begin\n        mul_b_reg <= mul_b;\n    end else begin\n        mul_b_reg <= 0;\n    end\nend\n// Generate partial products based on multiplier bits\ngenvar i;\ngenerate\n    for (i = 0; i < 8; i = i + 1) begin : gen_partial_products\n        assign temp[i][7:0] = (mul_b_reg[i]) ? mul_a_reg : 8'h00;\n    end\nendgenerate\n// Calculate partial sums based on generated partial products\ngenvar j;\ngenerate\n    for (j = 0; j < 8; j = j + 1) begin : gen_partial_sums\n        if (j == 0) begin\n            assign sum[j][15:0] = temp[j][15:0];\n        end else begin\n            assign sum[j][15:0] = sum[j-1][15:0] + temp[j][15:0];\n        end\n    end\nendgenerate\n// Final product calculation\nalways @(posedge clk) begin\n    mul_out_reg <= sum[7][15:0];\nend\n// Assign output product based on output enable signal\nassign mul_out = (mul_en_out_reg[1]) ? mul_out_reg : 16'h0000;\nendmodule\n",
+    "xml_description": "<module id=\"multi_pipe_8bit\">\n    <description>Unsigned 8-bit multiplier implemented using pipelined processing.</description>\n    <ports>\n        <input id=\"clk\">Clock signal for synchronous operation.</input>\n        <input id=\"rst_n\">Active-low reset signal for chip reset.</input>\n        <input id=\"mul_en_in\">Input enable signal controlling multiplication operation.</input>\n        <input id=\"mul_a\" width_description=\"[7:0]\">Multiplicand input signal.</input>\n        <input id=\"mul_b\" width_description=\"[7:0]\">Multiplier input signal.</input>\n        <output id=\"mul_en_out\">Output enable signal indicating if multiplication is enabled.</output>\n        <output id=\"mul_out\" width_description=\"[15:0]\">Product output signal.</output>\n    </ports>\n    <parameter_description>\n        &lt;state_name id=\"IDLE\">State IDLE.&lt;/state_name>\n        &lt;state_name id=\"LOAD\">State LOAD.&lt;/state_name>\n        &lt;state_name id=\"MULTIPLY\">State MULTIPLY.&lt;/state_name>\n        &lt;state_name id=\"OUTPUT\">State OUTPUT.&lt;/state_name>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"mul_en_out_reg\" width_description=\"[1:0]\">Register storing the input enable signal.&lt;/reg>\n        &lt;reg id=\"mul_a_reg\" width_description=\"[7:0]\">Register storing the multiplicand.&lt;/reg>\n        &lt;reg id=\"mul_b_reg\" width_description=\"[7:0]\">Register storing the multiplier.&lt;/reg>\n        &lt;reg id=\"temp[0]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"temp[1]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"temp[2]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"temp[3]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"temp[4]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"temp[5]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"temp[6]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"temp[7]\" width_description=\"[15:0]\">Temporary storage for partial products.&lt;/reg>\n        &lt;reg id=\"sum[0]\" width_description=\"[15:0]\">Sum register for first stage.&lt;/reg>\n        &lt;reg id=\"sum[1]\" width_description=\"[15:0]\">Sum register for second stage.&lt;/reg>\n        &lt;reg id=\"sum[2]\" width_description=\"[15:0]\">Sum register for third stage.&lt;/reg>\n        &lt;reg id=\"sum[3]\" width_description=\"[15:0]\">Sum register for fourth stage.&lt;/reg>\n        &lt;reg id=\"sum[4]\" width_description=\"[15:0]\">Sum register for fifth stage.&lt;/reg>\n        &lt;reg id=\"mul_out_reg\" width_description=\"[15:0]\">Register storing the final product.&lt;/reg>\n    </logic_description>\n    <implementation>\n        // Register to hold the input enable signal\n        reg [1:0] mul_en_out_reg;\n        \n        // Sequential logic block triggered on the positive edge of the clock\n        always @(posedge clk) begin\n            // Update the input enable signal register on the positive edge of the clock\n            mul_en_out_reg &lt;= {mul_en_out_reg[0], mul_en_in};\n        end\n        \n        // Assign the output enable signal based on the input enable signal register\n        assign mul_en_out = mul_en_out_reg[1];\n        \n        // Register to hold the multiplicand\n        reg [7:0] mul_a_reg;\n        \n        // Sequential logic block triggered on the positive edge of the clock\n        always @(posedge clk) begin\n            // Update the multiplicand register on the positive edge of the clock\n            if (mul_en_out_reg[0]) begin\n                mul_a_reg &lt;= mul_a;\n            end\n        end\n        \n        // Register to hold the multiplier\n        reg [7:0] mul_b_reg;\n        \n        // Sequential logic block triggered on the positive edge of the clock\n        always @(posedge clk) begin\n            // Update the multiplier register on the positive edge of the clock\n            if (mul_en_out_reg[0]) begin\n                mul_b_reg &lt;= mul_b;\n            end\n        end\n        \n        // Generate partial products based on the multiplier bits\n        genvar i;\n        generate\n            for (i = 0; i &lt; 8; i = i + 1) begin : gen_partial_products\n                assign temp[i][7:0] = (mul_b_reg[i]) ? mul_a_reg : 8'h00;\n            end\n        endgenerate\n        \n        // Calculate partial sums based on the generated partial products\n        genvar j;\n        generate\n            for (j = 0; j &lt; 8; j = j + 1) begin : gen_partial_sums\n                if (j == 0) begin\n                    assign sum[j][15:0] = temp[j][15:0];\n                end else begin\n                    assign sum[j][15:0] = sum[j-1][15:0] + temp[j][15:0];\n                end\n            end\n        endgenerate\n        \n        // Final product calculation\n        always @(posedge clk) begin\n            mul_out_reg &lt;= sum[7][15:0];\n        end\n        \n        // Assign the output product based on the output enable signal\n        assign mul_out = (mul_en_out_reg[1]) ? mul_out_reg : 16'h0000;\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:57: warning: ignoring out of bounds l-value array access sum[5].\nTopModule.sv:57: warning: ignoring out of bounds l-value array access sum[6].\nTopModule.sv:57: warning: ignoring out of bounds l-value array access sum[7].\nTopModule.sv:63: warning: returning 'bx for out of bounds array access sum[7].\n",
+    "tb_log": "[COMPILE verilator]\n%Warning-EOFNEWLINE: testbench.v:83:11: Missing newline at end of file (POSIX 3.206).\n                                      : ... Suggest add newline.\n   83 | endmodule \n      |           ^\n                     ... For warning description see https://verilator.org/warn/EOFNEWLINE?v=5.048\n                     ... Use \"/* verilator lint_off EOFNEWLINE */\" and lint_on around source to disable this message.\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module multi_pipe_8bit(\n      |        ^~~~~~~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_multi_pipe();\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\n%Warning-GENUNNAMED: TopModule.sv:54:21: Unnamed generate block 'genblk1' (IEEE 1800-2023 27.6)\n                                       : ... Suggest assign a label with 'begin : gen_<label_name>'\n   54 |         if (j == 0) begin\n      |                     ^~~~~\n                     ... For warning description see https://verilator.org/warn/GENUNNAMED?v=5.048\n                     ... Use \"/* verilator lint_off GENUNNAMED */\" and lint_on around source to disable this message.\n%Warning-GENUNNAMED: TopModule.sv:56:18: Unnamed generate block 'genblk1' (IEEE 1800-2023 27.6)\n                                       : ... Suggest assign a label with 'begin : gen_<label_name>'\n   56 |         end else begin\n      |                  ^~~~~\n%Warning-SELRANGE: TopModule.sv:57:23: Selection index out of range: 5 outside 4:0\n                                     : ... note: In instance 'tb_multi_pipe.u1'\n   57 |             assign sum[j][15:0] = sum[j-1][15:0] + temp[j][15:0];\n      |                       ^\n                   ... For warning description see https://verilator.org/warn/SELRANGE?v=5.048\n                   ... Use \"/* verilator lint_off SELRANGE */\" and lint_on around source to disable this message.\n%Warning-SELRANGE: TopModule.sv:57:23: Selection index out of range: 6 outside 4:0\n                                     : ... note: In instance 'tb_multi_pipe.u1'\n   57 |             assign sum[j][15:0] = sum[j-1][15:0] + temp[j][15:0];\n      |                       ^\n%Warning-SELRANGE: TopModule.sv:57:23: Selection index out of range: 7 outside 4:0\n                                     : ... note: In instance 'tb_multi_pipe.u1'\n   57 |             assign sum[j][15:0] = sum[j-1][15:0] + temp[j][15:0];\n      |                       ^\n%Warning-SELRANGE: TopModule.sv:63:23: Selection index out of range: 7 outside 4:0\n                                     : ... note: In instance 'tb_multi_pipe.u1'\n   63 |     mul_out_reg <= sum[7][15:0];\n      |                       ^\nmake: Entering directory '/tmp/comba_multi_pipe_8bit_6q6ylr91/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_multi_pipe.cpp Vtb_multi_pipe___024root__0.cpp Vtb_multi_pipe__main.cpp Vtb_multi_pipe___024root__Slow.cpp Vtb_multi_pipe___024root__0__Slow.cpp Vtb_multi_pipe__Syms__Slow.cpp > Vtb_multi_pipe__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_multi_pipe__ALL.o Vtb_multi_pipe__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_multi_pipe__ALL.a    -pthread -lpthread -latomic   -o Vtb_multi_pipe\nrm Vtb_multi_pipe__ALL.verilator_deplist.tmp\nmake: Leaving directory '/tmp/comba_multi_pipe_8bit_6q6ylr91/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.046 MB sources in 3 modules, into 0.036 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 0.196 s (elab=0.002, cvt=0.005, bld=0.184); cpu 0.012 s on 1 threads; allocated 30.539 MB\n\n[RUN]\n===========Test completed with         100 /100 failures===========\n- testbench.v:79: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 68us; walltime 0.002 s; speed 40.210 ms/s\n- Verilator: cpu 0.002 s on 1 threads; allocated 6 MB\n",
+    "error": null,
+    "edtm": {},
+    "failure_type": "",
+    "vcd_status": "",
+    "self_consistency": {
+      "samples_run": 10,
+      "max_samples": 10,
+      "best_sample_idx": 5,
+      "best_temperature": 0.5,
+      "best_status": "fail_ts",
+      "early_exit": false,
+      "vote_enabled": false,
+      "total_elapsed_s": 918.82,
+      "all_samples": [
+        {
+          "idx": 0,
+          "T": 0.0,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 111,
+          "elapsed_s": 80.43
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 74,
+          "elapsed_s": 58.87
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 148,
+          "elapsed_s": 79.11
+        },
+        {
+          "idx": 3,
+          "T": 0.3,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 68,
+          "elapsed_s": 54.45
+        },
+        {
+          "idx": 4,
+          "T": 0.4,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 77,
+          "elapsed_s": 46.5
+        },
+        {
+          "idx": 5,
+          "T": 0.5,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 67,
+          "elapsed_s": 72.93
+        },
+        {
+          "idx": 6,
+          "T": 0.6,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 81,
+          "elapsed_s": 183.08
+        },
+        {
+          "idx": 7,
+          "T": 0.7,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 87,
+          "elapsed_s": 69.95
+        },
+        {
+          "idx": 8,
+          "T": 0.8,
+          "status": "fail_sc",
+          "sc_trial": 1,
+          "ts_trial": 0,
+          "iter": 1,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 125,
+          "elapsed_s": 57.25
+        },
+        {
+          "idx": 9,
+          "T": 0.9,
+          "status": "fail_ts",
+          "sc_trial": 1,
+          "ts_trial": 1,
+          "iter": 2,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 204,
+          "elapsed_s": 216.24
+        }
+      ]
+    },
+    "guard_summary": {
+      "rollbacks": 0,
+      "commits": 0,
+      "used_fallback": false,
+      "baseline_sc": 0,
+      "final_sc": 0
+    }
+  }
+}

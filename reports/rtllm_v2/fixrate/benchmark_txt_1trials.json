@@ -2,17 +2,47 @@
   "config": {
     "num_trials": 1,
     "description_type": "txt",
-    "num_modules": 1,
-    "timestamp": "2026-05-22T22:59:55.848483"
+    "num_modules": 4,
+    "timestamp": "2026-07-16T16:41:18.064465",
+    "models": {
+      "generator": {
+        "served_name": "generator",
+        "path": "/home/nntkim/Downloads/model_qwen_generator_0-35_e1_v1_merged",
+        "model": "model_qwen_generator_0-35_e1_v1_merged"
+      },
+      "debugger": {
+        "served_name": "debugger",
+        "path": "/home/nntkim/Downloads/model_qwen_debugger_2gpu_e1_v2_merged",
+        "model": "model_qwen_debugger_2gpu_e1_v2_merged"
+      }
+    }
   },
   "global": {
     "sc_pass_rate": 1.0,
-    "tb_pass_rate": 1.0,
+    "tb_pass_rate": 0.75,
     "syntax_fix_rate": 1.0,
-    "func_fix_rate": 1.0
+    "func_fix_rate": 0.75
   },
   "modules": {
-    "adder_8bit": {
+    "asyn_fifo": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.0,
+      "syntax_fr": 1.0,
+      "func_fr": 0.0
+    },
+    "alu": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "calendar": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "signal_generator": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,
