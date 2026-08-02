@@ -164,3 +164,7 @@ Interactive-hosting specifics:
 
 > See **[README_openwebui.md](README_openwebui.md)** for the full hosting + Open WebUI
 > setup guide, endpoint reference, and environment variables.
+
+---
+Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
+Version: 2.6.0

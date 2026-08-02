@@ -185,3 +185,4 @@ curl -sN http://localhost:8100/v1/chat/completions \
 
 ---
 Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
+Version: 2.6.0

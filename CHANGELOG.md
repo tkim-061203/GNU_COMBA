@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.0] - 2026-07-30
+### Added
+- **Open WebUI Interactive Integration**: Implemented FastAPI OpenAI-compatible streaming server (`src/langgraph_core/api_server.py`) on port 8100 with per-node SSE streaming, background-task bypass for Open WebUI helper prompts, and interactive testbench skip mode.
+- **Thesis Defense Review & Assessment Documentation**: Created comprehensive thesis evaluation and defense preparation documents (`thesis/README_danhgia_phanbien.md` and `thesis/README_dapan_phanbien.md`) detailing data leakage subgroup analysis, LoRA parameter verification (r=912, 30.22% base params), and baseline experiments.
+- **Consolidated Experiment Reports**: Added complete ablation breakdown artifacts (`reports/abl1_full`, `reports/abl2_no_debugger`, `reports/abl3_no_postproc`, `reports/abl4_no_debug_postproc`, `reports/baseline_N5_88.3`, `reports/baseline_N5_v2_70.0`, `reports/baseline_base_model`).
+
+### Changed
+- **VerilogEval Sweep Target**: Added wall-clock timing and automatic report collection for `make VerilogEval` sweep across `e0_t0`, `e0_t8`, `e1_t0`, `e1_t8` configurations.
+
+## [2.5.0] - 2026-06-22
+### Changed
+- **Repository Restructuring**: Moved pipeline entry scripts (`run.py`, `benchmark_langgraph.py`, `analyze_self_consistency.py`, `patch_prompts.py`) into `src/` directory and updated Makefile paths.
+- **Report Consolidation**: Consolidated benchmark output directories under `reports/` (`reports/rtllm`, `reports/rtllm_v2`, `reports/verilogeval`).
+- **Repository Cleanup**: Pruned unused notebooks, experiment archives, and yosys build caches.
+
 ## [2.4.0] - 2026-04-28
 ### Added
 - **Hierarchical Self-Consistency**: Implemented a multi-sample Best-of-N strategy in `multi_sample.py`. Includes Tier 1 (deterministic) and Tier 2 (diverse sampling) execution modes.
