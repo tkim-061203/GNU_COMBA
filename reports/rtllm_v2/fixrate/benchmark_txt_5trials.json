@@ -3,34 +3,28 @@
     "num_trials": 5,
     "description_type": "txt",
     "num_modules": 50,
-    "timestamp": "2026-07-22T21:16:28.759627",
+    "timestamp": "2026-08-09T15:34:34.918927",
     "models": {
       "generator": {
         "served_name": "generator",
-        "path": "/home/nntkim/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-7B-Instruct/snapshots/c03e6d358207e414f1eca0bb1891e29f1db0e242",
-        "model": "c03e6d358207e414f1eca0bb1891e29f1db0e242"
+        "path": "/home/nntkim/Downloads/model_qwen_generator_0-35_e1_v1_merged",
+        "model": "model_qwen_generator_0-35_e1_v1_merged"
       },
       "debugger": {
         "served_name": "debugger",
-        "path": "/home/nntkim/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-7B-Instruct/snapshots/c03e6d358207e414f1eca0bb1891e29f1db0e242",
-        "model": "c03e6d358207e414f1eca0bb1891e29f1db0e242"
+        "path": "/home/nntkim/Downloads/model_qwen_debugger_2gpu_e1_v2_merged",
+        "model": "model_qwen_debugger_2gpu_e1_v2_merged"
       }
     }
   },
   "global": {
     "sc_pass_rate": 1.0,
-    "tb_pass_rate": 0.72,
+    "tb_pass_rate": 0.7759999999999999,
     "syntax_fix_rate": 1.0,
-    "func_fix_rate": 0.72
+    "func_fix_rate": 0.7759999999999999
   },
   "modules": {
-    "accu": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.0,
-      "syntax_fr": 1.0,
-      "func_fr": 0.0
-    },
-    "alu": {
+    "adder_pipe_64bit": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.0,
       "syntax_fr": 1.0,
@@ -42,13 +36,19 @@
       "syntax_fr": 1.0,
       "func_fr": 0.0
     },
-    "float_multi": {
+    "barrel_shifter": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.0,
       "syntax_fr": 1.0,
       "func_fr": 0.0
     },
-    "freq_divbyodd": {
+    "clkgenerator": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.0,
+      "syntax_fr": 1.0,
+      "func_fr": 0.0
+    },
+    "float_multi": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.0,
       "syntax_fr": 1.0,
@@ -72,43 +72,13 @@
       "syntax_fr": 1.0,
       "func_fr": 0.0
     },
-    "JC_counter": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.2,
-      "syntax_fr": 1.0,
-      "func_fr": 0.2
-    },
-    "instr_reg": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.2,
-      "syntax_fr": 1.0,
-      "func_fr": 0.2
-    },
-    "multi_pipe_8bit": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.2,
-      "syntax_fr": 1.0,
-      "func_fr": 0.2
-    },
-    "traffic_light": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.2,
-      "syntax_fr": 1.0,
-      "func_fr": 0.2
-    },
-    "barrel_shifter": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.4,
-      "syntax_fr": 1.0,
-      "func_fr": 0.4
-    },
     "freq_divbyfrac": {
       "sc_pass_rate": 1.0,
-      "tb_pass_rate": 0.4,
+      "tb_pass_rate": 0.2,
       "syntax_fr": 1.0,
-      "func_fr": 0.4
+      "func_fr": 0.2
     },
-    "pulse_detect": {
+    "accu": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.4,
       "syntax_fr": 1.0,
@@ -116,27 +86,45 @@
     },
     "sequence_detector": {
       "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.4,
+      "syntax_fr": 1.0,
+      "func_fr": 0.4
+    },
+    "LIFObuffer": {
+      "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.6,
       "syntax_fr": 1.0,
       "func_fr": 0.6
     },
-    "LIFObuffer": {
+    "alu": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
       "func_fr": 0.8
     },
-    "adder_pipe_64bit": {
+    "freq_div": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
       "func_fr": 0.8
     },
-    "fsm": {
+    "freq_divbyodd": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 0.8,
       "syntax_fr": 1.0,
       "func_fr": 0.8
+    },
+    "pulse_detect": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 0.8,
+      "syntax_fr": 1.0,
+      "func_fr": 0.8
+    },
+    "JC_counter": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
     },
     "LFSR": {
       "sc_pass_rate": 1.0,
@@ -186,12 +174,6 @@
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
-    "clkgenerator": {
-      "sc_pass_rate": 1.0,
-      "tb_pass_rate": 1.0,
-      "syntax_fr": 1.0,
-      "func_fr": 1.0
-    },
     "comparator_3bit": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
@@ -234,13 +216,19 @@
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
-    "freq_div": {
+    "freq_divbyeven": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,
       "func_fr": 1.0
     },
-    "freq_divbyeven": {
+    "fsm": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "instr_reg": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,
@@ -259,6 +247,12 @@
       "func_fr": 1.0
     },
     "multi_booth_8bit": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "multi_pipe_8bit": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,
@@ -307,6 +301,12 @@
       "func_fr": 1.0
     },
     "synchronizer": {
+      "sc_pass_rate": 1.0,
+      "tb_pass_rate": 1.0,
+      "syntax_fr": 1.0,
+      "func_fr": 1.0
+    },
+    "traffic_light": {
       "sc_pass_rate": 1.0,
       "tb_pass_rate": 1.0,
       "syntax_fr": 1.0,

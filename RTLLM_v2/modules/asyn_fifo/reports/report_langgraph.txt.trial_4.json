@@ -6,17 +6,15 @@
     "module_name": "asyn_fifo",
     "description_type": "txt",
     "final_status": "fail_ts",
-    "sc_trial": 14,
+    "sc_trial": 6,
     "ts_trial": 6,
-    "total_iter": 20,
-    "gvd": "module asyn_fifo #(\n    parameter DEPTH = 16,\n    parameter WIDTH = 8,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output reg wfull,\n    output reg rempty,\n    output reg [WIDTH-1:0]\trdata\n);\n\n    reg [ADDR_WIDTH-1:0] wp;\n    reg [ADDR_WIDTH-1:0] rp;\n    reg [WIDTH-1:0] mem [0:DEPTH-1];\n\n    dual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH)) ram_inst (\n        .wclk(wclk),\n        .wenc(winc),\n        .waddr(wp),\n        .wdata(wdata),\n        .rclk(rclk),\n        .renc(rinc),\n        .raddr(rp),\n        .rdata(rdata)\n    );\n\n    reg [ADDR_WIDTH-1:0] wp_syn;\n    always @(posedge wclk or negedge wrstn) begin\n        if (!wrstn) begin\n            wp_syn <= 0;\n        end else begin\n            wp_syn <= wp;\n        end\n    end\n\n    reg [ADDR_WIDTH-1:0] rp_syn;\n    always @(posedge rclk or negedge rrstn) begin\n        if (!rrstn) begin\n            rp_syn <= 0;\n        end else begin\n            rp_syn <= rp;\n        end\n    end\n\n    assign wfull = (wp_syn == {~rp_syn[ADDR_WIDTH:ADDR_WIDTH-1], rp_syn[ADDR_WIDTH-2:0]});\n    assign rempty = (rp_syn == wp_syn);\n\nendmodule\n\nmodule dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n(\n\t input wclk\t,\n\t input wenc\t,\n\t input [$clog2(DEPTH)-1:0] waddr  ,\n\t input [WIDTH-1:0] wdata ,\n\t input rclk\t,\n\t input renc\t,\n\t input [$clog2(DEPTH)-1:0] raddr ,\n\t output reg [WIDTH-1:0] rdata \t\t\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n\tif(wenc)\n\t\tRAM_MEM[waddr] <= wdata;\nend \n\nalways @(posedge rclk) begin\n\tif(renc)\n\t\trdata <= RAM_MEM[raddr];\nend \n\nendmodule\n",
-    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Asynchronous FIFO with configurable width and depth.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal.</input>\n        <input id=\"rclk\">Read clock signal.</input>\n        <input id=\"wrstn\">Write reset signal.</input>\n        <input id=\"rrstn\">Read reset signal.</input>\n        <input id=\"winc\">Write increment signal.</input>\n        <input id=\"rinc\">Read increment signal.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input.</input>\n        <output id=\"wfull\">Write full signal.</output>\n        <output id=\"rempty\">Read empty signal.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"WIDTH\">8</parameter>\n        <parameter id=\"DEPTH\">16</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;register id=\"waddr_bin\" width_description=\"$clog2(DEPTH)\">Write address register.&lt;/register>\n        &lt;register id=\"raddr_bin\" width_description=\"$clog2(DEPTH)\">Read address register.&lt;/register>\n        &lt;register id=\"wptr\" width_description=\"[$clog2(DEPTH):0]\">Write pointer.&lt;/register>\n        &lt;register id=\"rptr\" width_description=\"[$clog2(DEPTH):0]\">Read pointer.&lt;/register>\n        &lt;register id=\"wptr_buff\" width_description=\"[$clog2(DEPTH):0]\">Write pointer buffer.&lt;/register>\n        &lt;register id=\"rptr_buff\" width_description=\"[$clog2(DEPTH):0]\">Read pointer buffer.&lt;/register>\n        &lt;wire id=\"wen\" width_description=\"1\">Write enable signal.&lt;/wire>\n        &lt;wire id=\"ren\" width_description=\"1\">Read enable signal.&lt;/wire>\n        &lt;wire id=\"wfull_reg\" width_description=\"1\">Write full register.&lt;/wire>\n        &lt;wire id=\"rempty_reg\" width_description=\"1\">Read empty register.&lt;/wire>\n    </logic_description>\n    <implementation>\n        // Instantiate dual-port RAM\n        &lt;submodule id=\"dual_port_RAM\">\n            <input id=\"wclk\"/>\n            <input id=\"wenc\"/>\n            <input id=\"waddr\" width_description=\"$clog2(DEPTH)\"/>\n            <input id=\"wdata\" width_description=\"WIDTH\"/>\n            <input id=\"rclk\"/>\n            <input id=\"renc\"/>\n            <input id=\"raddr\" width_description=\"$clog2(DEPTH)\"/>\n            <output id=\"rdata\" width_description=\"WIDTH\"/>\n        &lt;/submodule>\n\n        // Write pointer logic\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                waddr_bin &lt;= 0;\n                wptr &lt;= 0;\n            end else if (winc &amp;&amp; !wfull_reg) begin\n                waddr_bin &lt;= waddr_bin + 1;\n                wptr &lt;= {~wptr[0], wptr[$clog2(DEPTH)-1:1]};\n            end\n        end\n\n        // Read pointer logic\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                raddr_bin &lt;= 0;\n                rptr &lt;= 0;\n            end else if (rinc &amp;&amp; !rempty_reg) begin\n                raddr_bin &lt;= raddr_bin + 1;\n                rptr &lt;= {~rptr[0], rptr[$clog2(DEPTH)-1:1]};\n            end\n        end\n\n        // Pointer buffer logic\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                wptr_buff &lt;= 0;\n            end else begin\n                wptr_buff &lt;= wptr;\n            end\n        end\n\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                rptr_buff &lt;= 0;\n            end else begin\n                rptr_buff &lt;= rptr;\n            end\n        end\n\n        // Full and empty signals\n        assign wfull_reg = (wptr == {~rptr[$clog2(DEPTH)], rptr[$clog2(DEPTH)-1:1]});\n        assign rempty_reg = (rptr == wptr);\n\n        // Connect to dual-port RAM\n        assign wen = winc &amp;&amp; !wfull_reg;\n        assign ren = rinc &amp;&amp; !rempty_reg;\n\n        assign wdata[wdata'high:0] = wdata[wdata'high:0];\n        assign rdata[rdata'high:0] = dual_port_RAM.rdata[dual_port_RAM.rdata'high:0];\n\n        // Assign outputs\n        assign wfull = wfull_reg;\n        assign rempty = rempty_reg;\n        assign rdata[rdata'high:0] = dual_port_RAM.rdata[dual_port_RAM.rdata'high:0];\n    </implementation>\n</module>",
-    "sc_log": "TopModule.sv:18: error: Unknown module type: dual_port_ram\n3 error(s) during elaboration.\n*** These modules were missing:\n        dual_port_ram referenced 1 times.\n***\n",
-    "tb_log": "[COMPILE verilator]\nmake[1]: Entering directory '/tmp/comba_asyn_fifo_p_3p1wuw/obj_dir'\nmake[1]: Nothing to be done for 'default'.\nmake[1]: Leaving directory '/tmp/comba_asyn_fifo_p_3p1wuw/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.010 s (elab=0.000, cvt=0.000, bld=0.009); cpu 0.001 s on 1 threads; allocated 30.156 MB\n\n[RUN]\nFailed at step 0 (t=560): wfull=0/exp 1, rempty=1/exp 0, rdata=ba/exp 01\nFailed at step 1 (t=570): wfull=0/exp 1, rempty=1/exp 0, rdata=ba/exp 01\nFailed at step 2 (t=580): wfull=0/exp 1, rempty=1/exp 0, rdata=ba/exp ab\nFailed at step 3 (t=590): wfull=0/exp 0, rempty=1/exp 0, rdata=ba/exp ab\nFailed at step 4 (t=600): wfull=0/exp 0, rempty=1/exp 0, rdata=ba/exp ac\n===========Error===========\n- testbench.v:52: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 1us; walltime 0.000 s; speed 5.362 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "total_iter": 12,
+    "gvd": "module asyn_fifo #(\n    parameter DEPTH = 16,\n    parameter WIDTH = 8,\n    parameter ADDR_WIDTH = $clog2(DEPTH)\n) (\n    input \t\t\t\t\twclk,\n    input \t\t\t\t\trclk,\n    input \t\t\t\t\twrstn,\n    input\t\t\t\t\trrstn,\n    input \t\t\t\t\twinc,\n    input \t\t\t \t\trinc,\n    input \t\t[WIDTH-1:0]\twdata,\n    output wire\t\t\t\twfull,\n    output wire\t\t\t\trempty,\n    output reg [WIDTH-1:0]\trdata\n);\n\nendmodule\n\nmodule dual_port_RAM #(parameter DEPTH = 16,  parameter WIDTH = 8)\n(\n\t input wclk\t,\n\t input wenc\t,\n\t input [$clog2(DEPTH)-1:0] waddr  ,\n\t input [WIDTH-1:0] wdata ,\n\t input rclk\t,\n\t input renc\t,\n\t input [$clog2(DEPTH)-1:0] raddr ,\n\t output reg [WIDTH-1:0] rdata \t\t\n);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\n\nalways @(posedge wclk) begin\n\tif(wenc)\n\t\tRAM_MEM[waddr] <= wdata;\nend \n\nalways @(posedge rclk) begin\n\tif(renc)\n\t\trdata <= RAM_MEM[raddr];\nend \n\nendmodule\n",
+    "xml_description": "<module id=\"asyn_fifo\">\n    <description>Asynchronous FIFO implementation with configurable depth and width.</description>\n    <ports>\n        <input id=\"wclk\">Write clock signal.</input>\n        <input id=\"rclk\">Read clock signal.</input>\n        <input id=\"wrstn\">Write reset signal.</input>\n        <input id=\"rrstn\">Read reset signal.</input>\n        <input id=\"winc\">Write increment signal.</input>\n        <input id=\"rinc\">Read increment signal.</input>\n        <input id=\"wdata\" width_description=\"[WIDTH-1:0]\">Write data input.</input>\n        <output id=\"wfull\">Write full signal.</output>\n        <output id=\"rempty\">Read empty signal.</output>\n        <output id=\"rdata\" width_description=\"[WIDTH-1:0]\">Read data output.</output>\n    </ports>\n    <parameter_description>\n        &lt;param id=\"WIDTH\">FIFO width.&lt;/param>\n        &lt;param id=\"DEPTH\">FIFO depth.&lt;/param>\n    </parameter_description>\n    <logic_description type=\"combinational_logic\">\n        // Convert binary to Gray code\n        function automatic [3:0] bin_to_gray;\n            input [3:0] bin;\n            begin\n                bin_to_gray = {bin[3], bin[3]^bin[2], bin[2]^bin[1], bin[1]^bin[0]};\n            end\n        endfunction\n        // Convert Gray code to binary\n        function automatic [3:0] gray_to_bin;\n            input [3:0] gray;\n            begin\n                gray_to_bin[3] = gray[3];\n                gray_to_bin[2] = gray[3] ^ gray[2];\n                gray_to_bin[1] = gray[3] ^ gray[2] ^ gray[1];\n                gray_to_bin[0] = gray[3] ^ gray[2] ^ gray[1] ^ gray[0];\n            end\n        endfunction\n    </logic_description>\n    <implementation>\n        // Dual-port RAM instance\n        dual_port_RAM #(DEPTH, WIDTH) ram_inst(\n            .wclk(wclk),\n            .wenc(winc &amp; !wfull),\n            .waddr(waddr_bin[$clog2(DEPTH)-1:0]),\n            .wdata(wdata),\n            .renc(rinc &amp; !rempty),\n            .raddr(raddr_bin[$clog2(DEPTH)-1:0]),\n            .rdata(rdata)\n        );\n        // Write pointer logic\n        reg [3:0] waddr_bin;\n        reg [3:0] wptr;\n        reg [3:0] wptr_buff;\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                waddr_bin &lt;= 4'd0;\n                wptr &lt;= 4'd0;\n                wptr_buff &lt;= 4'd0;\n            end else begin\n                if (winc &amp;&amp; !wfull) begin\n                    waddr_bin &lt;= waddr_bin + 1;\n                    wptr &lt;= bin_to_gray(waddr_bin);\n                end\n                wptr_buff &lt;= wptr;\n            end\n        end\n        // Read pointer logic\n        reg [3:0] raddr_bin;\n        reg [3:0] rptr;\n        reg [3:0] rptr_buff;\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                raddr_bin &lt;= 4'd0;\n                rptr &lt;= 4'd0;\n                rptr_buff &lt;= 4'd0;\n            end else begin\n                if (rinc &amp;&amp; !rempty) begin\n                    raddr_bin &lt;= raddr_bin + 1;\n                    rptr &lt;= bin_to_gray(raddr_bin);\n                end\n                rptr_buff &lt;= rptr;\n            end\n        end\n        // Synchronize read pointer to write clock domain\n        reg [3:0] rptr_syn;\n        always @(posedge wclk or negedge wrstn) begin\n            if (!wrstn) begin\n                rptr_syn &lt;= 4'd0;\n            end else begin\n                rptr_syn &lt;= rptr_buff;\n            end\n        end\n        // Synchronize write pointer to read clock domain\n        reg [3:0] wptr_syn;\n        always @(posedge rclk or negedge rrstn) begin\n            if (!rrstn) begin\n                wptr_syn &lt;= 4'd0;\n            end else begin\n                wptr_syn &lt;= wptr_buff;\n            end\n        end\n        // Full and empty signal generation\n        assign wfull = (wptr == {~rptr_syn[3], rptr_syn[2:0]});\n        assign rempty = (rptr == wptr_syn);\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:21: error: Unable to bind wire/reg/memory `wenc' in `asyn_fifo'\nTopModule.sv:21: error: Unable to elaborate condition expression.\nTopModule.sv:29: error: Unable to bind wire/reg/memory `renc' in `asyn_fifo'\nTopModule.sv:29: error: Unable to elaborate condition expression.\n4 error(s) during elaboration.\n",
+    "tb_log": "[COMPILE verilator]\nmake[1]: Entering directory '/tmp/comba_asyn_fifo_cbx0aedb/obj_dir'\nmake[1]: Nothing to be done for 'default'.\nmake[1]: Leaving directory '/tmp/comba_asyn_fifo_cbx0aedb/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.010 s (elab=0.000, cvt=0.000, bld=0.009); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\nFailed at step 0 (t=560): wfull=0/exp 1, rempty=0/exp 0, rdata=00/exp 01\nFailed at step 1 (t=570): wfull=0/exp 1, rempty=0/exp 0, rdata=00/exp 01\nFailed at step 2 (t=580): wfull=0/exp 1, rempty=0/exp 0, rdata=00/exp ab\nFailed at step 3 (t=590): wfull=0/exp 0, rempty=0/exp 0, rdata=00/exp ab\nFailed at step 4 (t=600): wfull=0/exp 0, rempty=0/exp 0, rdata=00/exp ac\n===========Error===========\n- testbench.v:52: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 1us; walltime 0.000 s; speed 4.755 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
     "error": null,
     "edtm": {
-      "TopModule.sv:N: error: A reference to a wire or reg (`waddr_bin') is not allowed in a constant expre": 4,
-      "TopModule.sv:N: syntax error": 4,
       "TB:fsm_state_error::0::": 6
     },
     "failure_type": "fsm_state_error",
@@ -24,96 +22,96 @@
     "self_consistency": {
       "samples_run": 8,
       "max_samples": 10,
-      "best_sample_idx": 5,
-      "best_temperature": 0.5,
+      "best_sample_idx": 6,
+      "best_temperature": 0.6,
       "best_status": "fail_ts",
       "early_exit": false,
       "vote_enabled": false,
-      "total_elapsed_s": 1230.04,
+      "total_elapsed_s": 1250.71,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 109,
-          "elapsed_s": 127.13
+          "gvd_lines": 155,
+          "elapsed_s": 255.38
         },
         {
           "idx": 1,
           "T": 0.1,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 122,
-          "elapsed_s": 128.64
+          "gvd_lines": 209,
+          "elapsed_s": 253.3
         },
         {
           "idx": 2,
           "T": 0.2,
           "status": "fail_sc",
-          "sc_trial": 10,
+          "sc_trial": 3,
           "ts_trial": 0,
-          "iter": 10,
+          "iter": 3,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 87,
-          "elapsed_s": 178.6
+          "gvd_lines": 150,
+          "elapsed_s": 56.59
         },
         {
           "idx": 3,
           "T": 0.3,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "status": "fail_sc",
+          "sc_trial": 3,
+          "ts_trial": 0,
+          "iter": 3,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 114,
-          "elapsed_s": 117.29
+          "gvd_lines": 190,
+          "elapsed_s": 251.55
         },
         {
           "idx": 4,
           "T": 0.4,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
+          "status": "fail_sc",
+          "sc_trial": 7,
+          "ts_trial": 0,
+          "iter": 7,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 99,
-          "elapsed_s": 117.4
+          "gvd_lines": 50,
+          "elapsed_s": 65.18
         },
         {
           "idx": 5,
           "T": 0.5,
           "status": "fail_ts",
-          "sc_trial": 14,
+          "sc_trial": 12,
           "ts_trial": 6,
-          "iter": 20,
+          "iter": 18,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 80,
-          "elapsed_s": 214.43
+          "gvd_lines": 94,
+          "elapsed_s": 196.39
         },
         {
           "idx": 6,
           "T": 0.6,
           "status": "fail_ts",
-          "sc_trial": 9,
+          "sc_trial": 6,
           "ts_trial": 6,
-          "iter": 15,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 103,
-          "elapsed_s": 166.09
+          "gvd_lines": 44,
+          "elapsed_s": 97.62
         },
         {
           "idx": 7,
@@ -124,16 +122,16 @@
           "iter": 16,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 89,
-          "elapsed_s": 180.46
+          "gvd_lines": 44,
+          "elapsed_s": 74.71
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 2,
-      "commits": 17,
+      "commits": 8,
       "used_fallback": false,
-      "baseline_sc": 1,
+      "baseline_sc": 0,
       "final_sc": 0
     }
   }

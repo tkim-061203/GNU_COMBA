@@ -26,6 +26,8 @@ CELL_RANGE_START  := 6
 CELL_RANGE_STOP   := 10
 EXTRACT_RANGES    := None
 FLOW_STEPS        := synthesis,extract,filter
+# Log gom MOI ca khong tong hop duoc (error + timeout) kem stdout/stderr cua yosys.
+FAIL_LOG          := $(src_dir)/reports/pyranet_synth_failures.jsonl
 
 # Derived index paths (relative to src_dir so they survive cd)
 # Fallback naming logic: uses EXTRACT_RANGES if set, else cell range start-stop
@@ -251,7 +253,7 @@ data-flow: gen-flow-configs
 	flow = [steps_map[k] for k in keys if k in steps_map]; \
 	json.dump({'flow': flow}, open('$(flow_src_dir)/config.json','w'), indent='\t'); \
 	print('config.json ->', flow)"
-	cd $(src_dir) && python3 $(flow_src_dir)/main.py
+	cd $(src_dir) && $(PY) $(flow_src_dir)/main.py
 	@echo "=== Pipeline 1 complete ==="
 
 ## Generate / refresh the input JSON configs from configure values
@@ -265,6 +267,7 @@ gen-flow-configs:
 	json.dump({ \
 	  'temp_dir':   '$(TEMP_DIR)', \
 	  'yosys_path': '$(YOSYS_PATH)', \
+	  'fail_log':   '$(FAIL_LOG)', \
 	}, open(f'{d}/PyranetSynthesis.json','w'), indent='\t'); \
 	json.dump({ \
 	  'cell_range_start': $(CELL_RANGE_START), \
@@ -283,21 +286,21 @@ synthesis: gen-flow-configs
 	@python3 -c "\
 	import json; json.dump({'flow':['PyranetSynthesis']}, \
 	  open('$(flow_src_dir)/config.json','w'), indent='\t')"
-	cd $(src_dir) && python3 $(flow_src_dir)/main.py
+	cd $(src_dir) && $(PY) $(flow_src_dir)/main.py
 
 extract: gen-flow-configs
 	@echo "--- Step: extract only ---"
 	@python3 -c "\
 	import json; json.dump({'flow':['PyranetExtractDataseByRangeOfLogicCell']}, \
 	  open('$(flow_src_dir)/config.json','w'), indent='\t')"
-	cd $(src_dir) && python3 $(flow_src_dir)/main.py
+	cd $(src_dir) && $(PY) $(flow_src_dir)/main.py
 
 filter: gen-flow-configs
 	@echo "--- Step: filter only ---"
 	@python3 -c "\
 	import json; json.dump({'flow':['PyranetFilterDataset']}, \
 	  open('$(flow_src_dir)/config.json','w'), indent='\t')"
-	cd $(src_dir) && python3 $(flow_src_dir)/main.py
+	cd $(src_dir) && $(PY) $(flow_src_dir)/main.py
 
 # ── Pipeline 3: LangGraph flow ─────────────────────────────────────────────
 langgraph-flow:

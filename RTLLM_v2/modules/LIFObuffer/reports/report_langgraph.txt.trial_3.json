@@ -9,10 +9,10 @@
     "sc_trial": 6,
     "ts_trial": 6,
     "total_iter": 12,
-    "gvd": "module LIFObuffer (\n    input [3:0] dataIn,\n    input RW,\n    input EN,\n    input Rst,\n    input Clk,\n    output reg EMPTY,\n    output reg FULL,\n    output reg [3:0] dataOut\n);\n\n    reg [3:0] stack_mem [0:3];\n    reg [1:0] SP;\n\n    always @(posedge Clk) begin\n        if (Rst) begin\n            SP <= 4'b100;\n            for (integer i = 0; i < 4; i++) begin\n                stack_mem[i] <= 4'b0000;\n            end\n        end else if (EN) begin\n            if (RW == 0 && SP != 0) begin\n                stack_mem[SP - 1] <= dataIn;\n                SP <= SP - 1;\n            end else if (RW == 1 && SP != 4'b100) begin\n                dataOut <= stack_mem[SP];\n                stack_mem[SP] <= 4'b0000;\n                SP <= SP + 1;\n            end\n        end\n    end\n\n    assign EMPTY = (SP == 4'b100);\n    assign FULL = (SP == 4'b0000);\n\nendmodule\n",
-    "xml_description": "<module id=\"LIFObuffer\">\n    <description>A 4-bit wide Last-In-First-Out (LIFO) buffer with a capacity of 4 entries.</description>\n    <ports>\n        <input id=\"dataIn\" width_description=\"[3:0]\">4-bit input data to be pushed onto the buffer.</input>\n        <input id=\"RW\">Read/Write control signal (1 for read, 0 for write).</input>\n        <input id=\"EN\">Enable signal to activate buffer operations.</input>\n        <input id=\"Rst\">Active high reset signal to initialize the buffer.</input>\n        <input id=\"Clk\">Clock signal for synchronous operations.</input>\n        <output id=\"EMPTY\">Flag indicating whether the buffer is empty.</output>\n        <output id=\"FULL\">Flag indicating whether the buffer is full.</output>\n        <output id=\"dataOut\" width_description=\"[3:0]\">4-bit output data retrieved from the buffer.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"EMPTY\">Buffer is empty.</parameter>\n        <parameter id=\"FULL\">Buffer is full.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        reg [3:0] stack_mem [0:3];\n        reg [1:0] SP;\n        reg [3:0] dataOut;\n\n        always @(posedge Clk) begin\n            if (Rst) begin\n                SP &lt;= 4'b100;\n                for (int i = 0; i &lt; 4; i++) begin\n                    stack_mem[i] &lt;= 4'b0000;\n                end\n            end else if (EN) begin\n                if (RW == 0) begin // Write operation\n                    if (SP != 0) begin\n                        stack_mem[SP - 1] &lt;= dataIn;\n                        SP &lt;= SP - 1;\n                    end\n                end else begin // Read operation\n                    if (SP != 4'b100) begin\n                        dataOut &lt;= stack_mem[SP];\n                        stack_mem[SP] &lt;= 4'b0000;\n                        SP &lt;= SP + 1;\n                    end\n                end\n            end\n        end\n\n        assign EMPTY = (SP == 4'b100);\n        assign FULL = (SP == 0);\n    </logic_description>\n    <implementation>Implements a 4-entry LIFO buffer using a stack memory array and a stack pointer. Handles push and pop operations based on the RW signal and updates the EMPTY and FULL flags accordingly.</implementation>\n</module>",
-    "sc_log": "TopModule.sv:17: warning: Extra digits given for sized binary constant.\nTopModule.sv:17: warning: Numeric constant truncated to 2 bits.\nTopModule.sv:25: warning: Extra digits given for sized binary constant.\nTopModule.sv:25: warning: Numeric constant truncated to 2 bits.\nTopModule.sv:32: warning: Extra digits given for sized binary constant.\nTopModule.sv:39: warning: Extra digits given for sized binary constant.\nTopModule.sv:39: warning: Numeric constant truncated to 2 bits.\nTopModule.sv:40: warning: Extra digits given for sized binary constant.\nTopModule.sv:18: sorry: Assignment to an entire array or to an array slice is not yet supported.\nTopModule.sv:19: error: EMPTY Unable to assign to unresolved wires.\nTopModule.sv:20: error: FULL Unable to assign to unresolved wires.\nTopModule.sv:26: error: FULL Unable to assign to unresolved wires.\nTopModule.sv:27: error: EMPTY Unable to assign to unresolved wires.\nTopModule.sv:33: error: EMPTY Unable to assign to unresolved wires.\nTopModule.sv:34: error: FULL Unable to assign to unresolved wires.\n7 error(s) during elaboration.\n",
-    "tb_log": "[COMPILE verilator]\nmake[1]: Entering directory '/tmp/comba_LIFObuffer_v3obp3_y/obj_dir'\nmake[1]: Nothing to be done for 'default'.\nmake[1]: Leaving directory '/tmp/comba_LIFObuffer_v3obp3_y/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.009 s (elab=0.000, cvt=0.000, bld=0.009); cpu 0.001 s on 1 threads; allocated 30.156 MB\n\n[RUN]\n=========== Test completed with           2/20 failures ===========\n- testbench.v:70: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 265ns; walltime 0.000 s; speed 3.604 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "gvd": "module LIFObuffer (\n    input [3:0] dataIn,\n    input RW,\n    input EN,\n    input Rst,\n    input Clk,\n    output reg EMPTY,\n    output reg FULL,\n    output reg [3:0] dataOut\n);\n\nreg [3:0] stack_mem [3:0];\nreg [2:0] SP;\n\nalways @(posedge Clk) begin\n    if (Rst) begin\n        SP <= 4;\n        EMPTY <= 1;\n        FULL <= 0;\n        dataOut <= 0;\n        for (integer i = 0; i < 4; i = i + 1) begin\n            stack_mem[i] <= 0;\n        end\n    end else if (EN) begin\n        if (SP != 0 && !FULL) begin\n            SP <= SP - 1;\n            dataOut <= stack_mem[SP];\n            if (SP == 3)\n                EMPTY <= 0;\n        end else if (SP != 4 && !EMPTY) begin\n            stack_mem[SP] <= dataIn;\n            SP <= SP + 1;\n            if (SP == 0)\n                FULL <= 1;\n        end\n    end\nend\n\nendmodule\n",
+    "xml_description": "<module id=\"LIFObuffer\">\n    <description>A 4-bit wide Last-In-First-Out (LIFO) buffer for temporary data storage.</description>\n    <ports>\n        <input id=\"dataIn\" width_description=\"[3:0]\">4-bit input data to be pushed onto the buffer.</input>\n        <input id=\"RW\">Read/Write control signal (1 for read, 0 for write).</input>\n        <input id=\"EN\">Enable signal to activate buffer operations.</input>\n        <input id=\"Rst\">Active high reset signal to initialize the buffer.</input>\n        <input id=\"Clk\">Clock signal for synchronous operations.</input>\n        <output id=\"EMPTY\">Flag indicating whether the buffer is empty.</output>\n        <output id=\"FULL\">Flag indicating whether the buffer is full.</output>\n        <output id=\"dataOut\" width_description=\"[3:0]\">4-bit output data retrieved from the buffer.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"SP\">Stack Pointer, tracks the current position in the stack.</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;signal id=\"dataIn_reg\" type=\"reg\" width_description=\"[3:0]\">Register to store the input data during clock cycle.&lt;/signal>\n        &lt;signal id=\"RW_reg\" type=\"reg\">Register to store the Read/Write signal during clock cycle.&lt;/signal>\n        &lt;signal id=\"EN_reg\" type=\"reg\">Register to store the enable signal during clock cycle.&lt;/signal>\n        &lt;signal id=\"Rst_reg\" type=\"reg\">Register to store the reset signal during clock cycle.&lt;/signal>\n        &lt;signal id=\"Clk_reg\" type=\"reg\">Register to store the clock signal during clock cycle.&lt;/signal>\n        &lt;signal id=\"EMPTY_reg\" type=\"reg\">Register to store the EMPTY flag during clock cycle.&lt;/signal>\n        &lt;signal id=\"FULL_reg\" type=\"reg\">Register to store the FULL flag during clock cycle.&lt;/signal>\n        &lt;signal id=\"dataOut_reg\" type=\"reg\" width_description=\"[3:0]\">Register to store the output data during clock cycle.&lt;/signal>\n        &lt;signal id=\"SP_reg\" type=\"reg\" width_description=\"[2:0]\">Register to store the Stack Pointer value during clock cycle.&lt;/signal>\n        &lt;signal id=\"stack_mem\" type=\"reg\" width_description=\"[3:0]\" length=\"4\">Array of registers representing the stack memory to store data.&lt;/signal>\n        &lt;always @(posedge Clk_reg or posedge Rst_reg)> // Sequential logic block triggered on positive edge of Clk_reg or Rst_reg\n            if (Rst_reg == 1'b1) begin // Check if Rst_reg is active-high\n                SP_reg &lt;= 3'd4; // Set SP_reg to initial value of 4\n                EMPTY_reg &lt;= 1'b1; // Set EMPTY_reg to indicate the stack is initially empty\n                FULL_reg &lt;= 1'b0; // Set FULL_reg to indicate the stack is initially not full\n                dataOut_reg &lt;= 4'h0; // Initialize dataOut_reg to zero\n                dataIn_reg &lt;= 4'h0; // Initialize dataIn_reg to zero\n                RW_reg &lt;= 1'b0; // Initialize RW_reg to zero\n                EN_reg &lt;= 1'b0; // Initialize EN_reg to zero\n                stack_mem[0] &lt;= 4'h0; // Initialize first element of stack_mem to zero\n                stack_mem[1] &lt;= 4'h0; // Initialize second element of stack_mem to zero\n                stack_mem[2] &lt;= 4'h0; // Initialize third element of stack_mem to zero\n                stack_mem[3] &lt;= 4'h0; // Initialize fourth element of stack_mem to zero\n            end else if (EN_reg == 1'b1) begin // Check if EN_reg is enabled\n                dataIn_reg &lt;= dataIn; // Store input data in dataIn_reg\n                RW_reg &lt;= RW; // Store Read/Write signal in RW_reg\n                EN_reg &lt;= EN; // Store enable signal in EN_reg\n                Rst_reg &lt;= Rst; // Store reset signal in Rst_reg\n                Clk_reg &lt;= Clk; // Store clock signal in Clk_reg\n                if (RW_reg == 1'b0 &amp;&amp; FULL_reg == 1'b0) begin // Write operation and stack is not full\n                    SP_reg &lt;= SP_reg - 3'd1; // Decrement stack pointer\n                    stack_mem[SP_reg] &lt;= dataIn_reg; // Push data into stack memory\n                    EMPTY_reg &lt;= 1'b0; // Set EMPTY_reg to false since stack is not empty\n                    if (SP_reg == 3'd0) begin // Check if stack pointer reaches zero\n                        FULL_reg &lt;= 1'b1; // Set FULL_reg to true since stack is full\n                    end\n                end else if (RW_reg == 1'b1 &amp;&amp; EMPTY_reg == 1'b0) begin // Read operation and stack is not empty\n                    dataOut_reg &lt;= stack_mem[SP_reg]; // Pop data from stack memory\n                    stack_mem[SP_reg] &lt;= 4'h0; // Clear the memory location after popping\n                    SP_reg &lt;= SP_reg + 3'd1; // Increment stack pointer\n                    FULL_reg &lt;= 1'b0; // Set FULL_reg to false since stack is not full\n                    if (SP_reg == 3'd3) begin // Check if stack pointer reaches maximum index\n                        EMPTY_reg &lt;= 1'b1; // Set EMPTY_reg to true since stack is empty\n                    end\n                end\n            end\n        end\n    </logic_description>\n    <implementation>Implemented using sequential logic to manage stack pointer and flags based on input signals.</implementation>\n</module>",
+    "sc_log": "",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module LIFObuffer (\n      |        ^~~~~~~~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module LIFObuffer_tb;\n      |        ^~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake[1]: Entering directory '/tmp/comba_LIFObuffer_puie9ies/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include VLIFObuffer_tb.cpp VLIFObuffer_tb___024root__0.cpp VLIFObuffer_tb__main.cpp VLIFObuffer_tb___024root__Slow.cpp VLIFObuffer_tb___024root__0__Slow.cpp VLIFObuffer_tb__Syms__Slow.cpp > VLIFObuffer_tb__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o VLIFObuffer_tb__ALL.o VLIFObuffer_tb__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o VLIFObuffer_tb__ALL.a    -pthread -lpthread -latomic   -o VLIFObuffer_tb\nrm VLIFObuffer_tb__ALL.verilator_deplist.tmp\nmake[1]: Leaving directory '/tmp/comba_LIFObuffer_puie9ies/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.044 MB sources in 3 modules, into 0.039 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.230 s (elab=0.001, cvt=0.004, bld=1.220); cpu 0.010 s on 1 threads; allocated 30.543 MB\n\n[RUN]\n=========== Test completed with           3/20 failures ===========\n- testbench.v:70: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 265ns; walltime 0.000 s; speed 3.826 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
     "error": null,
     "edtm": {
       "TB:fsm_state_error::0::": 6
@@ -22,24 +22,24 @@
     "self_consistency": {
       "samples_run": 10,
       "max_samples": 10,
-      "best_sample_idx": 5,
-      "best_temperature": 0.5,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
       "best_status": "fail_ts",
       "early_exit": false,
       "vote_enabled": false,
-      "total_elapsed_s": 701.97,
+      "total_elapsed_s": 680.43,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
           "status": "fail_ts",
-          "sc_trial": 8,
+          "sc_trial": 7,
           "ts_trial": 6,
-          "iter": 14,
+          "iter": 13,
           "sc_err": 0,
-          "tb_err": 3,
-          "gvd_lines": 40,
-          "elapsed_s": 74.91
+          "tb_err": 0,
+          "gvd_lines": 49,
+          "elapsed_s": 76.31
         },
         {
           "idx": 1,
@@ -49,45 +49,45 @@
           "ts_trial": 6,
           "iter": 13,
           "sc_err": 0,
-          "tb_err": 3,
-          "gvd_lines": 40,
-          "elapsed_s": 57.69
+          "tb_err": 0,
+          "gvd_lines": 50,
+          "elapsed_s": 69.15
         },
         {
           "idx": 2,
           "T": 0.2,
           "status": "fail_ts",
-          "sc_trial": 10,
+          "sc_trial": 7,
           "ts_trial": 6,
-          "iter": 16,
+          "iter": 13,
           "sc_err": 0,
-          "tb_err": 4,
-          "gvd_lines": 41,
-          "elapsed_s": 143.12
+          "tb_err": 0,
+          "gvd_lines": 43,
+          "elapsed_s": 69.71
         },
         {
           "idx": 3,
           "T": 0.3,
           "status": "fail_ts",
-          "sc_trial": 11,
+          "sc_trial": 6,
           "ts_trial": 6,
-          "iter": 17,
+          "iter": 12,
           "sc_err": 0,
-          "tb_err": 4,
-          "gvd_lines": 41,
-          "elapsed_s": 94.1
+          "tb_err": 0,
+          "gvd_lines": 47,
+          "elapsed_s": 67.5
         },
         {
           "idx": 4,
           "T": 0.4,
-          "status": "fail_sc",
+          "status": "fail_ts",
           "sc_trial": 6,
-          "ts_trial": 0,
-          "iter": 6,
+          "ts_trial": 6,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 36,
-          "elapsed_s": 55.13
+          "gvd_lines": 49,
+          "elapsed_s": 60.99
         },
         {
           "idx": 5,
@@ -98,20 +98,20 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 36,
-          "elapsed_s": 51.11
+          "gvd_lines": 43,
+          "elapsed_s": 46.41
         },
         {
           "idx": 6,
           "T": 0.6,
           "status": "fail_ts",
-          "sc_trial": 8,
+          "sc_trial": 7,
           "ts_trial": 6,
-          "iter": 14,
+          "iter": 13,
           "sc_err": 0,
-          "tb_err": 5,
-          "gvd_lines": 38,
-          "elapsed_s": 51.36
+          "tb_err": 0,
+          "gvd_lines": 48,
+          "elapsed_s": 76.92
         },
         {
           "idx": 7,
@@ -122,8 +122,8 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 39,
-          "elapsed_s": 54.89
+          "gvd_lines": 47,
+          "elapsed_s": 54.77
         },
         {
           "idx": 8,
@@ -133,27 +133,27 @@
           "ts_trial": 6,
           "iter": 12,
           "sc_err": 0,
-          "tb_err": 4,
-          "gvd_lines": 41,
-          "elapsed_s": 61.15
+          "tb_err": 0,
+          "gvd_lines": 39,
+          "elapsed_s": 74.01
         },
         {
           "idx": 9,
           "T": 0.9,
           "status": "fail_ts",
-          "sc_trial": 6,
+          "sc_trial": 9,
           "ts_trial": 6,
-          "iter": 12,
+          "iter": 15,
           "sc_err": 0,
-          "tb_err": 2,
-          "gvd_lines": 32,
-          "elapsed_s": 58.52
+          "tb_err": 0,
+          "gvd_lines": 47,
+          "elapsed_s": 84.65
         }
       ]
     },
     "guard_summary": {
-      "rollbacks": 2,
-      "commits": 8,
+      "rollbacks": 0,
+      "commits": 10,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

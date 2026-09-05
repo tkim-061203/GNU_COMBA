@@ -1,4 +1,5 @@
 {
 	"temp_dir": "/tmp",
-	"yosys_path": "/home/share/oss-cad-suite/bin/yosys"
+	"yosys_path": "/home/share/oss-cad-suite/bin/yosys",
+	"fail_log": "/home/nntkim/GNU_COMBA/reports/pyranet_synth_failures.jsonl"
 }

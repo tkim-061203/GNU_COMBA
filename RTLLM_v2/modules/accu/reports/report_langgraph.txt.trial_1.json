@@ -5,57 +5,33 @@
   "samples": {
     "module_name": "accu",
     "description_type": "txt",
-    "final_status": "fail_ts",
-    "sc_trial": 6,
-    "ts_trial": 6,
-    "total_iter": 12,
-    "gvd": "module accu (\n    input               clk,\n    input               rst_n,\n    input       [7:0]   data_in,\n    input               valid_in,\n    output  reg         valid_out,\n    output  reg [9:0]   data_out\n);\n\nreg [3:0] count;\nreg [9:0] sum;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        count <= 4'b0000;\n        sum <= 10'b0000000000;\n        valid_out <= 1'b0;\n    end else begin\n        if (valid_in) begin\n            sum <= sum + data_in;\n            count <= count + 1'b1;\n            if (count == 4'b1000) begin\n                valid_out <= 1'b1;\n                data_out <= sum;\n            end\n        end else begin\n            valid_out <= 1'b0;\n        end\n    end\nend\n\nendmodule\n",
-    "xml_description": "<module id=\"accu\">\n    <description>Accumulator module that accumulates 4 input 8-bit data values and outputs their sum.</description>\n    <ports>\n        <input id=\"clk\">Clock input for synchronization.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data for addition.</input>\n        <input id=\"valid_in\">Input signal indicating readiness for new data.</input>\n        <output id=\"valid_out\">Output signal indicating when 4 input data accumulation is reached.</output>\n        <output id=\"data_out\" width_description=\"[9:0]\">10-bit output data representing the accumulated sum.</output>\n    </ports>\n    <parameter_description>\n        <parameter>STATE_IDLE</parameter>\n        <parameter>STATE_ACCUMULATE</parameter>\n        <parameter>THRESHOLD</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;reg id=\"count\" width=\"2\">Count of valid inputs received.&lt;/reg>\n        &lt;reg id=\"accumulated_sum\" width=\"10\">Sum of accumulated data.&lt;/reg>\n        &lt;reg id=\"current_state\" width=\"2\">Current state of the accumulator.&lt;/reg>\n    </logic_description>\n    <implementation>\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                count &lt;= 2'b00;\n                accumulated_sum &lt;= 10'b0000000000;\n                current_state &lt;= STATE_IDLE;\n                valid_out &lt;= 1'b0;\n            end else begin\n                case (current_state)\n                    STATE_IDLE: begin\n                        if (valid_in) begin\n                            count &lt;= 2'b001;\n                            accumulated_sum &lt;= data_in;\n                            current_state &lt;= STATE_ACCUMULATE;\n                        end\n                    end\n                    STATE_ACCUMULATE: begin\n                        if (valid_in &amp;&amp; count &lt; THRESHOLD) begin\n                            count &lt;= count + 2'b01;\n                            accumulated_sum &lt;= accumulated_sum + data_in;\n                        end else if (count == THRESHOLD) begin\n                            valid_out &lt;= 1'b1;\n                            current_state &lt;= STATE_IDLE;\n                        end\n                    end\n                    default: begin\n                        current_state &lt;= STATE_IDLE;\n                        valid_out &lt;= 1'b0;\n                    end\n                endcase\n            end\n        end\n    </implementation>\n</module>",
+    "final_status": "pass",
+    "sc_trial": 2,
+    "ts_trial": 2,
+    "total_iter": 4,
+    "gvd": "module accu (\n    input               clk,\n    input               rst_n,\n    input       [7:0]   data_in,\n    input               valid_in,\n    output  reg         valid_out,\n    output  reg [9:0]   data_out\n);\n\n    reg [1:0] cnt;\n    reg [9:0] tmp_data;\n\n    wire [9:0] tmp_data_next;\n    assign tmp_data_next = tmp_data + data_in;\n\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            tmp_data <= 10'd0;\n            cnt <= 2'd0;\n            valid_out <= 1'd0;\n        end else begin\n            case (cnt)\n                2'd0: begin\n                    if (valid_in) begin\n                        tmp_data <= data_in;\n                        cnt <= cnt + 1'd1;\n                    end else begin\n                        tmp_data <= tmp_data;\n                        cnt <= cnt;\n                    end\n                end\n\n                2'd1: begin\n                    if (valid_in) begin\n                        tmp_data <= tmp_data_next;\n                        cnt <= cnt + 1'd1;\n                    end else begin\n                        tmp_data <= tmp_data;\n                        cnt <= cnt;\n                    end\n                end\n\n                2'd2: begin\n                    if (valid_in) begin\n                        tmp_data <= tmp_data_next;\n                        cnt <= cnt + 1'd1;\n                    end else begin\n                        tmp_data <= tmp_data;\n                        cnt <= cnt;\n                    end\n                end\n\n                2'd3: begin\n                    if (valid_in) begin\n                        tmp_data <= tmp_data_next;\n                        cnt <= cnt + 1'd1;\n                    end else begin\n                        tmp_data <= tmp_data;\n                        cnt <= cnt;\n                    end\n                end\n\n                default: begin\n                    tmp_data <= tmp_data;\n                    cnt <= cnt;\n                end\n            endcase\n\n            if (tmp_data != 10'd0 && cnt == 2'd3) begin\n                valid_out <= 1'd1;\n            end else begin\n                valid_out <= 1'd0;\n            end\n        end\n    end\n\n    assign data_out = tmp_data;\n\nendmodule\n",
+    "xml_description": "<module id=\"accu\">\n    <description>Accumulates incoming 8-bit data_in values until 4 values have been received, then outputs their sum in data_out.</description>\n    <ports>\n        <input id=\"clk\">Clock input for synchronization.</input>\n        <input id=\"rst_n\">Active-low reset signal.</input>\n        <input id=\"data_in\" width_description=\"[7:0]\">8-bit input data for addition.</input>\n        <input id=\"valid_in\">Input signal indicating readiness for new data.</input>\n        <output id=\"valid_out\">Output signal indicating when 4 input data accumulation is reached.</output>\n        <output id=\"data_out\" width_description=\"[9:0]\">10-bit output data representing the accumulated sum.</output>\n    </ports>\n    <implementation>Accumulate data_in values until 4 values have been received, then output their sum in data_out.</implementation>\n</module>",
     "sc_log": "",
-    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module accu (\n      |        ^~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_valid_ready;\n      |        ^~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake[1]: Entering directory '/tmp/comba_accu_jhazfgyn/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_valid_ready.cpp Vtb_valid_ready___024root__0.cpp Vtb_valid_ready__main.cpp Vtb_valid_ready___024root__Slow.cpp Vtb_valid_ready___024root__0__Slow.cpp Vtb_valid_ready__Syms__Slow.cpp > Vtb_valid_ready__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_valid_ready__ALL.o Vtb_valid_ready__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_valid_ready__ALL.a    -pthread -lpthread -latomic   -o Vtb_valid_ready\nrm Vtb_valid_ready__ALL.verilator_deplist.tmp\nmake[1]: Leaving directory '/tmp/comba_accu_jhazfgyn/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.045 MB sources in 3 modules, into 0.039 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.484 s (elab=0.001, cvt=0.005, bld=1.474); cpu 0.011 s on 1 threads; allocated 30.539 MB\n\n[RUN]\nFailed at output 0 (t=110000): data_out= 134, expected=  20\nFailed at output 1 (t=120000): data_out= 134, expected= 114\nFailed at output 2 (t=130000): data_out= 134, expected=  68\nFailed at output 3 (t=140000): data_out= 134, expected=   0\nFailed at output 4 (t=150000): data_out= 134, expected=  20\nFailed: expected exactly 3 valid_out pulses, observed 5 (accumulate 4 valid inputs per output)\n===========Error===========\n- testbench.v:90: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 150ns; walltime 0.000 s; speed 1.696 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "tb_log": "[COMPILE verilator]\n%Warning-TIMESCALEMOD: TopModule.sv:1:8: Timescale missing on this module as other modules have it (IEEE 1800-2023 3.14.2.3)\n    1 | module accu (\n      |        ^~~~\n                       testbench.v:3:8: ... Location of module with timescale\n    3 | module tb_valid_ready;\n      |        ^~~~~~~~~~~~~~\n                       ... For warning description see https://verilator.org/warn/TIMESCALEMOD?v=5.048\n                       ... Use \"/* verilator lint_off TIMESCALEMOD */\" and lint_on around source to disable this message.\nmake[1]: Entering directory '/tmp/comba_accu_zaai9qm6/obj_dir'\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_timing.o /usr/local/share/verilator/include/verilated_timing.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp\npython3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtb_valid_ready.cpp Vtb_valid_ready___024root__0.cpp Vtb_valid_ready__main.cpp Vtb_valid_ready___024root__Slow.cpp Vtb_valid_ready___024root__0__Slow.cpp Vtb_valid_ready__Syms__Slow.cpp > Vtb_valid_ready__ALL.cpp\nccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVERILATOR=1 -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=1 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -DVM_TRACE_SAIF=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-int-in-bool-context -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable    -DVL_TIME_CONTEXT   -fcoroutines -c -o Vtb_valid_ready__ALL.o Vtb_valid_ready__ALL.cpp\ng++    verilated.o verilated_timing.o verilated_threads.o Vtb_valid_ready__ALL.a    -pthread -lpthread -latomic   -o Vtb_valid_ready\nrm Vtb_valid_ready__ALL.verilator_deplist.tmp\nmake[1]: Leaving directory '/tmp/comba_accu_zaai9qm6/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.048 MB sources in 3 modules, into 0.049 MB in 6 C++ files needing 0.000 MB\n- Verilator: Walltime 1.478 s (elab=0.001, cvt=0.005, bld=1.467); cpu 0.012 s on 1 threads; allocated 30.547 MB\n\n[RUN]\n===========Your Design Passed===========\n- testbench.v:90: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 150ns; walltime 0.000 s; speed 2.188 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
     "error": null,
     "edtm": {
-      "TB:fsm_state_error::0::0": 6
+      "TB:fsm_state_error::0::0": 1
     },
     "failure_type": "fsm_state_error",
     "vcd_status": "",
     "self_consistency": {
-      "samples_run": 10,
+      "samples_run": 6,
       "max_samples": 10,
-      "best_sample_idx": 6,
-      "best_temperature": 0.6,
-      "best_status": "fail_ts",
-      "early_exit": false,
+      "best_sample_idx": 5,
+      "best_temperature": 0.5,
+      "best_status": "pass",
+      "early_exit": true,
       "vote_enabled": false,
-      "total_elapsed_s": 876.79,
+      "total_elapsed_s": 392.57,
       "all_samples": [
         {
           "idx": 0,
           "T": 0.0,
-          "status": "fail_ts",
-          "sc_trial": 10,
-          "ts_trial": 10,
-          "iter": 20,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 80.6
-        },
-        {
-          "idx": 1,
-          "T": 0.1,
-          "status": "fail_ts",
-          "sc_trial": 13,
-          "ts_trial": 10,
-          "iter": 23,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 103.62
-        },
-        {
-          "idx": 2,
-          "T": 0.2,
           "status": "fail_ts",
           "sc_trial": 11,
           "ts_trial": 10,
@@ -63,7 +39,31 @@
           "sc_err": 0,
           "tb_err": 0,
           "gvd_lines": 36,
-          "elapsed_s": 80.59
+          "elapsed_s": 88.15
+        },
+        {
+          "idx": 1,
+          "T": 0.1,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 36,
+          "elapsed_s": 62.41
+        },
+        {
+          "idx": 2,
+          "T": 0.2,
+          "status": "fail_ts",
+          "sc_trial": 10,
+          "ts_trial": 10,
+          "iter": 20,
+          "sc_err": 0,
+          "tb_err": 0,
+          "gvd_lines": 35,
+          "elapsed_s": 65.03
         },
         {
           "idx": 3,
@@ -74,8 +74,8 @@
           "iter": 20,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 35,
-          "elapsed_s": 80.78
+          "gvd_lines": 37,
+          "elapsed_s": 72.18
         },
         {
           "idx": 4,
@@ -86,74 +86,26 @@
           "iter": 20,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 111.36
+          "gvd_lines": 30,
+          "elapsed_s": 77.99
         },
         {
           "idx": 5,
           "T": 0.5,
-          "status": "fail_ts",
-          "sc_trial": 7,
-          "ts_trial": 7,
-          "iter": 14,
+          "status": "pass",
+          "sc_trial": 2,
+          "ts_trial": 2,
+          "iter": 4,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 33,
-          "elapsed_s": 55.09
-        },
-        {
-          "idx": 6,
-          "T": 0.6,
-          "status": "fail_ts",
-          "sc_trial": 6,
-          "ts_trial": 6,
-          "iter": 12,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 32,
-          "elapsed_s": 83.72
-        },
-        {
-          "idx": 7,
-          "T": 0.7,
-          "status": "fail_ts",
-          "sc_trial": 10,
-          "ts_trial": 10,
-          "iter": 20,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 34,
-          "elapsed_s": 74.14
-        },
-        {
-          "idx": 8,
-          "T": 0.8,
-          "status": "fail_ts",
-          "sc_trial": 10,
-          "ts_trial": 10,
-          "iter": 20,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 34,
-          "elapsed_s": 82.5
-        },
-        {
-          "idx": 9,
-          "T": 0.9,
-          "status": "fail_ts",
-          "sc_trial": 12,
-          "ts_trial": 10,
-          "iter": 22,
-          "sc_err": 0,
-          "tb_err": 0,
-          "gvd_lines": 36,
-          "elapsed_s": 124.38
+          "gvd_lines": 79,
+          "elapsed_s": 26.8
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 0,
-      "commits": 10,
+      "commits": 2,
       "used_fallback": false,
       "baseline_sc": 0,
       "final_sc": 0

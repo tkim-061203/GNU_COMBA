@@ -6,16 +6,16 @@
     "module_name": "freq_divbyfrac",
     "description_type": "txt",
     "final_status": "fail_ts",
-    "sc_trial": 10,
+    "sc_trial": 7,
     "ts_trial": 6,
-    "total_iter": 16,
-    "gvd": "module freq_divbyfrac #(\n    parameter MUL2_DIV_CLK = 7\n) (\n    input               rst_n,\n    input               clk,\n    output reg clk_div\n);\n\nreg [2:0] count;\nreg clk_div_int;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        count <= 3'b000;\n        clk_div_int <= 1'b0;\n    end else begin\n        if (count == MUL2_DIV_CLK - 1) begin\n            count <= 3'b000;\n            clk_div_int <= ~clk_div_int;\n        end else begin\n            count <= count + 1;\n        end\n    end\nend\n\nassign clk_div = clk_div_int;\n\nendmodule\n",
-    "xml_description": "<module id=\"freq_divbyfrac\">\n    <description>Fractional frequency divider that divides the input clock frequency by 3.5 using double-edge clocking.</description>\n    <ports>\n        <input id=\"clk\">Input clock signal.</input>\n        <input id=\"rst_n\">Active low reset signal to initialize the module.</input>\n        <output id=\"clk_div\">Fractionally divided clock output.</output>\n    </ports>\n    <parameter_description>\n        <parameter id=\"MUL2_DIV_CLK\">7</parameter>\n    </parameter_description>\n    <logic_description type=\"sequential_logic\">\n        &lt;register id=\"count\" width=\"3\">Count register to track clock cycles.&lt;/register>\n        &lt;wire id=\"clk_div_int\" width=\"1\">Intermediate divided clock signal.&lt;/wire>\n        &lt;wire id=\"clk_div_delayed\" width=\"1\">Delayed version of the divided clock.&lt;/wire>\n        &lt;wire id=\"clk_div_advanced\" width=\"1\">Advanced version of the divided clock.&lt;/wire>\n    </logic_description>\n    <implementation>\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                count &lt;= 3'b000;\n                clk_div_int &lt;= 1'b0;\n                clk_div_delayed &lt;= 1'b0;\n                clk_div_advanced &lt;= 1'b0;\n            end else begin\n                case (count)\n                    3'b000: begin\n                        clk_div_int &lt;= 1'b1;\n                        count &lt;= 3'b001;\n                    end\n                    3'b001: begin\n                        clk_div_int &lt;= 1'b0;\n                        count &lt;= 3'b010;\n                    end\n                    3'b010: begin\n                        clk_div_int &lt;= 1'b1;\n                        count &lt;= 3'b011;\n                    end\n                    3'b011: begin\n                        clk_div_int &lt;= 1'b0;\n                        count &lt;= 3'b100;\n                    end\n                    3'b100: begin\n                        clk_div_int &lt;= 1'b1;\n                        count &lt;= 3'b101;\n                    end\n                    3'b101: begin\n                        clk_div_int &lt;= 1'b0;\n                        count &lt;= 3'b110;\n                    end\n                    3'b110: begin\n                        clk_div_int &lt;= 1'b1;\n                        count &lt;= 3'b000;\n                    end\n                endcase\n            end\n        end\n\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                clk_div_delayed &lt;= 1'b0;\n            end else begin\n                clk_div_delayed &lt;= clk_div_int;\n            end\n        end\n\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                clk_div_advanced &lt;= 1'b0;\n            end else begin\n                clk_div_advanced &lt;= clk_div_int;\n            end\n        end\n\n        always @(posedge clk or negedge rst_n) begin\n            if (!rst_n) begin\n                clk_div &lt;= 1'b0;\n            end else begin\n                clk_div &lt;= clk_div_int | clk_div_delayed | clk_div_advanced;\n            end\n        end\n    </implementation>\n</module>",
-    "sc_log": "",
-    "tb_log": "[COMPILE verilator]\nmake[1]: Entering directory '/tmp/comba_freq_divbyfrac_stfiveai/obj_dir'\nmake[1]: Nothing to be done for 'default'.\nmake[1]: Leaving directory '/tmp/comba_freq_divbyfrac_stfiveai/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.011 s (elab=0.000, cvt=0.000, bld=0.010); cpu 0.001 s on 1 threads; allocated 30.156 MB\n\n[RUN]\nFailed at          0: clk=1, clk_div=0 (expected           1)\nFailed at          1: clk=0, clk_div=0 (expected           1)\nFailed at          2: clk=1, clk_div=0 (expected           1)\nFailed at          7: clk=0, clk_div=0 (expected           1)\nFailed at          8: clk=1, clk_div=0 (expected           1)\nFailed at          9: clk=0, clk_div=0 (expected           1)\nFailed at         12: clk=1, clk_div=1 (expected           0)\nFailed at         13: clk=0, clk_div=1 (expected           0)\nFailed at         17: clk=0, clk_div=1 (expected           0)\nFailed at         18: clk=1, clk_div=1 (expected           0)\nFailed at         19: clk=0, clk_div=1 (expected           0)\n=========== Test completed with          11/20 failures ===========\n- testbench.v:27: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 130ns; walltime 0.000 s; speed 618.962 us/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
+    "total_iter": 13,
+    "gvd": "module freq_divbyfrac #(\n    parameter MUL2_DIV_CLK = 7\n) (\n    input               rst_n,\n    input               clk,\n    output              clk_div\n);\n\nreg [2:0] count;\nreg clk_div_int;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        count <= 0;\n        clk_div_int <= 0;\n    end else begin\n        case (count)\n            0: begin\n                count <= MUL2_DIV_CLK - 1;\n                clk_div_int <= 1;\n            end\n            default: begin\n                count <= count - 1;\n                clk_div_int <= ~clk_div_int;\n            end\n        endcase\n    end\nend\n\nassign clk_div = clk_div_int;\n\nendmodule\n",
+    "xml_description": "<module id=\"freq_divbyfrac\">\n    <description>A frequency divider that divides the input clock frequency by fractional values. It generates a clock signal with a fractional frequency division (3.5x), using the double-edge clocking technique to achieve half-integer division while adjusting for duty cycle imbalance. By dividing uneven clock cycles and phase-shifting them, a smooth fractional clock output is produced.</description>\n    <ports>\n        <input id=\"clk\">Input clock signal.</input>\n        <input id=\"rst_n\">Active low reset signal to initialize the module.</input>\n        <output id=\"clk_div\">Fractionally divided clock output.</output>\n    </ports>\n    <implementation>\n        // Parameter MUL2_DIV_CLK is used to determine the number of clock cycles for division.\n        parameter [2:0] MUL2_DIV_CLK = 7;\n        \n        // Internal signals for clock generation\n        reg [2:0] cnt_clk_div;\n        reg div_clk;\n        reg div_clk_dly;\n        reg div_clk_dly2;\n        wire [2:0] next_cnt_clk_div;\n        reg [2:0] cnt_next_clk_div;\n        \n        // Combinational logic for calculating the next count value based on current count\n        assign next_cnt_clk_div[2] = cnt_clk_div[2];\n        assign next_cnt_clk_div[1] = ~cnt_clk_div[1] &amp; ~cnt_clk_div[0];\n        assign next_cnt_clk_div[0] = ~cnt_clk_div[1] ^ cnt_clk_div[0];\n        \n        // Sequential logic for updating the count and clock signal\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                cnt_clk_div &lt;= 0;\n                div_clk &lt;= 0;\n            end else begin\n                cnt_clk_div &lt;= next_cnt_clk_div;\n                div_clk &lt;= |next_cnt_clk_div;\n            end\n        end\n        \n        // Sequential logic for generating delayed clock signals\n        always @(negedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                cnt_next_clk_div &lt;= 0;\n                div_clk_dly &lt;= 0;\n            end else begin\n                cnt_next_clk_div &lt;= next_cnt_clk_div;\n                div_clk_dly &lt;= |cnt_next_clk_div;\n            end\n        end\n        \n        // Sequential logic for further delaying the clock signal\n        always @(posedge clk or negedge rst_n) begin\n            if (~rst_n) begin\n                div_clk_dly2 &lt;= 0;\n            end else begin\n                div_clk_dly2 &lt;= div_clk_dly;\n            end\n        end\n        \n        // Output assignment for the fractionally divided clock\n        assign clk_div = div_clk | div_clk_dly2;\n    </implementation>\n</module>",
+    "sc_log": "TopModule.sv:55: error: Unresolved net/uwire div_clk_final cannot have multiple drivers.\nTopModule.sv:26: error: div_clk_final Unable to assign to unresolved wires.\n2 error(s) during elaboration.\n",
+    "tb_log": "[COMPILE verilator]\nmake[1]: Entering directory '/tmp/comba_freq_divbyfrac_7du7lwld/obj_dir'\nmake[1]: Nothing to be done for 'default'.\nmake[1]: Leaving directory '/tmp/comba_freq_divbyfrac_7du7lwld/obj_dir'\n- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev v5.048\n- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.008 s (elab=0.000, cvt=0.000, bld=0.008); cpu 0.001 s on 1 threads; allocated 30.160 MB\n\n[RUN]\nFailed at          2: clk=1, clk_div=0 (expected           1)\nFailed at          4: clk=1, clk_div=1 (expected           0)\nFailed at          5: clk=0, clk_div=1 (expected           0)\nFailed at          7: clk=0, clk_div=0 (expected           1)\nFailed at         12: clk=1, clk_div=1 (expected           0)\nFailed at         13: clk=0, clk_div=1 (expected           0)\nFailed at         16: clk=1, clk_div=0 (expected           1)\nFailed at         18: clk=1, clk_div=1 (expected           0)\nFailed at         19: clk=0, clk_div=1 (expected           0)\n=========== Test completed with           9/20 failures ===========\n- testbench.v:27: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.048 2026-04-26\n- Verilator: $finish at 130ns; walltime 0.000 s; speed 1.582 ms/s\n- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB\n",
     "error": null,
     "edtm": {
-      "TopModule.sv:N: error: clk_div Unable to assign to unresolved wires.": 4,
+      "TopModule.sv:N: error: Could not find variable ``cnt_next_clk_div'' in ``freq_divbyfrac''": 1,
       "TB:fsm_state_error::0::": 6
     },
     "failure_type": "fsm_state_error",
@@ -23,12 +23,12 @@
     "self_consistency": {
       "samples_run": 10,
       "max_samples": 10,
-      "best_sample_idx": 1,
-      "best_temperature": 0.1,
+      "best_sample_idx": 8,
+      "best_temperature": 0.8,
       "best_status": "fail_ts",
       "early_exit": false,
       "vote_enabled": false,
-      "total_elapsed_s": 698.61,
+      "total_elapsed_s": 1079.42,
       "all_samples": [
         {
           "idx": 0,
@@ -39,20 +39,20 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 52,
-          "elapsed_s": 64.21
+          "gvd_lines": 51,
+          "elapsed_s": 281.99
         },
         {
           "idx": 1,
           "T": 0.1,
           "status": "fail_ts",
-          "sc_trial": 10,
+          "sc_trial": 6,
           "ts_trial": 6,
-          "iter": 16,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 28,
-          "elapsed_s": 87.87
+          "gvd_lines": 53,
+          "elapsed_s": 56.07
         },
         {
           "idx": 2,
@@ -63,8 +63,8 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 45,
-          "elapsed_s": 55.53
+          "gvd_lines": 36,
+          "elapsed_s": 278.88
         },
         {
           "idx": 3,
@@ -75,20 +75,20 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 45,
-          "elapsed_s": 82.69
+          "gvd_lines": 47,
+          "elapsed_s": 47.18
         },
         {
           "idx": 4,
           "T": 0.4,
           "status": "fail_ts",
-          "sc_trial": 6,
+          "sc_trial": 10,
           "ts_trial": 6,
-          "iter": 12,
+          "iter": 16,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 28,
-          "elapsed_s": 67.03
+          "gvd_lines": 62,
+          "elapsed_s": 127.3
         },
         {
           "idx": 5,
@@ -99,8 +99,8 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 52,
-          "elapsed_s": 80.28
+          "gvd_lines": 44,
+          "elapsed_s": 52.22
         },
         {
           "idx": 6,
@@ -111,52 +111,52 @@
           "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 35,
-          "elapsed_s": 81.27
+          "gvd_lines": 48,
+          "elapsed_s": 63.35
         },
         {
           "idx": 7,
           "T": 0.7,
           "status": "fail_ts",
-          "sc_trial": 6,
+          "sc_trial": 7,
           "ts_trial": 6,
-          "iter": 12,
+          "iter": 13,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 39,
-          "elapsed_s": 73.46
+          "gvd_lines": 40,
+          "elapsed_s": 60.1
         },
         {
           "idx": 8,
           "T": 0.8,
           "status": "fail_ts",
-          "sc_trial": 6,
+          "sc_trial": 7,
           "ts_trial": 6,
-          "iter": 12,
+          "iter": 13,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 46,
-          "elapsed_s": 46.16
+          "gvd_lines": 32,
+          "elapsed_s": 50.84
         },
         {
           "idx": 9,
           "T": 0.9,
           "status": "fail_ts",
-          "sc_trial": 10,
+          "sc_trial": 6,
           "ts_trial": 6,
-          "iter": 16,
+          "iter": 12,
           "sc_err": 0,
           "tb_err": 0,
-          "gvd_lines": 44,
-          "elapsed_s": 60.1
+          "gvd_lines": 42,
+          "elapsed_s": 61.49
         }
       ]
     },
     "guard_summary": {
       "rollbacks": 1,
-      "commits": 14,
+      "commits": 11,
       "used_fallback": false,
-      "baseline_sc": 1,
+      "baseline_sc": 3,
       "final_sc": 0
     }
   }

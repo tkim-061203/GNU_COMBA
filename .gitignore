@@ -55,4 +55,4 @@ nohup.out
 configure~
 Makefile.bak*
 
-thesis/
+thesis/reports/pyranet_synth_failures.jsonl

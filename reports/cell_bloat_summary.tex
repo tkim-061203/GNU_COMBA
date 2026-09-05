@@ -1,0 +1,54 @@
+\begin{table}[htbp]
+    \centering
+    \caption{So sanh cell count giua ma sinh ra va golden RTL (nhom PASS, tong hop bang flow Muc 3.3.1).}
+    \label{tab:cell-bloat-summary}
+    \begin{tabular}{lrrrrrrrr}
+        \toprule
+        \textbf{Benchmark} & \textbf{N} & \textbf{Cell sinh} & \textbf{Cell tham chieu} & \textbf{Trung vi} & \textbf{TB nhan} & \textbf{$\leq$1.0} & \textbf{$>$1.5} & \textbf{$>$2.0} \\
+        \midrule
+        RTLLM v1.1 & 28 & 17.5 & 24.0 & 0.902 & 0.596 & 24 & 0 & 0 \\
+        RTLLM v2.0 & 33 & 11.0 & 17.0 & 0.857 & 0.660 & 28 & 1 & 1 \\
+        VerilogEval V2 (e0_t0) & 88 & 5.0 & 4.0 & 1.000 & 1.480 & 48 & 27 & 18 \\
+        VerilogEval V2 (e0_t8) & 92 & 5.0 & 4.0 & 1.000 & 1.498 & 48 & 28 & 18 \\
+        VerilogEval V2 (e1_t0) & 120 & 6.0 & 5.0 & 1.000 & 1.451 & 66 & 34 & 22 \\
+        VerilogEval V2 (e1_t8) & 120 & 6.0 & 5.0 & 1.000 & 1.459 & 65 & 33 & 20 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Phan bo loai cell trong ma sinh ra (\% tren tong so cell, nhom comparable).}
+    \label{tab:cell-type-breakdown}
+    \begin{tabular}{lrrrrrrrrrrr}
+        \toprule
+        \textbf{Benchmark} & \textbf{FF} & \textbf{Latch} & \textbf{MUX} & \textbf{ADD/SUB} & \textbf{MUL/DIV} & \textbf{XOR} & \textbf{AND/OR} & \textbf{NOT/BUF} & \textbf{COMPARE} & \textbf{MEM} & \textbf{Other} \\
+        \midrule
+        RTLLM v1.1 & 9.2\% & 0.0\% & 24.2\% & 8.6\% & 0.4\% & 0.0\% & 20.9\% & 24.1\% & 5.7\% & 0.0\% & 7.0\% \\
+        RTLLM v2.0 & 4.5\% & 0.0\% & 9.4\% & 4.2\% & 0.3\% & 8.8\% & 26.2\% & 35.3\% & 2.6\% & 0.5\% & 8.1\% \\
+        VerilogEval V2 (e0_t0) & 1.9\% & 0.2\% & 19.0\% & 20.5\% & 0.0\% & 11.2\% & 17.8\% & 17.2\% & 6.1\% & 0.6\% & 5.5\% \\
+        VerilogEval V2 (e0_t8) & 0.4\% & 0.0\% & 40.5\% & 44.8\% & 0.0\% & 1.6\% & 2.6\% & 2.6\% & 6.4\% & 0.1\% & 1.1\% \\
+        VerilogEval V2 (e1_t0) & 2.0\% & 0.1\% & 19.5\% & 9.6\% & 0.0\% & 22.9\% & 9.7\% & 22.1\% & 6.8\% & 0.3\% & 7.1\% \\
+        VerilogEval V2 (e1_t8) & 2.0\% & 0.2\% & 19.3\% & 9.4\% & 0.0\% & 22.9\% & 9.8\% & 22.1\% & 7.3\% & 0.2\% & 6.7\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Phan bo khoang cell PyraNet (0-5/6-10/11-15/16+) cua ma sinh ra va golden (nhom comparable).}
+    \label{tab:pyranet-bucket}
+    \begin{tabular}{lrrrrrrrr}
+        \toprule
+         & \multicolumn{4}{c}{\textbf{Ma sinh ra}} & \multicolumn{4}{c}{\textbf{Golden}} \\
+        \textbf{Benchmark} & 0-5 & 6-10 & 11-15 & 16+ & 0-5 & 6-10 & 11-15 & 16+ \\
+        \midrule
+        RTLLM v1.1 & 11\% & 21\% & 11\% & 57\% & 7\% & 7\% & 11\% & 75\% \\
+        RTLLM v2.0 & 18\% & 30\% & 9\% & 42\% & 12\% & 21\% & 12\% & 55\% \\
+        VerilogEval V2 (e0_t0) & 53\% & 22\% & 5\% & 20\% & 61\% & 27\% & 7\% & 5\% \\
+        VerilogEval V2 (e0_t8) & 53\% & 22\% & 4\% & 21\% & 61\% & 27\% & 5\% & 7\% \\
+        VerilogEval V2 (e1_t0) & 48\% & 21\% & 7\% & 24\% & 56\% & 27\% & 8\% & 10\% \\
+        VerilogEval V2 (e1_t8) & 48\% & 22\% & 6\% & 24\% & 56\% & 28\% & 8\% & 8\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
