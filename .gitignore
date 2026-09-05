@@ -56,3 +56,4 @@ configure~
 Makefile.bak*
 
 thesis/reports/pyranet_synth_failures.jsonl
+reports/pyranet_synth_failures.jsonl
