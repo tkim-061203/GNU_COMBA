@@ -125,7 +125,7 @@ start_dual() {
     fi
 
     if [[ "$MERGED_MODEL" == *"_4bit"* ]]; then
-        DBG_FLAGS="--quantization gptq_marlin --dtype float16"   # ← changed
+        DBG_FLAGS="--quantization gptq_marlin --dtype float16"
         DBG_INFO="4-bit GPTQ quantized"
     else
         DBG_FLAGS="--dtype $DTYPE"

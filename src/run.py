@@ -139,7 +139,7 @@ parser_generate.add_argument("modules", nargs="*")
 parser_rag = subparsers.add_parser(Commands.RAG.value, help="RAG Interface")
 parser_rag.add_argument("ragfile")
 
-# ── LangGraph COMBA Pipeline ──
+# LangGraph COMBA Pipeline
 parser_langgraph = subparsers.add_parser(
     "langgraph", help="Run full COMBA v2 pipeline (LangGraph) on modules"
 )
@@ -525,10 +525,7 @@ def runGenericFlow(
     history_tag = datetime.datetime.now().isoformat()
     shutil.copyfile('reports/log/log.txt', f'reports/log/.history/log_{llm_model}_{history_tag}.txt')
 
-# ──────────────────────────────────────────────────────────────
 # LangGraph COMBA v2 Pipeline Runner
-# ──────────────────────────────────────────────────────────────
-
 def runLangGraphFlow(
     modulePaths: typing.List[str],
     descriptionType: str = "xml",

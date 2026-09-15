@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-patch_prompts_v2.py — Apply Option B (rename TopModule headers).
+patch_prompts_v2.py - Apply Option B (rename TopModule headers).
 
-Option A đã apply rồi (verified ✅). Script này chỉ apply Option B.
-Targets the `module TopModule(` line directly — không phụ thuộc vào ký tự xung quanh.
+Targets the `module TopModule(` line directly.
 """
 
 import sys
@@ -21,7 +20,7 @@ def run(path: Path):
 
     bak = path.with_suffix(".py.bak3")
     shutil.copy2(path, bak)
-    print(f"Backup → {bak}")
+    print(f"Backup -> {bak}")
 
     content = path.read_text(encoding="utf-8")
     lines = content.split("\n")
@@ -34,11 +33,11 @@ def run(path: Path):
     for i, line in enumerate(lines):
         if "module TopModule(" in line and replaced < len(new_names):
             lines[i] = line.replace("module TopModule(", f"module {new_names[replaced]}(")
-            print(f"  ✅ Line {i+1}: TopModule → {new_names[replaced]}")
+            print(f"  Line {i+1}: TopModule -> {new_names[replaced]}")
             replaced += 1
 
     if replaced != 2:
-        print(f"  ⚠️  Expected 2 replacements, made {replaced}")
+        print(f"  Expected 2 replacements, made {replaced}")
         print("  Found 'module TopModule(' on these lines:")
         for i, line in enumerate(content.split("\n")):
             if "TopModule" in line:
@@ -58,19 +57,19 @@ def run(path: Path):
     ]
     all_ok = True
     for ok, label in checks:
-        icon = "✅" if ok else "❌"
+        icon = "[OK]" if ok else "[FAIL]"
         print(f"  {icon} {label}")
         if not ok:
             all_ok = False
 
     if all_ok:
-        print("\n✅ All checks passed.")
+        print("\nAll checks passed.")
         print("\nNext steps:")
         print("  1. python -c 'import prompts; print(\"import OK\")'")
         print("  2. python -m pytest test_pipeline.py -v -x -q")
         print("  3. Run 5-trial benchmark and compare signal_generator TB PR")
     else:
-        print(f"\n⚠️  Failed. Restore: cp {bak} {path}")
+        print(f"\nFailed. Restore: cp {bak} {path}")
 
 
 if __name__ == "__main__":

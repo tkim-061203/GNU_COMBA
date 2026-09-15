@@ -112,7 +112,7 @@ def main():
     syntax_passk = 100.0 * sum_syn_passk / ndes
     func_passk = 100.0 * sum_fun_passk / ndes
 
-    # ── console ──
+    # Console output
     print(f"Root: {root}   designs: {ndes}   trials/design: n={n}   k={k}\n")
     print(f"{'design':<22} {'syntax':>8} {'func':>8}")
     for r in rows:

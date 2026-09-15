@@ -55,5 +55,12 @@ nohup.out
 configure~
 Makefile.bak*
 
-thesis/reports/pyranet_synth_failures.jsonl
+thesis/
 reports/pyranet_synth_failures.jsonl
+
+# Root non-code files (docs, configs, backups)
+CLAUDE.md
+CHANGELOG.md
+*.bak*
+.mcp.json
+.opencode.json

@@ -15,7 +15,7 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 	def run(self):
 		sys.path.append(self.trigger_path)
 
-		# ── Configuration & Dataset Load ─────────────────────────────────────
+		# Configuration & Dataset Load
 		extract_ranges_str = self.input_args.get("extract_ranges", "6-10")
 		print(f"Extraction Process Started: {extract_ranges_str}")
 
@@ -39,7 +39,7 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 			except:
 				return (None, (None, None))
 
-		# ── Thread Pool Creation (Stable for Dynamic Imports) ────────────────
+		# Thread Pool Creation
 		print(f"Reading cache results from {len(all_num_cell_file)} files...")
 		num_workers = min(os.cpu_count() or 4, 32)
 		with ThreadPoolExecutor(max_workers=num_workers) as executor:
@@ -50,26 +50,26 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 					all_cell_num_with_no_null[logic_index][0] = int(file_list[0]) if file_list[0] is not None else None
 					all_cell_num_with_no_null[logic_index][1] = int(file_list[1]) if file_list[1] != 'None' else None
 
-				# ── Filtering and Labeling ───────────────────────────────────────────
+		# Filtering and Labeling
 		all_cell_num_with_no_null = all_cell_num_with_no_null[:, 1]
 		all_cell_num_with_no_null = np.column_stack((all_cell_num_with_no_null, range(len(dataset))))
 		valid_idx = np.where(all_cell_num_with_no_null[:, 0] != None)
 		filtered_data = all_cell_num_with_no_null[valid_idx].astype(np.uint64)
 
-		# ── Range Extraction (Direct numeric filter) ─────────────────────────
+		# Range Extraction
 		cell_range_start = int(self.input_args.get("cell_range_start", 6))
 		cell_range_stop  = int(self.input_args.get("cell_range_stop", 10))
 		extract_ranges_str = f"{cell_range_start}-{cell_range_stop}"
 		print(f"Filtering cells in range [{cell_range_start}, {cell_range_stop}]")
 
-		# Filter trực tiếp bằng numeric range — không cần bucket label
+		# Numeric range filter
 		cell_counts = filtered_data[:, 0]
 		segment_mask = (cell_counts >= cell_range_start) & (cell_counts <= cell_range_stop)
 		segment_idxs = np.where(segment_mask)[0]
 
 		print(f"Samples matching range: {len(segment_idxs)}")
 
-		# ── Mapping back to Original Global Indices ──────────────────────────
+		# Mapping back to Original Global Indices
 		original_idxs = filtered_data[segment_idxs, 1]
 		
 		print(f"Total dataset: {len(dataset)}")
@@ -82,7 +82,7 @@ class PyranetExtractDataseByRangeOfLogicCell(BaseProcessClass):
 		self.global_obj["dataset"] = dataset
 		print(dataset)
 
-		# ── Savings (GNU_COMBA structure) ────────────────────────────────────
+		# Save results
 		out_dir = os.path.join(self.trigger_path, "src", "TrainDataset")
 		os.makedirs(out_dir, exist_ok=True)
 		out_name = f"train_index2_{extract_ranges_str.replace(',', '_')}.npy"

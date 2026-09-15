@@ -133,7 +133,7 @@ def main():
         if "samples_run" in ev:
             cost_samples.append(ev["samples_run"])
 
-    # ── Summary table ──
+    # Summary table
     print("=" * 78)
     print(f"{'CATEGORY':<22} {'COUNT':>8} {'PCT':>8}")
     print("=" * 78)
@@ -147,14 +147,14 @@ def main():
     print(f"{'TOTAL':<22} {total:>8}")
     print()
 
-    # ── Cost summary ──
+    # Cost summary
     if cost_samples:
         avg = sum(cost_samples) / len(cost_samples)
-        print(f"  Avg cost multiplier: {avg:.2f}× (samples per module)")
-        print(f"  Min: {min(cost_samples)}×  Max: {max(cost_samples)}×")
+        print(f"  Avg cost multiplier: {avg:.2f}x (samples per module)")
+        print(f"  Min: {min(cost_samples)}x  Max: {max(cost_samples)}x")
         print()
 
-    # ── ROI summary ──
+    # ROI summary
     tier1 = len(by_cat["Tier1_pass"])
     recov = len(by_cat["Tier2_recovered"])
     if total:
@@ -168,7 +168,7 @@ def main():
         print(f"  Recovery rate:                    {recovery_rate:.1f}% of all modules")
         print()
 
-    # ── Detail: Tier2_recovered ──
+    # Detail: Tier2_recovered
     if by_cat["Tier2_recovered"]:
         print("=" * 78)
         print("Tier2_recovered — modules saved by retry (first 15)")
@@ -180,7 +180,7 @@ def main():
                   f"{ev.get('samples_run',0):>12}")
         print()
 
-    # ── Detail: Tier2_no_help (worst case for SC) ──
+    # Detail: Tier2_no_help (worst case for SC)
     if by_cat["Tier2_no_help"]:
         print("=" * 78)
         print("Tier2_no_help — wasted retries (first 10)")
@@ -192,7 +192,7 @@ def main():
                   f"{ev.get('samples_run',0):>8} {ev.get('err_delta',0):>10}")
         print()
 
-    # ── Save JSON detail ──
+    # Save JSON detail
     out = Path(args.out)
     summary = {
         "root": str(root),

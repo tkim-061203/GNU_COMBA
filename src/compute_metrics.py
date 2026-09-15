@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-compute_metrics.py — assemble the ablation comparison table (tab:ablation).
+compute_metrics.py - assemble the ablation comparison table (tab:ablation).
 ===========================================================================
 Gathers the metrics already produced by the other scripts for each variant
 (Full + #1/#2/#3) and emits one side-by-side table with deltas vs Full.
@@ -8,11 +8,11 @@ Gathers the metrics already produced by the other scripts for each variant
 For each variant you pass a *report root*; the script auto-discovers (tolerant,
 skips what's missing):
 
-    <root>/**/pass5_breakdown.json        ← parse_rtllm_trials.py
+    <root>/**/pass5_breakdown.json        # from parse_rtllm_trials.py
             (classified RTLLM vs RTLLM_v2 by 'v2' in the path)
-    <root>/**/analyze_syntax_rtllm.json   ← analyze_self_consistency.py
-    <root>/**/benchmark*_5trials.json     ← benchmark_langgraph.py (fix-rate)
-    <root>/**/veval_pass1.json            ← VerilogEval V2 pass@1 (optional)
+    <root>/**/analyze_syntax_rtllm.json   # from analyze_self_consistency.py
+    <root>/**/benchmark*_5trials.json     # from benchmark_langgraph.py (fix-rate)
+    <root>/**/veval_pass1.json            # from VerilogEval V2 pass@1 (optional)
 
 VerilogEval pass@1 json schema (flexible) — a dict of regime → percent:
     {"zero_shot@T0": 61.5, "zero_shot@T0.8": 58.9,
@@ -36,7 +36,7 @@ import argparse
 import json
 from pathlib import Path
 
-# ── Variant definitions (order = column order). key, header. ──
+# Variant definitions (order = column order). key, header.
 VARIANTS = [
     ("full", "Full"),
     ("abl1", "#1 no-cat"),
@@ -45,7 +45,7 @@ VARIANTS = [
     ("abl4", "#4 nodbg+nopost"),
 ]
 
-# ── Metric rows: key, display label, where to read it, "higher is better". ──
+# Metric rows: key, display label, where to read it, "higher is better".
 # source = (file_kind, json_path_tuple)
 ROWS = [
     ("rtllm_syntax",   "RTLLM syntax pass@5 (%)",      ("rtllm_pass5",   ("syntax_pass_at_k",)), True),
@@ -56,11 +56,11 @@ ROWS = [
     ("ve_zs_t08",      "VEval pass@1 zero-shot T0.8 (%)", ("veval", ("zero_shot@T0.8",)), True),
     ("ve_os_t0",       "VEval pass@1 one-shot T0 (%)",    ("veval", ("one_shot@T0",)),    True),
     ("ve_os_t08",      "VEval pass@1 one-shot T0.8 (%)",  ("veval", ("one_shot@T0.8",)),  True),
-    # ── auxiliary (RTLLM fix-loop diagnostics) ──
+    # auxiliary (RTLLM fix-loop diagnostics)
     ("syntax_fr",      "RTLLM syntax fix-rate (%)",    ("fixrate", ("global", "syntax_fix_rate"), 100.0), True),
     ("func_fr",        "RTLLM func fix-rate (%)",      ("fixrate", ("global", "func_fix_rate"),   100.0), True),
     ("recovery",       "Debugger recovery-rate (%)",   ("sc", ("metrics", "recovery_rate_pct")), True),
-    ("cost_mult",      "Avg SC cost multiplier (×)",   ("sc", ("metrics", "avg_cost_multiplier")), False),
+    ("cost_mult",      "Avg SC cost multiplier (x)",   ("sc", ("metrics", "avg_cost_multiplier")), False),
 ]
 
 
@@ -162,7 +162,7 @@ def main():
 
     base_key = "full" if any(k == "full" for k, _ in present) else present[0][0]
 
-    # ── console ──
+    # Console output
     print(f"\nAblation metrics (base column: {base_key})\n")
     hdr = f"{'metric':<34}" + "".join(f"{h:>20}" for _, h in present)
     print(hdr)
@@ -179,7 +179,7 @@ def main():
             line += f"{cell:>20}"
         print(line)
 
-    # ── outputs ──
+    # Output files
     result = {
         "base": base_key,
         "variants": {vk: roots[vk] for vk, _ in present},

@@ -26,7 +26,7 @@ import pandas as pd
 from datetime import datetime
 from pathlib import Path
 
-# ── Project root ──
+# Project root
 # This script lives in src/; SCRIPT_DIR is src/, PROJECT_ROOT is the repo root.
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -43,9 +43,9 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # FR — EXACT PAPER FORMULA (from notebook cell 5)
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 def parse_sc_exceptions(sc_log: str) -> list[str]:
     """Extract exception codes from SC log."""
@@ -99,9 +99,9 @@ def calc_fr_trial(sample: dict) -> tuple[float, float]:
     return syntax_fr, func_fr
 
 
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # PIPELINE EXECUTION (subprocess, matching notebook)
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 def run_trials(modules_dir: str, description_type: str, num_trials: int,
                summary_file: str, all_modules: list[str],
@@ -132,7 +132,7 @@ def run_trials(modules_dir: str, description_type: str, num_trials: int,
             "--jobs", str(jobs),
         ]
 
-        print(f"  🚀 Executing: {' '.join(cmd)}")
+        print(f"  Executing: {' '.join(cmd)}")
         # Reproducible-but-independent trials: each trial gets its own LLM base
         # seed (offset from COMBA_LLM_SEED, default 42). Re-running the same
         # trial index reproduces it; different trials remain independent draws.
@@ -142,7 +142,7 @@ def run_trials(modules_dir: str, description_type: str, num_trials: int,
         result = subprocess.run(cmd, capture_output=False, text=True, env=trial_env)
 
         if result.returncode != 0:
-            print(f"  ⚠️ Trial {trial} had errors (returncode={result.returncode})")
+            print(f"  WARNING: Trial {trial} had errors (returncode={result.returncode})")
 
         # Read per-module reports
         trial_data = {}
@@ -187,9 +187,9 @@ def run_trials(modules_dir: str, description_type: str, num_trials: int,
     return trial_results
 
 
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # AGGREGATION (matching notebook cell 5)
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 def aggregate_results(trial_results: dict, all_modules: list[str],
                       num_trials: int) -> tuple[list[dict], pd.DataFrame, dict]:
@@ -285,13 +285,13 @@ def aggregate_results(trial_results: dict, all_modules: list[str],
     return rows, df, global_stats
 
 
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # PRINT SUMMARY
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 def print_summary(rows, df, stats, num_trials, num_modules):
     """Print summary table to console."""
-    print(f"\n=== GLOBAL RESULTS ({num_trials} trials × {num_modules} modules) ===")
+    print(f"\n=== GLOBAL RESULTS ({num_trials} trials x {num_modules} modules) ===")
     print(f"Syntax Pass Rate:    {stats['avg_sc_pr']:.1f}%")
     print(f"TB Pass Rate:    {stats['avg_tb_pr']:.1f}%")
     print(f"Syntax Fix Rate: {stats['avg_sfr']:.2f}%")
@@ -303,9 +303,9 @@ def print_summary(rows, df, stats, num_trials, num_modules):
     print(df[['Module', 'Syntax Pass Rate', 'TB Pass Rate', 'Syntax FR', 'Func FR']].to_string(index=False))
 
 
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # EXPORT (matching notebook cell 7)
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 def export_results(rows, df, stats, description_type, num_trials, output_dir):
     """Export JSON, CSV, LaTeX."""
@@ -342,14 +342,14 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
     json_path = os.path.join(output_dir, f'benchmark_{description_type}_{num_trials}trials.json')
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(export_data, f, indent=2, ensure_ascii=False)
-    print(f'📄 JSON saved: {json_path}')
+    print(f'JSON saved: {json_path}')
 
     # --- CSV ---
     csv_path = os.path.join(output_dir, f'benchmark_{description_type}_{num_trials}trials.csv')
     df[['Module', 'Syntax Pass Rate', 'TB Pass Rate', 'Syntax FR', 'Func FR']].to_csv(
         csv_path, index=False
     )
-    print(f'📄 CSV saved: {csv_path}')
+    print(f'CSV saved: {csv_path}')
 
     # --- LaTeX ---
     latex_rows = []
@@ -383,7 +383,7 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
     tex_path = os.path.join(output_dir, f'benchmark_{description_type}_{num_trials}trials.tex')
     with open(tex_path, 'w', encoding='utf-8') as f:
         f.write(latex)
-    print(f'📄 LaTeX saved: {tex_path}')
+    print(f'LaTeX saved: {tex_path}')
 
     # --- Markdown ---
     # Wilson 95% CI on the aggregate TB pass rate: makes the sampling-noise
@@ -429,12 +429,12 @@ def export_results(rows, df, stats, description_type, num_trials, output_dir):
     md_path = os.path.join(output_dir, f'benchmark_{description_type}_{num_trials}trials.md')
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(md_lines))
-    print(f'📄 Markdown saved: {md_path}')
+    print(f'Markdown saved: {md_path}')
 
 
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # MAIN
-# ═══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 def main():
     p = argparse.ArgumentParser(description="COMBA-LLM Benchmark (subprocess-based)")
@@ -497,7 +497,7 @@ def main():
     for i, m in enumerate(target_modules, 1):
         print(f"  {i:2d}. {m}")
 
-    # ── Step 1: Run trials via subprocess ──
+    # Step 1: Run trials via subprocess
     trial_results = run_trials(
         modules_dir, description_type, num_trials,
         summary_file, all_modules,
@@ -505,13 +505,13 @@ def main():
         jobs=args.jobs,
     )
 
-    # ── Step 2: Aggregate ──
+    # Step 2: Aggregate
     rows, df, stats = aggregate_results(trial_results, target_modules, num_trials)
 
-    # ── Step 3: Print ──
+    # Step 3: Print
     print_summary(rows, df, stats, num_trials, len(target_modules))
 
-    # ── Step 4: Export ──
+    # Step 4: Export
     export_results(rows, df, stats, description_type, num_trials, output_dir)
 
 
