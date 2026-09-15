@@ -51,9 +51,9 @@ COMBA_MODEL_NAME = "comba-verilog-pipeline"
 _executor = ThreadPoolExecutor(max_workers=4)
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # SSE Helpers
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def make_sse_chunk(completion_id: str, content: str, finish_reason=None) -> str:
     """Create an OpenAI-compatible SSE chunk."""
@@ -78,54 +78,53 @@ def format_node_event(node_name: str, state_update: dict, full_state: dict) -> s
         module_name = state_update.get("module_name") or "module"
         xml = state_update.get("xml_description", "")
         lines = len(xml.splitlines()) if xml else 0
-        return f"🔄 **Converter:** Generated COMBA XML for `{module_name}` ({lines} lines)\n\n"
+        return f"**Converter:** Generated COMBA XML for `{module_name}` ({lines} lines)\n\n"
 
     elif node_name == "node_generator":
         gvd = state_update.get("gvd", "")
         lines = len(gvd.splitlines()) if gvd else 0
-        return f"⚡ **Generator:** Produced {lines} lines of Verilog\n\n"
+        return f"**Generator:** Produced {lines} lines of Verilog\n\n"
 
     elif node_name == "node_syntax_check":
         trial = state_update.get("sc_trial", "?")
         errors = state_update.get("sc_exception_count", 0)
         if errors == 0:
-            return f"🔍 **Syntax Check #{trial}:** Pass ✅\n\n"
+            return f"**Syntax Check #{trial}:** Pass [OK]\n\n"
         else:
             exc = state_update.get("sc_exception", "")
-            return f"🔍 **Syntax Check #{trial}:** {errors} error(s) ❌\n> `{exc[:100]}`\n\n"
+            return f"**Syntax Check #{trial}:** {errors} error(s) [FAIL]\n> `{exc[:100]}`\n\n"
 
     elif node_name == "node_ted_syntax":
         exc = state_update.get("sc_exception", "")
-        return f"📋 **TED-SC:** Topmost error → `{exc[:120]}`\n\n"
+        return f"**TED-SC:** Topmost error -> `{exc[:120]}`\n\n"
 
     elif node_name == "node_debugger":
         patch = state_update.get("debugger_patch")
         if patch:
             buggy = patch.get("buggy_code", "")[:80]
-            return f"🐛 **Debugger:** Generated JSON patch\n> buggy: `{buggy}...`\n\n"
-        return "🐛 **Debugger:** No patch produced ⚠️\n\n"
+            return f"**Debugger:** Generated JSON patch\n> buggy: `{buggy}...`\n\n"
+        return "**Debugger:** No patch produced [WARN]\n\n"
 
     elif node_name == "node_patcher":
         rollback = state_update.get("rollback_triggered", False)
         if rollback:
-            return "🩹 **Patcher:** Patch skipped (no match or rollback) ⚠️\n\n"
-        return "🩹 **Patcher:** Patch applied ✅\n\n"
+            return "**Patcher:** Patch skipped (no match or rollback) [WARN]\n\n"
+        return "**Patcher:** Patch applied [OK]\n\n"
 
     elif node_name == "node_tb_sim":
         trial = state_update.get("ts_trial", "?")
         failure = state_update.get("tb_failure")
         if not failure:
-            return f"🧪 **TB Simulation #{trial}:** Pass ✅\n\n"
-        return f"🧪 **TB Simulation #{trial}:** Failed ❌\n> `{failure[:100]}`\n\n"
+            return f"**TB Simulation #{trial}:** Pass [OK]\n\n"
+        return f"**TB Simulation #{trial}:** Failed [FAIL]\n> `{failure[:100]}`\n\n"
 
     elif node_name == "node_ted_tb":
         failure = state_update.get("tb_failure", "")
-        return f"📋 **TED-TB:** Topmost failure → `{failure[:120]}`\n\n"
+        return f"**TED-TB:** Topmost failure -> `{failure[:120]}`\n\n"
 
     elif node_name.startswith("end_"):
         status = state_update.get("final_status", node_name)
-        emoji = "🎉" if status == "pass" else "❌"
-        return f"\n---\n{emoji} **Pipeline Result:** `{status}`\n\n"
+        return f"\n---\n **Pipeline Result:** `{status}`\n\n"
 
     return ""
 
@@ -169,13 +168,13 @@ def format_final_output(final_state: dict) -> str:
 # run_pipeline_sync() and run_pipeline_streaming() are available as imports.
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # FastAPI App
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 app = FastAPI(title="COMBA-PROMPT v2 Verilog Pipeline API")
 
 
-# ── OpenAI-compatible models ──
+# --- OpenAI-compatible models ---
 
 class ModelInfo(BaseModel):
     id: str
@@ -195,7 +194,7 @@ async def list_models():
     ])
 
 
-# ── OpenAI-compatible chat completions ──
+# --- OpenAI-compatible chat completions ---
 
 class ChatMessage(BaseModel):
     role: str
@@ -227,11 +226,11 @@ class ChatCompletionResponse(BaseModel):
     usage: Usage = Usage()
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Open WebUI background-task handling
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Open WebUI wraps its automatic helper prompts (chat title, tags,
-# follow-up suggestions, autocomplete, retrieval query generation, …)
+# follow-up suggestions, autocomplete, retrieval query generation, ...)
 # in a "### Task:" template and POSTs them to the same model endpoint.
 # These are NOT Verilog design requests: running them through the COMBA
 # pipeline fails XML validation, spams the logs, and returns an error
@@ -270,7 +269,7 @@ async def chat_completions(request: ChatCompletionRequest):
 
     completion_id = f"chatcmpl-comba-{uuid.uuid4().hex[:12]}"
 
-    # ── Open WebUI meta requests (title/tags/follow-up/etc): bypass pipeline ──
+    # --- Open WebUI meta requests (title/tags/follow-up/etc): bypass pipeline ---
     if is_owui_task_request(request.messages):
         loop = asyncio.get_event_loop()
         try:
@@ -295,7 +294,7 @@ async def chat_completions(request: ChatCompletionRequest):
         )
 
     if request.stream:
-        # ── SSE Streaming: emit per-node events ──
+        # --- SSE Streaming: emit per-node events ---
         async def stream_generator():
             loop = asyncio.get_event_loop()
             final_state = {}
@@ -340,7 +339,7 @@ async def chat_completions(request: ChatCompletionRequest):
 
                         yield make_sse_chunk(
                             completion_id,
-                            f"📝 **Best-of-N Candidate {idx+1}/{max_samples}** (T={T})...\n\n"
+                            f" **Best-of-N Candidate {idx+1}/{max_samples}** (T={T})...\n\n"
                         )
                         await asyncio.sleep(0.01)
 
@@ -396,17 +395,16 @@ async def chat_completions(request: ChatCompletionRequest):
                             best_sample_idx = idx
 
                         status = result.final_status
-                        emoji = "✅" if status == "pass" else "❌"
                         yield make_sse_chunk(
                             completion_id,
-                            f"🏁 **Candidate {idx+1} Result:** `{status}` {emoji}\n\n"
+                            f" **Candidate {idx+1} Result:** `{status}`\n\n"
                         )
                         await asyncio.sleep(0.01)
 
                         if early_exit and status == "pass":
                             yield make_sse_chunk(
                                 completion_id,
-                                f"🌟 **Early exit:** Candidate {idx+1} passed successfully!\n\n"
+                                f"**Early exit:** Candidate {idx+1} passed successfully!\n\n"
                             )
                             break
 
@@ -465,7 +463,7 @@ async def chat_completions(request: ChatCompletionRequest):
                         yield make_sse_chunk(completion_id, final_output)
 
             except Exception as e:
-                error_msg = f"\n❌ Pipeline error:\n```\n{str(e)}\n```\n"
+                error_msg = f"\n Pipeline error:\n```\n{str(e)}\n```\n"
                 yield make_sse_chunk(completion_id, error_msg)
 
             # Finish
@@ -477,7 +475,7 @@ async def chat_completions(request: ChatCompletionRequest):
             media_type="text/event-stream",
         )
 
-    # ── Non-streaming: run full pipeline, return formatted result ──
+    # --- Non-streaming: run full pipeline, return formatted result ---
     try:
         loop = asyncio.get_event_loop()
         final = await loop.run_in_executor(
@@ -487,13 +485,12 @@ async def chat_completions(request: ChatCompletionRequest):
         # Build response text
         parts = []
         status = final.get("final_status", "unknown")
-        emoji = "🎉" if status == "pass" else "❌"
-        parts.append(f"{emoji} Pipeline completed: `{status}`\n")
+        parts.append(f" Pipeline completed: `{status}`\n")
         parts.append(format_final_output(final))
         response_text = "\n".join(parts)
 
     except Exception as e:
-        response_text = f"❌ Error running COMBA pipeline:\n```\n{str(e)}\n```"
+        response_text = f"[ERROR] Error running COMBA pipeline:\n```\n{str(e)}\n```"
 
     return ChatCompletionResponse(
         id=completion_id,
@@ -510,7 +507,7 @@ async def chat_completions(request: ChatCompletionRequest):
     )
 
 
-# ── Health check ──
+# --- Health check ---
 @app.get("/health")
 async def health():
     """Health check endpoint."""

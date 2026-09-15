@@ -25,9 +25,9 @@ from pydantic import Field
 logger = logging.getLogger(__name__)
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Pydantic-XML Schema Classes
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class IDModel(BaseXmlModel):
     """Base model with required id attribute."""
@@ -106,9 +106,9 @@ class Modules(RootXmlModel, tag="modules"):
     root: List[Module]
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Validation Functions
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 # Module-level regex: fences with optional language tag, anywhere in text.
 _FENCE_RE = re.compile(r"```[a-zA-Z]*\s*\n?|```", re.MULTILINE)
@@ -236,7 +236,7 @@ def validate_xml(
     Strategy:
       1. Clean text (strip markdown fences)
       2. Try Module.from_xml()
-      3. If fails + llm provided → ask LLM to fix XML → retry
+      3. If fails + llm provided -> ask LLM to fix XML -> retry
       4. Repeat up to max_retries
 
     Args:

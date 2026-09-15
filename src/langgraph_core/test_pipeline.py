@@ -49,9 +49,9 @@ comba_pipeline.TS_SIMULATOR = "iverilog"
 
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Helpers: Mock iverilog subprocess calls
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def make_iverilog_result(returncode=0, stderr="", stdout=""):
     """Create a mock subprocess.CompletedProcess."""
@@ -84,9 +84,9 @@ TB_FAIL_RESULT = make_iverilog_result(
 )
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Test 0: Utility functions
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class TestUtilities:
     def test_count_iverilog_errors(self):
@@ -109,16 +109,16 @@ class TestUtilities:
         assert len(_normalize_error_key(long_err, max_len=50)) == 50
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Test 1: Unit tests for routing functions
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class TestRoutingFunctions:
     """Test the 7 conditional routing functions in isolation."""
 
-    # ── Sanitizer routing (v3) ──
+    # Sanitizer routing
     def test_route_after_sanitizer_no_retry(self):
-        """Sanitizer succeeded → go to SC."""
+        """Sanitizer succeeded -> go to SC."""
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
         state = make_initial_state()
@@ -127,7 +127,7 @@ class TestRoutingFunctions:
         assert route_after_sanitizer(state) == "node_syntax_check"
 
     def test_route_after_sanitizer_retry_from_generator(self):
-        """Sanitizer needs retry, source was generator → back to generator."""
+        """Sanitizer needs retry, source was generator -> back to generator."""
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
         state = make_initial_state()
@@ -137,7 +137,7 @@ class TestRoutingFunctions:
         assert route_after_sanitizer(state) == "node_generator"
 
     def test_route_after_sanitizer_retry_from_debugger(self):
-        """Sanitizer needs retry, source was debugger → back to debugger."""
+        """Sanitizer needs retry, source was debugger -> back to debugger."""
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
         state = make_initial_state()
@@ -147,14 +147,14 @@ class TestRoutingFunctions:
         assert route_after_sanitizer(state) == "node_debugger"
 
     def test_route_after_sanitizer_default_no_result(self):
-        """No sanitize_result → default to SC (no retry)."""
+        """No sanitize_result -> default to SC (no retry)."""
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
         state = make_initial_state()
         state["dataset_dir"] = "/tmp"
         assert route_after_sanitizer(state) == "node_syntax_check"
 
-    # ── SC routing (unchanged) ──
+    # SC routing
     def test_route_after_sc_has_errors(self):
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
@@ -171,7 +171,7 @@ class TestRoutingFunctions:
         state["sc_exception_count"] = 0
         assert route_after_sc(state) == "node_tb_sim"
 
-    # ── TS routing (unchanged) ──
+    # TS routing
     def test_route_after_ts_has_failure(self):
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
@@ -188,7 +188,7 @@ class TestRoutingFunctions:
         state["tb_failure"] = None
         assert route_after_ts(state) == "end_pass"
 
-    # ── Classify TB routing (v5) ──
+    # Classify TB routing
     def test_route_after_classify_tb_fsm_with_vcd_hint_enabled(self, tmp_path, monkeypatch):
         import os
         monkeypatch.setenv("COMBA_VCD_HINT", "1")
@@ -221,7 +221,7 @@ class TestRoutingFunctions:
         state["failure_type"] = "combinational_mismatch"
         assert route_after_classify_tb(state) == "node_ted_tb"
 
-    # ── TED SC routing (enhanced with MultiAttempt) ──
+    # TED SC routing with MultiAttempt
     def test_route_after_ted_syntax_under_limit(self):
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
@@ -250,7 +250,7 @@ class TestRoutingFunctions:
         state["sc_trial"] = 3
         assert route_after_ted_syntax(state) == "node_tb_sim"
 
-    # ── TED TB routing (enhanced with MultiAttempt) ──
+    # TED TB routing with MultiAttempt
     def test_route_after_ted_tb_under_limit(self):
         # In the real pipeline, this is passed from run_pipeline_sync
         # For tests, we mock it.
@@ -268,9 +268,9 @@ class TestRoutingFunctions:
         assert route_after_ted_tb(state) == "end_fail_ts"
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Test 2: Individual node tests
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class TestNodes:
     """Test individual node logic."""
@@ -379,7 +379,7 @@ class TestNodes:
         state["_sanitize_retry_count"] = 2  # at max
         result = nodes.node_sanitizer(state)
         assert result["sanitize_result"]["needs_retry"] is False
-        # Code is set (even if empty) — it still passes to Verilator
+        # Code is set (even if empty) - it still passes to Verilator
         assert "gvd" in result
 
     def test_node_sanitizer_auto_fixes_missing_endmodule(self):
@@ -544,9 +544,9 @@ class TestNodes:
         assert "TODO 3 Failed" in result["tdp"]
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Test 3: E2E Graph tests with mocked Verilator
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class TestE2EGraph:
     """End-to-end tests running the full compiled graph."""
@@ -601,7 +601,7 @@ class TestE2EGraph:
         return result
 
     def test_happy_path(self):
-        """SC passes, TB passes → final_status == 'pass'."""
+        """SC passes, TB passes -> final_status == 'pass'."""
         llm = create_stub_llm()
         result = self._run_graph(
             llm,
@@ -617,7 +617,7 @@ class TestE2EGraph:
         assert result["ts_trial"] == 1
 
     def test_sc_fix_then_pass(self):
-        """SC fails → TED → Debugger → Sanitizer → SC passes → TB passes."""
+        """SC fails -> TED -> Debugger -> Sanitizer -> SC passes -> TB passes."""
         llm = create_buggy_stub_llm()
         result = self._run_graph(
             llm,
@@ -635,7 +635,7 @@ class TestE2EGraph:
         assert result["sc_trial"] == 2
 
     def test_sc_iteration_limit(self):
-        """SC always fails → hits MAX_SYNTAX_TRIALS → fail_sc."""
+        """SC always fails -> hits MAX_SYNTAX_TRIALS -> fail_sc."""
         llm = create_always_buggy_stub_llm()
         sc_results = [SC_ERROR_RESULT] * (MAX_SYNTAX_TRIALS + 5)
         with patch("comba_pipeline.EDTM_MAX_RETRIES", 99):
@@ -688,9 +688,9 @@ class TestE2EGraph:
         assert "node_patcher" not in node_ids
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Test 4: EDTM integration
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class TestEDTM:
     """Test Exception-Debugging Trial Management."""
@@ -734,9 +734,9 @@ class TestEDTM:
         assert "EDTM WARNING" in result["edp"]
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Test 5: State initialization
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class TestState:
     """Test state creation and defaults."""
@@ -769,9 +769,9 @@ class TestState:
         assert state["module_name"] == "foo"
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Test 6: Sanitizer integration
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class TestSanitizer:
     """Test VerilogSanitizer node behavior."""

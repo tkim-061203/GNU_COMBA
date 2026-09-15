@@ -28,9 +28,9 @@ from enum import Enum
 from prompts import _ERROR_PATTERNS, _ERROR_CONSTRAINTS, detect_tdp_hints
 
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # Constants
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 class DebugPhase(Enum):
     SYNTAX = "sc"
@@ -118,9 +118,9 @@ CATEGORY_HINTS = {
 }
 
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # Attempt History Entry
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 @dataclass
 class AttemptRecord:
@@ -133,25 +133,25 @@ class AttemptRecord:
     extraction_retry_prompt: Optional[str] = None
 
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # Main Class
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 class MultiAttemptManager:
     """
     Manages escalating correction prompts across retry attempts.
 
     State machine per error_key:
-      L0 (attempt 1)   → Standard EDP/TDP
-      L1 (attempt 2)   → + "Previous attempt also failed: {reason}"
-      L2 (attempt 3)   → + Category hint
-      L3 (attempt 4)   → Force rethink: "Discard previous approach entirely"
-      L4 (attempt 5)   → Provide module skeleton, ask to fill logic only
+      L0 (attempt 1)   -> Standard EDP/TDP
+      L1 (attempt 2)   -> + "Previous attempt also failed: {reason}"
+      L2 (attempt 3)   -> + Category hint
+      L3 (attempt 4)   -> Force rethink: "Discard previous approach entirely"
+      L4 (attempt 5)   -> Provide module skeleton, ask to fill logic only
     """
 
     def __init__(self, max_attempts_per_error: int = 5):
         self.max_attempts = max_attempts_per_error
-        self.history: dict[str, list[AttemptRecord]] = {}  # error_key → attempts
+        self.history: dict[str, list[AttemptRecord]] = {}  # error_key -> attempts
 
     def get_escalation_level(self, error_key: str) -> EscalationLevel:
         """Determine current escalation level based on attempt count."""
@@ -198,9 +198,9 @@ class MultiAttemptManager:
         """Clear history when error is resolved."""
         self.history.pop(error_key, None)
 
-    # ─────────────────────────────────────────
+    # -----------------------------------------
     # Prompt Builders
-    # ─────────────────────────────────────────
+    # -----------------------------------------
 
     def build_sc_prompt(
         self,
@@ -369,9 +369,9 @@ class MultiAttemptManager:
         else:  # L4_SKELETON
             return self._skeleton_prompt(module_name, gvd, task_description)
 
-    # ─────────────────────────────────────────
+    # -----------------------------------------
     # Base Prompt Templates
-    # ─────────────────────────────────────────
+    # -----------------------------------------
 
     def _base_edp(self, module_name, gvd, exc_type, exc_title,
                   exc_content, log_content, custom_vec, task_desc):
@@ -380,7 +380,7 @@ class MultiAttemptManager:
             "",
             "## CRITICAL RULES",
             "1. NEVER add, remove, or rename ports. The port list (header) is FIXED and forced by the testbench.",
-            "   Rule: `output` → `output reg` promotion is REQUIRED if assigned in `always`. This is NOT a rename.",
+            "   Rule: `output` -> `output reg` promotion is REQUIRED if assigned in `always`. This is NOT a rename.",
             "   ANTI-PATTERN: Do NOT use `reg wave_reg; assign wave = wave_reg;`. Use `output reg wave;`.",
             "2. If the error says 'Could not find variable', DO NOT add it to the port list. Declare it internally as a wire/reg, OR rewrite the logic to use the existing ports.",
             "3. Fix ONLY the topmost error. Cascading errors resolve automatically.",
@@ -432,7 +432,7 @@ class MultiAttemptManager:
             "",
             "## CRITICAL RULES",
             "1. NEVER add, remove, or rename ports. The port list (header) is FIXED and forced by the testbench.",
-            "   Rule: `output` → `output reg` promotion is REQUIRED if assigned in `always`. This is NOT a rename.",
+            "   Rule: `output` -> `output reg` promotion is REQUIRED if assigned in `always`. This is NOT a rename.",
             "   ANTI-PATTERN: Do NOT use `reg wave_reg; assign wave = wave_reg;`. Use `output reg wave;`.",
             "2. If you need to fix variable names, rewrite the internal logic to use the existing ports EXACTLY as declared.",
             "3. Do not instantiate external modules unless you define them in the same file.",
@@ -462,9 +462,9 @@ class MultiAttemptManager:
         ])
         return "\n".join(parts)
 
-    # ─────────────────────────────────────────
+    # -----------------------------------------
     # Escalation Suffixes
-    # ─────────────────────────────────────────
+    # -----------------------------------------
 
     def _history_suffix(self, prev: AttemptRecord) -> str:
         return (
@@ -556,9 +556,9 @@ class MultiAttemptManager:
             "\nOutput ONLY Verilog code, no explanation."
         )
 
-    # ─────────────────────────────────────────
+    # -----------------------------------------
     # Stats
-    # ─────────────────────────────────────────
+    # -----------------------------------------
 
     def get_stats(self) -> dict:
         """Return attempt statistics for benchmarking."""
@@ -572,9 +572,9 @@ class MultiAttemptManager:
         return stats
 
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # Self-test
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 if __name__ == "__main__":
     mgr = MultiAttemptManager(max_attempts_per_error=5)
@@ -615,4 +615,4 @@ if __name__ == "__main__":
         )
 
     print(f"\n  Stats: {mgr.get_stats()}")
-    print("\n✅ Multi-attempt escalation test completed.")
+    print("\n[OK] Multi-attempt escalation test completed.")

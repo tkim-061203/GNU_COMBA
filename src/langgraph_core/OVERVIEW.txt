@@ -1,48 +1,62 @@
-Horizontal framework diagram, 16:9 landscape, flat vector, white background, 
-clean sans-serif, no shadows. Three equal-width vertical columns.
+Framework Overview
+==================
 
-TITLE: "Framework Overview"
+Stage 1: Generation
+-------------------
+[Natural Language Spec]
+       |
+       v
+[Converter | LLM-Base]
+       |
+       v
+[COMBA XML Specification]
+       |
+       v
+[Generator | LLM-Base]
+       |
+       v
+[Sanitizer | Multi-stage cleanup]
+       |
+       v
+[Generated Verilog Design (GVD)] -> Exits to Stage 2
 
-═══ STAGE 1 — GENERATION (left column, vertical chain) ═══
-[NL Spec] ↓ [Converter | LLM-Base] ↓ [COMBA XML] ↓ [Generator | LLM-Base] 
-↓ [Sanitizer | 8-stage clean] ↓ [GVD] → exits right to Stage 2
 
-═══ STAGE 2 — VERIFICATION & DEBUG (middle column) ═══
-Header: "LangGraph State Machine — 11 nodes, 7 edges"
+Stage 2: Verification and Debugging
+-----------------------------------
+LangGraph State Machine Architecture:
 
-EXACTLY TWO horizontal rows (no duplicates, no third row):
+  Row 1 - Syntax Check Loop:
+    [Syntax Check: iverilog] -> [Guard-SC] -> [TED-Syntax + EDTM] --+
+                                                                    |
+                                                                    v
+  Row 2 - Testbench Simulation Loop:                           [Debugger
+    [TB Sim: iverilog/verilator] -> [Guard-TS] -> [Classify-TB] LLM-LoRA]
+    -> [VCD Analyzer] -> [TED-TB] ----------------------------------+
 
-  Row 1 — SC Loop (3 nodes):
-    [Syntax Check: iverilog] → [Guard-SC] → [TED-Syntax + EDTM] ──┐
-                                                                   │
-                                                                   ▼
-  Row 2 — TS Loop (5 nodes):                                  [Debugger
-    [TB Sim: iverilog/verilator] → [Guard-TS] → [Classify-TB]  LLM-LoRA
-    → [VCD Analyzer] → [TED-TB] ─────────────────────────────► GPU1]
+  Feedback path from Debugger:
+    Debugger -> Sanitizer -> Syntax Check (rollback / patch / re-sanitize)
 
-Dashed feedback arrow from Debugger curving LEFT back to Sanitizer in Stage 1.
-Label: "rollback / patch / re-sanitize"
 
-═══ STAGE 3 — CONTROL & OUTPUT (right column, vertical stack) ═══
-[Control Mechanisms:
-  • EDTM dedup (max 3)
-  • Guard bad_streak ≤ 2
-  • Self-Consistency Best-of-N (T = 0.0 ~ 1.0, diversity hints)]
-↓
-[Terminal States: END_PASS / END_FAIL_SC / END_FAIL_TS / END_MAX_ITER / END_FAIL_XML]
-↓
-[Verified Verilog Module (.v)]
+Stage 3: Control and Output
+---------------------------
+Control Mechanisms:
+- EDTM deduplication (max 3)
+- Guard regression rollback (bad_streak <= 2)
+- Self-Consistency Best-of-N (sampling with temperature range 0.0 to 1.0)
 
-═══ LEGEND (bottom, FOUR distinct categories) ═══
-→ Solid arrow = data flow
-⇢ Dashed arrow = feedback / rollback
-🟦 LLM node    🟩 Verification tool    🟧 Guard / Control    ⬜ Data artifact
+Terminal States:
+- END_PASS
+- END_FAIL_SC
+- END_FAIL_TS
+- END_MAX_ITER
+- END_FAIL_XML
 
-STRICT CHECKLIST — must satisfy ALL:
-1. Guard-TS appears ONCE only (in Row 2 of Stage 2)
-2. Classify-TB appears ONCE only (in Row 2 of Stage 2)
-3. Stage 2 has exactly 2 rows, not 3
-4. Node "VCD Analyzer" (NOT "VCD-TB")
-5. Node "TED-TB" present at end of Row 2
-6. Legend has 4 distinct color categories (no duplicate "Data artifact")
-7. Debugger drawn ONCE, no Escalation Ladder badge
+Final Output:
+- Verified Verilog Module (.v)
+
+
+Flow Conventions
+----------------
+- Solid arrows: Forward data flow
+- Dashed/Return arrows: Feedback and rollback loops
+- Pipeline Components: LLM nodes, Verification tools, Guard/Control units, Data artifacts

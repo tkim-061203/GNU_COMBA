@@ -1,5 +1,5 @@
 """
-COMBA-PROMPT Full Verification Pipeline v4 — LangGraph Implementation.
+COMBA-PROMPT Full Verification Pipeline v4 - LangGraph Implementation.
 
 11 nodes, 7 conditional edges, Do-No-Harm Guard, EDTM, Iteration Control.
 
@@ -11,17 +11,17 @@ v4 Changes (vs v3):
   - Removed dead code (route_after_patcher, references to non-existent nodes)
 
 Flow:
-  NL → [Converter] → XML → [Generator] → [Sanitizer]
-    → [SC] → [GUARD_SC] → pass? → [TB] → [GUARD_TS] → pass? → END ✅
-                     │ fail              │ fail
-                     ↓                   ↓
-                [TED_SC]→[Debugger]→[Sanitizer]→[SC]→[GUARD_SC] (loop)
-                                  [TED_TB]→[Debugger]→[Sanitizer]→[SC]→[GUARD_SC] (loop)
+  NL -> [Converter] -> XML -> [Generator] -> [Sanitizer]
+    -> [SC] -> [GUARD_SC] -> pass? -> [TB] -> [GUARD_TS] -> pass? -> END [OK] 
+                     | fail              | fail
+                     v                   v
+                [TED_SC]->[Debugger]->[Sanitizer]->[SC]->[GUARD_SC] (loop)
+                                  [TED_TB]->[Debugger]->[Sanitizer]->[SC]->[GUARD_SC] (loop)
 
 Guard logic:
-  - Source=generator → guard noop, baseline locked
-  - Source=debugger  → compare cand vs prev snapshot, rollback if regressed
-  - bad_streak ≥ 2   → stop loop, terminal fallback to baseline if better
+  - Source=generator -> guard noop, baseline locked
+  - Source=debugger  -> compare cand vs prev snapshot, rollback if regressed
+  - bad_streak >= 2   -> stop loop, terminal fallback to baseline if better
 
 Usage:
   python comba_pipeline.py "Design an 8-bit adder"
@@ -49,14 +49,14 @@ def _run_sim_process(cmd: list, cwd: str, timeout: int) -> tuple:
     rc=124 on the sim's own timeout. FileNotFoundError propagates (caller
     handles a missing tool).
 
-    CRITICAL — the group must be killed on the *worker* SIGALRM watchdog too.
+    CRITICAL - the group must be killed on the *worker* SIGALRM watchdog too.
     main_langgraph.py arms signal.alarm(COMBA_PIPELINE_TIMEOUT) per sample; if
     it fires while we are blocked in communicate(), the handler raises
     PipelineTimeout, which skips the `except TimeoutExpired` branch. Because the
     sim runs in its OWN session (start_new_session=True) it is NOT killed when
-    the worker is torn down — it reparents to init and burns a CPU core forever
+    the worker is torn down - it reparents to init and burns a CPU core forever
     (42 such orphans seen from one config on 2026-07-20). So we also killpg on
-    BaseException (PipelineTimeout, KeyboardInterrupt, …) and in a finally
+    BaseException (PipelineTimeout, KeyboardInterrupt, ...) and in a finally
     safety net: nothing leaves this function with the child still alive."""
     p = subprocess.Popen(
         cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -81,7 +81,7 @@ def _run_sim_process(cmd: list, cwd: str, timeout: int) -> tuple:
             out, err = p.communicate(timeout=10)
         except Exception:
             out, err = "", ""
-        note = f"\n[SIM TIMEOUT] killed after {timeout}s — testbench likely missing $finish"
+        note = f"\n[SIM TIMEOUT] killed after {timeout}s - testbench likely missing $finish"
         return 124, out or "", (err or "") + note
     except BaseException:
         # Worker SIGALRM watchdog (PipelineTimeout) / KeyboardInterrupt / etc.
@@ -127,9 +127,9 @@ from multi_attempt import (
 )
 from verilog_sanitizer import sanitize as verilog_sanitize
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Configuration Constants
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 MAX_SYNTAX_TRIALS = 10        # Max syntax-check correction cycles
 MAX_TS_TRIALS = 10         # Max testbench correction cycles
 MAX_TOTAL_ITER = 30       # Absolute hard cap on total iterations
@@ -152,24 +152,24 @@ VERILATOR_TS_FLAGS = [
 ]
 
 # Simulator selection:
-#   "iverilog" — always use Icarus Verilog (default, fastest)
-#   "verilator" — always use Verilator (better for SV, slower compile)
-#   "auto"     — RTLLM dataset → verilator, VerilogEval → iverilog
+#   "iverilog" - always use Icarus Verilog (default, fastest)
+#   "verilator" - always use Verilator (better for SV, slower compile)
+#   "auto"     - RTLLM dataset -> verilator, VerilogEval -> iverilog
 TS_SIMULATOR = os.environ.get("COMBA_TS_SIMULATOR", "auto").lower()
 
 # VerilogEval: task_description max chars sent to debugger
 _MAX_TASK_DESC_CHARS = 400
 
 
-# ── Ablation feature flags (AICAS revision) ───────────────────────────────
+# -- Ablation feature flags (AICAS revision) --------------------------------
 # Read per-call so a benchmark subprocess can toggle them via env. Default ON.
-#   COMBA_USE_SANITIZER=0     → bypass Sanitizer (raw LLM output → syntax check)
-#   COMBA_USE_TED=0           → bypass TED (no error parsing; first syntax/TB
-#                               failure ends the run — measures post-processing)
-#   COMBA_USE_DEBUGGER_SLM=0  → never invoke Debugger SLM (TED still parses, but
+#   COMBA_USE_SANITIZER=0     -> bypass Sanitizer (raw LLM output -> syntax check)
+#   COMBA_USE_TED=0           -> bypass TED (no error parsing; first syntax/TB
+#                               failure ends the run - measures post-processing)
+#   COMBA_USE_DEBUGGER_SLM=0  -> never invoke Debugger SLM (TED still parses, but
 #                               routes to fail instead of patching)
 # Dataset categorization (#1) is a train-time choice, selected via the adapter
-# (COMBA_MODEL_NAME), not a pipeline runtime flag — so it has no gate here.
+# (COMBA_MODEL_NAME), not a pipeline runtime flag - so it has no gate here.
 def _use_module(env_name: str, default: bool = True) -> bool:
     """Ablation toggle. Any of 0/false/no/off/empty disables the module."""
     v = os.environ.get(env_name)
@@ -178,7 +178,7 @@ def _use_module(env_name: str, default: bool = True) -> bool:
     return v.strip().lower() not in ("0", "false", "no", "off", "")
 
 
-# ── Shared error-key normalizer ──
+# -- Shared error-key normalizer ---
 _LINE_NUM_RE = re.compile(r'(?<=:)\d+(?=:)')
 _SPACES_RE = re.compile(r'\s+')
 
@@ -189,7 +189,7 @@ def _normalize_error_key(s: str, max_len: int = 100) -> str:
     return s[:max_len]
 
 
-# ── Precise iverilog error counter ──
+# -- Precise iverilog error counter ---
 _IVERILOG_ERROR_RE = re.compile(
     r'^[^:\n]+:\d+:\s*error:',
     re.MULTILINE | re.IGNORECASE,
@@ -200,14 +200,14 @@ def _count_iverilog_errors(log: str) -> int:
     return len(_IVERILOG_ERROR_RE.findall(log))
 
 
-# ── Wire l-value port extractor ──
+# -- Wire l-value port extractor ---
 _WIRE_LVALUE_RE = re.compile(
     r'error:\s+(\w+)\s+is not a valid l-value',
     re.IGNORECASE,
 )
 
 def _extract_wire_lvalue_ports(log: str) -> list[str]:
-    """Parse iverilog TB log for wire l-value errors → output ports needing 'reg'."""
+    """Parse iverilog TB log for wire l-value errors -> output ports needing 'reg'."""
     seen: dict[str, int] = {}
     for m in _WIRE_LVALUE_RE.finditer(log):
         name = m.group(1)
@@ -215,7 +215,7 @@ def _extract_wire_lvalue_ports(log: str) -> list[str]:
     return sorted(seen.keys())
 
 
-# ── Port mismatch extractor ──
+# -- Port mismatch extractor ---
 def _extract_port_mismatch(log: str) -> list[str]:
     """Extract missing port names from Verilator/Icarus error logs."""
     verilator_re = re.compile(r"no member named [‘'\"`]([a-zA-Z0-9_]+)[’'\"`]")
@@ -229,7 +229,7 @@ def _extract_port_mismatch(log: str) -> list[str]:
     return sorted(list(ports))
 
 
-# ── XML Header Synthesizer ──
+# -- XML Header Synthesizer ---
 def _build_header_from_xml(xml_text: str) -> Optional[str]:
     """Synthesize a Verilog module header from COMBA XML ports."""
     if not xml_text or "<ports>" not in xml_text:
@@ -253,12 +253,12 @@ def _build_header_from_xml(xml_text: str) -> Optional[str]:
     return f"module {mod_name}(\n" + ",\n".join(ports_code) + "\n);"
 
 
-# ──────────────────────────────────────────────────────────────
-# 1. COMBAState — TypedDict
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
+# 1. COMBAState - TypedDict
+# --------------------------------------------------------------
 class COMBAState(TypedDict):
-    # ── Input/Output ──
-# ── Input/Output ──
+    # -- Input/Output ---
+# -- Input/Output ---
     nl_input: str
     xml_description: Optional[str]
     xml_valid: Optional[bool]          # None=not-checked, True=valid, False=invalid
@@ -268,26 +268,26 @@ class COMBAState(TypedDict):
     module_name: Optional[str]
     benchmark_id: Optional[str]
 
-    # ── Generated Verilog ──
+    # -- Generated Verilog ---
     gvd: Optional[str]
     sgvd: Optional[str]
     _raw_llm_output: Optional[str]
 
-    # ── Syntax Check (SC) ──
+    # -- Syntax Check (SC) ---
     sc_log: Optional[str]
     sc_exception: Optional[str]
     sc_exception_count: int
     sc_prev_exception_count: int
 
-    # ── Testbench Simulation (TS) ──
+    # -- Testbench Simulation (TS) ---
     tb_log: Optional[str]
     tb_failure: Optional[str]
 
-    # ── Debugging Prompts ──
+    # -- Debugging Prompts ---
     edp: Optional[str]
     tdp: Optional[str]
 
-    # ── Control ──
+    # -- Control ---
     edtm: dict
     phase: str
     sc_trial: int
@@ -295,17 +295,17 @@ class COMBAState(TypedDict):
     total_iter: int
     rollback_triggered: bool
 
-    # ── Debugger Output ──
+    # -- Debugger Output ---
     debugger_patch: Optional[dict]
 
-    # ── Sanitizer / MultiAttempt ──
+    # -- Sanitizer / MultiAttempt ---
     sanitize_result: Optional[dict]
     _sanitize_retry_count: int
     multi_attempt_mgr: Optional[object]
     escalation_level: Optional[str]
     _last_llm_source: Optional[str]
 
-    # ── Guard fields (do-no-harm guard) ──
+    # -- Guard fields (do-no-harm guard) ---
     guard_prev_gvd: Optional[str]              # GVD snapshot before debugger call
     guard_prev_sc_count: int                   # SC errors before debugger call
     guard_prev_tb_failure: Optional[str]       # TB failure before debugger (None=pass)
@@ -317,7 +317,7 @@ class COMBAState(TypedDict):
     guard_total_commits: int                   # cumulative counter
     guard_summary: Optional[dict]              # final summary at terminal node
 
-    # ── Result ──
+    # -- Result ---
     final_status: Optional[str]
     error: Optional[str]
     dataset_dir: Optional[str]
@@ -325,7 +325,7 @@ class COMBAState(TypedDict):
     expected_header: Optional[str]
     helper_modules_code: Optional[dict]
 
-    # ── VCD / Classification / Keys ──
+    # -- VCD / Classification / Keys ---
     failure_type: Optional[str]
     vcd_hint: Optional[str]
     vcd_status: Optional[str]
@@ -500,9 +500,9 @@ def make_initial_state(
     )
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # 2. Pipeline Nodes
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 class COMBANodes:
     """
     Encapsulates the 11 pipeline nodes (v4).
@@ -514,25 +514,25 @@ class COMBANodes:
     def __init__(self, llm):
         self._llm = llm
 
-    # ──────────────────────────────────────────────────────────
-    # Node 1: Converter — NL → XML
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 1: Converter - NL -> XML
+    # ----------------------------------------------------------
     def node_converter(self, state: COMBAState) -> dict:
-        """Convert NL → COMBA XML, validate, set xml_valid for state machine."""
+        """Convert NL -> COMBA XML, validate, set xml_valid for state machine."""
         cprint("\n" + "=" * 60)
-        cprint(f"🔄 NODE: Converter (NL → XML) "
+        cprint(f" NODE: Converter (NL -> XML) "
                f"[attempt {state.get('xml_retry_count', 0) + 1}]")
         cprint("=" * 60)
 
         # Skip only if user supplied valid XML up-front (xml_valid != False).
-        # If xml_valid is False we are in a retry loop — DO NOT skip.
+        # If xml_valid is False we are in a retry loop - DO NOT skip.
         if state.get("xml_description") and state.get("xml_valid") is not False:
             cprint("[SKIP] Valid XML already present.")
             return {}
 
         # Retry feedback (opt-in via COMBA_XML_RETRY_FEEDBACK=1): on a retry,
         # replay the failed XML + parser error so the LLM can actually fix it.
-        # Without this the retry is "blind" — at T=0 it regenerates the exact
+        # Without this the retry is "blind" - at T=0 it regenerates the exact
         # same invalid XML, making the retry budget useless.
         conversation = []
         if (os.environ.get("COMBA_XML_RETRY_FEEDBACK", "0") == "1"
@@ -546,7 +546,7 @@ class COMBANodes:
                  f"Fix the XML (escape stray '<', '&', remove raw Verilog from "
                  f"text nodes) and return ONLY the corrected COMBA XML."),
             ]
-            cprint("  ↻ Retry with parser-error feedback")
+            cprint("  -> Retry with parser-error feedback")
 
         result = converterPromptTemplate.invoke({
             "user_input": state["nl_input"],
@@ -555,7 +555,7 @@ class COMBANodes:
         response = self._llm.invoke(result)
         xml_text = response.content.strip()
 
-        # Validate via shared xml_schema helper (no LLM fix loop here —
+        # Validate via shared xml_schema helper (no LLM fix loop here -
         # retry is at graph level via route_after_converter).
         try:
             from xml_schema import validate_xml, _clean_xml
@@ -563,7 +563,7 @@ class COMBANodes:
             ok, module, err = validate_xml(cleaned_xml, max_retries=0, llm=None)
             xml_text = cleaned_xml # Use cleaned XML in state
         except ImportError:
-            cprint("  [WARN] xml_schema unavailable — falling back to regex check.")
+            cprint("  [WARN] xml_schema unavailable - falling back to regex check.")
             # Inline fence stripping (fallback when pydantic_xml not installed)
             xml_text = re.sub(r'```(?:xml|verilog|sv|systemverilog)?\s*\n?|```', '', xml_text, flags=re.I).strip()
             m = re.search(r'<module\s+id\s*=\s*[\'"]([^\'"]+)[\'"]', xml_text, re.I)
@@ -577,9 +577,9 @@ class COMBANodes:
             xml_mod_name = m2.group(1) if m2 else "unknown"
 
         if ok:
-            cprint(f"  ✅ XML valid — module: {xml_mod_name}")
+            cprint(f"  [OK] XML valid - module: {xml_mod_name}")
         else:
-            cprint(f"  ⚠️  XML invalid: {err}")
+            cprint(f"  [WARN]  XML invalid: {err}")
 
         updates = {
             "xml_description": xml_text,
@@ -592,7 +592,7 @@ class COMBANodes:
             updates["xml_error"] = str(err)  # feeds retry-feedback conversation
             return updates
 
-        # ── Valid path: keep existing side-effects ──
+        # -- Valid path: keep existing side-effects ---
         if not state.get("module_name") and xml_mod_name != "unknown":
             updates["module_name"] = xml_mod_name
 
@@ -600,17 +600,17 @@ class COMBANodes:
             header = _build_header_from_xml(xml_text)
             if header:
                 updates["expected_header"] = header
-                cprint("  🏗️ Synthesized expected_header from XML")
+                cprint("   Synthesized expected_header from XML")
 
         return updates
 
-    # ──────────────────────────────────────────────────────────
-    # Node 2: Generator — XML → raw LLM output
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 2: Generator - XML -> raw LLM output
+    # ----------------------------------------------------------
     def node_generator(self, state: COMBAState) -> dict:
         """Generate Verilog code from COMBA XML description."""
         cprint("\n" + "=" * 60)
-        cprint("⚡ NODE: Generator (XML → raw LLM output)")
+        cprint(" NODE: Generator (XML -> raw LLM output)")
         cprint("=" * 60)
 
         nl_input = state.get("nl_input", "")
@@ -629,12 +629,12 @@ class COMBANodes:
         retry_prompt = sanitize_result.get("retry_prompt")
         if retry_prompt and state.get("_sanitize_retry_count", 0) > 0:
             combined_input += (
-                f"\n\n⚠️ PREVIOUS ATTEMPT FAILED: {retry_prompt}\n"
+                f"\n\n[WARN]  PREVIOUS ATTEMPT FAILED: {retry_prompt}\n"
                 "You MUST output the COMPLETE Verilog module from 'module' to 'endmodule', "
                 "including ALL internal logic (always blocks, assigns, etc). "
                 "Do NOT output only the port declarations."
             )
-            cprint(f"  📎 Injected retry feedback: {retry_prompt[:60]}...")
+            cprint(f"   Injected retry feedback: {retry_prompt[:60]}...")
 
         # Inject category-specific design hint if available
         module_name = state.get("module_name", "")
@@ -650,11 +650,11 @@ class COMBANodes:
                             best_match_len = len(key)
         if hint:
             combined_input += (
-                f"\n\n💡 DESIGN GUIDELINES FOR {module_name}:\n"
+                f"\n\n DESIGN GUIDELINES FOR {module_name}:\n"
                 f"{hint}\n"
                 "Please follow the above guidelines strictly in your design."
             )
-            cprint(f"  💡 Injected initial design hint for {module_name}")
+            cprint(f"   Injected initial design hint for {module_name}")
 
         result = generatorPromptTemplate.invoke({
             "user_input": combined_input,
@@ -663,9 +663,9 @@ class COMBANodes:
         response = self._llm.invoke(result)
         raw_output = response.content.strip()
 
-        cprint(f"  ✅ LLM returned {len(raw_output.splitlines())} lines")
+        cprint(f"  [OK] LLM returned {len(raw_output.splitlines())} lines")
         if len(raw_output.splitlines()) < 15:
-            cprint(f"  ⚠️  SHORT OUTPUT — dumping raw:")
+            cprint(f"  [WARN]  SHORT OUTPUT - dumping raw:")
             for i, line in enumerate(raw_output.splitlines()):
                 cprint(f"    [{i+1}] {line}")
 
@@ -683,23 +683,23 @@ class COMBANodes:
             "multi_attempt_mgr": mgr,
         }
 
-    # ──────────────────────────────────────────────────────────
-    # Node 3: Sanitizer — extract code, auto-fix, collect warnings
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 3: Sanitizer - extract code, auto-fix, collect warnings
+    # ----------------------------------------------------------
     def node_sanitizer(self, state: COMBAState) -> dict:
         """Run VerilogSanitizer on raw LLM output. Never blocks."""
         cprint("\n" + "=" * 60)
-        cprint("🧹 NODE: Sanitizer")
+        cprint(" NODE: Sanitizer")
         cprint("=" * 60)
 
         raw = state.get("_raw_llm_output") or ""
         retry_count = state.get("_sanitize_retry_count", 0)
 
-        # ── ABLATION (#3): Sanitizer disabled → pass raw output straight to
+        # -- ABLATION (#3): Sanitizer disabled -> pass raw output straight to
         #    syntax check (no Over-Context Detection / Prompt Extraction /
         #    Logic-Keyword check). Still set gvd + baseline so SC won't crash.
         if not _use_module("COMBA_USE_SANITIZER"):
-            cprint("  🚫 ABLATION: Sanitizer disabled — using raw LLM output as GVD")
+            cprint("   ABLATION: Sanitizer disabled - using raw LLM output as GVD")
             code = raw if raw.endswith("\n") else (raw + "\n" if raw else raw)
             updates = {
                 "gvd": code,
@@ -736,18 +736,18 @@ class COMBANodes:
 
         if needs_retry:
             updates["_sanitize_retry_count"] = retry_count + 1
-            cprint(f"  🔄 Needs retry ({retry_count + 1}/2): {result.retry_prompt[:60]}...")
+            cprint(f"   Needs retry ({retry_count + 1}/2): {result.retry_prompt[:60]}...")
             
-            # ── LOGGING: Save raw output for debugging ──
+            # -- LOGGING: Save raw output for debugging ---
             work_dir = state.get("work_dir")
             if work_dir:
                 try:
                     log_file = os.path.join(work_dir, f"raw_output_sanitize_retry_{retry_count + 1}.txt")
                     with open(log_file, "w") as f:
                         f.write(raw)
-                    cprint(f"  📝 Saved raw output to {os.path.basename(log_file)}")
+                    cprint(f"   Saved raw output to {os.path.basename(log_file)}")
                 except Exception as e:
-                    cprint(f"  ⚠️  Failed to save log: {e}")
+                    cprint(f"  [WARN]  Failed to save log: {e}")
         else:
             code = result.code or ""
             # Append helper modules if any and not already present in the code
@@ -760,7 +760,7 @@ class COMBANodes:
                 if helpers_to_append:
                     code_clean = code.strip()
                     code = code_clean + "\n\n" + "\n\n".join(helpers_to_append) + "\n"
-                    cprint(f"  📦 Appended {len(helpers_to_append)} helper module(s) from verified source")
+                    cprint(f"   Appended {len(helpers_to_append)} helper module(s) from verified source")
             if code and not code.endswith("\n"):
                 code += "\n"
             updates["gvd"] = code
@@ -769,26 +769,26 @@ class COMBANodes:
             # Set sgvd + capture baseline on first generation
             if state.get("_last_llm_source") == "generator":
                 updates["sgvd"] = code
-                # ── GUARD: capture immutable baseline (only first time) ──
+                # -- GUARD: capture immutable baseline (only first time) ---
                 if state.get("guard_baseline_gvd") is None:
                     updates["guard_baseline_gvd"] = code
-                    cprint(f"  🛡️  GUARD: baseline captured ({len(code.splitlines())} lines)")
+                    cprint(f"    GUARD: baseline captured ({len(code.splitlines())} lines)")
 
-            cprint(f"  ✅ Sanitized: {len(code.splitlines())} lines")
+            cprint(f"  [OK] Sanitized: {len(code.splitlines())} lines")
             if result.auto_fixed:
-                cprint(f"  🔧 Auto-fixed applied")
+                cprint(f"   Auto-fixed applied")
             for w in result.warnings:
-                cprint(f"  ⚠️ {w}")
+                cprint(f"  [WARN] {w}")
 
         return updates
 
-    # ──────────────────────────────────────────────────────────
-    # Node 4: Syntax Check — iverilog --lint-only
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 4: Syntax Check - iverilog --lint-only
+    # ----------------------------------------------------------
     def node_syntax_check(self, state: COMBAState) -> dict:
         """Run iverilog lint-only syntax check on current GVD."""
         cprint("\n" + "=" * 60)
-        cprint(f"🔍 NODE: Syntax Check (SC trial #{state['sc_trial'] + 1})")
+        cprint(f" NODE: Syntax Check (SC trial #{state['sc_trial'] + 1})")
         cprint("=" * 60)
 
         module_name = state["module_name"]
@@ -826,24 +826,24 @@ class COMBANodes:
             "work_dir": work_dir,
         }
 
-        # ── GUARD: lock baseline SC count on first SC after generator ──
+        # -- GUARD: lock baseline SC count on first SC after generator ---
         if (state.get("_last_llm_source") == "generator"
                 and state.get("guard_baseline_sc_count", -1) == -1):
             out["guard_baseline_sc_count"] = exception_count
-            cprint(f"  🛡️  GUARD: baseline_sc_count locked = {exception_count}")
+            cprint(f"    GUARD: baseline_sc_count locked = {exception_count}")
 
         return out
 
-    # ──────────────────────────────────────────────────────────
-    # Node 5: Guard SC — do-no-harm check after syntax_check
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 5: Guard SC - do-no-harm check after syntax_check
+    # ----------------------------------------------------------
     def node_guard_sc(self, state: COMBAState) -> dict:
         """
         Do-no-harm guard for SC phase.
         Compares post-debugger candidate against pre-debugger snapshot.
         Rolls back GVD if candidate is worse.
 
-        No-op when source is 'generator' — nothing to compare against yet.
+        No-op when source is 'generator' - nothing to compare against yet.
         """
         source = state.get("_last_llm_source")
         if source != "debugger":
@@ -861,7 +861,7 @@ class COMBANodes:
         if (critical or regressed) and prev_gvd:
             new_streak = state.get("guard_bad_streak", 0) + 1
             cprint(
-                f"  🛡️  GUARD SC ROLLBACK: prev={prev_count} cand={cand_count} "
+                f"    GUARD SC ROLLBACK: prev={prev_count} cand={cand_count} "
                 f"(streak={new_streak}, critical={critical})"
             )
             return {
@@ -872,20 +872,20 @@ class COMBANodes:
                 "rollback_triggered": True,
             }
 
-        cprint(f"  🛡️  GUARD SC COMMIT: prev={prev_count} cand={cand_count}")
+        cprint(f"    GUARD SC COMMIT: prev={prev_count} cand={cand_count}")
         return {
             "guard_bad_streak": 0,
             "guard_total_commits": state.get("guard_total_commits", 0) + 1,
             "rollback_triggered": False,
         }
 
-    # ──────────────────────────────────────────────────────────
-    # Node 6: TED Syntax — Parse topmost SC error → EDP
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 6: TED Syntax - Parse topmost SC error -> EDP
+    # ----------------------------------------------------------
     def node_ted_syntax(self, state: COMBAState) -> dict:
-        """Parse sc_log → extract topmost error → create EDP. Update EDTM."""
+        """Parse sc_log -> extract topmost error -> create EDP. Update EDTM."""
         cprint("\n" + "=" * 60)
-        cprint("🔎 NODE: TED Syntax (Parse topmost SC error)")
+        cprint(" NODE: TED Syntax (Parse topmost SC error)")
         cprint("=" * 60)
 
         sc_log = state["sc_log"] or ""
@@ -900,7 +900,7 @@ class COMBANodes:
                 break
 
         if not topmost_error:
-            cprint("  ⚠️ No parseable error found in SC log")
+            cprint("  [WARN] No parseable error found in SC log")
             return {
                 "sc_exception": None,
                 "edp": None,
@@ -911,7 +911,7 @@ class COMBANodes:
         edtm[sig] = edtm.get(sig, 0) + 1
 
         if edtm[sig] > EDTM_MAX_RETRIES:
-            cprint(f"  ⛔ EDTM: Exception seen {edtm[sig]} times")
+            cprint(f"   EDTM: Exception seen {edtm[sig]} times")
             edp = (
                 f"[EDTM WARNING: This error has been seen {edtm[sig]} times. "
                 f"Previous fixes did not resolve it. Try a fundamentally different approach.]\n"
@@ -920,8 +920,8 @@ class COMBANodes:
         else:
             edp = f"Topmost iverilog error:\n{topmost_error}"
 
-        cprint(f"  📋 EDP: {topmost_error[:80]}...")
-        cprint(f"  📊 EDTM count for this sig: {edtm[sig]}")
+        cprint(f"   EDP: {topmost_error[:80]}...")
+        cprint(f"   EDTM count for this sig: {edtm[sig]}")
 
         return {
             "sc_exception": topmost_error,
@@ -931,9 +931,9 @@ class COMBANodes:
             "current_error_key": sig,
         }
 
-    # ──────────────────────────────────────────────────────────
-    # Node 7: Debugger — LoRA call with snapshot capture
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 7: Debugger - LoRA call with snapshot capture
+    # ----------------------------------------------------------
     def node_debugger(self, state: COMBAState) -> dict:
         """
         Debugger node. Snapshots state BEFORE invoking LoRA, so guard
@@ -941,13 +941,13 @@ class COMBANodes:
         to MultiAttemptManager.
         """
         cprint("\n" + "=" * 60)
-        cprint(f"🐛 NODE: Debugger (phase={state['phase']})")
+        cprint(f" NODE: Debugger (phase={state['phase']})")
         cprint("=" * 60)
 
-        # ── ABLATION (#2): Debugger disabled — never invoke the SLM. Routers
+        # -- ABLATION (#2): Debugger disabled - never invoke the SLM. Routers
         #    short-circuit before reaching here, but guard defensively too.
         if not _use_module("COMBA_USE_DEBUGGER_SLM"):
-            cprint("  🚫 ABLATION: Debugger disabled — no patch applied")
+            cprint("   ABLATION: Debugger disabled - no patch applied")
             return {}
 
         phase = state["phase"]
@@ -956,14 +956,14 @@ class COMBANodes:
         module_name = state.get("module_name") or "unknown"
 
         if not error_desc:
-            cprint("  ⚠️ No error description available, skipping")
+            cprint("  [WARN] No error description available, skipping")
             return {}
 
         mgr = state.get("multi_attempt_mgr")
         if mgr is None:
             mgr = MultiAttemptManager()
 
-        # ── GUARD: snapshot current state as "prev" before mutating ──
+        # -- GUARD: snapshot current state as "prev" before mutating ---
         guard_snapshot = {
             "guard_prev_gvd": state.get("gvd"),
             "guard_prev_sc_count": state.get("sc_exception_count", 0),
@@ -974,7 +974,7 @@ class COMBANodes:
         if not error_key:
             error_key = _normalize_error_key(error_desc.split('\n')[0])
         esc_level = mgr.get_escalation_level(error_key)
-        cprint(f"  📊 Escalation: L{esc_level} for key: {error_key[:60]}")
+        cprint(f"   Escalation: L{esc_level} for key: {error_key[:60]}")
 
         # Build prompt
         if phase == "sc":
@@ -1007,10 +1007,10 @@ class COMBANodes:
             response = self._llm.invoke(messages)
             raw_output = response.content.strip()
         except Exception as e:
-            cprint(f"  ❌ Debugger LLM error: {e}")
+            cprint(f"  [FAIL] Debugger LLM error: {e}")
             if hasattr(self._llm, 'switch_to_base'):
                 self._llm.switch_to_base()
-            # Return prev as raw output → sanitizer extracts → no change
+            # Return prev as raw output -> sanitizer extracts -> no change
             return {
                 "_raw_llm_output": current_gvd,
                 "_last_llm_source": "debugger",
@@ -1029,7 +1029,7 @@ class COMBANodes:
             code_snapshot=current_gvd[:1000] if current_gvd else "",
         )
 
-        cprint(f"  ✅ Debugger LLM returned {len(raw_output.splitlines())} lines")
+        cprint(f"  [OK] Debugger LLM returned {len(raw_output.splitlines())} lines")
 
         return {
             "_raw_llm_output": raw_output,
@@ -1039,21 +1039,21 @@ class COMBANodes:
             **guard_snapshot,
         }
 
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     # Node 8: Testbench Simulation (dispatcher)
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     def node_tb_sim(self, state: COMBAState) -> dict:
         """
         Run testbench simulation. Dispatches to the right (simulator, mode) combo
         based on dataset type and COMBA_TS_SIMULATOR config.
 
         Dispatch rules:
-          1. RTLLM with tb.cpp                  → Verilator C++ wrapper
-          2. RTLLM with .sv testbench files     → respects TS_SIMULATOR (verilator/iverilog/auto)
-          3. VerilogEval (_test.sv + _ref.sv)   → respects TS_SIMULATOR (default iverilog)
+          1. RTLLM with tb.cpp                  -> Verilator C++ wrapper
+          2. RTLLM with .sv testbench files     -> respects TS_SIMULATOR (verilator/iverilog/auto)
+          3. VerilogEval (_test.sv + _ref.sv)   -> respects TS_SIMULATOR (default iverilog)
         """
         cprint("\n" + "=" * 60)
-        cprint(f"🧪 NODE: TB Simulation (TS trial #{state['ts_trial'] + 1})")
+        cprint(f" NODE: TB Simulation (TS trial #{state['ts_trial'] + 1})")
         cprint("=" * 60)
 
         module_name = state["module_name"]
@@ -1068,25 +1068,25 @@ class COMBANodes:
         if not dataset_dir:
             return self._tb_error_state(state, "dataset_dir missing", "Infrastructure error")
 
-        # ── Dispatch 1: RTLLM C++ testbench (tb.cpp present) ──
+        # -- Dispatch 1: RTLLM C++ testbench (tb.cpp present) ---
         tb_cpp_src = os.path.join(dataset_dir, "tb.cpp")
         if os.path.isfile(tb_cpp_src):
-            cprint(f"  📦 Path: RTLLM C++ testbench → Verilator")
+            cprint(f"   Path: RTLLM C++ testbench -> Verilator")
             return self._run_rtllm_verilator(state, tb_cpp_src)
 
-        # ── Dispatch 2: SV testbench files — pick simulator ──
+        # -- Dispatch 2: SV testbench files - pick simulator ---
         is_rtllm = self._is_rtllm_dataset(dataset_dir)
         simulator = self._pick_simulator(is_rtllm)
-        cprint(f"  📦 Path: SV testbench → {simulator} (rtllm={is_rtllm}, mode={TS_SIMULATOR})")
+        cprint(f"   Path: SV testbench -> {simulator} (rtllm={is_rtllm}, mode={TS_SIMULATOR})")
 
         if simulator == "verilator":
             return self._run_sv_verilator(state)
         else:
             return self._run_sv_iverilog(state)
 
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     # Simulator selection helpers
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     @staticmethod
     def _is_rtllm_dataset(dataset_dir: str) -> bool:
         """Heuristic: RTLLM datasets have 'RTLLM' in path or testbench named 'testbench.v'."""
@@ -1108,13 +1108,13 @@ class COMBANodes:
         # auto mode
         return "verilator" if is_rtllm else "iverilog"
 
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     # SV testbench: locate test/ref files (shared by both simulators)
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     def _prepare_sv_testbench_files(self, state: COMBAState) -> tuple[Optional[list[str]], Optional[dict]]:
         """
         Copy SV testbench files into work_dir + write current GVD as TopModule.sv.
-        Returns (list_of_sv_files, error_state) — error_state is None on success.
+        Returns (list_of_sv_files, error_state) - error_state is None on success.
         """
         module_name = state["module_name"]
         work_dir = state["work_dir"]
@@ -1132,7 +1132,7 @@ class COMBANodes:
         ]
 
         # Aux data files the TB loads via $readmem (RTLLM_v2: reference.dat,
-        # reference.txt, tri_gen.txt, wfull/rempty/tdata.txt, …). Without them
+        # reference.txt, tri_gen.txt, wfull/rempty/tdata.txt, ...). Without them
         # the reference arrays read as all-x/0 and every design fails.
         for aux in os.listdir(dataset_dir):
             if aux == "design_description.txt" or not aux.endswith((".dat", ".hex", ".mem", ".txt")):
@@ -1143,7 +1143,7 @@ class COMBANodes:
                 try:
                     shutil.copy2(aux_src, aux_dst)
                 except Exception as e:
-                    cprint(f"  ⚠️ Warning: failed to copy TB data file {aux}: {e}")
+                    cprint(f"  [WARN] Warning: failed to copy TB data file {aux}: {e}")
 
         sv_files: list[str] = []
         for tb_name, ref_name in candidate_pairs:
@@ -1165,9 +1165,9 @@ class COMBANodes:
                         if patched_content != content:
                             with open(tb_dst, "w", encoding="utf-8") as f:
                                 f.write(patched_content)
-                            cprint(f"  🔧 Patched testbench unpacked array initialization in: {tb_name}")
+                            cprint(f"   Patched testbench unpacked array initialization in: {tb_name}")
                     except Exception as pe:
-                        cprint(f"  ⚠️ Warning: failed to patch testbench {tb_name}: {pe}")
+                        cprint(f"  [WARN] Warning: failed to patch testbench {tb_name}: {pe}")
 
                 sv_files.append(tb_name)
 
@@ -1183,7 +1183,7 @@ class COMBANodes:
             break
 
         if not sv_files:
-            cprint("  ⚠️ No testbench found. Calling LLM/Debugger to generate a testbench...")
+            cprint("  [WARN] No testbench found. Calling LLM/Debugger to generate a testbench...")
             tb_prompt = f"""You are an expert Verilog verification engineer.
 Your task is to write a self-checking SystemVerilog testbench for the module defined below.
 The module under test will be instantiated as `TopModule`.
@@ -1218,10 +1218,10 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                 tb_dst = os.path.join(work_dir, "tb.sv")
                 with open(tb_dst, "w", encoding="utf-8") as f:
                     f.write(tb_code)
-                cprint("  ✅ Generated testbench written to tb.sv")
+                cprint("  [OK] Generated testbench written to tb.sv")
                 sv_files.append("tb.sv")
             except Exception as e:
-                cprint(f"  ❌ Failed to generate testbench: {e}")
+                cprint(f"  [FAIL] Failed to generate testbench: {e}")
                 return None, self._tb_error_state(
                     state,
                     f"failed to generate testbench: {e}",
@@ -1331,9 +1331,9 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         candidates.sort(key=get_score, reverse=True)
         return candidates[0]
 
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     # SV testbench via iverilog (default for VerilogEval)
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     def _run_sv_iverilog(self, state: COMBAState) -> dict:
         """Compile + run SV testbench using iverilog + vvp."""
         module_name = state["module_name"]
@@ -1376,9 +1376,9 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
 
         return self._parse_tb_result(state, "\n".join(tb_log_parts), expect_passed_keyword=True)
 
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     # SV testbench via verilator (--binary mode, no C++ wrapper)
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     def _run_sv_verilator(self, state: COMBAState) -> dict:
         """
         Compile + run SV testbench using verilator --binary mode (verilator >=5.x).
@@ -1454,9 +1454,9 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
 
         return self._parse_tb_result(state, "\n".join(tb_log_parts), expect_passed_keyword=True)
 
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     # Shared TB result parser
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     def _parse_tb_result(self, state: COMBAState, tb_log: str, expect_passed_keyword: bool = True) -> dict:
         """
         Common pass/fail detection logic shared between iverilog and verilator paths.
@@ -1499,7 +1499,7 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
             if not ("passed" in tb_log.lower() or "mismatches: 0" in tb_log.lower()):
                 failure = "Testbench did not print 'passed' or 'mismatches: 0'"
 
-        status_msg = "PASS ✅" if not failure else f"FAIL: {failure[:60]}"
+        status_msg = "PASS" if not failure else f"FAIL: {failure[:60]}"
         cprint(f"  TB result: {status_msg}")
 
         if expect_passed_keyword:
@@ -1526,9 +1526,9 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
             "phase": "ts",
         }
 
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     # RTLLM C++ testbench via Verilator (unchanged path)
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
     @staticmethod
     def _instrument_vcd_flush(content: str) -> str:
         """Move `m_trace->dump(sim_time)` before the scoreboard `outMon->monitor()`
@@ -1641,9 +1641,9 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                 "phase": "ts",
             }
 
-    # ──────────────────────────────────────────────────────────
-    # Node 9: Guard TS — do-no-harm check after tb_sim
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 9: Guard TS - do-no-harm check after tb_sim
+    # ----------------------------------------------------------
     def node_guard_ts(self, state: COMBAState) -> dict:
         """
         Do-no-harm guard for TS phase.
@@ -1667,7 +1667,7 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         if (critical_tb or critical_sc) and prev_gvd:
             new_streak = state.get("guard_bad_streak", 0) + 1
             cprint(
-                f"  🛡️  GUARD TS ROLLBACK: critical_tb={critical_tb} "
+                f"    GUARD TS ROLLBACK: critical_tb={critical_tb} "
                 f"critical_sc={critical_sc} (streak={new_streak})"
             )
             return {
@@ -1680,20 +1680,20 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                 "rollback_triggered": True,
             }
 
-        cprint(f"  🛡️  GUARD TS COMMIT")
+        cprint(f"    GUARD TS COMMIT")
         return {
             "guard_bad_streak": 0,
             "guard_total_commits": state.get("guard_total_commits", 0) + 1,
             "rollback_triggered": False,
         }
 
-    # ──────────────────────────────────────────────────────────
-    # Node 10: TED TB — Parse topmost TB failure → TDP
-    # ──────────────────────────────────────────────────────────
+    # ----------------------------------------------------------
+    # Node 10: TED TB - Parse topmost TB failure -> TDP
+    # ----------------------------------------------------------
     def node_ted_tb(self, state: COMBAState) -> dict:
-        """Parse tb_log → extract topmost failure → TDP. Update EDTM."""
+        """Parse tb_log -> extract topmost failure -> TDP. Update EDTM."""
         cprint("\n" + "=" * 60)
-        cprint("🔎 NODE: TED TB (Parse topmost TB failure)")
+        cprint(" NODE: TED TB (Parse topmost TB failure)")
         cprint("=" * 60)
 
         tb_log = state.get("tb_log", "")
@@ -1708,12 +1708,12 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                 f"[WIRE L-VALUE FIX REQUIRED]\n"
                 f"The following output port(s) are declared as plain `output` (wire) "
                 f"but are assigned inside `always` blocks: {port_list}.\n"
-                f"Fix: change each declaration from `output foo` → `output reg foo`.\n"
-                f"This is the ONLY change needed — do not alter any logic."
+                f"Fix: change each declaration from `output foo` -> `output reg foo`.\n"
+                f"This is the ONLY change needed - do not alter any logic."
             )
             sig_tb = "WIRE_LVALUE:" + "_".join(wire_ports)
             edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
-            cprint(f"  ⚡ Wire l-value ports detected: {wire_ports}")
+            cprint(f"   Wire l-value ports detected: {wire_ports}")
             return {"tdp": tdp, "phase": "ts", "edtm": edtm, "current_error_key": sig_tb}
 
         # Fast-path: Port mismatch
@@ -1727,7 +1727,7 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
             )
             sig_tb = "PORT_MISMATCH:" + "_".join(missing_ports)
             edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
-            cprint(f"  ⚡ Port mismatch detected: {missing_ports}")
+            cprint(f"   Port mismatch detected: {missing_ports}")
             return {"tdp": tdp, "phase": "ts", "edtm": edtm, "current_error_key": sig_tb}
 
         # Extract topmost failure
@@ -1747,13 +1747,13 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         sig_tb = "TB:" + re.sub(r'\d+', 'N', topmost_failure).strip()
         sig_tb = re.sub(r'\s+', ' ', sig_tb)
         edtm[sig_tb] = edtm.get(sig_tb, 0) + 1
-        cprint(f"  📊 EDTM TB count for this sig: {edtm[sig_tb]}")
+        cprint(f"   EDTM TB count for this sig: {edtm[sig_tb]}")
 
         tdp = f"Topmost testbench failure:\n{topmost_failure}"
 
         # Per-vector mismatch details. RTLLM-style SV testbenches print lines
         # like "Failed at i=.., out=.., expected=.." or "Error: dividend=..,
-        # expected=.., got=.." — without them the debugger only sees a banner
+        # expected=.., got=.." - without them the debugger only sees a banner
         # and has nothing concrete to reason about.
         run_section = tb_log[tb_log.find("[RUN]"):] if "[RUN]" in tb_log else tb_log
         detail_re = re.compile(r'expected|got\s*=|Failed at|mismatch', re.IGNORECASE)
@@ -1820,22 +1820,22 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         if tb_ref:
             tdp += "\n\nTestbench Reference Snippet:\n" + tb_ref
 
-        cprint(f"  📋 TDP: {topmost_failure[:80]}")
+        cprint(f"   TDP: {topmost_failure[:80]}")
 
         return {"tdp": tdp, "phase": "ts", "edtm": edtm, "current_error_key": sig_tb}
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # 3. Routing Functions (Conditional Edges)
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def route_after_sanitizer(state: COMBAState) -> str:
-    """After Sanitizer — needs retry? → re-query LLM, else → SC."""
+    """After Sanitizer - needs retry? -> re-query LLM, else -> SC."""
     result = state.get("sanitize_result") or {}
     if result.get("needs_retry"):
         retry_count = state.get("_sanitize_retry_count", 0)
         if retry_count >= 2:
-            cprint(f"  ⛔ GUARD STOP: Sanitizer retry cap reached ({retry_count}/2).")
+            cprint(f"   GUARD STOP: Sanitizer retry cap reached ({retry_count}/2).")
             return "end_fail_sc"
             
         source = state.get("_last_llm_source", "generator")
@@ -1869,16 +1869,16 @@ def _skip_tb_without_golden(state: COMBAState) -> bool:
         return False
     if _golden_tb_exists(state):
         return False
-    cprint("  ⏭️  No golden testbench — skipping TB simulation (syntax verified, returning code).")
+    cprint("  >>  No golden testbench - skipping TB simulation (syntax verified, returning code).")
     return True
 
 
 def route_after_sc(state: COMBAState) -> str:
-    """After Guard SC — has errors? → TED_SC; clean → TB (or PASS if no golden TB)."""
+    """After Guard SC - has errors? -> TED_SC; clean -> TB (or PASS if no golden TB)."""
     if state["sc_exception_count"] > 0:
-        # ABLATION (#3): no TED → syntax errors can't be repaired → fail now.
+        # ABLATION (#3): no TED -> syntax errors can't be repaired -> fail now.
         if not _use_module("COMBA_USE_TED"):
-            cprint("  🚫 ABLATION: TED disabled — unrepaired syntax error → end_fail_sc")
+            cprint("   ABLATION: TED disabled - unrepaired syntax error -> end_fail_sc")
             return "end_fail_sc"
         return "node_ted_syntax"
     if _skip_tb_without_golden(state):
@@ -1887,24 +1887,24 @@ def route_after_sc(state: COMBAState) -> str:
 
 
 def route_after_ts(state: COMBAState) -> str:
-    """After Guard TS — has failures? → classify_tb, else → PASS."""
+    """After Guard TS - has failures? -> classify_tb, else -> PASS."""
     if state.get("tb_failure"):
-        # ABLATION (#3): no TED → TB failures can't be repaired → fail now.
+        # ABLATION (#3): no TED -> TB failures can't be repaired -> fail now.
         if not _use_module("COMBA_USE_TED"):
-            cprint("  🚫 ABLATION: TED disabled — unrepaired TB failure → end_fail_ts")
+            cprint("   ABLATION: TED disabled - unrepaired TB failure -> end_fail_ts")
             return "end_fail_ts"
         return "node_classify_tb"
     return "end_pass"
 
 
 def route_after_ted_syntax(state: COMBAState) -> str:
-    """After TED Syntax — guard stop / no error / limit / give-up / debug."""
+    """After TED Syntax - guard stop / no error / limit / give-up / debug."""
     # GUARD: stop loop if debugger has regressed twice in a row
     if state.get("guard_bad_streak", 0) >= GUARD_MAX_BAD_STREAK:
-        cprint(f"  ⛔ GUARD STOP: bad_streak ≥ {GUARD_MAX_BAD_STREAK}, fallback path")
+        cprint(f"   GUARD STOP: bad_streak >= {GUARD_MAX_BAD_STREAK}, fallback path")
         return "end_fail_sc"
 
-    # If TED couldn't parse any error, skip debugger → go to TB
+    # If TED couldn't parse any error, skip debugger -> go to TB
     if not state.get("sc_exception"):
         if _skip_tb_without_golden(state):
             return "end_pass"
@@ -1913,9 +1913,9 @@ def route_after_ted_syntax(state: COMBAState) -> str:
     if state["sc_trial"] >= MAX_SYNTAX_TRIALS:
         return "end_fail_sc"
 
-    # ABLATION (#2): Debugger disabled → no SLM repair → fail now.
+    # ABLATION (#2): Debugger disabled -> no SLM repair -> fail now.
     if not _use_module("COMBA_USE_DEBUGGER_SLM"):
-        cprint("  🚫 ABLATION: Debugger disabled — syntax error unrepaired → end_fail_sc")
+        cprint("   ABLATION: Debugger disabled - syntax error unrepaired -> end_fail_sc")
         return "end_fail_sc"
 
     # MultiAttemptManager give-up check
@@ -1925,25 +1925,25 @@ def route_after_ted_syntax(state: COMBAState) -> str:
         if not error_key:
             error_key = _normalize_error_key(state.get("sc_exception") or "")
         if mgr.should_give_up(error_key):
-            cprint(f"  ⛔ MultiAttempt: giving up on error_key: {error_key[:50]}")
+            cprint(f"   MultiAttempt: giving up on error_key: {error_key[:50]}")
             return "end_fail_sc"
 
     return "node_debugger"
 
 
 def route_after_ted_tb(state: COMBAState) -> str:
-    """After TED TB — guard stop / TS limit / give-up / debug."""
+    """After TED TB - guard stop / TS limit / give-up / debug."""
     # GUARD: stop loop if debugger has regressed twice in a row
     if state.get("guard_bad_streak", 0) >= GUARD_MAX_BAD_STREAK:
-        cprint(f"  ⛔ GUARD STOP: bad_streak ≥ {GUARD_MAX_BAD_STREAK}, fallback path")
+        cprint(f"   GUARD STOP: bad_streak >= {GUARD_MAX_BAD_STREAK}, fallback path")
         return "end_fail_ts"
 
     if state["ts_trial"] >= MAX_TS_TRIALS:
         return "end_fail_ts"
 
-    # ABLATION (#2): Debugger disabled → no SLM repair → fail now.
+    # ABLATION (#2): Debugger disabled -> no SLM repair -> fail now.
     if not _use_module("COMBA_USE_DEBUGGER_SLM"):
-        cprint("  🚫 ABLATION: Debugger disabled — TB failure unrepaired → end_fail_ts")
+        cprint("   ABLATION: Debugger disabled - TB failure unrepaired -> end_fail_ts")
         return "end_fail_ts"
 
     mgr = state.get("multi_attempt_mgr")
@@ -1953,15 +1953,15 @@ def route_after_ted_tb(state: COMBAState) -> str:
             tb_failure = state.get("tb_failure") or ""
             error_key = _normalize_error_key(tb_failure)
         if mgr.should_give_up(error_key):
-            cprint(f"  ⛔ MultiAttempt: giving up on TB error: {error_key[:50]}")
+            cprint(f"   MultiAttempt: giving up on TB error: {error_key[:50]}")
             return "end_fail_ts"
 
     return "node_debugger"
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # 4. Terminal Nodes (with baseline fallback)
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def _build_guard_summary(state: COMBAState, used_fallback: bool) -> dict:
     """Build the guard summary dict attached to terminal output."""
@@ -1977,7 +1977,7 @@ def _build_guard_summary(state: COMBAState, used_fallback: bool) -> dict:
 def _terminal_with_fallback(state: COMBAState, status: str, compare_key: str = "sc") -> dict:
     """
     Restore baseline GVD if it scores better than current.
-    Guarantees invariant: final result ≤ generator-only baseline.
+    Guarantees invariant: final result <= generator-only baseline.
     """
     out = {"final_status": status}
 
@@ -1992,7 +1992,7 @@ def _terminal_with_fallback(state: COMBAState, status: str, compare_key: str = "
         current_sc = state.get("sc_exception_count", 999)
         if 0 <= baseline_sc < current_sc:
             cprint(
-                f"  🛡️  TERMINAL FALLBACK: restoring baseline "
+                f"    TERMINAL FALLBACK: restoring baseline "
                 f"(sc {baseline_sc} < current {current_sc})"
             )
             out["gvd"] = baseline_gvd
@@ -2005,7 +2005,7 @@ def _terminal_with_fallback(state: COMBAState, status: str, compare_key: str = "
 
 def end_pass(state: COMBAState) -> dict:
     """All checks passed."""
-    cprint("\n🎉 PIPELINE COMPLETE: ALL PASS!")
+    cprint("\n PIPELINE COMPLETE: ALL PASS!")
     return {
         "final_status": "pass",
         "guard_summary": _build_guard_summary(state, used_fallback=False),
@@ -2014,34 +2014,34 @@ def end_pass(state: COMBAState) -> dict:
 
 def end_fail_sc(state: COMBAState) -> dict:
     """SC trial limit reached."""
-    cprint(f"\n❌ PIPELINE FAILED: SC trial limit ({MAX_SYNTAX_TRIALS}) reached")
+    cprint(f"\n[FAIL]  PIPELINE FAILED: SC trial limit ({MAX_SYNTAX_TRIALS}) reached")
     return _terminal_with_fallback(state, "fail_sc", "sc")
 
 
 def end_fail_ts(state: COMBAState) -> dict:
     """TS trial limit reached."""
-    cprint(f"\n❌ PIPELINE FAILED: TS trial limit ({MAX_TS_TRIALS}) reached")
+    cprint(f"\n[FAIL]  PIPELINE FAILED: TS trial limit ({MAX_TS_TRIALS}) reached")
     return _terminal_with_fallback(state, "fail_ts", "sc")
 
 
 def end_max_iter(state: COMBAState) -> dict:
     """Total iteration limit reached."""
-    cprint(f"\n❌ PIPELINE FAILED: Total iteration limit ({MAX_TOTAL_ITER}) reached")
+    cprint(f"\n[FAIL]  PIPELINE FAILED: Total iteration limit ({MAX_TOTAL_ITER}) reached")
     return _terminal_with_fallback(state, "max_iter", "sc")
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # 5. Build Graph
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Converter conditional routing (XML retry state machine)
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 def route_after_converter(state: COMBAState) -> str:
     """Branch on XML validity. Bounded retry, then tolerant pass-through.
 
     Default is TOLERANT: after the retry budget, proceed to the generator with
-    the raw (unparseable) XML — the generator prompt combines the original NL
+    the raw (unparseable) XML - the generator prompt combines the original NL
     spec with the XML, so imperfect XML still works as guidance. This matches
     the behaviour that produced the 07-03 baseline (where validation was a
     silent no-op). Set COMBA_XML_STRICT=1 to fail-fast instead (end_fail_xml).
@@ -2050,12 +2050,12 @@ def route_after_converter(state: COMBAState) -> str:
         retries = state.get("xml_retry_count", 0)
         limit = state.get("xml_retry_limit", 2)
         if retries < limit:
-            cprint(f"  ↻ Retrying converter ({retries}/{limit})")
+            cprint(f"  -> Retrying converter ({retries}/{limit})")
             return "node_converter"
         if os.environ.get("COMBA_XML_STRICT", "0") == "1":
-            cprint(f"  ✗ XML retry budget exhausted ({retries}/{limit}) — STRICT: fail")
+            cprint(f"  [FAIL] XML retry budget exhausted ({retries}/{limit}) - STRICT: fail")
             return "end_fail_xml"
-        cprint(f"  ⚠️ XML retry budget exhausted ({retries}/{limit}) — "
+        cprint(f"  [WARN] XML retry budget exhausted ({retries}/{limit}) - "
                f"tolerant: proceeding with raw XML (COMBA_XML_STRICT=1 to fail fast)")
         return "node_generator"
     return "node_generator"
@@ -2063,7 +2063,7 @@ def route_after_converter(state: COMBAState) -> str:
 
 def end_fail_xml(state: COMBAState) -> dict:
     """Terminal: XML validation could not produce a parseable description."""
-    cprint(f"\n❌ PIPELINE FAILED: XML validation exhausted "
+    cprint(f"\n[FAIL]  PIPELINE FAILED: XML validation exhausted "
            f"({state.get('xml_retry_count', 0)} retries)")
     return _terminal_with_fallback(state, "fail_xml", "sc")
 
@@ -2073,30 +2073,30 @@ def build_comba_graph(llm):
     Build the full COMBA verification pipeline v4 as a LangGraph.
 
     Topology (11 pipeline nodes + 4 terminal nodes):
-        START → converter → generator → sanitizer
-                       ┌─────────────────────────────────────┐
-                       ↓                                     │
-                syntax_check → guard_sc                      │
-                       │                                     │
-                       ├ pass → tb_sim → guard_ts            │
-                       │                  │                  │
-                       │                  ├ pass → end_pass  │
-                       │                  └ fail → ted_tb    │
-                       │                            │        │
-                       └ fail → ted_syntax          │        │
-                                  │                 │        │
-                                  └→ debugger ←─────┘        │
-                                       │                     │
-                                       └→ sanitizer ─────────┘
+        START -> converter -> generator -> sanitizer
+                       +-------------------------------------+
+                       v                                     |
+                syntax_check -> guard_sc                      |
+                       |                                     |
+                       + pass -> tb_sim -> guard_ts            |
+                       |                  |                  |
+                       |                  + pass -> end_pass  |
+                       |                  + fail -> ted_tb    |
+                       |                            |        |
+                       + fail -> ted_syntax          |        |
+                                  |                 |        |
+                                  +-> debugger <------+        |
+                                       |                     |
+                                       +-> sanitizer ---------+
 
     Guards run BEFORE routing decisions, so route functions see
     the rolled-back state when a regression is detected.
     """
     nodes = COMBANodes(llm)
 
-    # ── Ablation config banner (traceability for AICAS revision) ──
+    # -- Ablation config banner (traceability for AICAS revision) ---
     cprint(
-        "  🧪 Ablation config: "
+        "   Ablation config: "
         f"sanitizer={_use_module('COMBA_USE_SANITIZER')} "
         f"ted={_use_module('COMBA_USE_TED')} "
         f"debugger={_use_module('COMBA_USE_DEBUGGER_SLM')}"
@@ -2104,7 +2104,7 @@ def build_comba_graph(llm):
 
     builder = StateGraph(COMBAState)
 
-    # ── Add 10 pipeline nodes ──
+    # -- Add 10 pipeline nodes ---
     builder.add_node("node_converter", nodes.node_converter)
     builder.add_node("node_generator", nodes.node_generator)
     builder.add_node("node_sanitizer", nodes.node_sanitizer)
@@ -2116,18 +2116,18 @@ def build_comba_graph(llm):
     builder.add_node("node_guard_ts", nodes.node_guard_ts)
     builder.add_node("node_ted_tb", lambda state: node_ted_tb_v5(state, nodes.node_ted_tb))
     
-    # ── ADD nodes ──
+    # -- ADD nodes ---
     builder.add_node("node_classify_tb", node_classify_tb)
     builder.add_node("node_vcd_analyzer", node_vcd_analyzer)
 
-    # ── Terminal nodes ──
+    # -- Terminal nodes ---
     builder.add_node("end_pass", end_pass)
     builder.add_node("end_fail_sc", end_fail_sc)
     builder.add_node("end_fail_ts", end_fail_ts)
     builder.add_node("end_max_iter", end_max_iter)
     builder.add_node("end_fail_xml", end_fail_xml)
 
-    # ── Linear edges ──
+    # -- Linear edges ---
     builder.add_edge(START, "node_converter")
     builder.add_conditional_edges(
         "node_converter",
@@ -2143,16 +2143,16 @@ def build_comba_graph(llm):
     builder.add_edge("node_syntax_check", "node_guard_sc")
     builder.add_edge("node_tb_sim", "node_guard_ts")
 
-    # Terminal → END
+    # Terminal -> END
     builder.add_edge("end_pass", END)
     builder.add_edge("end_fail_sc", END)
     builder.add_edge("end_fail_ts", END)
     builder.add_edge("end_max_iter", END)
     builder.add_edge("end_fail_xml", END)
 
-    # ── Conditional edges (5 routing decisions) ──
+    # -- Conditional edges (5 routing decisions) ---
 
-    # After sanitizer → SC (normal) or re-query LLM (hard failure)
+    # After sanitizer -> SC (normal) or re-query LLM (hard failure)
     builder.add_conditional_edges(
         "node_sanitizer",
         route_after_sanitizer,
@@ -2164,7 +2164,7 @@ def build_comba_graph(llm):
         },
     )
 
-    # After Guard SC → TED_SC (errors), TB (clean), or PASS (clean, no golden TB)
+    # After Guard SC -> TED_SC (errors), TB (clean), or PASS (clean, no golden TB)
     builder.add_conditional_edges(
         "node_guard_sc",
         route_after_sc,
@@ -2172,7 +2172,7 @@ def build_comba_graph(llm):
          "end_pass": "end_pass", "end_fail_sc": "end_fail_sc"},
     )
 
-    # After Guard TS → classify_tb (failed) or END (passed)
+    # After Guard TS -> classify_tb (failed) or END (passed)
     builder.add_conditional_edges(
         "node_guard_ts",
         route_after_ts,
@@ -2180,17 +2180,17 @@ def build_comba_graph(llm):
          "end_fail_ts": "end_fail_ts"},
     )
 
-    # ── ADD: classifier → analyzer or ted_tb ──
+    # -- ADD: classifier -> analyzer or ted_tb ---
     builder.add_conditional_edges(
         "node_classify_tb",
         route_after_classify_tb,
         {"node_vcd_analyzer": "node_vcd_analyzer", "node_ted_tb": "node_ted_tb"},
     )
 
-    # ── ADD: analyzer always goes to TED-TB ──
+    # -- ADD: analyzer always goes to TED-TB ---
     builder.add_edge("node_vcd_analyzer", "node_ted_tb")
 
-    # After TED Syntax → Debugger / TB / fail
+    # After TED Syntax -> Debugger / TB / fail
     builder.add_conditional_edges(
         "node_ted_syntax",
         route_after_ted_syntax,
@@ -2202,7 +2202,7 @@ def build_comba_graph(llm):
         },
     )
 
-    # After TED TB → Debugger / fail
+    # After TED TB -> Debugger / fail
     builder.add_conditional_edges(
         "node_ted_tb",
         route_after_ted_tb,
@@ -2212,9 +2212,9 @@ def build_comba_graph(llm):
     return builder.compile()
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # CLI entry point
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 if __name__ == "__main__":
     import argparse
     from dotenv import load_dotenv
@@ -2272,7 +2272,7 @@ if __name__ == "__main__":
     # Guard summary
     summary = final.get("guard_summary", {})
     if summary:
-        print(f"\n🛡️  Guard Summary:")
+        print(f"\n  Guard Summary:")
         print(f"  Rollbacks:      {summary.get('rollbacks', 0)}")
         print(f"  Commits:        {summary.get('commits', 0)}")
         print(f"  Used Fallback:  {summary.get('used_fallback', False)}")

@@ -7,8 +7,8 @@ Tests cover:
 - Bad streak counter (increment/reset)
 - Terminal fallback (baseline restoration)
 - Routing stop conditions
-- E2E: debugger breaks working code → guard reverts
-- E2E: debugger fixes broken code → guard commits
+- E2E: debugger breaks working code -> guard reverts
+- E2E: debugger fixes broken code -> guard commits
 
 Append to: src/langgraph_core/test_pipeline.py
 Run with: python -m pytest test_pipeline.py::TestGuard -v
@@ -45,9 +45,9 @@ import comba_pipeline
 comba_pipeline.TS_SIMULATOR = "iverilog"
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Helpers
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def make_iverilog_result(returncode=0, stderr="", stdout=""):
     result = MagicMock(spec=subprocess.CompletedProcess)
@@ -69,14 +69,14 @@ TB_PASS = make_iverilog_result(0, "", "All tests passed\n")
 TB_FAIL = make_iverilog_result(1, "", "TODO 3 Failed at simtime 42\n")
 
 
-# ══════════════════════════════════════════════════════════════
-# TestGuard — Unit tests for guard nodes in isolation
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# TestGuard - Unit tests for guard nodes in isolation
+# ==============================================================
 
 class TestGuard:
     """Unit tests for node_guard_sc and node_guard_ts."""
 
-    # ── Source-aware noop ──
+    # --- Source-aware noop ---
 
     def test_guard_sc_noop_for_generator(self):
         """Generator path: guard never runs (no prev to compare)."""
@@ -89,7 +89,7 @@ class TestGuard:
         assert result == {}
 
     def test_guard_sc_noop_when_no_source(self):
-        """Empty source → noop."""
+        """Empty source -> noop."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["sc_exception_count"] = 5
@@ -104,10 +104,10 @@ class TestGuard:
         result = nodes.node_guard_ts(state)
         assert result == {}
 
-    # ── Guard SC: commit (improvement) ──
+    # --- Guard SC: commit (improvement) ---
 
     def test_guard_sc_commit_when_improved(self):
-        """prev=5 errs, cand=2 errs → COMMIT, reset bad_streak."""
+        """prev=5 errs, cand=2 errs -> COMMIT, reset bad_streak."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -125,7 +125,7 @@ class TestGuard:
         assert result["rollback_triggered"] is False
 
     def test_guard_sc_commit_when_equal(self):
-        """prev=2 errs, cand=2 errs → still commit (not strictly worse)."""
+        """prev=2 errs, cand=2 errs -> still commit (not strictly worse)."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -138,10 +138,10 @@ class TestGuard:
         assert "gvd" not in result
         assert result["rollback_triggered"] is False
 
-    # ── Guard SC: rollback (regression) ──
+    # --- Guard SC: rollback (regression) ---
 
     def test_guard_sc_rollback_when_critical(self):
-        """prev=0 (clean), cand=3 → CRITICAL ROLLBACK."""
+        """prev=0 (clean), cand=3 -> CRITICAL ROLLBACK."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -159,7 +159,7 @@ class TestGuard:
         assert result["rollback_triggered"] is True
 
     def test_guard_sc_rollback_when_general_regression(self):
-        """prev=2, cand=5 → general regression → rollback."""
+        """prev=2, cand=5 -> general regression -> rollback."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -175,7 +175,7 @@ class TestGuard:
         assert result["rollback_triggered"] is True
 
     def test_guard_sc_rollback_increments_streak(self):
-        """Rollback twice in a row → bad_streak = 2."""
+        """Rollback twice in a row -> bad_streak = 2."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -188,10 +188,10 @@ class TestGuard:
 
         assert result["guard_bad_streak"] == 2
 
-    # ── Guard SC: edge cases ──
+    # --- Guard SC: edge cases ---
 
     def test_guard_sc_skip_rollback_when_no_prev_gvd(self):
-        """prev_gvd missing → can't rollback, must commit."""
+        """prev_gvd missing -> can't rollback, must commit."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -205,10 +205,10 @@ class TestGuard:
         assert "gvd" not in result
         assert result["rollback_triggered"] is False
 
-    # ── Guard TS: rollback scenarios ──
+    # --- Guard TS: rollback scenarios ---
 
     def test_guard_ts_rollback_when_tb_critical(self):
-        """prev TB passed (None), cand fails → CRITICAL ROLLBACK."""
+        """prev TB passed (None), cand fails -> CRITICAL ROLLBACK."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -228,7 +228,7 @@ class TestGuard:
         assert result["rollback_triggered"] is True
 
     def test_guard_ts_rollback_when_sc_breaks(self):
-        """SC was clean, debugger broke it during TS phase fix → ROLLBACK."""
+        """SC was clean, debugger broke it during TS phase fix -> ROLLBACK."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -246,7 +246,7 @@ class TestGuard:
         assert result["rollback_triggered"] is True
 
     def test_guard_ts_commit_when_tb_fixed(self):
-        """prev failed, cand passes → COMMIT."""
+        """prev failed, cand passes -> COMMIT."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -262,7 +262,7 @@ class TestGuard:
         assert result["guard_total_commits"] == 1
 
     def test_guard_ts_commit_when_lateral(self):
-        """prev failed TODO 1, cand fails TODO 5 — lateral move, allow."""
+        """prev failed TODO 1, cand fails TODO 5 - lateral move, allow."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -273,14 +273,14 @@ class TestGuard:
 
         result = nodes.node_guard_ts(state)
 
-        # Both failing TB → not critical, commit
+        # Both failing TB -> not critical, commit
         assert "gvd" not in result
         assert result["rollback_triggered"] is False
 
 
-# ══════════════════════════════════════════════════════════════
-# TestGuardRouting — STOP conditions in routers
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# TestGuardRouting - STOP conditions in routers
+# ==============================================================
 
 class TestGuardRouting:
     """Test guard-aware routing decisions."""
@@ -290,7 +290,7 @@ class TestGuardRouting:
         state["dataset_dir"] = "/tmp"
         state["sc_trial"] = 1                   # well under limit
         state["sc_exception"] = "some error"
-        state["guard_bad_streak"] = 2           # ← STOP signal
+        state["guard_bad_streak"] = 2           # STOP condition trigger
         assert route_after_ted_syntax(state) == "end_fail_sc"
 
     def test_route_ted_sc_continues_with_low_streak(self):
@@ -316,9 +316,9 @@ class TestGuardRouting:
         assert route_after_ted_tb(state) == "node_debugger"
 
 
-# ══════════════════════════════════════════════════════════════
-# TestTerminalFallback — baseline restoration on terminal nodes
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# TestTerminalFallback - baseline restoration on terminal nodes
+# ==============================================================
 
 class TestTerminalFallback:
     """Test that terminal nodes restore baseline if it scores better."""
@@ -361,7 +361,7 @@ class TestTerminalFallback:
         assert result["guard_summary"]["used_fallback"] is False
 
     def test_end_fail_sc_no_baseline_no_fallback(self):
-        """No baseline captured → noop."""
+        """No baseline captured -> noop."""
         state = make_initial_state()
         state["guard_baseline_gvd"] = None
         result = end_fail_sc(state)
@@ -386,14 +386,14 @@ class TestTerminalFallback:
 
         result = _terminal_with_fallback(state, "fail_sc", "sc")
 
-        # Baseline (1) < current (3) → restore
+        # Baseline (1) < current (3) -> restore
         assert result["gvd"] == "baseline"
-        # The invariant: returned GVD's score ≤ both inputs
+        # The invariant: returned GVD's score <= both inputs
 
 
-# ══════════════════════════════════════════════════════════════
-# TestGuardE2E — Full pipeline with guard active
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# TestGuardE2E - Full pipeline with guard active
+# ==============================================================
 
 class TestGuardE2E:
     """End-to-end tests with guard integrated into compiled graph."""
@@ -432,7 +432,7 @@ class TestGuardE2E:
                         return graph.invoke(state, {"recursion_limit": 200})
 
     def test_e2e_baseline_captured_on_first_sc(self):
-        """First SC run after generator → baseline_sc_count locked."""
+        """First SC run after generator -> baseline_sc_count locked."""
         llm = create_stub_llm()
         result = self._run_with_mocks(
             llm,
@@ -460,7 +460,7 @@ class TestGuardE2E:
             sc_results=[CLEAN_SC],
             tb_results=[make_iverilog_result(0), TB_PASS],
         )
-        # No debugger ran → no rollbacks
+        # No debugger ran -> no rollbacks
         assert result["final_status"] == "pass"
         assert result["guard_summary"]["rollbacks"] == 0
         # Generator path: no commits either (guard noop)
@@ -469,11 +469,11 @@ class TestGuardE2E:
 
     def test_e2e_fail_sc_with_baseline_restore(self):
         """
-        Always-buggy debugger → hits trial limit → fail_sc.
+        Always-buggy debugger -> hits trial limit -> fail_sc.
         Baseline_gvd should be restored if current is worse (or equal).
         """
         llm = create_always_buggy_stub_llm()
-        # Every SC returns errors → debugger fires → still errors → loop
+        # Every SC returns errors -> debugger fires -> still errors -> loop
         result = self._run_with_mocks(
             llm,
             sc_results=[SC_1_ERR] * 30,    # generous, always-buggy LLM
@@ -497,15 +497,15 @@ class TestGuardE2E:
         assert "used_fallback" in result["guard_summary"]
 
 
-# ══════════════════════════════════════════════════════════════
-# TestGuardInvariants — properties that must always hold
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# TestGuardInvariants - properties that must always hold
+# ==============================================================
 
 class TestGuardInvariants:
     """Property-style tests for guard invariants."""
 
     def test_invariant_streak_resets_on_commit(self):
-        """Any commit → bad_streak = 0."""
+        """Any commit -> bad_streak = 0."""
         nodes = COMBANodes(create_stub_llm())
         state = make_initial_state()
         state["_last_llm_source"] = "debugger"
@@ -547,13 +547,13 @@ class TestGuardInvariants:
         assert "guard_total_commits" not in result
 
     def test_invariant_terminal_never_worse_than_baseline(self):
-        """For any state, _terminal_with_fallback returns gvd with sc ≤ baseline_sc."""
+        """For any state, _terminal_with_fallback returns gvd with sc <= baseline_sc."""
         # Property check across multiple scenarios
         scenarios = [
             (0, 0, "no_change"),       # baseline=0, current=0
-            (0, 5, "baseline"),        # baseline=0, current=5 → restore
+            (0, 5, "baseline"),        # baseline=0, current=5 -> restore
             (3, 1, "current"),         # current is better
-            (5, 5, "no_change"),       # equal → keep current
+            (5, 5, "no_change"),       # equal -> keep current
             (999, 2, "current"),       # no baseline ever captured
         ]
         for baseline_sc, current_sc, expected in scenarios:

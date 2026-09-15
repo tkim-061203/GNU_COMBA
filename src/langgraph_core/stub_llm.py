@@ -2,9 +2,9 @@
 StubLLM for testing COMBA pipeline without a real LLM.
 
 Provides hardcoded responses based on prompt content:
-- Converter prompt → known-good XML (adder_8bit)
-- Generator prompt → known-good Verilog (or intentionally buggy)
-- Debugger prompt → JSON patch {buggy_code, correct_code}
+- Converter prompt -> known-good XML (adder_8bit)
+- Generator prompt -> known-good Verilog (or intentionally buggy)
+- Debugger prompt -> JSON patch {buggy_code, correct_code}
 
 Usage:
     from stub_llm import create_stub_llm, create_buggy_stub_llm
@@ -20,9 +20,9 @@ from langchain_core.outputs import ChatResult, ChatGeneration
 from pydantic import Field
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Known-good test data
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 GOOD_XML = """\
 <module id="adder_8bit">
@@ -97,9 +97,9 @@ DEBUGGER_PATCH_BUGGY = BUGGY_VERILOG
 DEBUGGER_PATCH_WORSE = WORSE_VERILOG
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # StubLLM Implementation
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 class StubLLM(BaseChatModel):
     """
@@ -156,9 +156,9 @@ class StubLLM(BaseChatModel):
         return ChatResult(generations=[generation])
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Factory Functions
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def create_stub_llm() -> StubLLM:
     """Create a StubLLM that returns correct code (happy path)."""

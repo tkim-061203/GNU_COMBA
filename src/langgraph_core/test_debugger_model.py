@@ -35,9 +35,9 @@ from typing import List, Optional, Callable
 from openai import OpenAI
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # Test Case Data Structure
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 @dataclass
 class TestCase:
@@ -52,13 +52,13 @@ class TestCase:
     check_fn: Optional[Callable] = None  # custom validation function
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # EDP Test Cases (Syntax Errors)
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 TEST_CASES: List[TestCase] = [
 
-    # ── Test 1: Undeclared signal ──
+    # --- Test 1: Undeclared signal ---
     TestCase(
         id=1,
         name="Undeclared Signal",
@@ -86,7 +86,7 @@ endmodule
         bug_description="'result' used but never declared as wire/reg",
     ),
 
-    # ── Test 2: Width mismatch ──
+    # --- Test 2: Width mismatch ---
     TestCase(
         id=2,
         name="Width Mismatch",
@@ -118,7 +118,7 @@ endmodule
         bug_description="'temp' is 4-bit but assigned 8-bit 'out'",
     ),
 
-    # ── Test 3: Missing port connection ──
+    # --- Test 3: Missing port connection ---
     TestCase(
         id=3,
         name="Missing Port Connection",
@@ -157,7 +157,7 @@ endmodule
         bug_description="FA0 missing .cout(c[0]) port connection",
     ),
 
-    # ── Test 4: Multi-driven signal ──
+    # --- Test 4: Multi-driven signal ---
     TestCase(
         id=4,
         name="Multi-driven Signal",
@@ -197,11 +197,11 @@ endmodule
         check_fn=lambda resp: resp.count("assign valid") + resp.count("valid =") <= 4,
     ),
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     # TDP Test Cases (Functional Errors)
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
 
-    # ── Test 5: Off-by-one counter ──
+    # --- Test 5: Off-by-one counter ---
     TestCase(
         id=5,
         name="Off-by-one Counter",
@@ -235,7 +235,7 @@ endmodule
         bug_description="Counter wraps at 12 instead of 11 (should count 0-11)",
     ),
 
-    # ── Test 6: Wrong FSM transition ──
+    # --- Test 6: Wrong FSM transition ---
     TestCase(
         id=6,
         name="Wrong FSM Transition",
@@ -275,16 +275,16 @@ endmodule
 """,
         error_log="""\
 [FAIL] Sequence "1011" not detected.
-  Time=80ns: din=1,0,1,1 → detected=0 (expected 1)
-  Applied din sequence: 1→0→1→1, but detected never asserted.
-  Debug: state trace = S0→S1→S2→S3→S2 (expected S0→S1→S2→S3→detected)
+  Time=80ns: din=1,0,1,1 -> detected=0 (expected 1)
+  Applied din sequence: 1->0->1->1, but detected never asserted.
+  Debug: state trace = S0->S1->S2->S3->S2 (expected S0->S1->S2->S3->detected)
 [INFO] S3 with din=1 should go to S1 (overlapping), not S0.
 """,
         expected_fix_keywords=["S1"],
-        bug_description="S3→din=1 should go to S1 (overlap), not S0",
+        bug_description="S3->din=1 should go to S1 (overlap), not S0",
     ),
 
-    # ── Test 7: Incorrect reset logic ──
+    # --- Test 7: Incorrect reset logic ---
     TestCase(
         id=7,
         name="Incorrect Reset Logic",
@@ -308,14 +308,14 @@ endmodule
 [FAIL] Reset test: Expected dout=0x00 after reset, got dout=0xFF
   Time=10ns: rst_n=0, dout=0xFF (expected 0x00)
   Reset should clear the register to 0, not set to all 1s.
-[FAIL] Async reset not working — reset only takes effect on clock edge
+[FAIL] Async reset not working - reset only takes effect on clock edge
   Time=5ns: rst_n asserted low between clock edges, dout unchanged.
 """,
         expected_fix_keywords=["8'h00", "negedge rst_n"],
         bug_description="Reset value should be 0x00 not 0xFF, and reset should be async",
     ),
 
-    # ── Test 8: Wrong operator ──
+    # --- Test 8: Wrong operator ---
     TestCase(
         id=8,
         name="Wrong Operator",
@@ -340,7 +340,7 @@ module alu_simple(
 endmodule
 """,
         error_log="""\
-[FAIL] SUB operation: a=10, b=3, op=01 → result=13 (expected 7)
+[FAIL] SUB operation: a=10, b=3, op=01 -> result=13 (expected 7)
   Time=20ns: op=2'b01, a=8'd10, b=8'd3, result=8'd13
   Expected: 10 - 3 = 7, but got 10 + 3 = 13
   SUB (op=01) performs addition instead of subtraction.
@@ -351,9 +351,9 @@ endmodule
 ]
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # Prompt Builders
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 EDP_SYSTEM = textwrap.dedent("""\
     You are a Verilog syntax debugging expert.
@@ -364,11 +364,11 @@ EDP_SYSTEM = textwrap.dedent("""\
     1. Fix ONLY the topmost error. Other errors may cascade from it.
     2. Preserve the module name, port names, and overall architecture.
     3. Common Verilator errors and fixes:
-       - "Signal not found" → declare the signal as wire/reg
-       - "Width mismatch" / "WIDTHTRUNC" → adjust signal widths
-       - "PINMISSING" → add the missing port connection
-       - "MULTIDRIVEN" → remove duplicate drivers
-       - "UNDRIVEN" → ensure all signals are driven
+       - "Signal not found" -> declare the signal as wire/reg
+       - "Width mismatch" / "WIDTHTRUNC" -> adjust signal widths
+       - "PINMISSING" -> add the missing port connection
+       - "MULTIDRIVEN" -> remove duplicate drivers
+       - "UNDRIVEN" -> ensure all signals are driven
     4. Return ONLY the complete fixed Verilog code, no explanation.
     5. Do NOT wrap in markdown code fences.
 """)
@@ -432,9 +432,9 @@ Fix the functional logic and return the complete corrected Verilog code."""
     ]
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # Response Validation
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 def strip_markdown_fences(text: str) -> str:
     """Remove markdown code fences if present."""
@@ -472,9 +472,9 @@ def validate_response(tc: TestCase, response: str) -> dict:
     return result
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # Model Calling
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 def call_model(client: OpenAI, model: str, messages: list) -> dict:
     """Call model and return response with metadata."""
@@ -509,16 +509,16 @@ def check_health(client: OpenAI, url: str, label: str) -> bool:
     try:
         models = client.models.list()
         model_ids = [m.id for m in models.data]
-        print(f"  ✅ {label} ({url}): models = {model_ids}")
+        print(f"  [OK] {label} ({url}): models = {model_ids}")
         return True
     except Exception as e:
-        print(f"  ❌ {label} ({url}): {e}")
+        print(f"  [FAIL] {label} ({url}): {e}")
         return False
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # Main
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 def main():
     parser = argparse.ArgumentParser(description="Test COMBA Debugger LoRA model")
@@ -535,7 +535,7 @@ def main():
                         help="Save results to JSON file")
     args = parser.parse_args()
 
-    # ── Parse test selection ──
+    # --- Parse test selection ---
     if args.test == "all":
         selected = TEST_CASES
     elif args.test.lower() == "edp":
@@ -547,20 +547,20 @@ def main():
         selected = [tc for tc in TEST_CASES if tc.id in ids]
 
     if not selected:
-        print("❌ No test cases selected.")
+        print("[FAIL] No test cases selected.")
         return
 
-    print("╔══════════════════════════════════════════════════════════╗")
-    print("║  COMBA Debugger Model — Comprehensive Test Suite        ║")
-    print("╚══════════════════════════════════════════════════════════╝")
+    print("================================================================")
+    print("   COMBA Debugger Model - Comprehensive Test Suite")
+    print("================================================================")
     print(f"\n  Running {len(selected)} test(s): {[tc.id for tc in selected]}\n")
 
-    # ── Create clients ──
+    # --- Create clients ---
     client_base = OpenAI(base_url=args.base_url, api_key=args.api_key, timeout=180)
     client_dbg = OpenAI(base_url=args.debugger_url, api_key=args.api_key, timeout=180)
 
-    # ── Health check ──
-    print("📡 Health Check:")
+    # --- Health check ---
+    print("Health Check:")
     run_base = not args.only_debugger
     run_dbg = not args.only_base
 
@@ -568,53 +568,53 @@ def main():
     ok_dbg = check_health(client_dbg, args.debugger_url, "Debugger (GPU 1)") if run_dbg else False
 
     if not ok_base and not ok_dbg:
-        print("\n❌ No servers available.")
+        print("\n[FAIL] No servers available.")
         return
 
-    # ── Run tests ──
+    # --- Run tests ---
     results = []
     summary_base = {"pass": 0, "fail": 0, "error": 0}
     summary_dbg = {"pass": 0, "fail": 0, "error": 0}
 
     for tc in selected:
-        print(f"\n\n{'█' * 60}")
+        print(f"\n\n{'=' * 60}")
         print(f"  TEST {tc.id}: {tc.name} [{tc.category}]")
         print(f"  Module: {tc.module_name}")
         print(f"  Bug: {tc.bug_description}")
-        print(f"{'█' * 60}")
+        print(f"{'=' * 60}")
 
         messages = build_messages(tc)
         test_result = {"id": tc.id, "name": tc.name, "category": tc.category}
 
-        # ── Base model ──
+        # --- Base model ---
         if ok_base:
-            print(f"\n  🔵 Base Model (qwen-base)...")
+            print(f"\n  [Base Model] (qwen-base)...")
             r = call_model(client_base, "qwen-base", messages)
             if r["error"]:
-                print(f"     ❌ Error: {r['error']}")
+                print(f"     [FAIL] Error: {r['error']}")
                 summary_base["error"] += 1
             else:
                 v = validate_response(tc, r["text"])
-                status = "✅ PASS" if v["is_verilog"] and v["all_keywords"] else "❌ FAIL"
+                status = "PASS" if v["is_verilog"] and v["all_keywords"] else "FAIL"
                 if v["is_verilog"] and v["all_keywords"]:
                     summary_base["pass"] += 1
                 else:
                     summary_base["fail"] += 1
-                print(f"     {status} | {r['time']:.1f}s | {r['tok_in']}→{r['tok_out']} tok")
-                print(f"     Valid Verilog: {'✅' if v['is_verilog'] else '❌'} | "
-                      f"Correct module: {'✅' if v['has_module'] else '❌'}")
+                print(f"     {status} | {r['time']:.1f}s | {r['tok_in']}->{r['tok_out']} tok")
+                print(f"     Valid Verilog: {'[OK]' if v['is_verilog'] else '[FAIL]'} | "
+                      f"Correct module: {'[OK]' if v['has_module'] else '[FAIL]'}")
                 for kw, found in v["keywords"].items():
-                    print(f"     Keyword '{kw}': {'✅' if found else '❌'}")
+                    print(f"     Keyword '{kw}': {'[OK]' if found else '[FAIL]'}")
                 if v["custom_check"] is not None:
-                    print(f"     Custom check: {'✅' if v['custom_check'] else '❌'}")
+                    print(f"     Custom check: {'[OK]' if v['custom_check'] else '[FAIL]'}")
 
                 # Show first 20 lines of response
                 lines = strip_markdown_fences(r["text"]).split("\n")
-                print(f"     ── Response ({len(lines)} lines) ──")
+                print(f"     -- Response ({len(lines)} lines) --")
                 for line in lines[:20]:
-                    print(f"     │ {line}")
+                    print(f"     | {line}")
                 if len(lines) > 20:
-                    print(f"     │ ... ({len(lines) - 20} more lines)")
+                    print(f"     | ... ({len(lines) - 20} more lines)")
 
             test_result["base"] = {
                 "time": r["time"], "tokens": r["tok_out"],
@@ -622,34 +622,34 @@ def main():
                 "keywords": v["all_keywords"] if not r["error"] else False,
             }
 
-        # ── Debugger model ──
+        # --- Debugger model ---
         if ok_dbg:
-            print(f"\n  🔴 Debugger LoRA (debugger)...")
+            print(f"\n  [Debugger LoRA] (debugger)...")
             r = call_model(client_dbg, "debugger", messages)
             if r["error"]:
-                print(f"     ❌ Error: {r['error']}")
+                print(f"     [FAIL] Error: {r['error']}")
                 summary_dbg["error"] += 1
             else:
                 v = validate_response(tc, r["text"])
-                status = "✅ PASS" if v["is_verilog"] and v["all_keywords"] else "❌ FAIL"
+                status = "PASS" if v["is_verilog"] and v["all_keywords"] else "FAIL"
                 if v["is_verilog"] and v["all_keywords"]:
                     summary_dbg["pass"] += 1
                 else:
                     summary_dbg["fail"] += 1
-                print(f"     {status} | {r['time']:.1f}s | {r['tok_in']}→{r['tok_out']} tok")
-                print(f"     Valid Verilog: {'✅' if v['is_verilog'] else '❌'} | "
-                      f"Correct module: {'✅' if v['has_module'] else '❌'}")
+                print(f"     {status} | {r['time']:.1f}s | {r['tok_in']}->{r['tok_out']} tok")
+                print(f"     Valid Verilog: {'[OK]' if v['is_verilog'] else '[FAIL]'} | "
+                      f"Correct module: {'[OK]' if v['has_module'] else '[FAIL]'}")
                 for kw, found in v["keywords"].items():
-                    print(f"     Keyword '{kw}': {'✅' if found else '❌'}")
+                    print(f"     Keyword '{kw}': {'[OK]' if found else '[FAIL]'}")
                 if v["custom_check"] is not None:
-                    print(f"     Custom check: {'✅' if v['custom_check'] else '❌'}")
+                    print(f"     Custom check: {'[OK]' if v['custom_check'] else '[FAIL]'}")
 
                 lines = strip_markdown_fences(r["text"]).split("\n")
-                print(f"     ── Response ({len(lines)} lines) ──")
+                print(f"     -- Response ({len(lines)} lines) --")
                 for line in lines[:20]:
-                    print(f"     │ {line}")
+                    print(f"     | {line}")
                 if len(lines) > 20:
-                    print(f"     │ ... ({len(lines) - 20} more lines)")
+                    print(f"     | ... ({len(lines) - 20} more lines)")
 
             test_result["debugger"] = {
                 "time": r["time"], "tokens": r["tok_out"],
@@ -659,10 +659,10 @@ def main():
 
         results.append(test_result)
 
-    # ── Summary ──
-    print(f"\n\n{'═' * 60}")
+    # --- Summary ---
+    print(f"\n\n{'=' * 60}")
     print(f"  SUMMARY")
-    print(f"{'═' * 60}")
+    print(f"{'=' * 60}")
 
     header = f"  {'Test':<5} {'Name':<25} {'Category':<5}"
     if ok_base:
@@ -670,17 +670,17 @@ def main():
     if ok_dbg:
         header += f" {'Debugger':<10}"
     print(header)
-    print(f"  {'─' * 55}")
+    print(f"  {'-' * 55}")
 
     for r in results:
         line = f"  {r['id']:<5} {r['name']:<25} {r['category']:<5}"
         if ok_base and "base" in r:
             b = r["base"]
-            s = "✅ PASS" if b["valid"] and b["keywords"] else "❌ FAIL"
+            s = "PASS" if b["valid"] and b["keywords"] else "FAIL"
             line += f" {s:<10}"
         if ok_dbg and "debugger" in r:
             d = r["debugger"]
-            s = "✅ PASS" if d["valid"] and d["keywords"] else "❌ FAIL"
+            s = "PASS" if d["valid"] and d["keywords"] else "FAIL"
             line += f" {s:<10}"
         print(line)
 
@@ -694,7 +694,7 @@ def main():
         print(f"  Debugger: {summary_dbg['pass']}/{total} passed, "
               f"{summary_dbg['fail']} failed, {summary_dbg['error']} errors")
 
-    # ── Save results ──
+    # --- Save results ---
     if args.save:
         with open(args.save, "w") as f:
             json.dump({
@@ -704,9 +704,9 @@ def main():
                 "summary": {"base": summary_base, "debugger": summary_dbg},
                 "results": results,
             }, f, indent=2)
-        print(f"\n  💾 Results saved to {args.save}")
+        print(f"\n  Results saved to {args.save}")
 
-    print(f"\n✅ Done!")
+    print(f"\n[OK] Done!")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 """
-COMBA Pipeline v5 — FSM-aware TB debugging patch
+COMBA Pipeline FSM-aware TB debugging patch
 =================================================
 Adds 2 new nodes and reorganises TB-failure routing to lift VE pass rate.
 
@@ -23,7 +23,7 @@ def vcd_hint_enabled() -> bool:
     """VCD waveform hint is opt-in (default OFF).
 
     Empirically the populated hint LOWERED the LLM pass rate on RTLLM v1
-    (91.7%→86.2%, one-directional) and was inconclusive/noise on v2. It is
+    (91.7%->86.2%, one-directional) and was inconclusive/noise on v2. It is
     gated so it can be A/B'd without code changes. Enable with
     COMBA_VCD_HINT=1 (also accepts true/on/yes). Read live from the
     environment to avoid stale cached-import values.
@@ -31,11 +31,11 @@ def vcd_hint_enabled() -> bool:
     return os.environ.get("COMBA_VCD_HINT", "").strip().lower() in ("1", "true", "on", "yes")
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # 1. TB Failure Classifier
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
-# Heuristics ordered by specificity — first match wins
+# Heuristics ordered by specificity - first match wins
 _FAILURE_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("timeout",         re.compile(r"\$finish.*timeout|simulation.*hung|\$stop.*max|timeout", re.I)),
     ("fsm_state_error", re.compile(r"\bstate\b|\bfsm\b|\bcurrent_state\b|\bnext_state\b", re.I)),
@@ -121,10 +121,10 @@ def node_classify_tb(state: dict) -> dict:
 
 
 def route_after_classify_tb(state: dict) -> str:
-    """FSM/timing/timeout → VCD analyzer; combinational → straight to TED.
+    """FSM/timing/timeout -> VCD analyzer; combinational -> straight to TED.
 
     When the VCD hint is disabled (default), skip the analyzer entirely so the
-    debugger runs on the original log-only context — the configuration that
+    debugger runs on the original log-only context - the configuration that
     benchmarked best.
     """
     ft = state.get("failure_type", "unknown")
@@ -142,9 +142,9 @@ def route_after_classify_tb(state: dict) -> str:
     return "node_ted_tb"
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # 2. VCD Analyzer (extract structured state hint and waveform trace)
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 try:
     from vcdvcd import VCDVCD
@@ -287,7 +287,7 @@ def node_vcd_analyzer(state: dict) -> dict:
             continue
 
         is_fail = any(fn == low or fn in low for fn in fail_out_names)
-        # Lean hint: drop signals that never change — pure noise in a waveform —
+        # Lean hint: drop signals that never change - pure noise in a waveform -
         # unless they are the failing output we were asked to inspect.
         if not is_fail and _is_constant(ref):
             continue
@@ -295,7 +295,7 @@ def node_vcd_analyzer(state: dict) -> dict:
         is_pri = is_fail or len(parts) <= 2
         (pri_refs if is_pri else other_refs).append(ref)
 
-    # De-duplicate by leaf signal name — the same net usually appears at both the
+    # De-duplicate by leaf signal name - the same net usually appears at both the
     # TB-top and DUT scope; keep the deepest scope (the DUT's own reg/wire).
     def _dedup_by_leaf(refs: list) -> dict:
         best: dict = {}
@@ -424,9 +424,9 @@ def node_vcd_analyzer(state: dict) -> dict:
     }
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # 3. Improved TED-TB (structured TDP + better EDTM key)
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 # Regex patterns for parsing TS log
 TS_TODO_PATTERN = re.compile(
@@ -450,7 +450,7 @@ def parse_ts_log(raw_log: str) -> list[dict]:
                          "failureContent": m.group(0).strip()[:200]})
     return out
 
-# Replaces _ts_key in graph.py — finer-grained dedup
+# Replaces _ts_key in graph.py - finer-grained dedup
 def _ts_key_v5(failure: dict, failure_type: str = "unknown") -> str:
     """Dedup key: (failure_type, signal_or_todo). Keeps repeated cycles
     of the same root cause from blowing past EDTM_MAX_RETRIES too fast."""
@@ -509,7 +509,7 @@ def node_ted_tb_v5(state: dict, _legacy_node_ted_tb) -> dict:
         parts.append("[ROOT_CAUSE_HINT] check state encoding, reset value, "
                      "and transition guards in always @(posedge clk) block")
     elif ftype == "timeout":
-        parts.append("[ROOT_CAUSE_HINT] design likely stuck — verify reset "
+        parts.append("[ROOT_CAUSE_HINT] design likely stuck - verify reset "
                      "deassertion path and that all FSM states have valid exits")
 
     # Append testbench reference snippet if it was extracted by legacy node
@@ -547,12 +547,12 @@ def node_ted_tb_v5(state: dict, _legacy_node_ted_tb) -> dict:
     return base
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # 4. Debugger context escalation (TS phase only)
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 
 def build_ts_debug_prompt(state: dict, level: int) -> str:
-    """L0..L4 — each level adds context, not just strictness."""
+    """L0..L4 - each level adds context, not just strictness."""
     tdp = state.get("current_tdp", {}) or {}
     body = tdp.get("structured_body", tdp.get("failureContent", ""))
     parts = [body]
@@ -565,6 +565,6 @@ def build_ts_debug_prompt(state: dict, level: int) -> str:
         parts.append("[TB REFERENCE]\n" + state.get("testbench_content", "")[:800])
     if level >= 4:
         parts.append("[INSTRUCTION] Regenerate the ENTIRE module from spec. "
-                     "Do not patch — rewrite cleanly.")
+                     "Do not patch - rewrite cleanly.")
 
     return "\n\n".join(parts)

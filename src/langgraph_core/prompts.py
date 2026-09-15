@@ -1,14 +1,14 @@
 """
 COMBA-PROMPT Templates for Verilog Code Generation & Debugging.
-v4: Pattern-based rules, no problem-specific examples.
+Pattern-based rules.
 """
 
 import re
 from langchain_core.prompts import ChatPromptTemplate
 
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # FEW-SHOT: Demonstrate CODING STYLE, not specific solutions
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 # Pattern A: Combinational — inline arithmetic, no sub-modules
 FEWSHOT_XML_COMB = """\
@@ -66,9 +66,9 @@ endmodule
 """
 
 
-# ══════════════════════════════════════════════════════════════
-# 1. CONVERTER: NL → COMBA XML
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
+# 1. CONVERTER: NL -> COMBA XML
+# ---------------------------------------------------------------
 
 CONVERTER_SYSTEM_PROMPT = """\
 You are a hardware design specification converter.
@@ -90,16 +90,16 @@ Convert natural language module descriptions into COMBA XML format.
    Do NOT list internal implementation signals (regs, wires, shift registers, etc.)
    in `<parameter_description>`. Those belong in `<logic_description>`.
 5. `<logic_description>` (optional) — signal-level:
-   - `type="sequential_logic"` → reg, clocked
-   - `type="combinational_logic"` → wire / always @(*)
+   - `type="sequential_logic"` -> reg, clocked
+   - `type="combinational_logic"` -> wire / always @(*)
 6. `<implementation>` — detailed behavior (inline behavioral description only).
 7. `<task>` (optional)
 
 ## CRITICAL: Self-Contained Implementation
 - If the spec mentions "instantiate X", "use sub-module X", or "hierarchical":
-  → Describe the equivalent INLINE behavior in `<implementation>`.
-  → Do NOT describe instantiation of sub-modules in XML — write the algorithm directly.
-  → Example: "design an 8-bit adder and instantiate twice" →
+  -> Describe the equivalent INLINE behavior in `<implementation>`.
+  -> Do NOT describe instantiation of sub-modules in XML — write the algorithm directly.
+  -> Example: "design an 8-bit adder and instantiate twice" ->
     describe as "implement 16-bit addition inline using a single assign statement".
 - `<parameter_description>` must ONLY contain FSM state names and numeric constants
   that appear explicitly in the spec (e.g., ADD=6'b100000).
@@ -126,9 +126,9 @@ converterPromptTemplate = ChatPromptTemplate([
 ])
 
 
-# ══════════════════════════════════════════════════════════════
-# 2. GENERATOR: COMBA XML → Verilog
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
+# 2. GENERATOR: COMBA XML -> Verilog
+# ---------------------------------------------------------------
 
 GENERATOR_SYSTEM_PROMPT = """\
 You are a professional Verilog RTL code generator.
@@ -146,7 +146,7 @@ Do NOT just return an empty module or a module with only port declarations.
 
 ## INTERFACE ALIGNMENT
 The module header (name and ports) is FIXED and forced by the testbench.
-1. **Rule: `output` → `output reg` promotion is REQUIRED if assigned in an `always` block.**
+1. **Rule: `output` -> `output reg` promotion is REQUIRED if assigned in an `always` block.**
    - If you assign an output port inside an `always` block, you MUST declare it as `output reg`.
    - This is NOT a port rename — the port name, width, and direction stay identical.
    - **ANTI-PATTERN (FORBIDDEN)**: Do NOT use internal aliases like `wave_reg`:
@@ -163,8 +163,8 @@ The module header (name and ports) is FIXED and forced by the testbench.
 ### R1: SELF-CONTAINED — no external sub-modules
 - ALL logic must reside in a SINGLE file.
 - If the spec or XML mentions "instances of X", "sub-components", "hierarchical", or uses an `<instance>` tag:
-  → DO NOT write a module instantiation.
-  → Implement the equivalent logic INLINE. For example, if it's a RAM instance, declare a memory array (`reg [WIDTH-1:0] mem [0:DEPTH-1];`) and write the read/write logic inline.
+  -> DO NOT write a module instantiation.
+  -> Implement the equivalent logic INLINE. For example, if it's a RAM instance, declare a memory array (`reg [WIDTH-1:0] mem [0:DEPTH-1];`) and write the read/write logic inline.
 - NEVER instantiate a module unless you also provide its full definition.
 
 ### R2: ASSIGNMENT DISCIPLINE & OUTPUT DECLARATIONS
@@ -173,8 +173,8 @@ The module header (name and ports) is FIXED and forced by the testbench.
   - Plain `output` is a wire — assigning a wire inside `always` is ILLEGAL in Verilog.
   - Correct:   `output reg [3:0] count`
   - Incorrect: `output [3:0] count` (when count appears in `always @(posedge clk) count <= ...`)
-- `always @(*)` or `assign` → use BLOCKING (`=`) only.
-- `always @(posedge clk)` → use NON-BLOCKING (`<=`) only.
+- `always @(*)` or `assign` -> use BLOCKING (`=`) only.
+- `always @(posedge clk)` -> use NON-BLOCKING (`<=`) only.
 - Never mix `=` and `<=` on the same signal.
 
 ### R3: VARIABLE BIT-SELECT
@@ -183,25 +183,25 @@ The module header (name and ports) is FIXED and forced by the testbench.
 
 ### R4: SHIFT & ALU (MIPS convention)
 - For MIPS-style shift instructions (SLL/SRL/SRA/SLLV/SRLV/SRAV):
-  → VALUE (data to be shifted) = `b`
-  → AMOUNT (shift count)       = `a[4:0]`
-  → ALWAYS use `<<`, `>>`, `>>>` operators. NEVER implement shift via concatenation.
-  → `{{a[31:0], a[31:0]}}` or `{{b[0], a[31:1]}}` style is WRONG for shifts.
+  -> VALUE (data to be shifted) = `b`
+  -> AMOUNT (shift count)       = `a[4:0]`
+  -> ALWAYS use `<<`, `>>`, `>>>` operators. NEVER implement shift via concatenation.
+  -> `{{a[31:0], a[31:0]}}` or `{{b[0], a[31:1]}}` style is WRONG for shifts.
 - Load-upper-immediate (LUI): source operand is **`a`** (the first operand), NEVER `b`.
-  → CORRECT:   `LUI: res = {{a[15:0], 16'b0}};`
-  → FORBIDDEN: `LUI: res = {{b[15:0], 16'b0}};`  ← This is the #1 ALU bug — DO NOT do this.
-  → Reason: in MIPS LUI rt, imm, the immediate is encoded into the `a` operand by convention used by this benchmark's testbenches.
+  -> CORRECT:   `LUI: res = {{a[15:0], 16'b0}};`
+  -> FORBIDDEN: `LUI: res = {{b[15:0], 16'b0}};`  (Immediate is in operand a)
+  -> Reason: in MIPS LUI rt, imm, the immediate is encoded into the `a` operand by convention used by this benchmark's testbenches.
 - Arithmetic right shift (generic): `$signed(value) >>> amount`.
 
 ### R5: COMBINATIONAL MULTI-STEP ALGORITHMS
 - Iterative algorithms (division, CRC, etc.) in combinational logic MUST:
-  → Use a for-loop with BLOCKING assignments (=).
-  → Process ALL bits, not just one iteration.
-  → Never use <= in combinational always @(*).
+  -> Use a for-loop with BLOCKING assignments (=).
+  -> Process ALL bits, not just one iteration.
+  -> Never use <= in combinational always @(*).
 
 ### R6: FSM / SEQUENCE DETECTION
 - The FIRST bit of the sequence determines S0's transition.
-  e.g., sequence starts with '1' → S0 waits for IN=1, NOT IN=0.
+  e.g., sequence starts with '1' -> S0 waits for IN=1, NOT IN=0.
 - For overlapping detection, after a match, go to the state matching the longest proper suffix of the sequence that is also a prefix.
 
 ### R7: TIMER / COUNTER FSM
@@ -258,7 +258,7 @@ The module header (name and ports) is FIXED and forced by the testbench.
 - KARNAUGH MAPS (K-MAP):
   * K-map columns and rows use GRAY CODE order: 00, 01, 11, 10 (NOT binary 00, 01, 10, 11).
   * If labels are `ab` on top and `cd` on left: column index gives (a,b), row index gives (c,d).
-  * To read cell at row=`cd`=10 col=`ab`=11: that means a=1,b=1,c=1,d=0 → index `{{a,b,c,d}}` = 4'b1110.
+  * To read cell at row=`cd`=10 col=`ab`=11: that means a=1,b=1,c=1,d=0 -> index `{{a,b,c,d}}` = 4'b1110.
   * SAFEST APPROACH: Enumerate all 16 minterms using a `case({{a,b,c,d}})` statement. Read each cell one by one from the grid. Do NOT try to simplify with SOP/POS — just list all 16 cases explicitly.
   * For K-maps with `x[1]x[2]` on top and `x[3]x[4]` on left, x[1] is MSB of column pair, x[2] is LSB of column pair, etc.
   * d (don't-care) entries: you may set them to 0 or 1 — choose whichever simplifies logic.
@@ -271,7 +271,7 @@ The module header (name and ports) is FIXED and forced by the testbench.
   * DO NOT confuse with Fibonacci LFSR (which XORs taps to produce feedback for bit 0).
 - CELLULAR AUTOMATA (Rule 90, Rule 110):
   * Rule N: convert N to 8-bit binary. This gives the output for each 3-bit neighborhood (left, center, right) from 111 down to 000.
-  * Rule 110 = 8'b01101110: neighborhood 111→0, 110→1, 101→1, 100→0, 011→1, 010→1, 001→1, 000→0.
+  * Rule 110 = 8'b01101110: neighborhood 111->0, 110->1, 101->1, 100->0, 011->1, 010->1, 001->1, 000->0.
   * Rule 90 = 8'b01011010: simply `next[i] = left ^ right` (XOR of neighbors).
   * Implement as: `for each bit i, compute {{left,center,right}}` then use case or lookup.
   * Boundaries: assume q[-1]=0 and q[N]=0 (off).
@@ -281,20 +281,20 @@ The module header (name and ports) is FIXED and forced by the testbench.
 
 ### R13: COMBINATIONAL OUTPUT PORTS THAT MIRROR INTERNAL STATE
 - If a spec says "the output X is assigned/equal to internal signal Y" (e.g. "assign clock = cnt"), implement it with **continuous assignment** (`assign`), NOT inside an `always @(posedge clk)` block.
-  → CORRECT:   `output [7:0] clock; ... assign clock = cnt;`
-  → FORBIDDEN: `output reg [7:0] clock; ... always @(posedge clk) clock <= cnt;`
+  -> CORRECT:   `output [7:0] clock; ... assign clock = cnt;`
+  -> FORBIDDEN: `output reg [7:0] clock; ... always @(posedge clk) clock <= cnt;`
 - Reason: Wrapping the mirror in `always @(posedge clk)` delays the output by 1 cycle, AND the value at reset is 0 (the default) instead of the actual reset value of the internal reg — a silent off-by-one + reset-value bug.
 - Test for this pattern: if the only thing happening to an output is "X = Y" where Y is a `reg`, use `assign`. Reserve `output reg` only for outputs that have their own distinct sequential logic.
 
 ### R14: PREDICTIVE COMPARISON FOR COUNTER WRAP / DIRECTION CHANGE
-- When a counter must wrap or change direction at boundary N (e.g. wave goes 0→1→...→31→30→...→0→1...):
-  → Compare against `N-1` BEFORE incrementing, not against `N` after.
-  → CORRECT (up-counter wrap at 31):
+- When a counter must wrap or change direction at boundary N (e.g. wave goes 0->1->...->31->30->...->0->1...):
+  -> Compare against `N-1` BEFORE incrementing, not against `N` after.
+  -> CORRECT (up-counter wrap at 31):
       `always @(posedge clk) begin
          if (count == 5'd30) state <= 1; // arrive at 31 next cycle, then switch
          count <= count + 1;
        end`
-  → BUGGY (off-by-one): `if (count == 5'd31) state <= 1; count <= count + 1;`
+  -> BUGGY (off-by-one): `if (count == 5'd31) state <= 1; count <= count + 1;`
        This makes the direction change happen ONE cycle late, so the output
        overshoots the boundary by one tick.
 - Same rule for down-counters: compare against `1` before decrementing to 0,
@@ -305,9 +305,9 @@ The module header (name and ports) is FIXED and forced by the testbench.
   (e.g. "cnt is 10 decimal on reset", "minutes reset to 12:00").
 - The reset value applies to the INTERNAL register AND any combinational output
   that mirrors it.
-  → If `assign clock = cnt;` and reset says `cnt <= 8'd10;`, then `clock` is
+  -> If `assign clock = cnt;` and reset says `cnt <= 8'd10;`, then `clock` is
      also 10 immediately on reset — that is automatic.
-  → If you instead made `clock` a separate `reg`, you must ALSO set
+  -> If you instead made `clock` a separate `reg`, you must ALSO set
      `clock <= 8'd10` in the reset branch.
 
 ### R16: OUTPUT TIMING — MEALY vs MOORE vs DELAYED
@@ -320,11 +320,11 @@ The module header (name and ports) is FIXED and forced by the testbench.
   if the spec explicitly defines a `reg` like `p_X` then `X <= p_X;` in clocked
   block, follow it EXACTLY — do NOT collapse the intermediate.
 
-## XML → Verilog Mapping
+## XML -> Verilog Mapping
 - Module name = `<module id>`, ports = `<input id>` / `<output id>`.
-- `width_description` → signal width.
-- `sequential_logic` → reg + always @(posedge clk).
-- `combinational_logic` → wire/assign or always @(*).
+- `width_description` -> signal width.
+- `sequential_logic` -> reg + always @(posedge clk).
+- `combinational_logic` -> wire/assign or always @(*).
 - Code must pass Verilator.
 
 ## Style Reference
@@ -354,9 +354,9 @@ generatorPromptTemplate = ChatPromptTemplate([
 ])
 
 
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # 2b. CLASSIFIER: Problem Category Detection
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 CLASSIFIER_SYSTEM_PROMPT = """\
 Classify this Verilog design specification into exactly ONE category.
@@ -424,44 +424,44 @@ Before writing Verilog, you MUST:
 
 
 
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # 3. EDP: Syntax Error Fix
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 EDP_SYSTEM_PROMPT = """\
 You are a Verilog syntax debugging expert.
 Fix the TOPMOST iverilog error. Return the complete corrected code only.
 
-## Error → Fix Mapping
+## Error -> Fix Mapping
 - "Cannot find file containing module: 'X'"
-  → REMOVE instantiation. Rewrite with inline behavioral RTL.
+  -> REMOVE instantiation. Rewrite with inline behavioral RTL.
 - "Signal not found" / "IMPLICIT"
-  → Declare the signal with correct width as wire or reg.
+  -> Declare the signal with correct width as wire or reg.
 - "UNDRIVEN"
-  → Drive the signal via assign or always block.
+  -> Drive the signal via assign or always block.
 - "MULTIDRIVEN"
-  → Remove duplicate drivers. One signal, one driver.
+  -> Remove duplicate drivers. One signal, one driver.
 - "BLKANDNBLK"
-  → Separate into comb (=) and seq (<=) blocks. Never both on same signal.
+  -> Separate into comb (=) and seq (<=) blocks. Never both on same signal.
 - "COMBDLY"
-  → Replace <= with = inside always @(*) blocks.
+  -> Replace <= with = inside always @(*) blocks.
 - "PROCASSWIRE" / "is not a valid l-value" / "declared here as wire"
-  → The output port is declared as plain `output` (wire) but assigned inside `always`.
-  → Fix: change `output foo` → `output reg foo` (or add `reg foo;` separately).
-  → NEVER leave an always-assigned output as a plain wire.
+  -> The output port is declared as plain `output` (wire) but assigned inside `always`.
+  -> Fix: change `output foo` -> `output reg foo` (or add `reg foo;` separately).
+  -> NEVER leave an always-assigned output as a plain wire.
 - "Expecting expression to be constant, variable isn't const" (bit-select)
-  → Replace signal[H:L+N*i] with signal[N*i +: W].
+  -> Replace signal[H:L+N*i] with signal[N*i +: W].
 - "Width mismatch" / "WIDTHEXPAND" / "WIDTHTRUNC"
-  → Adjust operand widths or use explicit zero/sign extension.
+  -> Adjust operand widths or use explicit zero/sign extension.
 - "syntax error, unexpected '.'"
-  → Sub-module port syntax used incorrectly. Likely needs inline rewrite.
+  -> Sub-module port syntax used incorrectly. Likely needs inline rewrite.
 - "Index ... is out of range"
-  → A generate/for loop accesses an index beyond the declared port width.
-  → Fix: tighten loop bounds to match the port declaration ([H:L] means H down to L).
+  -> A generate/for loop accesses an index beyond the declared port width.
+  -> Fix: tighten loop bounds to match the port declaration ([H:L] means H down to L).
 - "syntax error" (near endmodule or generally)
-  → You likely forgot an `end` for a `begin`, or an `endcase` for a `case`. Check block closures.
+  -> You likely forgot an `end` for a `begin`, or an `endcase` for a `case`. Check block closures.
 - "mixed clock edges"
-  → Do not mix `posedge` and `negedge` of the same signal.
+  -> Do not mix `posedge` and `negedge` of the same signal.
 
 ## Rules
 1. Fix ONLY the topmost error. Cascading errors resolve automatically.
@@ -498,9 +498,9 @@ edpPromptTemplate = ChatPromptTemplate([
 ])
 
 
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # 4. TDP: Functional Bug Fix
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 TDP_SYSTEM_PROMPT = """\
 You are a Verilog functional debugging expert.
@@ -538,9 +538,9 @@ If the SC log contains a warning like "Signal is not used: 'X'" and X is an INPU
 ### P3: Counter/Handshake Logic
 - Counter reload: Reset the counter in the SAME cycle as state transition. Use next-state (or state entry trigger) for the reload signal.
 - Handshake (opn_valid, res_ready, res_valid): 
-  → Set `res_valid` high only when the operation is DONE (last cycle).
-  → Clear `res_valid` when `res_ready` is asserted.
-  → Do NOT use `res_ready` as an l-value (it is an input from the testbench).
+  -> Set `res_valid` high only when the operation is DONE (last cycle).
+  -> Clear `res_valid` when `res_ready` is asserted.
+  -> Do NOT use `res_ready` as an l-value (it is an input from the testbench).
 - Default values: In combinational logic, always assign a default 0 (or wires to GND) for outputs. NEVER used high-impedance 'z' unless building a tri-state buffer.
 
 ### P4: K-map / Truth Table mismatches (many mismatches in small sample count)
@@ -555,7 +555,7 @@ If the SC log contains a warning like "Signal is not used: 'X'" and X is an INPU
 
 ### P6: Cellular Automata (Rule 90, Rule 110)
 - Must apply the rule to ALL 512 (or N) cells simultaneously each clock cycle.
-- Rule 110 truth table: 111→0, 110→1, 101→1, 100→0, 011→1, 010→1, 001→1, 000→0.
+- Rule 110 truth table: 111->0, 110->1, 101->1, 100->0, 011->1, 010->1, 001->1, 000->0.
 - Rule 90: `next[i] = q[i-1] ^ q[i+1]` (XOR of left and right neighbors only).
 - Boundaries: q[-1]=0, q[N]=0.
 
@@ -590,7 +590,7 @@ Symptom: at `rst_n=0` the output is non-zero when expected 0, OR the output
 is 0 when the spec says reset to a specific value (e.g. 10 for traffic_light's
 `cnt`/`clock`, or 8'h12 for a clock counter).
 Fix steps:
-1. Confirm reset polarity: spec says "active-low" → use `if (!rst_n)`.
+1. Confirm reset polarity: spec says "active-low" -> use `if (!rst_n)`.
 2. Confirm reset value matches the spec EXACTLY (not just 0).
 3. Ensure outputs are assigned in BOTH branches of the reset (no latches).
 4. For asynchronous reset, sensitivity list must include `negedge rst_n`.
@@ -645,7 +645,7 @@ tdpPromptTemplate = ChatPromptTemplate([
     ("system", TDP_SYSTEM_PROMPT),
     ("user", TDP_USER_PROMPT),
 ])
-# ── TDP pattern detection for hint injection ──
+# TDP pattern detection for hint injection
 _TDP_PATTERNS = {
     "unused_port": re.compile(r"Signal is not used:\s*'(\w+)'", re.I),
     "shift_concat": re.compile(
@@ -694,7 +694,7 @@ _TDP_HINTS = {
     "shift_concat": (
         "\n## HINT: Shift implemented as concatenation\n"
         "The code uses {{{{...}}}} concatenation for shift ops. This is WRONG.\n"
-        "Replace with: SLL→b<<a[4:0], SRL→b>>a[4:0], SRA→$signed(b)>>>a[4:0], LUI→{{a[15:0],16'b0}}\n"
+        "Replace with: SLL->b<<a[4:0], SRL->b>>a[4:0], SRA->$signed(b)>>>a[4:0], LUI->{{a[15:0],16'b0}}\n"
     ),
     "counter_mismatch": (
         "\n## HINT: Counter value offset\n"
@@ -839,9 +839,9 @@ def build_tdp_prompt(
         {"role": "user",   "content": user},
     ]
 
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # 5. CORRECTER: Legacy compatibility
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
 CORRECTER_SYSTEM_PROMPT = """\
 You are a Verilog debugger. Fix the specific error. Do not rewrite unnecessarily.
@@ -850,7 +850,7 @@ You are a Verilog debugger. Fix the specific error. Do not rewrite unnecessarily
 1. Preserve module name, ports, architecture.
 2. Must compile with iverilog.
 3. Self-contained — no external sub-modules.
-4. Phase "sc" → syntax fix. Phase "ts" → logic fix.
+4. Phase "sc" -> syntax fix. Phase "ts" -> logic fix.
 5. Return ONLY the complete fixed Verilog code.
 """
 
@@ -872,11 +872,11 @@ correcterPromptTemplate = ChatPromptTemplate([
     ("system", CORRECTER_SYSTEM_PROMPT),
     ("user", CORRECTER_USER_PROMPT),
 ])
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 # 6. BUILDER FUNCTIONS (merged from prompt_generator / prompt_edp)
-# ══════════════════════════════════════════════════════════════
+# ---------------------------------------------------------------
 
-# ── Error classification for EDP constraint injection ──
+# Error classification for EDP constraint injection
 _ERROR_PATTERNS = {
     "missing_module": re.compile(r"Cannot find file containing module", re.I),
     "blk_nonblk":    re.compile(r"BLKANDNBLK|Blocked and non-blocking", re.I),
@@ -913,7 +913,7 @@ _ERROR_CONSTRAINTS = {
     "procasswire": (
         "\n## CRITICAL: Output Port Declaration Mismatch\n"
         "An output port is declared as a wire (plain `output`) but assigned in an `always` block.\n"
-        "Fix: change `output foo` → `output reg foo` (or `output logic foo`) for all such ports.\n"
+        "Fix: change `output foo` -> `output reg foo` (or `output logic foo`) for all such ports.\n"
     ),
     "out_of_range": (
         "\n## CRITICAL: Array/Port Index Out of Range\n"

@@ -1,16 +1,16 @@
 """
-multi_sample.py — Hierarchical Self-Consistency for COMBA Pipeline.
+multi_sample.py - Hierarchical Self-Consistency for COMBA Pipeline.
 
 Wraps run_pipeline_sync() with N-sample best-of-N selection.
 
 Strategy:
     Tier 1: Sample 0 at T=0.0 (deterministic baseline)
-            → if pass → return immediately (1× cost, 60% of cases)
+            -> if pass -> return immediately (1x cost, 60% of cases)
     Tier 2: Samples 1..N-1 at increasing temperature
-            → run full pipeline per sample
-            → score each by (status, errs, size, idx)
-            → early exit on first PASS
-            → return best across all samples
+            -> run full pipeline per sample
+            -> score each by (status, errs, size, idx)
+            -> early exit on first PASS
+            -> return best across all samples
 
 Score priority (higher = better):
     (status_rank, -tb_err, -sc_err, -gvd_size, -sample_idx)
@@ -33,9 +33,9 @@ from typing import Optional, List, Tuple, Any
 
 logger = logging.getLogger(__name__)
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Config (env-overridable)
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 DEFAULT_MAX_SAMPLES   = int(os.getenv("COMBA_MAX_SAMPLES", "5"))
 DEFAULT_EARLY_EXIT    = os.getenv("COMBA_EARLY_EXIT", "1") == "1"
@@ -59,10 +59,10 @@ DIVERSITY_HINTS = (
     "DIVERSITY HINT: Reconsider register vs wire choices and reset polarity.",
     "DIVERSITY HINT: Add explicit default cases and ensure all states are reachable.",
     "DIVERSITY HINT: Use parameter literals instead of hardcoded magic numbers.",
-    "DIVERSITY HINT: Mind signedness — use `signed` wires and `>>>` only on signed operands so arithmetic shifts sign-extend correctly.",
+    "DIVERSITY HINT: Mind signedness - use `signed` wires and `>>>` only on signed operands so arithmetic shifts sign-extend correctly.",
     "DIVERSITY HINT: Derive status/flag outputs (zero, carry, negative, overflow) from the full-width internal result, not from a truncated slice.",
     "DIVERSITY HINT: Cover every operation/case-item explicitly and re-check each against the spec's exact bit semantics.",
-    "DIVERSITY HINT: Check boundary values — zero, max-width, shift-by-0, shift-by-≥width, and sign-bit transitions.",
+    "DIVERSITY HINT: Check boundary values - zero, max-width, shift-by-0, shift-by->=width, and sign-bit transitions.",
 )
 
 DIVERSITY_ENABLED = os.getenv("COMBA_DIVERSITY_HINTS", "1") == "1"
@@ -77,7 +77,7 @@ MEMORY_ENABLED = os.getenv("COMBA_SC_MEMORY", "0") == "1"
 # Off by default; enable with COMBA_SC_VOTE=1.
 VOTE_ENABLED = os.getenv("COMBA_SC_VOTE", "0") == "1"
 
-# Status → numeric rank for scoring (higher = better)
+# Status -> numeric rank for scoring (higher = better)
 STATUS_RANK = {
     "pass":             100,
     "fail_ts":           50,
@@ -91,9 +91,9 @@ STATUS_RANK = {
 }
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Sample result + scoring
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 @dataclass
 class SampleResult:
@@ -136,9 +136,9 @@ class SampleResult:
         }
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Helpers
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 _RE_ERR_LINE = re.compile(r"^\s*(?:%?Error|error)[: ]", re.M)
 
@@ -202,7 +202,7 @@ def _install_diversity_hint(llm: Any, hint: Optional[str]) -> Optional[Any]:
                 else:
                     patched_msgs.append(m)
             if not injected:
-                # no system message found — prepend a fresh one
+                # no system message found - prepend a fresh one
                 patched_msgs = [{"role": "system", "content": hint}] + list(messages)
             messages = patched_msgs
 
@@ -285,7 +285,7 @@ def _functional_signature(s: "SampleResult") -> Tuple:
     """
     Behavioral fingerprint for voting: (final_status, mismatch_count, failure).
     Two candidates with the same signature are treated as functionally
-    equivalent. Derived from existing TB data — no extra simulation runs.
+    equivalent. Derived from existing TB data - no extra simulation runs.
     """
     st = s.state or {}
     mism = None
@@ -303,8 +303,8 @@ def _vote(samples: List["SampleResult"]) -> "SampleResult":
     Functional self-consistency selection. Restrict to the best status tier
     (so a lone PASS is never overridden by a failing majority), cluster by
     functional signature, return the best-scoring member of the largest
-    cluster. Tie in size → cluster whose best member has the higher score.
-    Single-member tier → identical to score-based selection.
+    cluster. Tie in size -> cluster whose best member has the higher score.
+    Single-member tier -> identical to score-based selection.
     """
     best_rank = max(STATUS_RANK.get(s.final_status, 0) for s in samples)
     tier = [s for s in samples if STATUS_RANK.get(s.final_status, 0) == best_rank]
@@ -320,9 +320,9 @@ def _vote(samples: List["SampleResult"]) -> "SampleResult":
     return max(best_cluster, key=lambda s: s.score)
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Main entry point
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def run_with_self_consistency(
     nl_input: str,
@@ -357,23 +357,23 @@ def run_with_self_consistency(
     error_memory: Optional[str] = None  # topmost error from previous failed sample
 
     for idx in range(max(1, max_samples)):
-        # ── pick temperature ──
+        # --- pick temperature ---
         T = temperature_schedule[min(idx, len(temperature_schedule) - 1)]
 
-        # ── per-sample work_dir to avoid file collisions ──
+        # --- per-sample work_dir to avoid file collisions ---
         sample_work_dir = None
         if work_dir:
             sample_work_dir = f"{work_dir.rstrip('/')}__s{idx}"
         # if caller didn't pass work_dir, run_pipeline_sync creates its own
 
-        # ── set temperature, run, restore ──
+        # --- set temperature, run, restore ---
         prev_T = _set_temperature(llm, T)
 
-        # ── set diversity hint for sample idx > 0 ──
+        # --- set diversity hint for sample idx > 0 ---
         hint = None
         if DIVERSITY_ENABLED and idx > 0 and idx < len(DIVERSITY_HINTS):
             hint = DIVERSITY_HINTS[idx]
-        # ── cross-sample memory: warn about the previous attempt's failure ──
+        # --- cross-sample memory: warn about the previous attempt's failure ---
         if MEMORY_ENABLED and idx > 0 and error_memory:
             mem = (
                 f"PREVIOUS ATTEMPT FAILED WITH: {error_memory}\n"
@@ -409,7 +409,7 @@ def run_with_self_consistency(
             result.state["_diversity_hint"] = hint
         samples.append(result)
 
-        # ── remember this failure for the next sample's generator ──
+        # --- remember this failure for the next sample's generator ---
         if result.final_status != "pass":
             new_mem = _extract_error_memory(state)
             if new_mem:
@@ -417,11 +417,11 @@ def run_with_self_consistency(
 
         logger.info(
             f"[multi_sample] {module_name or 'module'} sample {idx} "
-            f"T={T} → {result.final_status} ({elapsed:.1f}s)"
+            f"T={T} -> {result.final_status} ({elapsed:.1f}s)"
             + (f" [hint: {hint[:40]}...]" if hint else "")
         )
 
-        # ── early exit checks ──
+        # --- early exit checks ---
         if early_exit and result.final_status == "pass":
             logger.info(f"[multi_sample] early exit on sample {idx} (PASS)")
             break
@@ -432,13 +432,13 @@ def run_with_self_consistency(
             )
             break
 
-    # ── pick best: functional voting (if enabled) else verifier-score ──
+    # --- pick best: functional voting (if enabled) else verifier-score ---
     if VOTE_ENABLED and len(samples) > 1:
         best = _vote(samples)
     else:
         best = max(samples, key=lambda s: s.score)
 
-    # ── annotate state ──
+    # --- annotate state ---
     final_state = dict(best.state)
     final_state["self_consistency"] = {
         "samples_run": len(samples),
@@ -459,18 +459,18 @@ def run_with_self_consistency(
     return final_state
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Convenience: should we use self-consistency? (env gate)
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 def is_enabled() -> bool:
     """Check env flag COMBA_SELF_CONSISTENCY."""
     return os.getenv("COMBA_SELF_CONSISTENCY", "0") == "1"
 
 
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 # Self-test (run with `python multi_sample.py`)
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
 
 if __name__ == "__main__":
     # Test 1: scoring tuple ordering
@@ -488,21 +488,21 @@ if __name__ == "__main__":
     b = SampleResult(1, 0.5, "fail_ts", 5, 5, 10, "x", 0, 1, 5.0, {})
     best = max([a, b], key=lambda s: s.score)
     assert best is b, "expected sample with fewer tb_err"
-    print(f"  test 2 OK: tied status → fewer errs")
+    print(f"  test 2 OK: tied status -> fewer errs")
 
     # Test 3: same status+errs, shorter GVD wins
     a = SampleResult(0, 0.0, "fail_ts", 5, 5, 10, "AAAAAAAAAA", 0, 1, 5.0, {})
     b = SampleResult(1, 0.5, "fail_ts", 5, 5, 10, "AAA", 0, 1, 5.0, {})
     best = max([a, b], key=lambda s: s.score)
     assert best is b, "expected shorter gvd to win"
-    print(f"  test 3 OK: tied errs → shorter GVD")
+    print(f"  test 3 OK: tied errs -> shorter GVD")
 
     # Test 4: same status+errs+size, earlier sample wins (determinism)
     a = SampleResult(0, 0.0, "fail_ts", 5, 5, 10, "X", 0, 1, 5.0, {})
     b = SampleResult(1, 0.5, "fail_ts", 5, 5, 10, "X", 0, 1, 5.0, {})
     best = max([a, b], key=lambda s: s.score)
     assert best is a, "expected earlier sample (determinism)"
-    print(f"  test 4 OK: tied all → earlier sample")
+    print(f"  test 4 OK: tied all -> earlier sample")
 
     # Test 5: error counter
     log = "%Error: foo\n%Error: bar\nWarning: baz\nerror: qux\n"
@@ -533,13 +533,13 @@ if __name__ == "__main__":
 
     llm = MockLLMCall()
     orig = _install_diversity_hint(llm, "DIVERSITY HINT: test123")
-    # Generator call → hint injected
+    # Generator call -> hint injected
     llm._call(
         [{"role": "system", "content": "you are a generator"},
          {"role": "user", "content": "make adder"}],
         client_mode="base", temperature=0.5, max_tokens=100,
     )
-    # Debugger call → hint NOT injected
+    # Debugger call -> hint NOT injected
     llm._call(
         [{"role": "system", "content": "you are a debugger"},
          {"role": "user", "content": "fix bug"}],
@@ -606,10 +606,10 @@ if __name__ == "__main__":
           _mkv(1, "fail_ts", "Mismatches: 2", tb_err=1),
           _mkv(2, "fail_ts", "Mismatches: 9", tb_err=1)]
     assert _functional_signature(_vote(sB))[1] == 2, "majority cluster (mism=2) must win"
-    # (c) tie in cluster size → fall back to score (fewer tb_err wins)
+    # (c) tie in cluster size -> fall back to score (fewer tb_err wins)
     sC = [_mkv(0, "fail_ts", "Mismatches: 2", tb_err=5),
           _mkv(1, "fail_ts", "Mismatches: 9", tb_err=1)]
-    assert _vote(sC).sample_idx == 1, "size tie → higher score wins"
-    print(f"  test 11 OK: functional voting (single-PASS / majority / tie→score)")
+    assert _vote(sC).sample_idx == 1, "size tie -> higher score wins"
+    print(f"  test 11 OK: functional voting (single-PASS / majority / tie->score)")
 
-    print("\n✅ All self-tests passed")
+    print("\n[OK] All self-tests passed")

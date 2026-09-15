@@ -2,9 +2,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # Result
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 @dataclass
 class SanitizeResult:
@@ -14,9 +14,9 @@ class SanitizeResult:
     warnings: list[str] = field(default_factory=list)  # Non-blocking warnings
     auto_fixed: bool = False                # True if code was auto-repaired
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # Regex Definitions
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 # S1
 RE_FENCE      = re.compile(r"```(?:verilog|sv|systemverilog)?\s*\n?|```", re.I)
@@ -273,9 +273,9 @@ def bypass_async_reset_penalty(code: str) -> str:
     return code
 
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # Main Function
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 def sanitize(
     raw_output: str,
@@ -299,23 +299,23 @@ def sanitize(
     if not raw_output or not raw_output.strip():
         return SanitizeResult(code=None, needs_retry=True, retry_prompt="LLM output is empty.")
 
-    # ── [S1] Strip markdown fences ──
+    # --------------------------------------------- [S1] Strip markdown fences ---
     code = RE_FENCE.sub("", raw_output)
 
-    # ── [S2] Normalize common hallucinations ──
+    # --------------------------------------------- [S2] Normalize common hallucinations ---
     code = re.sub(r'\bdmodule\b', 'endmodule', code)
 
-    # ── [S2.5] Strip XML/HTML tags (Conservative) ──
+    # --------------------------------------------- [S2.5] Strip XML/HTML tags (Conservative) ---
     # We only strip specific tags known to be part of the COMBA XML schema
     code = RE_HTML_CMT.sub("", code)
     code = RE_XML_TAG.sub("", code)
 
-    # ── [S3] Strip Verilog comments ──
+    # --------------------------------------------- [S3] Strip Verilog comments ---
     # We do this early to avoid 'module' keywords in comments confusing extraction
     code = RE_LINE_CMT.sub("", code)
     code = RE_BLOCK_CMT.sub("", code)
 
-    # ── [S4] Extract module block ──
+    # --------------------------------------------- [S4] Extract module block ---
     extracted_module_name = expected_module_name
     if expected_header:
         match = re.search(r'module\s+(\w+)', expected_header)
@@ -377,7 +377,7 @@ def sanitize(
     blocks = list(unique_blocks.values())
 
     if not blocks:
-        # ── Check for header-only truncation ──
+        # --------------------------------------------- Check for header-only truncation ---
         # The LLM may have produced a valid module header but stopped before the body
         header_match = re.search(r'(module\s+\w+\s*(?:\([^)]*\)|#\([^)]*\)\s*\([^)]*\))\s*;)', code, re.S)
         if header_match:
@@ -478,18 +478,18 @@ def sanitize(
     else:
         code = max(blocks, key=len)
 
-    # ── [S5] Strip prose lines ──
+    # --------------------------------------------- [S5] Strip prose lines ---
     lines = code.splitlines()
     clean_lines = [l for l in lines if not _is_prose_line(l)]
     code = "\n".join(clean_lines)
 
-    # ── [S6] Normalize whitespace ──
+    # --------------------------------------------- [S6] Normalize whitespace ---
     code = RE_MULTI_BLANK.sub("\n\n", code).strip()
 
-    # ── [S7] (New) Structural Checks ──
+    # --------------------------------------------- [S7] (New) Structural Checks ---
     warnings.extend(run_structural_checks(code, expected_header, expected_module_name))
 
-    # ── [S8] Auto-Repair: Reg Promotion ──
+    # --------------------------------------------- [S8] Auto-Repair: Reg Promotion ---
     # If warnings mentioned reg promotion, let's try to fix it automatically
     has_reg_promotion_fix = False
     if any("assigned in always block but NOT declared as 'reg'" in w for w in warnings):
@@ -508,7 +508,7 @@ def sanitize(
         if has_reg_promotion_fix:
             warnings.append("Auto-repaired: Promoted output ports to 'reg' for always-block assignments.")
 
-    # ── [S8b] Auto-Repair: Missing endcase ──
+    # --------------------------------------------- [S8b] Auto-Repair: Missing endcase ---
     # The LLM frequently drops 'endcase' after case blocks, causing persistent
     # syntax errors. Count case vs endcase and insert missing ones.
     case_count = len(re.findall(r'\bcase[zx]?\s*\(', code))
@@ -562,7 +562,7 @@ def sanitize(
             auto_fixed = True
             warnings.append(f"Auto-repaired: Inserted {missing} missing 'endcase' keyword(s).")
 
-    # ── [S8c] Auto-Repair: Missing end ──
+    # --------------------------------------------- [S8c] Auto-Repair: Missing end ---
     # The LLM frequently drops 'end' before new top-level blocks or endmodule.
     # Count begin vs end keywords and insert missing ones.
     def _fix_missing_end(code_text):
@@ -597,11 +597,11 @@ def sanitize(
         auto_fixed = True
         warnings.append("Auto-repaired: Inserted missing 'end' keyword(s).")
 
-    # ── [S8d] Auto-Repair: Missing `else` in single-line if/reset pattern ──
+    # --------------------------------------------- [S8d] Auto-Repair: Missing `else` in single-line if/reset pattern ---
     # Pattern observed in VE_testbench Prob048:
     #     if (r)
     #       q <= 1'b0;
-    #       q <= d;       ← runs unconditionally, overrides the reset
+    #       q <= d;       (runs unconditionally, overrides the reset)
     # LLM intent is "if (r) q<=0; else q<=d;" but it forgot the else.
     # Without begin/end, the second statement runs every cycle.
     # If we see this exact pattern (same LHS, no else, no begin), insert `else`.
@@ -636,7 +636,7 @@ def sanitize(
             "(same LHS assigned twice with no else — second was unconditionally overriding)."
         )
 
-    # ── [S8e] Auto-Repair: Bypass Asynchronous Reset Penalty ──
+    # --------------------------------------------- [S8e] Auto-Repair: Bypass Asynchronous Reset Penalty ---
     new_code = bypass_async_reset_penalty(code)
     if new_code != code:
         code = new_code

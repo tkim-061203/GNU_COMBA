@@ -1,13 +1,13 @@
 """
-COMBA-PROMPT LangGraph — Full Graph Definition
+COMBA-PROMPT LangGraph - Full Graph Definition
 ================================================
-7 nodes · 5 conditional edges · EDTM · Rollback · Iteration Control · FR
+7 nodes - 5 conditional edges - EDTM - Rollback - Iteration Control - FR
 
 State Machine (see state_machine diagram):
-  START → converter → [XML valid?] → generator → syntax_check
-    Ⓐ SC pass? → YES → tb_sim → Ⓑ TS pass? → YES → END
-    Ⓐ SC fail? → ted_syntax → [limit?] → correcter ↻ syntax_check
-    Ⓑ TS fail? → ted_tb     → [limit?] → correcter ↻ syntax_check
+  START -> converter -> [XML valid?] -> generator -> syntax_check
+    (A) SC pass? -> YES -> tb_sim -> (B) TS pass? -> YES -> END
+    (A) SC fail? -> ted_syntax -> [limit?] -> correcter -> syntax_check
+    (B) TS fail? -> ted_tb     -> [limit?] -> correcter -> syntax_check
 
 Usage:
     from graph import build_graph
@@ -25,9 +25,9 @@ from prompts import build_generation_prompt, build_edp_prompt
 logger = logging.getLogger(__name__)
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 1. STATE SCHEMA
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 class COMBAState(TypedDict, total=False):
     # Input
@@ -76,9 +76,9 @@ class COMBAState(TypedDict, total=False):
     fixed_ts_failures: int
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 2. REGEX PARSERS
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 SC_PATTERN = re.compile(
     r'%(Error|Warning)(-(\w+))?:\s*([^:]+):(\d+):\d*:?\s*(.*)',
@@ -118,9 +118,9 @@ def parse_ts_log(raw_log: str) -> list[dict]:
     return out
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 3. VERILATOR WRAPPER
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def _mod_name(code: str) -> str:
     m = re.search(r'module\s+(\w+)', code)
@@ -163,9 +163,9 @@ def run_verilator_ts(code: str, tb_path: str, work_dir: str | None = None) -> di
         return {"success": False, "raw_log": f"%Error: {e}"}
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 4. EDTM
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def _sc_key(e): return f"{e.get('exceptionType','')}_{e.get('exceptionTitle','')}_{e.get('exceptionContent','')[:60]}"
 def _ts_key(f): return f"{f.get('todoNum',0)}_{f.get('failureContent','')[:60]}"
@@ -173,9 +173,9 @@ def _edtm_inc(d, k): d[k] = d.get(k, 0) + 1; return d[k]
 def _edtm_over(d, k, lim): return d.get(k, 0) >= lim
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 5. ROLLBACK
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def _should_rollback(state, new_exc_count):
     if not state.get("rollback_enabled"): return False
@@ -192,28 +192,28 @@ def _save_sgvd(state):
     return v
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 6. CUSTOM VECTORS
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 CUSTOM_VECTORS = {
-    "WIDTHEXPAND":    "Bit width expansion — LHS/RHS widths should match.",
-    "WIDTHTRUNC":     "Bit width truncation — check port widths.",
+    "WIDTHEXPAND":    "Bit width expansion - LHS/RHS widths should match.",
+    "WIDTHTRUNC":     "Bit width truncation - check port widths.",
     "UNUSEDSIGNAL":   "Signal declared but never read.",
     "UNOPTFLAT":      "Combinational loop or unoptimizable.",
     "BLKANDNBLK":     "Mixed blocking/non-blocking on same signal.",
-    "PROCASSWIRE":    "Wire in procedural block — use reg.",
+    "PROCASSWIRE":    "Wire in procedural block - use reg.",
     "UNDRIVEN":       "Signal never assigned.",
     "MULTIDRIVEN":    "Signal driven from multiple always blocks.",
     "PINMISSING":     "Missing port connection in instantiation.",
     "CASEINCOMPLETE": "Case missing default.",
-    "LATCH":          "Inferred latch — add else/default.",
+    "LATCH":          "Inferred latch - add else/default.",
 }
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 7. VERILOG EXTRACTION
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def _extract_verilog(raw: str) -> str:
     m = re.search(r'```(?:verilog|v)?\s*\n(.*?)```', raw, re.DOTALL)
@@ -223,9 +223,9 @@ def _extract_verilog(raw: str) -> str:
     return raw.strip()
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 8. NODE DEFINITIONS (7 nodes)
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def _make_nodes(llm):
     """llm.generate(messages, model="base"|"lora") -> str"""
@@ -264,7 +264,7 @@ def _make_nodes(llm):
 
         # Rollback?
         if _should_rollback(state, n):
-            logger.info("ROLLBACK → revert SGVD")
+            logger.info("ROLLBACK -> revert SGVD")
             rolled = _do_rollback(state)
             return {"gvd": rolled, "sc_log": res["raw_log"],
                     "sc_exceptions": parse_sc_log(run_verilator_sc(rolled)["raw_log"]),
@@ -369,9 +369,9 @@ def _make_nodes(llm):
                 correcter=node_correcter, tb_sim=node_tb_sim, ted_tb=node_ted_tb)
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 9. CONDITIONAL EDGES
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def _route_converter(s):
     if s.get("xml_valid"): return "generator"
@@ -395,9 +395,9 @@ def _route_ted_ts(s):
     return END if s.get("phase") == "done" else "correcter"
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 10. GRAPH BUILDER
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def build_graph(llm) -> Any:
     """Build COMBA LangGraph. llm needs .generate(msgs, model=)."""
@@ -425,9 +425,9 @@ def build_graph(llm) -> Any:
     return wf.compile()
 
 
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 # 11. FIX RATE CALCULATOR
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
 
 def calculate_fix_rate(result: COMBAState) -> dict:
     """FR_i = fixed / total for one design."""

@@ -1,13 +1,13 @@
 """
-LLM Interface for COMBA Pipeline — Dual-GPU routing.
+LLM Interface for COMBA Pipeline - Dual-GPU routing.
 
 Wraps VLLMInterface as LangChain-compatible BaseChatModel so
 the pipeline can seamlessly switch between base model (GPU 0)
 and LoRA debugger (GPU 1).
 
 Architecture:
-    GPU 0 (:8000) → base model   → Converter + Generator  (call_llm_base)
-    GPU 1 (:8001) → base + LoRA  → Correcter              (call_llm_lora)
+    GPU 0 (:8000) -> base model   -> Converter + Generator  (call_llm_base)
+    GPU 1 (:8001) -> base + LoRA  -> Correcter              (call_llm_lora)
 
 Usage:
     # From pipeline
@@ -38,7 +38,7 @@ class COMBALlm(BaseChatModel):
     Unified LLM interface for the COMBA pipeline.
 
     Supports three modes:
-      - "dual"    : 2 vLLM servers, route base→GPU0, lora→GPU1
+      - "dual"    : 2 vLLM servers, route base->GPU0, lora->GPU1
       - "single"  : 1 vLLM server with LoRA, same client
       - "langchain": Use LangChain ChatOpenAI directly (dev mode)
     """
@@ -90,7 +90,7 @@ class COMBALlm(BaseChatModel):
             f"base={self.base_url} | debugger={self.debugger_url}"
         )
 
-    # ── Mode Switching ──────────────────────────────────────
+    # --- Mode Switching ---
 
     def switch_to_base(self):
         """Route subsequent _generate() calls to base model (GPU 0)."""
@@ -102,7 +102,7 @@ class COMBALlm(BaseChatModel):
         self.mode = "debugger"
         logger.debug("[COMBALlm] Switched to LORA/DEBUGGER mode")
 
-    # ── Direct Call Methods ─────────────────────────────────
+    # --- Direct Call Methods ---
 
     def call_llm_base(
         self,
@@ -148,10 +148,10 @@ class COMBALlm(BaseChatModel):
             model = self.model_base
 
         # Reproducible sampling: with COMBA_LLM_SEED set, derive a per-request
-        # seed from (base seed, prompt, temperature). Same run config → same
+        # seed from (base seed, prompt, temperature). Same run config -> same
         # outputs (vLLM honors per-request seed), so run-to-run variance stops
         # drowning real effects in benchmarks; different prompts/temps still
-        # sample differently. Unset → previous unseeded behavior.
+        # sample differently. Unset -> previous unseeded behavior.
         seed = None
         base_seed = os.environ.get("COMBA_LLM_SEED", "").strip()
         if base_seed:
@@ -194,7 +194,7 @@ class COMBALlm(BaseChatModel):
                     raise
                 time.sleep(2 ** attempt)
 
-    # ── BaseChatModel Interface ─────────────────────────────
+    # --- BaseChatModel Interface ---
 
     def _generate(
         self,
@@ -228,7 +228,7 @@ class COMBALlm(BaseChatModel):
         generation = ChatGeneration(message=message)
         return ChatResult(generations=[generation])
 
-    # ── Factory Methods ─────────────────────────────────────
+    # --- Factory Methods ---
 
     @classmethod
     def from_env(cls) -> "COMBALlm":
@@ -265,7 +265,7 @@ class COMBALlm(BaseChatModel):
         # Return a thin wrapper that delegates to the provided llm
         return _LangChainWrapper(wrapped_llm=llm)
 
-    # ── Health ──────────────────────────────────────────────
+    # --- Health ---
 
     def health_check(self) -> Dict[str, Any]:
         """Check server health."""
