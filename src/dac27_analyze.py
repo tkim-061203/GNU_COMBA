@@ -6,12 +6,19 @@ Reads   <root>/<model>/<feedback>/<suite>/heldout.json          (RTLLM v1/v2)
 Writes  <out>/numbers.tex   LaTeX macros  \\R{model}{fb}{suite}{metric}
         <out>/arms.csv      one row per arm
         <out>/paired.csv    paired contrasts (same tasks, two arms)
+        <out>/contam.csv    model gap on leaked vs clean tasks (needs --leaked-json)
 
 Statistics (all over TASKS, the unit that is sampled from the benchmark):
   pass@1   mean over tasks of c/n (unbiased for n trials)
   CI       95% percentile bootstrap over tasks, B=10000, fixed seed
   paired   mean per-task difference with paired bootstrap CI, plus an exact
            two-sided sign test over tasks whose c differs
+  contam   per-task gap d = p1(A) - p1(B) between two models at the same
+           feedback, split into leaked and clean tasks. Comparing the gap, not
+           the raw score, holds task difficulty fixed within each subset, and
+           contamination both models share (the common pretrained base)
+           cancels. Reports the gap on each subset, their difference with a
+           stratified bootstrap CI, and a label-permutation p-value.
 Nothing is printed into the paper that is not computed here.
 """
 from __future__ import annotations
@@ -162,6 +169,28 @@ def paired(ra: dict, rb: dict) -> dict:
             "a_better": int((d > 0).sum()), "b_better": int((d < 0).sum()), "p_sign": sign_test(d)}
 
 
+def contam(ra: dict, rb: dict, leak: set) -> dict | None:
+    common = sorted(set(ra["tasks"]) & set(rb["tasks"]))
+    d = np.array([ra["tasks"][t][0] / ra["tasks"][t][1] - rb["tasks"][t][0] / rb["tasks"][t][1] for t in common])
+    is_l = np.array([t in leak for t in common])
+    dl, dc = d[is_l], d[~is_l]
+    if len(dl) == 0 or len(dc) == 0:
+        return None
+    rng = np.random.default_rng(SEED)
+    ml = dl[rng.integers(0, len(dl), size=(B, len(dl)))].mean(axis=1)
+    mc = dc[rng.integers(0, len(dc), size=(B, len(dc)))].mean(axis=1)
+    did = ml - mc
+    obs = dl.mean() - dc.mean()
+    perm = np.argsort(rng.random((B, len(d))), axis=1)[:, :len(dl)]   # random leaked-label sets
+    pl = d[perm].mean(axis=1)
+    pc = (d.sum() - d[perm].sum(axis=1)) / len(dc)
+    p_perm = (int((np.abs(pl - pc) >= abs(obs) - 1e-12).sum()) + 1) / (B + 1)
+    pct = lambda x: (100 * float(np.percentile(x, 2.5)), 100 * float(np.percentile(x, 97.5)))
+    return {"n_leak": len(dl), "n_clean": len(dc),
+            "leak": 100 * dl.mean(), "leak_ci": pct(ml), "clean": 100 * dc.mean(), "clean_ci": pct(mc),
+            "did": 100 * obs, "did_ci": pct(did), "p_perm": p_perm}
+
+
 # ------------------------------------------------------------------ output
 def fmt(v, nd=1):
     return "--" if v is None else f"{v:.{nd}f}"
@@ -231,6 +260,30 @@ def main() -> None:
         tex.append(macro(f"{name}-ci", f"[{fmt(p['lo'])}, {fmt(p['hi'])}]"))
         tex.append(macro(f"{name}-p", f"{p['p_sign']:.2g}"))
 
+    # contamination: does the fine-tuned model gain more on tasks its corpus contains?
+    cont = []
+    for suite in SUITES:
+        if suite not in leaked:
+            continue
+        leak = set(leaked[suite])
+        seen = {t for (m, f, s_), r in arms.items() if s_ == suite for t in r["tasks"]}
+        missing = sorted(leak - seen)
+        if seen and missing:
+            print(f"warning: {len(missing)} leaked {suite} names not in any arm, e.g. {missing[:3]}")
+        for fb in fbs:
+            for ma, mb in (("full", "base"), ("gen", "base")):
+                if (ma, fb, suite) in arms and (mb, fb, suite) in arms:
+                    c = contam(arms[(ma, fb, suite)], arms[(mb, fb, suite)], leak)
+                    if c:
+                        cont.append((f"contam-{ma}-vs-{mb}-{fb}-{suite}", c))
+    for name, c in cont:
+        for m in ("leak", "clean", "did"):
+            tex.append(macro(f"{name}-{m}", fmt(c[m])))
+            tex.append(macro(f"{name}-{m}ci", f"[{fmt(c[m + '_ci'][0])}, {fmt(c[m + '_ci'][1])}]"))
+        tex.append(macro(f"{name}-p", f"{c['p_perm']:.2g}"))
+        tex.append(macro(f"{name}-nleak", str(c["n_leak"])))
+        tex.append(macro(f"{name}-nclean", str(c["n_clean"])))
+
     (out / "numbers.tex").write_text("".join(tex))
     with open(out / "arms.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=sorted({k for r in rows for k in r}))
@@ -239,7 +292,16 @@ def main() -> None:
         w = csv.writer(f); w.writerow(["contrast", "tasks", "diff", "lo", "hi", "a_better", "b_better", "p_sign"])
         for name, p in pairs:
             w.writerow([name, p["tasks"], fmt(p["diff"]), fmt(p["lo"]), fmt(p["hi"]), p["a_better"], p["b_better"], f"{p['p_sign']:.3g}"])
-    print(f"{len(arms)} arms, {len(pairs)} contrasts -> {out}")
+    if cont:
+        with open(out / "contam.csv", "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["contrast", "n_leak", "n_clean", "gap_leak", "leak_lo", "leak_hi",
+                        "gap_clean", "clean_lo", "clean_hi", "did", "did_lo", "did_hi", "p_perm"])
+            for name, c in cont:
+                w.writerow([name, c["n_leak"], c["n_clean"], fmt(c["leak"]), fmt(c["leak_ci"][0]), fmt(c["leak_ci"][1]),
+                            fmt(c["clean"]), fmt(c["clean_ci"][0]), fmt(c["clean_ci"][1]),
+                            fmt(c["did"]), fmt(c["did_ci"][0]), fmt(c["did_ci"][1]), f"{c['p_perm']:.3g}"])
+    print(f"{len(arms)} arms, {len(pairs)} contrasts, {len(cont)} contamination contrasts -> {out}")
 
 
 if __name__ == "__main__":
