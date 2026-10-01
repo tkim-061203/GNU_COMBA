@@ -148,7 +148,10 @@ def do_process(args_tuple):
             module_name="TopModule",
             benchmark_id=problem_base,
             llm=llm,
-            dataset_dir=PROBLEM_DIR,
+            # In-loop testbench source. Defaults to the official problem dir;
+            # COMBA_INLOOP_DATASET_DIR points the loop at a blind dir (no
+            # _test.sv/_ref.sv) while the final check below still uses PROBLEM_DIR.
+            dataset_dir=os.environ.get("COMBA_INLOOP_DATASET_DIR") or PROBLEM_DIR,
             work_dir=work_dir,
             desc_type=opts.desc_type,
         )

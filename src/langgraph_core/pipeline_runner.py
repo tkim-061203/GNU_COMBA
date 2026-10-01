@@ -367,9 +367,12 @@ def _prepare_state(
     if desc_type == "txt" and not state.get("xml_description") and not _force_xml:
         state["xml_description"] = "(Bypassed XML; Using TXT mode)"
 
-    # Look for verified_*.v files to extract expected header
+    # Look for verified_*.v files to extract expected header.
+    # COMBA_BLIND_EVAL=1 (benchmark scoring): never read reference RTL. The
+    # helper-append below otherwise copies golden submodules into the candidate.
     target_name = state.get("module_name")
-    if dataset_dir and target_name:
+    _blind = os.environ.get("COMBA_BLIND_EVAL", "0") == "1"
+    if dataset_dir and target_name and not _blind:
         verified_files = []
         verified_files.extend(glob.glob(os.path.join(dataset_dir, "verified_*.v")))
         verified_files.extend(glob.glob(os.path.join(dataset_dir, "modules", target_name, "verified_*.v")))

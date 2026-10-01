@@ -273,6 +273,23 @@ def _module_header_of(code: str) -> str:
     return head + ("\n" + "\n".join(d.strip() for d in decls) if decls else "")
 
 
+def _gen_tb_cache_path(work_dir: Optional[str], bid: str) -> Optional[str]:
+    """Where the generated testbench of one (problem, trial) lives.
+
+    COMBA_GENTB_CACHE_DIR, when set, is shared by all Best-of-N samples of a
+    problem, so every candidate is judged by the same TB. Otherwise the TB is
+    reused only within one sample's work_dir. The trial seed is part of the key
+    so outer trials stay independent draws.
+    """
+    root = os.environ.get("COMBA_GENTB_CACHE_DIR") or work_dir
+    if not root:
+        return None
+    os.makedirs(root, exist_ok=True)
+    seed = os.environ.get("COMBA_LLM_SEED", "na").strip() or "na"
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "_", bid or "dut")
+    return os.path.join(root, f"gen_tb_{safe}_s{seed}.sv")
+
+
 # --------------------------------------------------------------
 # 1. COMBAState - TypedDict
 # --------------------------------------------------------------
@@ -1206,6 +1223,18 @@ class COMBANodes:
                 return None, self._tb_error_state(state, f"copy error: {e}", "testbench copy failed")
             break
 
+        # One generated TB per (problem, trial): every repair round and every
+        # Best-of-N candidate is judged by the SAME testbench. Without this, each
+        # TS trial regenerated a new TB and the Debugger chased a moving target.
+        gen_tb_cache = _gen_tb_cache_path(work_dir, bid) if not sv_files else None
+        if gen_tb_cache and os.path.isfile(gen_tb_cache):
+            with open(gen_tb_cache, "r", encoding="utf-8") as f:
+                generated_tb_code = f.read()
+            with open(os.path.join(work_dir, "tb.sv"), "w", encoding="utf-8") as f:
+                f.write(generated_tb_code)
+            sv_files.append("tb.sv")
+            cprint(f"  [TB] Reusing generated testbench {os.path.basename(gen_tb_cache)}")
+
         if not sv_files:
             cprint("  [WARN] No testbench found. Calling LLM/Debugger to generate a testbench...")
             # Derive the INTERFACE only. Showing the implementation here makes the
@@ -1257,6 +1286,9 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                 cprint("  [OK] Generated testbench written to tb.sv")
                 sv_files.append("tb.sv")
                 generated_tb_code = tb_code
+                if gen_tb_cache:
+                    with open(gen_tb_cache, "w", encoding="utf-8") as f:
+                        f.write(tb_code)
             except Exception as e:
                 cprint(f"  [FAIL] Failed to generate testbench: {e}")
                 return None, self._tb_error_state(
@@ -1265,9 +1297,10 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                     "no testbench found",
                 )
 
-        # Write current GVD as TopModule.sv (rename module to TopModule ONLY for VE, i.e. when not RTLLM)
+        # Write current GVD as TopModule.sv (rename module to TopModule ONLY for VE, i.e. when not RTLLM).
+        # A generated TB always instantiates `TopModule`, so rename for it too, RTLLM included.
         is_rtllm = self._is_rtllm_dataset(dataset_dir)
-        if is_rtllm:
+        if is_rtllm and not generated_tb_code:
             top_module_code = gvd
         else:
             top_module_code = re.sub(
@@ -1281,15 +1314,28 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         # detect a bug. Grade it by mutation: seed one bug at a time into the
         # design and require the TB to reject the result. Benchmark runs ship
         # real testbenches and never reach this branch, so they pay nothing.
-        if generated_tb_code and os.environ.get("COMBA_TB_VALIDATE", "1") == "1":
+        val_cache = (gen_tb_cache + ".validation.json") if gen_tb_cache else None
+        if generated_tb_code and val_cache and os.path.isfile(val_cache):
+            with open(val_cache, "r", encoding="utf-8") as f:
+                self._last_tb_validation = json.load(f)   # graded once, on its first candidate
+        elif generated_tb_code and os.environ.get("COMBA_TB_VALIDATE", "1") == "1":
             try:
-                from .tb_validate import validate_tb
+                try:
+                    from .tb_validate import validate_tb
+                except ImportError:   # benchmark runners import this file as a top-level module
+                    from tb_validate import validate_tb
 
                 cprint("  [TB] Validating generated testbench by mutation...")
                 self._last_tb_validation = validate_tb(
                     generated_tb_code, top_module_code, tmp_root=work_dir,
                 )
                 v = self._last_tb_validation
+                # Mutation grading needs a design the TB accepts. Cache only a real
+                # grade, so a TB that rejected an early buggy candidate is graded
+                # again on the first candidate it accepts.
+                if val_cache and v.get("mutation_score") is not None:
+                    with open(val_cache, "w", encoding="utf-8") as f:
+                        json.dump(v, f, indent=2)
                 cprint(
                     f"  [TB] TB verdict={v['verdict']} tier={v['tier']} "
                     f"score={v['mutation_score']} "
