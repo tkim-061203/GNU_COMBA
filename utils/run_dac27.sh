@@ -67,7 +67,9 @@ provenance () {   # $1 = arm dir
   { echo "model_tag: $MODEL"; echo "expected_gen: $GEN"; echo "expected_dbg: $DBG"
     echo "served_gen: $(curl -s localhost:8000/v1/models)"; echo "served_dbg: $(curl -s localhost:8001/v1/models)"
     echo "git: $(git rev-parse HEAD 2>/dev/null) dirty=$(git status --porcelain -uno 2>/dev/null | wc -l)"
-    echo "date: $(date -Iseconds)"; env | grep -E '^COMBA_' | sort; } > "$1/provenance.txt"
+    echo "date: $(date -Iseconds)"
+    echo "arm_env: $COMMON $(feedback_env "$fb")"
+    { env | grep -E '^COMBA_' || true; } | sort; } > "$1/provenance.txt"   # grep finds nothing -> exit 1 under pipefail
 }
 if pgrep -af 'benchmark_langgraph\.py' >/dev/null; then echo "another benchmark is running"; exit 1; fi
 serve
