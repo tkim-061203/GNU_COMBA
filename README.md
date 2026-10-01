@@ -6,6 +6,7 @@ GNU_COMBA is a comprehensive framework designed for evaluating and benchmarking 
 
 - **Multi-Provider Support**: Supports inference via `llamacpp`, `openai` (and compatible APIs like vLLM), and more.
 - **Automated Benchmarking**: Integrated with `VerilogEval` for standardized assessments.
+- **Golden Testbench Generation**: For RTL that ships no testbench, the pipeline writes one from the specification and grades it by mutation testing before trusting it.
 - **Customizable Inference**: Fine-tune parameters like temperature, max tokens, number of samples, and in-context learning (ICL) examples.
 - **Modular Flow System**: A flexible execution engine (`flow_src`) for complex processing pipelines.
 - **Local Model Serving**: Scripts and configurations for serving models using vLLM.
@@ -47,7 +48,11 @@ graph TD
     TED_SC --> Debug[Debugger Agent]
     Debug --> San
     
-    SC -- Pass --> TS{TB Simulation<br/>iverilog/vvp}
+    SC -- Pass --> HasTB{Golden TB<br/>available?}
+    HasTB -- Yes --> TS{TB Simulation<br/>iverilog/vvp}
+    HasTB -- No --> GenTB[TB Generator<br/>spec + interface only]
+    GenTB --> MutVal[Mutation Validation<br/>tier + score]
+    MutVal --> TS
     
     TS -- Fail --> TED_TS[TED TB Agent]
     TED_TS --> Debug
@@ -66,7 +71,7 @@ graph TD
 3.  **Verilog Sanitizer**: Extracts pure Verilog code from LLM response noise and auto-fixes trivial formatting issues.
 4.  **Syntax Check (SC)**: Performs rapid syntax validation using `iverilog --lint-only`.
 5.  **TED Syntax Agent**: Parses `iverilog` logs to identify the "Topmost Exception" and provide structured feedback.
-6.  **TB Simulation (TS)**: Executes functional verification against benchmark testbenches.
+6.  **TB Simulation (TS)**: Executes functional verification against benchmark testbenches. When the design ships no testbench, a validated one is generated first (see *Golden Testbench Generation* below).
 7.  **TED TB Agent**: Parses simulation traces to identify functional bugs.
 8.  **Debugger Agent**: Unified correction agent that uses feedback from TED agents to iteratively refactor the Verilog code.
 
@@ -76,12 +81,72 @@ graph TD
 - **Token Efficiency**: Automated truncation of task descriptions in the debugger node to minimize context window overhead and save tokens.
 - **Description Flexibility**: Support for raw `.txt` input, bypassing the XML converter for users who prefer direct text-to-Verilog generation.
 
+#### Golden Testbench Generation (designs with no testbench)
+
+Benchmarks ship their own testbenches. User-supplied RTL usually does not, so the
+pipeline writes one. Two rules make that testbench worth trusting.
+
+**Written from the specification, never from the code.** The generator prompt receives
+the natural-language spec plus the module *interface* only (port list, no body). Showing
+the implementation would make the testbench agree with whatever the design already does,
+bugs included, so it could never fail that design: the check would be circular.
+
+**Graded by mutation before it is trusted.** `src/langgraph_core/tb_validate.py` seeds
+one bug at a time into the design (arithmetic, comparison, logic, clock-edge and constant
+operators) and requires the testbench to reject each mutant. The fraction it rejects is
+the **mutation score**. A blind testbench that prints `All tests passed` without checking
+anything scores `0.0`. Mutants that fail to *compile* are excluded from the denominator,
+since a compile error is not the testbench detecting anything and counting it would
+inflate the score.
+
+Results are written to `tb_validation.json` in the run's `work_dir` and attached to the
+pipeline state as `tb_validation`.
+
+| Tier | Meaning |
+|---|---|
+| (golden) | Benchmark-supplied testbench. No generation, no grading needed. |
+| `self_validated` | Generated TB scoring at or above `COMBA_TB_MUTATION_MIN`. |
+| `weak_selfcheck` | Generated TB below threshold: it runs, but has shown little detection power. |
+| `unchecked` | Not graded (no simulator on PATH, or no gradeable mutants). |
+
+> [!IMPORTANT]
+> **What the score does and does not prove.** With no golden reference RTL, a testbench
+> passing on the design only shows that the two *agree*. Derived from the same misreading
+> of the spec, both can be wrong together. The mutation score is evidence of testbench
+> **strength**, not of design correctness. Report it as a tier, not as verification.
+
+**Environment knobs**
+- `COMBA_TB_VALIDATE` (default `1`): set `0` to generate the testbench without grading it.
+- `COMBA_TB_MAX_MUTANTS` (default `20`): mutants per validation. Each costs one compile plus one run, so lower this if interactive latency matters.
+- `COMBA_TB_MUTATION_MIN` (default `0.6`): acceptance threshold for `self_validated`.
+- `COMBA_TB_COMPILE_TIMEOUT` / `COMBA_TB_RUN_TIMEOUT` (default `60` seconds each).
+
+Benchmark runs ship real testbenches and never enter this path, so their cost is
+unchanged. Interactive serving still skips functional simulation entirely
+(`COMBA_SKIP_TB_IF_NO_GOLDEN=1`, set in `api_server.py`); export `0` to enable
+generated-testbench checking for user RTL.
+
+Verify the mechanism end to end on a machine that has `iverilog`:
+
+```bash
+python src/langgraph_core/tb_validate.py --selfcheck
+```
+
+It checks the mutation operators, then builds a real adder with a genuine testbench and a
+deliberately blind one, asserting the grader accepts the first and rejects the second.
+Grade an existing pair directly:
+
+```bash
+python src/langgraph_core/tb_validate.py --tb tb.sv --dut TopModule.sv --json score.json
+```
+
 ---
 
 ## Project Structure
 
 - `src/`: Core Python source code for inference and processing.
 - `src/flow_src`: Experimental modular flow system.
+- `src/langgraph_core/tb_validate.py`: Mutation-testing grader for generated testbenches (standalone CLI; no pipeline imports).
 - `ext/`: External dependencies and submodules (e.g., `VerilogEval`).
 - `utils/`: Helper scripts and utilities.
 - `configure.ac` & `Makefile.in`: Autotools-based build system for managing experiments.
@@ -495,4 +560,4 @@ make jupyterlab
 
 ---
 Maintainer: Vu-Minh-Thanh Nguyen (nvmthanh@hcmus.edu.vn), Ngoc-Thien-Kim Nguyen (nntkim.work@gmail.com)
-Version: 2.6.0
+Version: 2.7.0

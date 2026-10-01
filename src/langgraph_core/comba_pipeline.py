@@ -253,6 +253,26 @@ def _build_header_from_xml(xml_text: str) -> Optional[str]:
     return f"module {mod_name}(\n" + ",\n".join(ports_code) + "\n);"
 
 
+def _module_header_of(code: str) -> str:
+    """Interface slice of a module: the header with the implementation dropped.
+
+    Used to prompt for a testbench without leaking the design body. Handles both
+    ANSI headers (`module f(input a, output b);`) and non-ANSI ones, where the
+    port directions follow the header as separate statements.
+    """
+    if not code:
+        return ""
+    m = re.search(r"\bmodule\b.*?;", code, re.DOTALL)
+    if not m:
+        return ""
+    head = m.group(0)
+    if re.search(r"\b(input|output|inout)\b", head):
+        return head
+    tail = code[m.end():]
+    decls = re.findall(r"^[ \t]*(?:input|output|inout)\b[^;]*;", tail, re.MULTILINE)
+    return head + ("\n" + "\n".join(d.strip() for d in decls) if decls else "")
+
+
 # --------------------------------------------------------------
 # 1. COMBAState - TypedDict
 # --------------------------------------------------------------
@@ -282,6 +302,7 @@ class COMBAState(TypedDict):
     # -- Testbench Simulation (TS) ---
     tb_log: Optional[str]
     tb_failure: Optional[str]
+    tb_validation: Optional[dict]      # mutation score of a generated TB (None if golden TB used)
 
     # -- Debugging Prompts ---
     edp: Optional[str]
@@ -466,6 +487,7 @@ def make_initial_state(
         sc_prev_exception_count=0,
         tb_log=None,
         tb_failure=None,
+        tb_validation=None,
         edp=None,
         tdp=None,
         edtm={},
@@ -513,6 +535,7 @@ class COMBANodes:
 
     def __init__(self, llm):
         self._llm = llm
+        self._last_tb_validation = None   # set by _prepare_sv_testbench_files
 
     # ----------------------------------------------------------
     # Node 1: Converter - NL -> XML
@@ -1121,6 +1144,7 @@ class COMBANodes:
         gvd = state["gvd"]
         dataset_dir = state["dataset_dir"]
         bid = state.get("benchmark_id", module_name)
+        generated_tb_code = None   # set only when no golden TB exists and we write one
 
         # Candidate testbench filenames (VerilogEval + RTLLM SV variants)
         candidate_pairs = [
@@ -1184,6 +1208,15 @@ class COMBANodes:
 
         if not sv_files:
             cprint("  [WARN] No testbench found. Calling LLM/Debugger to generate a testbench...")
+            # Derive the INTERFACE only. Showing the implementation here makes the
+            # testbench agree with whatever the design already does, bugs included,
+            # so it can never fail the design: the check would be circular. The
+            # testbench must be written from the spec alone.
+            dut_header = (
+                state.get("expected_header")
+                or _build_header_from_xml(state.get("xml_description") or "")
+                or _module_header_of(gvd)
+            )
             tb_prompt = f"""You are an expert Verilog verification engineer.
 Your task is to write a self-checking SystemVerilog testbench for the module defined below.
 The module under test will be instantiated as `TopModule`.
@@ -1200,11 +1233,14 @@ Requirements for the testbench:
 9. Use basic, standard Verilog/SystemVerilog syntax that is compatible with `iverilog` (do not use complex classes, interfaces, or advanced SystemVerilog features. Simple initial blocks, reg/wire declarations, and procedural assignments are preferred).
 10. CRITICAL: Keep the testbench short, clean, and concise (under 80 lines). Do NOT list dozens of repetitive test cases one by one as it will hit the token limit and cause truncation. Instead, write a `for` loop to test multiple values, or write at most 5-10 distinct test cases.
 
-Here is the natural language specification:
+Here is the natural language specification. The testbench must check THIS, and
+expected values must be derived from it by your own reasoning:
 {state["nl_input"]}
 
-Here is the Verilog code of the module:
-{gvd}
+Here is the module interface you must drive. Only the ports are given; the
+implementation is withheld on purpose, so do not assume any behavior beyond
+what the specification above states:
+{dut_header}
 
 Output ONLY the SystemVerilog code of the testbench, inside a code block starting with ```sv or ```verilog. Do not write any explanations or other text outside the code block."""
 
@@ -1220,6 +1256,7 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
                     f.write(tb_code)
                 cprint("  [OK] Generated testbench written to tb.sv")
                 sv_files.append("tb.sv")
+                generated_tb_code = tb_code
             except Exception as e:
                 cprint(f"  [FAIL] Failed to generate testbench: {e}")
                 return None, self._tb_error_state(
@@ -1239,6 +1276,33 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         top_module_dst = os.path.join(work_dir, "TopModule.sv")
         with open(top_module_dst, "w", encoding="utf-8") as f:
             f.write(top_module_code)
+
+        # A generated testbench is not "golden" until it demonstrates it can
+        # detect a bug. Grade it by mutation: seed one bug at a time into the
+        # design and require the TB to reject the result. Benchmark runs ship
+        # real testbenches and never reach this branch, so they pay nothing.
+        if generated_tb_code and os.environ.get("COMBA_TB_VALIDATE", "1") == "1":
+            try:
+                from .tb_validate import validate_tb
+
+                cprint("  [TB] Validating generated testbench by mutation...")
+                self._last_tb_validation = validate_tb(
+                    generated_tb_code, top_module_code, tmp_root=work_dir,
+                )
+                v = self._last_tb_validation
+                cprint(
+                    f"  [TB] TB verdict={v['verdict']} tier={v['tier']} "
+                    f"score={v['mutation_score']} "
+                    f"(killed {v['mutants_killed']}/{v['mutants_killed'] + v['mutants_survived']}, "
+                    f"{v['mutants_excluded']} excluded)"
+                )
+                with open(os.path.join(work_dir, "tb_validation.json"), "w",
+                          encoding="utf-8") as f:
+                    json.dump(v, f, indent=2)
+            except Exception as e:
+                # Validation is diagnostic: never let it sink the run.
+                cprint(f"  [WARN] TB validation skipped: {e}")
+                self._last_tb_validation = {"verdict": "error", "note": str(e)}
 
         return ["TopModule.sv"] + sv_files, None
 
@@ -1510,6 +1574,7 @@ Output ONLY the SystemVerilog code of the testbench, inside a code block startin
         return {
             "tb_log": tb_log,
             "tb_failure": failure,
+            "tb_validation": self._last_tb_validation,
             "final_status": final_status,
             "ts_trial": state["ts_trial"] + 1,
             "total_iter": state["total_iter"] + 1,
