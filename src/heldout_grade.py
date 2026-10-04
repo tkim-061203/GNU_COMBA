@@ -138,13 +138,33 @@ def grade_one(job: dict) -> dict:
     return rec
 
 
+def report_stem(p: str) -> str:
+    return re.sub(r"\.trial_\d+\.json$", "", os.path.basename(p))
+
+
 def collect_jobs(runs: str, official_root: str, strip: bool, designs=None) -> list[dict]:
-    jobs = []
+    """One report per (design, trial). A design dir can hold leftovers from a run
+    with another description type (report_langgraph.txt.* next to
+    report_langgraph.RTLLM.txt.*); counting both inflates n. Keep the report
+    stem that is most common across the run and say what was skipped."""
+    found = {}
     for design_dir in sorted(p for p in Path(runs).iterdir() if p.is_dir()):
-        design = design_dir.name
-        if designs and design not in designs:
+        if designs and design_dir.name not in designs:
             continue
-        for rp in sorted(glob.glob(str(design_dir / "reports" / "report_langgraph*.trial_*.json")), key=trial_idx):
+        found[design_dir.name] = glob.glob(str(design_dir / "reports" / "report_langgraph*.trial_*.json"))
+    stems = Counter(report_stem(p) for ps in found.values() for p in ps)
+    rank = {st: i for i, (st, _) in enumerate(stems.most_common())}
+    jobs = []
+    for design, paths in found.items():
+        best = {}
+        for rp in paths:
+            t = trial_idx(rp)
+            if t not in best or rank[report_stem(rp)] < rank[report_stem(best[t])]:
+                best[t] = rp
+        skipped = sorted(set(paths) - set(best.values()))
+        if skipped:
+            print(f"[WARN] {design}: skipped duplicate trial reports {[os.path.basename(x) for x in skipped]}", file=sys.stderr)
+        for rp in sorted(best.values(), key=trial_idx):
             try:
                 s = json.loads(Path(rp).read_text()).get("samples", {})
             except Exception as e:
