@@ -125,4 +125,6 @@ python src/dac27_analyze.py reports/dac27 --out reports/dac27_results --leaked-j
 - `-ktok`: nghìn token mỗi lượt chạy, từ `tokens.json` (chỉ các ô chạy sau commit này).
 - tương phản `full-vs-scale`, `scale-vs-base`.
 
+Ghi chú (grader rl1): `tb.cpp` của RTLLM v1.1 gọi `srand(time(NULL))` nên điểm held-out thay đổi giữa các lần grade (`div_16bit`: pass@1 20–100% qua 8 lần). `heldout_grade.py` giờ grade các TB này với 5 seed cố định (`--tb-seeds 1,2,3,4,5`, mặc định), chỉ pass khi pass cả 5; TB không seed theo thời gian (RTLLM v2) vẫn chạy một lần. Mọi số rl1 grade trước thay đổi này phải grade lại: các ô `*/*/rl1` và lệnh rl1 ở mục 2.
+
 Ghi chú: trước commit này, các cấu hình VE nhiều mẫu (`e0_t8`) dùng cùng một seed cho mọi mẫu của một bài, nên các mẫu trùng nhau. `main_langgraph.py` giờ đổi seed theo mẫu; mẫu 1 giữ seed cũ nên các ô `e0_t0` đã chạy không đổi.
