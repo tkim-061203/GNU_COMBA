@@ -89,3 +89,40 @@ cd <DAC2027> && latexmk -pdf main.tex
 - [ ] Viết các đoạn `% WRITE AFTER RUNS` trong results.tex và conclusion.tex — chỉ từ CI, không thêm tính từ.
 - [ ] Kiểm tra double-blind: bỏ link HuggingFace, không ghi "our prior work".
 - [ ] Ô blind F2/F3: kiểm tra riêng `fixed_point_substractor` (tên thư mục ≠ tên module trong spec).
+
+## 6. Thí nghiệm bổ sung (chỉ chạy sau khi ma trận chính xong)
+
+`run_dac27.sh` khởi động lại vLLM, nên **không** gọi nó khi một ô khác còn đang chạy.
+
+```bash
+git pull --ff-only
+# a. grader rl1 lại sau bf31fa4 (145 lượt, không phải 147): chạy lại các lệnh rl1 ở mục 2.
+
+# b. TB tự sinh của các ô F2 so với RTL tham chiếu (CPU, phân tích sau khi chạy)
+ls ext/verilog-eval/dataset_code-complete-iccad2023 | head -3     # *_ref.sv phải có ở đây
+for m in full gen base; do
+  for s in rl1:RTLLM/modules rl2:RTLLM_v2/modules ve:ext/verilog-eval/dataset_code-complete-iccad2023; do
+    a=reports/dac27/$m/F2/${s%%:*}
+    [ -d "$a/gentb_cache" ] && python src/dac27_tbcheck.py "$a" --official "${s#*:}" --jobs 8
+  done
+done
+
+# c. F0s: một lần sinh ở T=0.8, 10 lượt độc lập (RTLLM) / 20 mẫu (VE) -> pass@k không vòng lặp
+./utils/run_dac27.sh full F0s 2>&1 | tee -a reports/dac27_F0s.log
+BASE_QWEN=/path/to/Qwen2.5-Coder-7B-Instruct ./utils/run_dac27.sh base F0s 2>&1 | tee -a reports/dac27_F0s.log
+
+# d. model lớn hơn, không fine-tune, cả hai vai (thư mục local)
+SCALE_MODEL=/path/to/Qwen2.5-Coder-14B-Instruct ./utils/run_dac27.sh scale 2>&1 | tee -a reports/dac27_scale.log
+
+# e. sinh số
+python src/dac27_analyze.py reports/dac27 --out reports/dac27_results --leaked-json leaked.json
+```
+
+`dac27_analyze.py` ghi thêm:
+- `decompose.csv`, macro `R-<model>-<F>-<suite>-dec-{first,firstrep,resample,resamplerep}`: pass@1 held-out tách theo nguồn gốc (mẫu đầu / mẫu đầu sau sửa / mẫu sau / mẫu sau có sửa); bốn phần cộng lại bằng pass@1.
+- `judge.csv`, macro `-acc-<tier>`, `-fa-<tier>`: false accept trong vòng lặp theo mức tin của TB (`sv`, `weak`, `unch`, `ng`); `-tbref`, `-tbmut`: % TB chấp nhận RTL tham chiếu và điểm đột biến so với tham chiếu (cần `tbcheck.json`).
+- `-p10`, `-p10lo`, `-p10hi` cho ô F0s; tương phản `R-<model>-<F>-vs-F0sp10-<suite>-{diff,ci,p}`: pass@1 của vòng lặp so với pass@10 của 10 mẫu độc lập (một bộ chọn hoàn hảo).
+- `-ktok`: nghìn token mỗi lượt chạy, từ `tokens.json` (chỉ các ô chạy sau commit này).
+- tương phản `full-vs-scale`, `scale-vs-base`.
+
+Ghi chú: trước commit này, các cấu hình VE nhiều mẫu (`e0_t8`) dùng cùng một seed cho mọi mẫu của một bài, nên các mẫu trùng nhau. `main_langgraph.py` giờ đổi seed theo mẫu; mẫu 1 giữ seed cũ nên các ô `e0_t0` đã chạy không đổi.

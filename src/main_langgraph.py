@@ -104,6 +104,14 @@ def do_process(args_tuple):
     """Run full COMBA pipeline once; dump per-sample JSON + artifacts."""
     problem_prompt_path, sample_idx, opts = args_tuple
 
+    # Per-request seeds are derived from (COMBA_LLM_SEED, prompt, temperature), so
+    # n samples of one problem would all be the same draw. Offset the base seed per
+    # sample, as benchmark_langgraph does per trial; sample 1 keeps the base seed.
+    _base_seed = os.environ.get("COMBA_LLM_SEED_BASE") or os.environ.get("COMBA_LLM_SEED", "")
+    if _base_seed.strip():
+        os.environ["COMBA_LLM_SEED_BASE"] = _base_seed
+        os.environ["COMBA_LLM_SEED"] = str(int(_base_seed) + 10_000 * (int(sample_idx) - 1))
+
     output_root = os.path.abspath(opts.output_dir)
     problem_base = os.path.basename(problem_prompt_path).replace("_prompt.txt", "")
 

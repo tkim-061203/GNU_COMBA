@@ -247,7 +247,11 @@ class COMBALlm(BaseChatModel):
         if not debugger_url:
             debugger_url = base_url
 
+        kw = {}
+        if os.getenv("COMBA_TEMPERATURE", "").strip():
+            kw["temperature"] = float(os.environ["COMBA_TEMPERATURE"])   # unset -> field default (0.1)
         return cls(
+            **kw,
             server_mode=server_mode,
             base_url=base_url,
             debugger_url=debugger_url,

@@ -7,6 +7,11 @@ Writes  <out>/numbers.tex   LaTeX macros  \\R{model}{fb}{suite}{metric}
         <out>/arms.csv      one row per arm
         <out>/paired.csv    paired contrasts (same tasks, two arms)
         <out>/contam.csv    model gap on leaked vs clean tasks (needs --leaked-json)
+        <out>/decompose.csv where each held-out pass came from (first sample,
+                            repair, resampling), per arm
+        <out>/judge.csv     in-loop false accepts by the generated TB's
+                            mutation tier, and the TB check against the
+                            reference RTL (<arm>/tbcheck.json, dac27_tbcheck.py)
 
 Statistics (all over TASKS, the unit that is sampled from the benchmark):
   pass@1   mean over tasks of c/n (unbiased for n trials)
@@ -29,6 +34,7 @@ import glob
 import json
 import os
 import re
+from collections import Counter
 from math import comb
 from pathlib import Path
 
@@ -46,7 +52,54 @@ def load_rtllm(arm: Path) -> dict | None:
     d = json.loads(f.read_text())
     tasks = {p["design"]: (p["c_heldout"], p["trials"]) for p in d["per_design"]}
     agree = d.get("inloop_vs_heldout", {})
-    return {"tasks": tasks, "agree": agree, "cost": load_cost(arm)}
+    # per (design, trial): (trial id, sample report, in-loop pass, held-out pass)
+    reports = rtllm_reports(arm)
+    runs = {}
+    for p in d["per_design"]:
+        rs = reports.get(p["design"], [])
+        held, inl = p.get("heldout") or [], p.get("inloop") or []
+        if len(rs) == len(held) == len(inl):
+            runs[p["design"]] = [(t, s, i == "pass", h == "pass") for (t, s), i, h in zip(rs, inl, held)]
+    return {"tasks": tasks, "agree": agree, "cost": load_cost(arm), "runs": runs, "tokens": load_tokens(arm)}
+
+
+def rtllm_reports(arm: Path) -> dict:
+    """design -> [(trial, samples-dict)] sorted by trial, one report per trial
+    (same rule as heldout_grade: keep the most common report stem)."""
+    found = {}
+    for rp in glob.glob(str(arm / "RTLLM_*" / "modules" / "*" / "reports" / "report_langgraph*.trial_*.json")):
+        found.setdefault(Path(rp).parts[-3], []).append(rp)
+    stem = lambda p: re.sub(r"\.trial_\d+\.json$", "", os.path.basename(p))
+    tid = lambda p: int(re.search(r"trial_(\d+)", os.path.basename(p)).group(1))
+    rank = {st: i for i, (st, _) in enumerate(Counter(stem(p) for ps in found.values() for p in ps).most_common())}
+    out = {}
+    for design, paths in found.items():
+        best = {}
+        for p in paths:
+            if tid(p) not in best or rank[stem(p)] < rank[stem(best[tid(p)])]:
+                best[tid(p)] = p
+        rows = []
+        for t in sorted(best):
+            try:
+                rows.append((t, json.loads(Path(best[t]).read_text()).get("samples", {})))
+            except Exception:
+                rows.append((t, {}))
+        out[design] = rows
+    return out
+
+
+def load_tokens(arm: Path) -> dict | None:
+    f = arm / "tokens.json"
+    if not f.is_file():
+        return None
+    try:
+        d = json.loads(f.read_text())
+    except Exception:
+        return None
+    parts = [d.get("generator"), d.get("debugger")]
+    if any(p is None for p in parts):
+        return None
+    return {"prompt": sum(p["prompt"] for p in parts), "completion": sum(p["completion"] for p in parts)}
 
 
 def load_ve(arm: Path) -> dict | None:
@@ -56,6 +109,7 @@ def load_ve(arm: Path) -> dict | None:
         return None
     tasks, agree = {}, {"both_pass": 0, "false_accept": 0, "false_reject": 0, "both_fail": 0}
     iters = []
+    runs = {}    # problem -> [(sample idx, state, in-loop pass, held-out pass by log)]
     canon = {}   # official per-problem counts from sv-iv-analyze, used when present
     for sc in glob.glob(str(arm / "ve_reports" / "*" / "summary.csv")):
         for row in csv.reader(open(sc)):
@@ -72,6 +126,8 @@ def load_ve(arm: Path) -> dict | None:
                 st = {}
             inl = st.get("final_status") == "pass"
             iters.append(st.get("total_iter", 0) or 0)
+            m = re.search(r"sample_(\d+)\.json$", sj.name)
+            runs.setdefault(prob_dir.name, []).append((int(m.group(1)) if m else 1, st, inl, held))
             agree[{(True, True): "both_pass", (True, False): "false_accept",
                    (False, True): "false_reject", (False, False): "both_fail"}[(inl, held)]] += 1
             c += held
@@ -80,7 +136,8 @@ def load_ve(arm: Path) -> dict | None:
             tasks[prob_dir.name] = (c, n)
     if canon:   # the official analyzer is the score; the log regex only feeds agreement
         tasks = canon
-    return {"tasks": tasks, "agree": agree, "cost": {"mean_total_iter": float(np.mean(iters)) if iters else None}}
+    return {"tasks": tasks, "agree": agree, "cost": {"mean_total_iter": float(np.mean(iters)) if iters else None},
+            "runs": runs, "tokens": load_tokens(arm)}
 
 
 def _ve_log_pass(log: str) -> bool:
@@ -156,6 +213,83 @@ def arm_stats(r: dict, subset: set | None = None) -> dict:
            "solved_any": sum(c > 0 for _, c, _ in items), "solved_all": sum(c == n for _, c, n in items)}
     if all(n >= 5 for _, _, n in items):
         out["p5"] = 100 * np.mean([passk(n, c, 5) for _, c, n in items])
+    if all(n >= 10 for _, _, n in items):   # F0s: unbiased pass@10 from >=10 independent samples
+        p10 = np.array([passk(n, c, 10) for _, c, n in items])
+        lo10, hi10 = boot_ci(p10, np.random.default_rng(SEED))
+        out.update(p10=100 * p10.mean(), p10_lo=100 * lo10, p10_hi=100 * hi10)
+    return out
+
+
+def paired_metric(ra: dict, rb: dict, fa, fb) -> dict:
+    """paired() with a per-task metric for each arm, fa/fb: (c, n) -> value."""
+    common = sorted(set(ra["tasks"]) & set(rb["tasks"]))
+    a = np.array([fa(*ra["tasks"][t]) for t in common])
+    b = np.array([fb(*rb["tasks"][t]) for t in common])
+    d = a - b
+    lo, hi = boot_ci(d, np.random.default_rng(SEED))
+    return {"tasks": len(common), "diff": 100 * d.mean(), "lo": 100 * lo, "hi": 100 * hi,
+            "a_better": int((d > 0).sum()), "b_better": int((d < 0).sum()), "p_sign": sign_test(d)}
+
+
+DEC_CATS = ("first", "firstrep", "resample", "resamplerep")
+
+
+def origin(s: dict) -> str:
+    """Where a final design came from: the first Best-of-N sample or a later
+    one, and whether that sample needed repair iterations (syntax or TB)."""
+    sc = s.get("self_consistency") or {}
+    idx = sc.get("best_sample_idx") or 0
+    a = {x.get("idx"): x for x in sc.get("all_samples") or []}.get(idx) or s
+    rep = (a.get("sc_trial") or 1) > 1 or (a.get("ts_trial") or 1) > 1
+    return ("resample" if idx else "first") + ("rep" if rep else "")
+
+
+def decompose(r: dict) -> dict | None:
+    """Held-out pass@1 split by origin; the four parts sum to pass@1 over the
+    tasks that have per-trial reports. Points, mean over tasks of count/n."""
+    runs = r.get("runs") or {}
+    if not runs:
+        return None
+    acc = {c: 0.0 for c in DEC_CATS}
+    for rows in runs.values():
+        n = len(rows)
+        for row in rows:
+            if row[3]:
+                acc[origin(row[1])] += 1.0 / n
+    out = {c: 100 * v / len(runs) for c, v in acc.items()}
+    out["tasks"] = len(runs)
+    return out
+
+
+TIER_KEY = {"self_validated": "sv", "weak_selfcheck": "weak", "unchecked": "unch", "never_graded": "ng"}
+
+
+def judge_by_tier(arm: Path, r: dict, suite: str) -> dict | None:
+    """In-loop accepts and false accepts (held-out fail) grouped by the mutation
+    tier the generated TB got in the loop. Only arms with a gentb_cache."""
+    cache = arm / "gentb_cache"
+    if not cache.is_dir() or not r.get("runs"):
+        return None
+    out = {}
+    for task, rows in r["runs"].items():
+        for t, _s, inl, held in rows:
+            # run_dac27.sh seeds 42; RTLLM trial t -> 42 + 10000 t, VE sample t -> 42 + 10000 (t - 1)
+            seed = 42 + 10_000 * ((t - 1) if suite == "ve" else t)
+            tb = cache / f"gen_tb_{re.sub(r'[^A-Za-z0-9_.-]', '_', task)}_s{seed}.sv"
+            if not tb.is_file():
+                tier = "no_tb"
+            else:
+                vf = Path(str(tb) + ".validation.json")
+                try:
+                    tier = json.loads(vf.read_text()).get("tier", "error") if vf.is_file() else "never_graded"
+                except Exception:
+                    tier = "error"
+            g = out.setdefault(TIER_KEY.get(tier, tier), {"runs": 0, "accepted": 0, "false_accept": 0})
+            g["runs"] += 1
+            g["accepted"] += int(inl)
+            g["false_accept"] += int(inl and not held)
+    for g in out.values():
+        g["fa_pct"] = 100 * g["false_accept"] / g["accepted"] if g["accepted"] else None
     return out
 
 
@@ -219,7 +353,7 @@ def main() -> None:
         if r:
             arms[(model, fb, suite)] = r
 
-    tex, rows = ["% generated by src/dac27_analyze.py - do not edit\n"], []
+    tex, rows, decs, judges = ["% generated by src/dac27_analyze.py - do not edit\n"], [], [], []
     for (model, fb, suite), r in sorted(arms.items()):
         s = arm_stats(r)
         key = f"{model}-{fb}-{suite}"
@@ -236,23 +370,69 @@ def main() -> None:
         if suite in leaked:
             sc = arm_stats(r, set(r["tasks"]) - set(leaked[suite]))
             row["p1_clean"], row["tasks_clean"] = sc.get("p1"), sc.get("tasks")
+        arm_dir = Path(root, model, fb, suite)
+        for k in ("p10", "p10_lo", "p10_hi"):
+            row[k] = s.get(k)
+        tok = r.get("tokens")
+        runs_total = sum(n for _, n in r["tasks"].values())
+        if tok and runs_total:
+            row["tok_prompt"], row["tok_completion"] = tok["prompt"], tok["completion"]
+            row["ktok_per_run"] = (tok["prompt"] + tok["completion"]) / runs_total / 1000
+        dec = decompose(r)
+        if dec:
+            decs.append((key, dec))
+            row.update({f"dec_{c}": dec[c] for c in DEC_CATS})
+        jt = judge_by_tier(arm_dir, r, suite)
+        tbc = None
+        if (arm_dir / "tbcheck.json").is_file():
+            try:
+                tbc = json.loads((arm_dir / "tbcheck.json").read_text())
+            except Exception:
+                tbc = None
+        if jt or tbc:
+            judges.append((key, jt or {}, tbc))
+        if tbc:
+            row["tb_accepts_ref_pct"] = tbc.get("accepts_ref_pct")
+            msc = tbc.get("mean_ref_mutation_score")
+            row["tb_ref_mutation_pct"] = 100 * msc if msc is not None else None
         rows.append(row)
         for m, v, nd in (("p1", s.get("p1"), 1), ("p1lo", s.get("p1_lo"), 1), ("p1hi", s.get("p1_hi"), 1),
                          ("p5", s.get("p5"), 1), ("fa", fa, 1), ("tbsv", row["tb_self_validated_pct"], 0),
-                         ("p1clean", row.get("p1_clean"), 1), ("iter", r["cost"].get("mean_total_iter"), 1)):
+                         ("p1clean", row.get("p1_clean"), 1), ("iter", r["cost"].get("mean_total_iter"), 1),
+                         ("p10", s.get("p10"), 1), ("p10lo", s.get("p10_lo"), 1), ("p10hi", s.get("p10_hi"), 1),
+                         ("ktok", row.get("ktok_per_run"), 1), ("tbref", row.get("tb_accepts_ref_pct"), 0),
+                         ("tbmut", row.get("tb_ref_mutation_pct"), 0)):
             if v is not None:
                 tex.append(macro(f"{key}-{m}", fmt(v, nd)))
+        for c in DEC_CATS if dec else ():
+            tex.append(macro(f"{key}-dec-{c}", fmt(dec[c])))
+        for tk, g in (jt or {}).items():
+            tex.append(macro(f"{key}-acc-{tk}", str(g["accepted"])))
+            if g["fa_pct"] is not None:
+                tex.append(macro(f"{key}-fa-{tk}", fmt(g["fa_pct"])))
 
     # contrasts the paper reads: model effect at fixed feedback, feedback effect at fixed model
     pairs = []
     models = sorted({k[0] for k in arms}); fbs = sorted({k[1] for k in arms})
     for suite in SUITES:
         for fb in fbs:
-            for ma, mb in (("full", "base"), ("full", "gen"), ("gen", "base"), ("single", "full")):
+            for ma, mb in (("full", "base"), ("full", "gen"), ("gen", "base"), ("single", "full"),
+                           ("full", "scale"), ("scale", "base")):
                 if (ma, fb, suite) in arms and (mb, fb, suite) in arms:
                     pairs.append((f"{ma}-vs-{mb}-{fb}-{suite}", paired(arms[(ma, fb, suite)], arms[(mb, fb, suite)])))
+        # the loop against a perfect selector over 10 independent samples (F0s pass@10)
         for m in models:
-            for fa_, fb_ in (("F3", "F2"), ("F2", "F1"), ("F1", "F0")):
+            if (m, "F0s", suite) not in arms:
+                continue
+            s0 = arms[(m, "F0s", suite)]
+            if not all(n >= 10 for _, n in s0["tasks"].values()):
+                continue
+            for fx in ("F1", "F2", "F3"):
+                if (m, fx, suite) in arms:
+                    pairs.append((f"{m}-{fx}-vs-F0sp10-{suite}",
+                                  paired_metric(arms[(m, fx, suite)], s0, lambda c, n: c / n, lambda c, n: passk(n, c, 10))))
+        for m in models:
+            for fa_, fb_ in (("F3", "F2"), ("F2", "F1"), ("F1", "F0"), ("F0s", "F0")):
                 if (m, fa_, suite) in arms and (m, fb_, suite) in arms:
                     pairs.append((f"{m}-{fa_}-vs-{fb_}-{suite}", paired(arms[(m, fa_, suite)], arms[(m, fb_, suite)])))
     for name, p in pairs:
@@ -292,6 +472,22 @@ def main() -> None:
         w = csv.writer(f); w.writerow(["contrast", "tasks", "diff", "lo", "hi", "a_better", "b_better", "p_sign"])
         for name, p in pairs:
             w.writerow([name, p["tasks"], fmt(p["diff"]), fmt(p["lo"]), fmt(p["hi"]), p["a_better"], p["b_better"], f"{p['p_sign']:.3g}"])
+    if decs:
+        with open(out / "decompose.csv", "w", newline="") as f:
+            w = csv.writer(f); w.writerow(["arm", "tasks", *DEC_CATS, "sum"])
+            for k, d in decs:
+                w.writerow([k, d["tasks"], *(fmt(d[c]) for c in DEC_CATS), fmt(sum(d[c] for c in DEC_CATS))])
+    if judges:
+        with open(out / "judge.csv", "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["arm", "tier", "runs", "accepted_in_loop", "false_accept", "fa_pct",
+                        "tbcheck_accepts_ref_pct", "tbcheck_mean_ref_mutation"])
+            for k, jt, tbc in judges:
+                ref = (tbc or {}).get("accepts_ref_pct"), (tbc or {}).get("mean_ref_mutation_score")
+                for tk, g in sorted(jt.items()) or [("all", None)]:
+                    if g is None:
+                        w.writerow([k, "all", "", "", "", "", ref[0], ref[1]]); continue
+                    w.writerow([k, tk, g["runs"], g["accepted"], g["false_accept"], fmt(g["fa_pct"]), ref[0], ref[1]])
     if cont:
         with open(out / "contam.csv", "w", newline="") as f:
             w = csv.writer(f)
@@ -301,7 +497,8 @@ def main() -> None:
                 w.writerow([name, c["n_leak"], c["n_clean"], fmt(c["leak"]), fmt(c["leak_ci"][0]), fmt(c["leak_ci"][1]),
                             fmt(c["clean"]), fmt(c["clean_ci"][0]), fmt(c["clean_ci"][1]),
                             fmt(c["did"]), fmt(c["did_ci"][0]), fmt(c["did_ci"][1]), f"{c['p_perm']:.3g}"])
-    print(f"{len(arms)} arms, {len(pairs)} contrasts, {len(cont)} contamination contrasts -> {out}")
+    print(f"{len(arms)} arms, {len(pairs)} contrasts, {len(cont)} contamination contrasts, "
+          f"{len(decs)} decompositions, {len(judges)} judge summaries -> {out}")
 
 
 if __name__ == "__main__":
