@@ -1,0 +1,7429 @@
+{
+ "rule": "exact normalised copy, or >= 0.9 of a reference's 8-token shingles; any length",
+ "rows": 733,
+ "matches": {
+  "3": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "12": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "39": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "65": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "109": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "125": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "139": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "140": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "147": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "149": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 13
+   }
+  ],
+  "150": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "151": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "152": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "161": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "174": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "199": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "211": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 13
+   }
+  ],
+  "231": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "268": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "562": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "585": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "597": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "603": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "604": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "608": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "619": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "648": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "655": [
+   {
+    "suite": "ve",
+    "task": "Prob051_gates4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "697": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 0.9032,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "706": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "723": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "736": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "795": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "822": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "856": [
+   {
+    "suite": "ve",
+    "task": "Prob022_mux2to1",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 26
+   }
+  ],
+  "896": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "901": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "908": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "926": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "929": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "970": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "1014": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "1076": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "1091": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "1116": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "1131": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "1134": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "3985": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "4248": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "4354": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "4369": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 13
+   }
+  ],
+  "4405": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "4484": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "4503": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "4525": [
+   {
+    "suite": "ve",
+    "task": "Prob072_thermostat",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 58
+   }
+  ],
+  "4728": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "4791": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "4910": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "4931": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "5089": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "5186": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "5382": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "5417": [
+   {
+    "suite": "ve",
+    "task": "Prob016_m2014_q4j",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 36
+   }
+  ],
+  "5562": [
+   {
+    "suite": "ve",
+    "task": "Prob077_wire_decl",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 55
+   }
+  ],
+  "5720": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 21
+   }
+  ],
+  "5770": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 0.9032,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "5785": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 0.9032,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "5835": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "5948": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "6071": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "6121": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "6133": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 21
+   }
+  ],
+  "6139": [
+   {
+    "suite": "ve",
+    "task": "Prob016_m2014_q4j",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 36
+   }
+  ],
+  "6333": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "6372": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "6401": [
+   {
+    "suite": "ve",
+    "task": "Prob077_wire_decl",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 55
+   }
+  ],
+  "6501": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "6755": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "6770": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "6802": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "6905": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   }
+  ],
+  "7021": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "7033": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "7073": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "7138": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "7245": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "7315": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "7352": [
+   {
+    "suite": "ve",
+    "task": "Prob051_gates4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "7372": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "7390": [
+   {
+    "suite": "ve",
+    "task": "Prob016_m2014_q4j",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 36
+   }
+  ],
+  "7644": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "7701": [
+   {
+    "suite": "ve",
+    "task": "Prob076_always_case",
+    "containment": 0.9573,
+    "exact": false,
+    "ref_tokens": 124
+   }
+  ],
+  "7741": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "7842": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "7849": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "7852": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "7862": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "7867": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "8050": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "8071": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "8283": [
+   {
+    "suite": "ve",
+    "task": "Prob044_vectorgates",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "8329": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "8458": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "8566": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "8679": [
+   {
+    "suite": "ve",
+    "task": "Prob006_vectorr",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "8731": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "8774": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "8960": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "9301": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "9306": [
+   {
+    "suite": "ve",
+    "task": "Prob016_m2014_q4j",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 36
+   }
+  ],
+  "9389": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "9415": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "9609": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "9655": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "9793": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "9852": [
+   {
+    "suite": "ve",
+    "task": "Prob032_vector0",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 46
+   }
+  ],
+  "9853": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "10011": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "10109": [
+   {
+    "suite": "ve",
+    "task": "Prob051_gates4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "10148": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "10182": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "10200": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "10289": [
+   {
+    "suite": "ve",
+    "task": "Prob006_vectorr",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "10318": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "10346": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "10407": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "10413": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "10675": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "10741": [
+   {
+    "suite": "ve",
+    "task": "Prob050_kmap1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 28
+   }
+  ],
+  "10849": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "11001": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "11222": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "11395": [
+   {
+    "suite": "ve",
+    "task": "Prob072_thermostat",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 58
+   }
+  ],
+  "11490": [
+   {
+    "suite": "ve",
+    "task": "Prob051_gates4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "12762": [
+   {
+    "suite": "ve",
+    "task": "Prob021_mux256to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 70
+   }
+  ],
+  "16155": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "16428": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "16866": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "17613": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "17739": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "17740": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "17980": [
+   {
+    "suite": "ve",
+    "task": "Prob044_vectorgates",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "18353": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "18412": [
+   {
+    "suite": "rl1",
+    "task": "asyn_fifo",
+    "containment": 0.945,
+    "exact": false,
+    "ref_tokens": 731
+   },
+   {
+    "suite": "rl2",
+    "task": "asyn_fifo",
+    "containment": 0.9759,
+    "exact": false,
+    "ref_tokens": 741
+   }
+  ],
+  "18622": [
+   {
+    "suite": "ve",
+    "task": "Prob130_circuit5",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 94
+   }
+  ],
+  "18841": [
+   {
+    "suite": "ve",
+    "task": "Prob123_bugs_addsubz",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 74
+   }
+  ],
+  "19165": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "19736": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "19760": [
+   {
+    "suite": "ve",
+    "task": "Prob039_always_if",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "19794": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "19809": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "20401": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "20712": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "20778": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 0.9412,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 0.9444,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "20850": [
+   {
+    "suite": "ve",
+    "task": "Prob093_ece241_2014_q3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "21197": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "21229": [
+   {
+    "suite": "ve",
+    "task": "Prob069_truthtable1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "21263": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "21591": [
+   {
+    "suite": "ve",
+    "task": "Prob026_alwaysblock1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 36
+   }
+  ],
+  "21698": [
+   {
+    "suite": "ve",
+    "task": "Prob024_hadd",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 28
+   }
+  ],
+  "21954": [
+   {
+    "suite": "ve",
+    "task": "Prob040_count10",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 49
+   }
+  ],
+  "22056": [
+   {
+    "suite": "rl1",
+    "task": "adder_8bit",
+    "containment": 0.9629,
+    "exact": false,
+    "ref_tokens": 464
+   },
+   {
+    "suite": "rl2",
+    "task": "adder_8bit",
+    "containment": 0.9814,
+    "exact": false,
+    "ref_tokens": 464
+   }
+  ],
+  "22121": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "22124": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 22
+   }
+  ],
+  "22149": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "22224": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "22268": [
+   {
+    "suite": "ve",
+    "task": "Prob114_bugs_case",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 112
+   }
+  ],
+  "22295": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 22
+   }
+  ],
+  "22490": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "23191": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 21
+   }
+  ],
+  "23317": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "23508": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "24407": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "24687": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "24965": [
+   {
+    "suite": "ve",
+    "task": "Prob099_m2014_q6c",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 60
+   }
+  ],
+  "25273": [
+   {
+    "suite": "ve",
+    "task": "Prob038_count15",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 43
+   }
+  ],
+  "25458": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "25468": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "33907": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "33908": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 0.9032,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "35393": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "36167": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "38355": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 0.9032,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "38514": [
+   {
+    "suite": "ve",
+    "task": "Prob105_rotate100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 103
+   }
+  ],
+  "38536": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "38689": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "40425": [
+   {
+    "suite": "ve",
+    "task": "Prob021_mux256to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 70
+   }
+  ],
+  "41325": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "41864": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "42334": [
+   {
+    "suite": "ve",
+    "task": "Prob076_always_case",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 124
+   }
+  ],
+  "42531": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "42686": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "42969": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "43384": [
+   {
+    "suite": "rl1",
+    "task": "adder_8bit",
+    "containment": 0.9026,
+    "exact": false,
+    "ref_tokens": 464
+   }
+  ],
+  "43495": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "43833": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "43993": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "44608": [
+   {
+    "suite": "ve",
+    "task": "Prob009_popcount3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 39
+   }
+  ],
+  "45192": [
+   {
+    "suite": "rl2",
+    "task": "alu",
+    "containment": 0.9835,
+    "exact": false,
+    "ref_tokens": 501
+   }
+  ],
+  "45239": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "45552": [
+   {
+    "suite": "ve",
+    "task": "Prob093_ece241_2014_q3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "46435": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "47875": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "48196": [
+   {
+    "suite": "ve",
+    "task": "Prob054_edgedetect",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "48248": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 0.9,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "48573": [
+   {
+    "suite": "rl1",
+    "task": "edge_detect",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 135
+   },
+   {
+    "suite": "rl2",
+    "task": "edge_detect",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 142
+   }
+  ],
+  "48582": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "48804": [
+   {
+    "suite": "ve",
+    "task": "Prob040_count10",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 49
+   }
+  ],
+  "49305": [
+   {
+    "suite": "ve",
+    "task": "Prob091_2012_q2b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 60
+   }
+  ],
+  "49396": [
+   {
+    "suite": "ve",
+    "task": "Prob077_wire_decl",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 55
+   }
+  ],
+  "50077": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "50135": [
+   {
+    "suite": "ve",
+    "task": "Prob017_mux2to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 41
+   }
+  ],
+  "50585": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "61233": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "85433": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "85720": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "86646": [
+   {
+    "suite": "ve",
+    "task": "Prob033_ece241_2014_q1c",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 84
+   }
+  ],
+  "86700": [
+   {
+    "suite": "ve",
+    "task": "Prob127_lemmings1",
+    "containment": 0.9238,
+    "exact": false,
+    "ref_tokens": 112
+   }
+  ],
+  "86942": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "88425": [
+   {
+    "suite": "rl2",
+    "task": "freq_div",
+    "containment": 0.9012,
+    "exact": false,
+    "ref_tokens": 191
+   }
+  ],
+  "89040": [
+   {
+    "suite": "ve",
+    "task": "Prob038_count15",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 43
+   }
+  ],
+  "89185": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "89333": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "89999": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   },
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 13
+   }
+  ],
+  "90081": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   },
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "90513": [
+   {
+    "suite": "ve",
+    "task": "Prob085_shift4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 79
+   }
+  ],
+  "90669": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "90681": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "92140": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "92529": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "93206": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "93422": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "93833": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "94015": [
+   {
+    "suite": "ve",
+    "task": "Prob006_vectorr",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "95310": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "95769": [
+   {
+    "suite": "ve",
+    "task": "Prob143_fsm_onehot",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 238
+   }
+  ],
+  "95825": [
+   {
+    "suite": "rl1",
+    "task": "JC_counter",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 87
+   },
+   {
+    "suite": "rl2",
+    "task": "JC_counter",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 87
+   }
+  ],
+  "96025": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "96177": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "96198": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "96353": [
+   {
+    "suite": "ve",
+    "task": "Prob016_m2014_q4j",
+    "containment": 0.9655,
+    "exact": false,
+    "ref_tokens": 36
+   }
+  ],
+  "97183": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "97264": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "97466": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "97796": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "98440": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "98663": [
+   {
+    "suite": "ve",
+    "task": "Prob027_fadd",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 33
+   }
+  ],
+  "98717": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "99309": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "99628": [
+   {
+    "suite": "ve",
+    "task": "Prob131_mt2015_q4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "100429": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "100722": [
+   {
+    "suite": "rl1",
+    "task": "serial2parallel",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 196
+   },
+   {
+    "suite": "rl2",
+    "task": "serial2parallel",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 196
+   }
+  ],
+  "100918": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "101280": [
+   {
+    "suite": "ve",
+    "task": "Prob099_m2014_q6c",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 60
+   }
+  ],
+  "101318": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "101416": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "102731": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "102897": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "103570": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "103810": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "104047": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "104069": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "104608": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "104763": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "104932": [
+   {
+    "suite": "rl2",
+    "task": "fixed_point_adder",
+    "containment": 0.9469,
+    "exact": false,
+    "ref_tokens": 402
+   },
+   {
+    "suite": "rl2",
+    "task": "fixed_point_substractor",
+    "containment": 0.9184,
+    "exact": false,
+    "ref_tokens": 402
+   }
+  ],
+  "105763": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "105858": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "105992": [
+   {
+    "suite": "ve",
+    "task": "Prob069_truthtable1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "106313": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "106449": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "106802": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "106859": [
+   {
+    "suite": "ve",
+    "task": "Prob032_vector0",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 46
+   }
+  ],
+  "106929": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "107791": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "107874": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "107923": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "108148": [
+   {
+    "suite": "ve",
+    "task": "Prob004_vector2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "108220": [
+   {
+    "suite": "ve",
+    "task": "Prob004_vector2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "108320": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "108476": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "108867": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "110394": [
+   {
+    "suite": "rl1",
+    "task": "width_8to16",
+    "containment": 0.953,
+    "exact": false,
+    "ref_tokens": 196
+   },
+   {
+    "suite": "rl2",
+    "task": "width_8to16",
+    "containment": 0.9551,
+    "exact": false,
+    "ref_tokens": 203
+   }
+  ],
+  "111288": [
+   {
+    "suite": "ve",
+    "task": "Prob021_mux256to1v",
+    "containment": 0.918,
+    "exact": false,
+    "ref_tokens": 70
+   }
+  ],
+  "111750": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "111773": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "111950": [
+   {
+    "suite": "ve",
+    "task": "Prob022_mux2to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 26
+   }
+  ],
+  "112096": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "112104": [
+   {
+    "suite": "rl2",
+    "task": "accu",
+    "containment": 0.9657,
+    "exact": false,
+    "ref_tokens": 296
+   }
+  ],
+  "112214": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "112399": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "113059": [
+   {
+    "suite": "ve",
+    "task": "Prob130_circuit5",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 94
+   }
+  ],
+  "113230": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "113324": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "113330": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "113377": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "114009": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "114240": [
+   {
+    "suite": "ve",
+    "task": "Prob093_ece241_2014_q3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "114736": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "115148": [
+   {
+    "suite": "ve",
+    "task": "Prob109_fsm1",
+    "containment": 0.9101,
+    "exact": false,
+    "ref_tokens": 96
+   }
+  ],
+  "115507": [
+   {
+    "suite": "ve",
+    "task": "Prob099_m2014_q6c",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 60
+   }
+  ],
+  "115735": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "115951": [
+   {
+    "suite": "ve",
+    "task": "Prob017_mux2to1v",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 41
+   }
+  ],
+  "116461": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "117222": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "117268": [
+   {
+    "suite": "ve",
+    "task": "Prob016_m2014_q4j",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 36
+   }
+  ],
+  "117526": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "117796": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "117881": [
+   {
+    "suite": "ve",
+    "task": "Prob004_vector2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "118255": [
+   {
+    "suite": "rl2",
+    "task": "barrel_shifter",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 1019
+   }
+  ],
+  "118675": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "118820": [
+   {
+    "suite": "ve",
+    "task": "Prob015_vector1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "118897": [
+   {
+    "suite": "rl2",
+    "task": "multi_pipe_4bit",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 287
+   },
+   {
+    "suite": "rl1",
+    "task": "multi_pipe_4bit",
+    "containment": 0.9313,
+    "exact": false,
+    "ref_tokens": 254
+   }
+  ],
+  "119265": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 13
+   }
+  ],
+  "120104": [
+   {
+    "suite": "ve",
+    "task": "Prob069_truthtable1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "120277": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "120879": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "121017": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "121359": [
+   {
+    "suite": "ve",
+    "task": "Prob027_fadd",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 33
+   }
+  ],
+  "122145": [
+   {
+    "suite": "ve",
+    "task": "Prob105_rotate100",
+    "containment": 0.9896,
+    "exact": false,
+    "ref_tokens": 103
+   }
+  ],
+  "122467": [
+   {
+    "suite": "ve",
+    "task": "Prob016_m2014_q4j",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 36
+   }
+  ],
+  "122605": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "122683": [
+   {
+    "suite": "rl1",
+    "task": "adder_pipe_64bit",
+    "containment": 0.9602,
+    "exact": false,
+    "ref_tokens": 1061
+   },
+   {
+    "suite": "rl2",
+    "task": "adder_pipe_64bit",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 1049
+   }
+  ],
+  "123813": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "124685": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "125698": [
+   {
+    "suite": "ve",
+    "task": "Prob115_shift18",
+    "containment": 0.9149,
+    "exact": false,
+    "ref_tokens": 148
+   }
+  ],
+  "126127": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 0.9444,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "126621": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "127722": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "127795": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "128637": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "128711": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "128732": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "129163": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "129302": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "130001": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "130325": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "130370": [
+   {
+    "suite": "ve",
+    "task": "Prob123_bugs_addsubz",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 74
+   }
+  ],
+  "130493": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "131084": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "132221": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "132306": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "132714": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "133210": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "133704": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "133860": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "134208": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "134333": [
+   {
+    "suite": "ve",
+    "task": "Prob047_dff8ar",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 52
+   }
+  ],
+  "134688": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "134768": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "134825": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "135019": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 0.9032,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "135217": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "135370": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "135584": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "135620": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "136001": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "136261": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "136631": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "136700": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "136787": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "137363": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "137793": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "138018": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "138076": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "138762": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "139214": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "139429": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "139470": [
+   {
+    "suite": "ve",
+    "task": "Prob017_mux2to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 41
+   }
+  ],
+  "139622": [
+   {
+    "suite": "ve",
+    "task": "Prob070_ece241_2013_q2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 95
+   }
+  ],
+  "139891": [
+   {
+    "suite": "ve",
+    "task": "Prob098_circuit7",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 27
+   }
+  ],
+  "140266": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "141151": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "141423": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "142162": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "142316": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "142861": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "142928": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "143558": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "144017": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "144213": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "144531": [
+   {
+    "suite": "ve",
+    "task": "Prob022_mux2to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 26
+   }
+  ],
+  "145390": [
+   {
+    "suite": "rl1",
+    "task": "pulse_detect",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 213
+   },
+   {
+    "suite": "rl2",
+    "task": "pulse_detect",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 213
+   }
+  ],
+  "146571": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "146818": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "147115": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "147223": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "149674": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "149746": [
+   {
+    "suite": "ve",
+    "task": "Prob063_review2015_shiftcount",
+    "containment": 0.9298,
+    "exact": false,
+    "ref_tokens": 64
+   }
+  ],
+  "150060": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "150246": [
+   {
+    "suite": "ve",
+    "task": "Prob092_gatesv100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 80
+   }
+  ],
+  "153347": [
+   {
+    "suite": "rl2",
+    "task": "fixed_point_adder",
+    "containment": 0.9592,
+    "exact": false,
+    "ref_tokens": 402
+   },
+   {
+    "suite": "rl2",
+    "task": "fixed_point_substractor",
+    "containment": 0.9306,
+    "exact": false,
+    "ref_tokens": 402
+   }
+  ],
+  "159278": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "163712": [
+   {
+    "suite": "rl2",
+    "task": "fsm",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 263
+   }
+  ],
+  "165783": [
+   {
+    "suite": "rl1",
+    "task": "parallel2serial",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 163
+   },
+   {
+    "suite": "rl2",
+    "task": "parallel2serial",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 170
+   }
+  ],
+  "167150": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "168933": [
+   {
+    "suite": "ve",
+    "task": "Prob021_mux256to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 70
+   }
+  ],
+  "169271": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "169417": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "169672": [
+   {
+    "suite": "ve",
+    "task": "Prob020_mt2015_eq2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 42
+   }
+  ],
+  "170038": [
+   {
+    "suite": "ve",
+    "task": "Prob112_always_case2",
+    "containment": 0.9612,
+    "exact": false,
+    "ref_tokens": 136
+   }
+  ],
+  "170401": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "171412": [
+   {
+    "suite": "rl1",
+    "task": "adder_8bit",
+    "containment": 0.9629,
+    "exact": false,
+    "ref_tokens": 464
+   },
+   {
+    "suite": "rl2",
+    "task": "adder_8bit",
+    "containment": 0.9814,
+    "exact": false,
+    "ref_tokens": 464
+   }
+  ],
+  "173332": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "177141": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "177334": [
+   {
+    "suite": "ve",
+    "task": "Prob112_always_case2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 136
+   }
+  ],
+  "178206": [
+   {
+    "suite": "ve",
+    "task": "Prob009_popcount3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 39
+   }
+  ],
+  "178449": [
+   {
+    "suite": "ve",
+    "task": "Prob150_review2015_fsmonehot",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 200
+   }
+  ],
+  "181474": [
+   {
+    "suite": "rl2",
+    "task": "fixed_point_adder",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 402
+   },
+   {
+    "suite": "rl2",
+    "task": "fixed_point_substractor",
+    "containment": 0.9714,
+    "exact": false,
+    "ref_tokens": 402
+   }
+  ],
+  "181736": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "183887": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   },
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "188649": [
+   {
+    "suite": "rl2",
+    "task": "barrel_shifter",
+    "containment": 0.9496,
+    "exact": false,
+    "ref_tokens": 1019
+   }
+  ],
+  "191148": [
+   {
+    "suite": "rl2",
+    "task": "fixed_point_adder",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 402
+   },
+   {
+    "suite": "rl2",
+    "task": "fixed_point_substractor",
+    "containment": 0.9714,
+    "exact": false,
+    "ref_tokens": 402
+   }
+  ],
+  "202013": [
+   {
+    "suite": "rl2",
+    "task": "fixed_point_adder",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 402
+   },
+   {
+    "suite": "rl2",
+    "task": "fixed_point_substractor",
+    "containment": 0.9714,
+    "exact": false,
+    "ref_tokens": 402
+   }
+  ],
+  "203177": [
+   {
+    "suite": "ve",
+    "task": "Prob094_gatesv",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 90
+   }
+  ],
+  "205748": [
+   {
+    "suite": "ve",
+    "task": "Prob028_m2014_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 30
+   }
+  ],
+  "206761": [
+   {
+    "suite": "ve",
+    "task": "Prob112_always_case2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 136
+   }
+  ],
+  "207184": [
+   {
+    "suite": "rl2",
+    "task": "barrel_shifter",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 1019
+   }
+  ],
+  "207777": [
+   {
+    "suite": "rl1",
+    "task": "serial2parallel",
+    "containment": 0.9298,
+    "exact": false,
+    "ref_tokens": 196
+   },
+   {
+    "suite": "rl2",
+    "task": "serial2parallel",
+    "containment": 0.9298,
+    "exact": false,
+    "ref_tokens": 196
+   }
+  ],
+  "212469": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "214677": [
+   {
+    "suite": "ve",
+    "task": "Prob094_gatesv",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 90
+   }
+  ],
+  "216359": [
+   {
+    "suite": "rl1",
+    "task": "div_16bit",
+    "containment": 0.9337,
+    "exact": false,
+    "ref_tokens": 189
+   },
+   {
+    "suite": "rl2",
+    "task": "div_16bit",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 185
+   }
+  ],
+  "217244": [
+   {
+    "suite": "ve",
+    "task": "Prob092_gatesv100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 80
+   }
+  ],
+  "217307": [
+   {
+    "suite": "rl2",
+    "task": "adder_32bit",
+    "containment": 0.9865,
+    "exact": false,
+    "ref_tokens": 1265
+   }
+  ],
+  "217923": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "218076": [
+   {
+    "suite": "rl1",
+    "task": "right_shifter",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 64
+   },
+   {
+    "suite": "rl2",
+    "task": "right_shifter",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 64
+   }
+  ],
+  "222672": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "222939": [
+   {
+    "suite": "rl2",
+    "task": "fixed_point_adder",
+    "containment": 0.9673,
+    "exact": false,
+    "ref_tokens": 402
+   },
+   {
+    "suite": "rl2",
+    "task": "fixed_point_substractor",
+    "containment": 0.9388,
+    "exact": false,
+    "ref_tokens": 402
+   }
+  ],
+  "228064": [
+   {
+    "suite": "ve",
+    "task": "Prob101_circuit4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 27
+   }
+  ],
+  "230389": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "232227": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "236315": [
+   {
+    "suite": "rl2",
+    "task": "barrel_shifter",
+    "containment": 0.9496,
+    "exact": false,
+    "ref_tokens": 1019
+   }
+  ],
+  "244232": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "247741": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "248055": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "249139": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "255466": [
+   {
+    "suite": "ve",
+    "task": "Prob043_vector5",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 84
+   }
+  ],
+  "261102": [
+   {
+    "suite": "ve",
+    "task": "Prob050_kmap1",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 28
+   }
+  ],
+  "261845": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "261850": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "262153": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "262474": [
+   {
+    "suite": "rl2",
+    "task": "float_multi",
+    "containment": 0.9074,
+    "exact": false,
+    "ref_tokens": 1105
+   }
+  ],
+  "262676": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 21
+   }
+  ],
+  "262757": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "263375": [
+   {
+    "suite": "ve",
+    "task": "Prob004_vector2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "263573": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "264145": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "264783": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "264964": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "265035": [
+   {
+    "suite": "ve",
+    "task": "Prob017_mux2to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 41
+   }
+  ],
+  "265728": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "266679": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "267663": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "267824": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "268558": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "268792": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "269011": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 21
+   }
+  ],
+  "269284": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "269359": [
+   {
+    "suite": "ve",
+    "task": "Prob131_mt2015_q4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "269722": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 0.9032,
+    "exact": false,
+    "ref_tokens": 38
+   }
+  ],
+  "269915": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "270144": [
+   {
+    "suite": "rl2",
+    "task": "RAM",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 166
+   }
+  ],
+  "270402": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "270423": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 40
+   }
+  ],
+  "271358": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "271572": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "271620": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "272110": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "272238": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "272792": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "272816": [
+   {
+    "suite": "ve",
+    "task": "Prob054_edgedetect",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "273819": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "274073": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "274167": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "274798": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "275233": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "275270": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "275324": [
+   {
+    "suite": "ve",
+    "task": "Prob069_truthtable1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "275434": [
+   {
+    "suite": "ve",
+    "task": "Prob006_vectorr",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "275643": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "275681": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "276072": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "276679": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 22
+   }
+  ],
+  "276742": [
+   {
+    "suite": "ve",
+    "task": "Prob054_edgedetect",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "277224": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "278131": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "278478": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "278637": [
+   {
+    "suite": "rl2",
+    "task": "traffic_light",
+    "containment": 0.9828,
+    "exact": false,
+    "ref_tokens": 404
+   }
+  ],
+  "278670": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "279668": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "279695": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "281433": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "281996": [
+   {
+    "suite": "ve",
+    "task": "Prob047_dff8ar",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 52
+   }
+  ],
+  "282261": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "282547": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "282631": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "283506": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "283929": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "284314": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "284459": [
+   {
+    "suite": "ve",
+    "task": "Prob044_vectorgates",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "284547": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "284665": [
+   {
+    "suite": "ve",
+    "task": "Prob077_wire_decl",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 55
+   }
+  ],
+  "285722": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "285786": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "286140": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "286352": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "286357": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "286502": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "287305": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "287416": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "287694": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "287830": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "287967": [
+   {
+    "suite": "ve",
+    "task": "Prob076_always_case",
+    "containment": 0.9573,
+    "exact": false,
+    "ref_tokens": 124
+   }
+  ],
+  "288145": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "288553": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "288554": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "290116": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "290811": [
+   {
+    "suite": "ve",
+    "task": "Prob039_always_if",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 54
+   }
+  ],
+  "291178": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "291237": [
+   {
+    "suite": "ve",
+    "task": "Prob051_gates4",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 40
+   }
+  ],
+  "292780": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "293129": [
+   {
+    "suite": "ve",
+    "task": "Prob027_fadd",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 33
+   }
+  ],
+  "293257": [
+   {
+    "suite": "ve",
+    "task": "Prob036_ringer",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "293479": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "293612": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "293670": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "294695": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "294860": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "294865": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "294887": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "294947": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "295050": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "295590": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "297368": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "298251": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "298323": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "298421": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "298685": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "298821": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "298837": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "299309": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "299891": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "299925": [
+   {
+    "suite": "ve",
+    "task": "Prob021_mux256to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 70
+   }
+  ],
+  "300168": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   }
+  ],
+  "300792": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "300943": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "301058": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "302070": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "302102": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "302367": [
+   {
+    "suite": "ve",
+    "task": "Prob077_wire_decl",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 55
+   }
+  ],
+  "302680": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "302837": [
+   {
+    "suite": "ve",
+    "task": "Prob009_popcount3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 39
+   }
+  ],
+  "303114": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "303649": [
+   {
+    "suite": "ve",
+    "task": "Prob022_mux2to1",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 26
+   }
+  ],
+  "303652": [
+   {
+    "suite": "rl2",
+    "task": "float_multi",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 1105
+   }
+  ],
+  "303703": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "304211": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "304437": [
+   {
+    "suite": "ve",
+    "task": "Prob059_wire4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 47
+   }
+  ],
+  "304645": [
+   {
+    "suite": "ve",
+    "task": "Prob114_bugs_case",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 112
+   }
+  ],
+  "304788": [
+   {
+    "suite": "rl2",
+    "task": "barrel_shifter",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 1019
+   }
+  ],
+  "304948": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 25
+   }
+  ],
+  "305180": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "305552": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "305554": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "305611": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "306398": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "307002": [
+   {
+    "suite": "ve",
+    "task": "Prob064_vector3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 112
+   }
+  ],
+  "307207": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "307743": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "309160": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "309257": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "310099": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "310811": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "311643": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "311810": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "311941": [
+   {
+    "suite": "ve",
+    "task": "Prob050_kmap1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 28
+   }
+  ],
+  "312207": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "312796": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "312809": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "312821": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "312926": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "313086": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "313116": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "313214": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "313767": [
+   {
+    "suite": "ve",
+    "task": "Prob020_mt2015_eq2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 42
+   }
+  ],
+  "313849": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "313892": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "314443": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "314494": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "314525": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "315008": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "315441": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "316664": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "317040": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "317781": [
+   {
+    "suite": "ve",
+    "task": "Prob027_fadd",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 33
+   }
+  ],
+  "318018": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "318113": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "318889": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "319101": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "319436": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "319472": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "319503": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "319572": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "319592": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "319738": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "320015": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "320216": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 21
+   }
+  ],
+  "320630": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "320703": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "321120": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 0.9444,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "321584": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "321586": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "321694": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "321820": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "322538": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "323599": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "323813": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "323951": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "324617": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "324852": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "325522": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "325562": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "325769": [
+   {
+    "suite": "ve",
+    "task": "Prob091_2012_q2b",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 60
+   }
+  ],
+  "326314": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "326615": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "327464": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "327785": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "327880": [
+   {
+    "suite": "ve",
+    "task": "Prob051_gates4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "328248": [
+   {
+    "suite": "ve",
+    "task": "Prob103_circuit2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "328591": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "328736": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "328769": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "328866": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "329246": [
+   {
+    "suite": "rl1",
+    "task": "div_8bit",
+    "containment": 0.9801,
+    "exact": false,
+    "ref_tokens": 517
+   },
+   {
+    "suite": "rl2",
+    "task": "radix2_div",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 514
+   }
+  ],
+  "330205": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "330331": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "330697": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "330907": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 21
+   }
+  ],
+  "332556": [
+   {
+    "suite": "ve",
+    "task": "Prob027_fadd",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 33
+   }
+  ],
+  "333248": [
+   {
+    "suite": "ve",
+    "task": "Prob004_vector2",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 54
+   }
+  ],
+  "333746": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "334290": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "334424": [
+   {
+    "suite": "ve",
+    "task": "Prob112_always_case2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 136
+   }
+  ],
+  "334993": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "335304": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 16
+   }
+  ],
+  "335820": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "335976": [
+   {
+    "suite": "ve",
+    "task": "Prob009_popcount3",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 39
+   }
+  ],
+  "336075": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "336170": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "336227": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "336317": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "336532": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "336772": [
+   {
+    "suite": "ve",
+    "task": "Prob069_truthtable1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "337273": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "337386": [
+   {
+    "suite": "ve",
+    "task": "Prob090_circuit1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "337710": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "337807": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "337915": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 17
+   }
+  ],
+  "338222": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "338280": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "338399": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "338632": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "339335": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "339862": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "339897": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "340134": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "341155": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "341421": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "341551": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "341744": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "342442": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "343007": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "343248": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "343543": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "344384": [
+   {
+    "suite": "ve",
+    "task": "Prob052_gates100",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 40
+   }
+  ],
+  "344588": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "344826": [
+   {
+    "suite": "ve",
+    "task": "Prob071_always_casez",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 88
+   }
+  ],
+  "344965": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "346060": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "346199": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 32
+   }
+  ],
+  "346211": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "346718": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "346804": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "346914": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 13
+   }
+  ],
+  "348572": [
+   {
+    "suite": "ve",
+    "task": "Prob006_vectorr",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 66
+   }
+  ],
+  "348928": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   }
+  ],
+  "348960": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 32
+   }
+  ],
+  "349257": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "349284": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "349929": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "350228": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "350751": [
+   {
+    "suite": "ve",
+    "task": "Prob017_mux2to1v",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 41
+   }
+  ],
+  "350947": [
+   {
+    "suite": "ve",
+    "task": "Prob101_circuit4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 27
+   }
+  ],
+  "351036": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "351317": [
+   {
+    "suite": "rl2",
+    "task": "barrel_shifter",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 1019
+   }
+  ],
+  "351325": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ],
+  "351550": [
+   {
+    "suite": "ve",
+    "task": "Prob027_fadd",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 33
+   }
+  ],
+  "352759": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "353217": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "353340": [
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "353365": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "353927": [
+   {
+    "suite": "ve",
+    "task": "Prob069_truthtable1",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 56
+   }
+  ],
+  "354164": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "354325": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "354330": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   }
+  ],
+  "354375": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "354497": [
+   {
+    "suite": "ve",
+    "task": "Prob003_step_one",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "355104": [
+   {
+    "suite": "ve",
+    "task": "Prob012_xnorgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "355170": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "355238": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "355419": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "355437": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "355859": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "356328": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "356424": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "356459": [
+   {
+    "suite": "ve",
+    "task": "Prob005_notgate",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 17
+   }
+  ],
+  "356562": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "356814": [
+   {
+    "suite": "ve",
+    "task": "Prob042_vector4",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 38
+   }
+  ],
+  "356856": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "356988": [
+   {
+    "suite": "ve",
+    "task": "Prob001_zero",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "357133": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "358061": [
+   {
+    "suite": "ve",
+    "task": "Prob014_andgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 21
+   }
+  ],
+  "358657": [
+   {
+    "suite": "rl2",
+    "task": "fixed_point_adder",
+    "containment": 0.9633,
+    "exact": false,
+    "ref_tokens": 402
+   },
+   {
+    "suite": "rl2",
+    "task": "fixed_point_substractor",
+    "containment": 0.9347,
+    "exact": false,
+    "ref_tokens": 402
+   }
+  ],
+  "358715": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "358850": [
+   {
+    "suite": "ve",
+    "task": "Prob025_reduction",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 22
+   }
+  ],
+  "359285": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "359657": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "360535": [
+   {
+    "suite": "ve",
+    "task": "Prob002_m2014_q4i",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 13
+   }
+  ],
+  "360616": [
+   {
+    "suite": "ve",
+    "task": "Prob132_always_if2",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 64
+   }
+  ],
+  "361520": [
+   {
+    "suite": "ve",
+    "task": "Prob011_norgate",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 24
+   }
+  ],
+  "364473": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "364502": [
+   {
+    "suite": "ve",
+    "task": "Prob018_mux256to1",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 32
+   }
+  ],
+  "365041": [
+   {
+    "suite": "ve",
+    "task": "Prob083_mt2015_q4b",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 24
+   },
+   {
+    "suite": "ve",
+    "task": "Prob010_mt2015_q4a",
+    "containment": 1.0,
+    "exact": false,
+    "ref_tokens": 25
+   }
+  ],
+  "365527": [
+   {
+    "suite": "ve",
+    "task": "Prob007_wire",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   },
+   {
+    "suite": "ve",
+    "task": "Prob008_m2014_q4h",
+    "containment": 1.0,
+    "exact": true,
+    "ref_tokens": 16
+   }
+  ]
+ }
+}

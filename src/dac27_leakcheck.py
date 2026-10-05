@@ -73,10 +73,12 @@ def _init(ref_data):
     _REF.update(ref_data)
 
 
-def scan(chunk: list[tuple[int, str]]) -> dict:
-    """best (containment, row, exact) per reference within a chunk of corpus rows."""
+def scan(chunk: list[tuple[int, str]]) -> tuple[dict, list]:
+    """best (containment, row, exact) per reference within a chunk of corpus rows,
+    plus every (row, ref, containment, exact) at or above the row threshold."""
     index, ref_sets, ref_text = _REF["index"], _REF["sets"], _REF["text"]
-    best = {}
+    thr = _REF["row_thr"]
+    best, rows = {}, []
     for row, code in chunk:
         toks = normalise(code)
         if len(toks) < K:
@@ -97,7 +99,9 @@ def scan(chunk: list[tuple[int, str]]) -> dict:
             exact = joined == ref_text[r]   # whole-file copy; substring would match short textbook code
             if r not in best or (exact, c) > (best[r][2], best[r][0]):
                 best[r] = (c, row, exact)
-    return best
+            if exact or c >= thr:
+                rows.append((row, r, round(c, 4), exact))
+    return best, rows
 
 
 def corpus_chunks(path: str, size: int):
@@ -126,6 +130,9 @@ def main():
     ap.add_argument("--min-tokens", type=int, default=100)
     ap.add_argument("--jobs", type=int, default=16)
     ap.add_argument("--corpus", default=CORPUS[0] if CORPUS else None)
+    ap.add_argument("--rows-out", default=None,
+                    help="also write every corpus row that is an exact copy of, or holds >= --min-containment "
+                         "of, ANY reference (any length) - the rows to drop from a clean training set")
     a = ap.parse_args()
     if not a.corpus:
         sys.exit("PyraNet corpus csv not found")
@@ -142,9 +149,11 @@ def main():
     print(f"{len(keys)} references ({sum(1 for k in keys if k[0]=='rl1')} rl1, "
           f"{sum(1 for k in keys if k[0]=='rl2')} rl2, {sum(1 for k in keys if k[0]=='ve')} ve), corpus {a.corpus}")
 
-    best = {}
-    with Pool(a.jobs, initializer=_init, initargs=({"index": index, "sets": sets, "text": text},)) as pool:
-        for n, part in enumerate(pool.imap_unordered(scan, corpus_chunks(a.corpus, 2000)), 1):
+    best, hit_rows = {}, []
+    with Pool(a.jobs, initializer=_init,
+              initargs=({"index": index, "sets": sets, "text": text, "row_thr": a.min_containment},)) as pool:
+        for n, (part, rws) in enumerate(pool.imap_unordered(scan, corpus_chunks(a.corpus, 2000)), 1):
+            hit_rows.extend(rws)
             for r, v in part.items():
                 if r not in best or (v[2], v[0]) > (best[r][2], best[r][0]):
                     best[r] = v
@@ -183,6 +192,16 @@ def main():
         "counts": {s: len(v) for s, v in leaked.items()},
         "counts_broad": {s: len(v) for s, v in broad.items()},
         "per_reference": rows}, indent=2))
+    if a.rows_out:
+        by_row = {}
+        for row, r, c, exact in hit_rows:
+            suite, task = keys[r]
+            by_row.setdefault(row, []).append({"suite": suite, "task": task, "containment": c, "exact": exact,
+                                               "ref_tokens": len(toks[keys[r]])})
+        Path(a.rows_out).write_text(json.dumps({
+            "rule": f"exact normalised copy, or >= {a.min_containment} of a reference's {K}-token shingles; any length",
+            "rows": len(by_row), "matches": {str(k): v for k, v in sorted(by_row.items())}}, indent=1))
+        print(f"{len(by_row)} corpus rows match some reference -> {a.rows_out}")
     in_train = sum(1 for r in rows if r["leaked"] and r["row_in_current_train_union"])
     print(f"leaked: {{'rl1': {len(leaked['rl1'])}, 'rl2': {len(leaked['rl2'])}, 've': {len(leaked['ve'])}}} "
           f"({in_train} of them in the current train_index2 union) -> {a.out}; "

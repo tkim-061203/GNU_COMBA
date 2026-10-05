@@ -45,7 +45,10 @@ FF_T = 24          # transistors charged per flip-flop (static master-slave DFF)
 TIMEOUT = 180
 OFFICIAL = {"rl1": "RTLLM/modules", "rl2": "RTLLM_v2/modules",
             "ve": "ext/verilog-eval/dataset_code-complete-iccad2023"}
-FF_RE = re.compile(r"^\s+\$_(?:S?DFFS?R?E?|ALDFFE?|DFFSRE|DLATCH|SR)_\w*\s+(\d+)", re.M)
+# yosys < 0.5x prints "  $_DFF_P_   10"; newer (0.63 on the server) prints "  10   $_DFF_P_"
+_FF = r"\$_(?:S?DFFS?R?E?|ALDFFE?|DFFSRE|DLATCH|SR)_\w*"
+FF_RE = re.compile(rf"^\s+(?:{_FF}\s+(\d+)|(\d+)\s+{_FF})\s*$", re.M)
+CELLS_RE = re.compile(r"Number of cells:\s+(\d+)|^\s+(\d+)\s+cells\s*$", re.M)
 
 
 def synth(code: str, liberty: str | None) -> dict:
@@ -65,12 +68,14 @@ def synth(code: str, liberty: str | None) -> dict:
         if p.returncode != 0:
             return {"error": ((p.stdout + p.stderr).strip().splitlines() or ["yosys failed"])[-1][:200]}
         s = stat.read_text() if stat.is_file() else ""
-        m = re.search(r"Number of cells:\s+(\d+)", s)
+        m = CELLS_RE.search(s)
         t = re.search(r"Estimated number of transistors:\s+(\d+)", s)
-        ffs = sum(int(x) for x in FF_RE.findall(s))
-        if not m:
+        ffs = sum(int(a or b) for a, b in FF_RE.findall(s))
+        if not m and not t:
             return {"error": "no stat"}
-        out.update(cells=int(m.group(1)), transistors=int(t.group(1)) if t else 0, ffs=ffs)
+        # yosys 0.63 omits the cells line for a design with no cells (constant outputs):
+        # that is 0 cells, not a failure; ratios skip zero values downstream.
+        out.update(cells=int(m.group(1) or m.group(2)) if m else 0, transistors=int(t.group(1)) if t else 0, ffs=ffs)
         out["cost"] = out["transistors"] + FF_T * ffs
         if liberty:
             stat2 = Path(td) / "lib.txt"
