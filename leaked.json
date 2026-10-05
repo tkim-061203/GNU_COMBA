@@ -1,0 +1,50 @@
+{
+  "rl1": [
+    "adder_8bit",
+    "adder_pipe_64bit",
+    "asyn_fifo",
+    "div_16bit",
+    "div_8bit",
+    "edge_detect",
+    "multi_pipe_4bit",
+    "parallel2serial",
+    "pulse_detect",
+    "serial2parallel",
+    "width_8to16"
+  ],
+  "rl2": [
+    "RAM",
+    "accu",
+    "adder_32bit",
+    "adder_8bit",
+    "adder_pipe_64bit",
+    "alu",
+    "asyn_fifo",
+    "barrel_shifter",
+    "div_16bit",
+    "edge_detect",
+    "fixed_point_adder",
+    "fixed_point_substractor",
+    "float_multi",
+    "freq_div",
+    "fsm",
+    "multi_pipe_4bit",
+    "parallel2serial",
+    "pulse_detect",
+    "radix2_div",
+    "serial2parallel",
+    "traffic_light",
+    "width_8to16"
+  ],
+  "ve": [
+    "Prob064_vector3",
+    "Prob076_always_case",
+    "Prob105_rotate100",
+    "Prob112_always_case2",
+    "Prob114_bugs_case",
+    "Prob115_shift18",
+    "Prob127_lemmings1",
+    "Prob143_fsm_onehot",
+    "Prob150_review2015_fsmonehot"
+  ]
+}

@@ -57,7 +57,7 @@ python src/dac27_audit.py --suite rl1 \
   --arm base=reports/baseline_base_model/rtllm/pass5_breakdown.json:reports/dac27_audit/base_rtllm_strip.json \
   --out <DAC2027>/results/audit.tex
 ```
-Điền `grader-agree` / `grader-n` vào `audit.tex` từ trường `inloop_vs_heldout` của hai file nostrip (`both_pass + both_fail` / tổng).
+`grader-agree` / `grader-n` do `dac27_audit.py` tự ghi khi thêm `--grader-agree reports/dac27_audit/full_rtllm_nostrip.json --grader-agree reports/dac27_audit/full_rtllm_v2_nostrip.json` (`both_pass + both_fail` / tổng; 05-10: 390/395 = 98.7%).
 
 ## 3. Ma trận model × feedback
 
@@ -81,10 +81,10 @@ cd <DAC2027> && latexmk -pdf main.tex
 
 ## 5. Checklist TBD còn lại trong bản thảo
 
-- [ ] Số hàng train của Generator: xác định snapshot `train_index2_6-10.npy` đã train checkpoint đang serve (85,033 → union 315,893 hay 49,050 → 249,462).
-- [ ] Chạy lại kiểm tra nhiễm dữ liệu trên đúng snapshot đó → điền §V-F, tạo `leaked.json`.
-- [ ] Audit v1.1 có strip (mục 2).
-- [ ] `grader-agree` / `grader-n`.
+- [ ] Số hàng train của Generator: KHÔNG xác định lại được trên server. Checkpoint train 19-06; `train_index2_6-10.npy` hiện tại (49,050 → union 249,462) bị ghi đè 31-08, không còn bản 85,033. Bài ghi số từ audit 20-07 (union 315,893) và nói rõ nguồn, hoặc bỏ con số.
+- [x] Kiểm tra nhiễm dữ liệu → `leaked.json` (05-10). Vì không còn snapshot, quét TOÀN BỘ corpus PyraNet (tập train ⊂ corpus ⇒ tập rò rỉ là cận trên bảo thủ): `python src/dac27_leakcheck.py --jobs 32`. Luật: lời giải tham chiếu ≥100 token VÀ (trùng nguyên file sau chuẩn hoá HOẶC ≥90% shingle 8-token nằm trong một hàng). Kết quả rl1 11 / rl2 22 / ve 9 (audit 20-07: 11 / 24 / 9). `leaked_broad.json` thêm mọi bản sao nguyên file bất kể độ dài (13 / 24 / 69: lời giải HDLBits ngắn có sẵn trên GitHub) để kiểm tra độ nhạy. Chi tiết từng bài: `reports/dac27_results/leakcheck.json`.
+- [x] Audit v1.1 có strip (mục 2), grade lại với 5 seed TB (05-10).
+- [x] `grader-agree` / `grader-n`: 98.7 / 395, trong `reports/dac27_results/audit_rl1.tex`.
 - [ ] Toàn bộ `\R{...}` sau mục 3.
 - [ ] Viết các đoạn `% WRITE AFTER RUNS` trong results.tex và conclusion.tex — chỉ từ CI, không thêm tính từ.
 - [ ] Kiểm tra double-blind: bỏ link HuggingFace, không ghi "our prior work".

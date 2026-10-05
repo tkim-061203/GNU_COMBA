@@ -1,0 +1,640 @@
+{
+  "designs": 29,
+  "trials_total": 145,
+  "heldout_pass_at_1": 90.34,
+  "heldout_pass_at_5": 93.1,
+  "status_counts": {
+    "pass": 131,
+    "fail_ts": 14
+  },
+  "inloop_vs_heldout": {
+    "both_pass": 131,
+    "false_accept": 5,
+    "false_reject": 0,
+    "both_fail": 9
+  },
+  "designs_with_stripped_golden": [],
+  "per_design": [
+    {
+      "design": "JC_counter",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "RAM",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "accu",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "adder_16bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "adder_32bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "adder_8bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "adder_pipe_64bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "alu",
+      "trials": 5,
+      "c_heldout": 0,
+      "c_inloop": 1,
+      "heldout": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ],
+      "inloop": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "asyn_fifo",
+      "trials": 5,
+      "c_heldout": 0,
+      "c_inloop": 0,
+      "heldout": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ],
+      "inloop": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "fail_ts"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "calendar",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "counter_12",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "div_16bit",
+      "trials": 5,
+      "c_heldout": 1,
+      "c_inloop": 5,
+      "heldout": [
+        "fail_ts",
+        "fail_ts",
+        "fail_ts",
+        "pass",
+        "fail_ts"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "div_8bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "edge_detect",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "freq_div",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "fsm",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "multi_16bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "multi_8bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "multi_pipe_4bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "multi_pipe_8bit",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "parallel2serial",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "pe",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "pulse_detect",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "right_shifter",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "serial2parallel",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "signal_generator",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "synchronizer",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "traffic_light",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    },
+    {
+      "design": "width_8to16",
+      "trials": 5,
+      "c_heldout": 5,
+      "c_inloop": 5,
+      "heldout": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "inloop": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "stripped": []
+    }
+  ],
+  "runs": "reports/abl1_full/rtllm/modules",
+  "official": "RTLLM/modules",
+  "strip_golden_helpers": false,
+  "tb_seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "tb_seeded_trials": 145,
+  "simulator": "verilator"
+}

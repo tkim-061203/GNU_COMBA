@@ -12,6 +12,10 @@ the stripped re-grade says otherwise. Paired sign tests compare arms task by tas
      --arm full=reports/abl1_full/rtllm_v2/pass5_breakdown.json:strip_full_v2.json \
      --arm base=reports/baseline_base_model/rtllm_v2/pass5_breakdown.json:strip_base_v2.json \
      --out paper/results/audit.tex
+
+--grader-agree <nostrip heldout.json> (repeatable) also writes A-grader-agree
+(% of trials where the held-out re-grade reproduces the in-loop status:
+both_pass + both_fail over all trials), A-grader-agree-count and A-grader-n.
 """
 from __future__ import annotations
 
@@ -34,6 +38,8 @@ def main() -> None:
     ap.add_argument("--suite", required=True)
     ap.add_argument("--arm", action="append", required=True, help="name=breakdown.json[:strip.json]")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--grader-agree", action="append", default=[],
+                    help="heldout_grade.py output without --strip-golden-helpers (repeatable)")
     a = ap.parse_args()
 
     lines, counts = [], {}
@@ -82,9 +88,21 @@ def main() -> None:
             lines += [f"\\expandafter\\def\\csname A-{k}-better\\endcsname{{{pos}}}\n",
                       f"\\expandafter\\def\\csname A-{k}-worse\\endcsname{{{neg}}}\n",
                       f"\\expandafter\\def\\csname A-{k}-p\\endcsname{{{p:.2g}}}\n"]
+    drop = [f"A-{a.suite}-", f"% {a.suite}-"]
+    if a.grader_agree:
+        agree = total = 0
+        for f in a.grader_agree:
+            c = json.loads(Path(f).read_text())["inloop_vs_heldout"]
+            agree += c["both_pass"] + c["both_fail"]
+            total += sum(c.values())
+        lines += [f"\\expandafter\\def\\csname A-grader-agree\\endcsname{{{100 * agree / total:.1f}}}\n",
+                  f"\\expandafter\\def\\csname A-grader-agree-count\\endcsname{{{agree}}}\n",
+                  f"\\expandafter\\def\\csname A-grader-n\\endcsname{{{total}}}\n",
+                  f"% grader-agree from {', '.join(a.grader_agree)}\n"]
+        drop += ["A-grader-", "% grader-agree"]
     out = Path(a.out)
     prev = out.read_text() if out.exists() else ""
-    keep = "".join(l for l in prev.splitlines(True) if f"A-{a.suite}-" not in l and f"% {a.suite}-" not in l)
+    keep = "".join(l for l in prev.splitlines(True) if not any(d in l for d in drop))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(keep + "".join(lines))
     print("".join(lines))
