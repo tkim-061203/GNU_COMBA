@@ -87,7 +87,7 @@ phase_finished() { local d e; read -r d e < <(phase_done "$1"); [ "$d" -ge "$e" 
 is_supplementary() { case "$1" in *:*|scale*) return 0 ;; *) return 1 ;; esac; }
 
 runner_pid() {   # pid of a live run_dac27.sh (bash), empty if none
-  pgrep -f 'run_dac27\.sh (base|gen|full|single|scale)' | head -1
+  pgrep -f 'run_dac27\.sh (base|gen|full|single|scale|clean|random)' | head -1
 }
 
 runner_model() {

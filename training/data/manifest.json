@@ -1,0 +1,40 @@
+{
+  "leak_rows": 733,
+  "seed": 3407,
+  "clean": {
+    "s1": {
+      "bucket": "0-5",
+      "source_rows": 198241,
+      "dropped_leak": 680,
+      "rows": 197561
+    },
+    "s2": {
+      "bucket": "11-15",
+      "source_rows": 27394,
+      "dropped_leak": 1,
+      "rows": 27393
+    },
+    "s3": {
+      "bucket": "16-35",
+      "source_rows": 5225,
+      "dropped_leak": 2,
+      "rows": 5223
+    }
+  },
+  "random": {
+    "s1": {
+      "rows": 197561,
+      "overlap_with_clean_union": 104669
+    },
+    "s2": {
+      "rows": 27393,
+      "overlap_with_clean_union": 14488
+    },
+    "s3": {
+      "rows": 5223,
+      "overlap_with_clean_union": 2829
+    }
+  },
+  "clean_total": 230177,
+  "random_total": 230177
+}

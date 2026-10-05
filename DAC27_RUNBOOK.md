@@ -153,3 +153,18 @@ python src/dac27_ppa.py reports/dac27 --out reports/dac27_results --jobs 16 --fe
 `dac27_analyze.py` thêm: tương phản `R-<model>-F3-vs-<F3n1|F3nd|F3nt|F3ns>-<suite>-{diff,ci,p}` (đóng góp từng thành phần flow),
 `R-<ma>-vs-<mb>-F0sp10-<suite>-*` (fine-tune so với base ở pass@10). Token = 0 (vLLM chạy `--disable-log-stats`) được coi là không có số;
 từ commit này `run_dac27.sh` đặt `VLLM_LOG_STATS=1` để `launch_dual_gpu.sh` bật stats và `tokens.json` có số thật.
+
+## 8. Train lại Generator (R3-2 sạch, R3-1 ngẫu nhiên) và eval
+
+Công thức và bằng chứng VE nằm trong `training/README.md`. Quyết định 05-10: giữ curriculum nhưng bỏ chặng 6-10 (snapshot gốc 85.033 hàng đã mất), bỏ 733 hàng PyraNet khớp benchmark (`reports/dac27_results/leak_rows.json`, `dac27_leakcheck.py --rows-out`, mọi độ dài), bỏ `VE_text_156.jsonl`.
+
+```bash
+python training/make_retrain_data.py      # training/data/{clean,random}_s{1,2,3}.npy, 230.177 hàng mỗi biến thể
+./utils/dac27_retrain_pipeline.sh         # chờ ablation xong -> tắt vLLM -> smoke -> train clean (GPU1) + random (GPU0) song song -> eval
+```
+
+- `clean`: bucket 0-5 / 11-15 / 16-35 gốc trừ hàng rò (197.561 / 27.393 / 5.223).
+- `random`: cùng cỡ từng chặng, rút ngẫu nhiên (seed 3407) từ các hàng PyraNet < 434.151 (phía trên là shard hỏng), trừ hàng rò; không qua bộ lọc synth/số cell.
+- Train: `training/run_retrain.sh <variant>` (env `llm_train_env`, Unsloth 2026.6.1), s1 LoRA mới trên base, s2/s3 nạp adapter chặng trước, rồi merge -> `~/Downloads/retrain/models/model_qwen_generator_<variant>_merged`.
+- Eval: model `clean` / `random` trong `run_dac27.sh` = Generator mới + Debugger đang serve (như `full`), F0 F0s F3 x rl1 rl2 ve.
+- `dac27_analyze.py` thêm tương phản `R-clean-vs-{full,base,random}-*`, `R-random-vs-base-*` và `R-clean-vs-*-F0sp10-*`.

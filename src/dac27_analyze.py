@@ -421,7 +421,9 @@ def main() -> None:
     for suite in SUITES:
         for fb in fbs:
             for ma, mb in (("full", "base"), ("full", "gen"), ("gen", "base"), ("single", "full"),
-                           ("full", "scale"), ("scale", "base")):
+                           ("full", "scale"), ("scale", "base"),
+                           # retrained Generator (training/): R3-2 clean vs served, R3-1 filter vs random
+                           ("clean", "full"), ("clean", "base"), ("clean", "random"), ("random", "base")):
                 if (ma, fb, suite) in arms and (mb, fb, suite) in arms:
                     pairs.append((f"{ma}-vs-{mb}-{fb}-{suite}", paired(arms[(ma, fb, suite)], arms[(mb, fb, suite)])))
         # the loop against a perfect selector over 10 independent samples (F0s pass@10)
@@ -436,7 +438,8 @@ def main() -> None:
                     pairs.append((f"{m}-{fx}-vs-F0sp10-{suite}",
                                   paired_metric(arms[(m, fx, suite)], s0, lambda c, n: c / n, lambda c, n: passk(n, c, 10))))
         # fine-tuning effect on coverage: pass@10 of independent samples, model vs model
-        for ma, mb in (("full", "base"), ("gen", "base"), ("full", "scale")):
+        for ma, mb in (("full", "base"), ("gen", "base"), ("full", "scale"),
+                       ("clean", "full"), ("clean", "base"), ("clean", "random")):
             ra, rb = arms.get((ma, "F0s", suite)), arms.get((mb, "F0s", suite))
             if ra and rb and all(n >= 10 for r_ in (ra, rb) for _, n in r_["tasks"].values()):
                 p10 = lambda c, n: passk(n, c, 10)

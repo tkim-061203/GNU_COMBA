@@ -3,8 +3,9 @@
 # run_dac27.sh - model x feedback-source matrix, scored on HELD-OUT testbenches.
 #
 #   ./utils/run_dac27.sh <model> [feedback ...] [-- suites]
-#   model    : base | gen | full | single | scale   (which checkpoints vLLM serves)
+#   model    : base | gen | full | single | scale | clean | random  (which checkpoints vLLM serves)
 #              scale = a larger untuned model (SCALE_MODEL) in both roles
+#              clean|random = retrained Generator (training/run_retrain.sh) + served Debugger
 #   feedback : F0 F1 F2 F3 (default: all four), plus F0s on request
 #     F0  single shot: 1 sample, no TED/Debugger, no testbench in the loop
 #     F0s sampled single shot: F0 at temperature 0.8, 10 independent trials
@@ -42,7 +43,7 @@ SCALE_MODEL="${SCALE_MODEL:-}"   # optional: LOCAL dir of a larger untuned model
 TRIALS_F0S="${TRIALS_F0S:-10}"   # independent samples per RTLLM task for F0s
 cd "$ROOT"
 
-MODEL="${1:?model: base|gen|full|single|scale}"; shift
+MODEL="${1:?model: base|gen|full|single|scale|clean|random}"; shift
 FEEDBACK=(); SUITES=()
 while [ $# -gt 0 ]; do
   if [ "$1" = "--" ]; then shift; SUITES=("$@"); break; fi
@@ -58,6 +59,11 @@ case "$MODEL" in
   full)   GEN="$GEN_CKPT";  DBG="$DBG_CKPT"  ;;
   single) [ -n "$SINGLE_CKPT" ] || { echo "set SINGLE_CKPT"; exit 1; }
           GEN="$SINGLE_CKPT"; DBG="$SINGLE_CKPT" ;;
+  clean|random)   # retrained Generator (training/run_retrain.sh) + the served Debugger, as `full`
+          ck=/home/nntkim/Downloads/retrain/models/model_qwen_generator_${MODEL}_merged
+          [ "$MODEL" = clean ] && ck="${CLEAN_CKPT:-$ck}" || ck="${RANDOM_CKPT:-$ck}"
+          [ -d "$ck" ] || { echo "no merged $MODEL generator at $ck"; exit 1; }
+          GEN="$ck"; DBG="$DBG_CKPT" ;;
   scale)  [ -d "$SCALE_MODEL" ] || { echo "set SCALE_MODEL to a local model dir"; exit 1; }
           GEN="$SCALE_MODEL"; DBG="$SCALE_MODEL" ;;
   *) echo "unknown model $MODEL"; exit 1 ;;
