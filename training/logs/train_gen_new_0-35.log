@@ -1,0 +1,32 @@
+[patch] source patch skipped: Please install Unsloth via `pip install unsloth`!
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+[INFO] CUDA devices: 2
+==((====))==  Unsloth 2026.6.1: Fast Qwen2 patching. Transformers: 5.5.0. vLLM: 0.17.0.
+   \\   /|    NVIDIA RTX 5880 Ada Generation. Num GPUs = 2. Max memory: 47.374 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.10.0+cu128. CUDA: 8.9. CUDA Toolkit: 12.8. Triton: 3.6.0
+\        /    Bfloat16 = TRUE. FA [Xformers = 0.0.35. FA2 = True]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+WARN  Python GIL is enabled: Multi-gpu quant acceleration for MoE models is sub-optimal and multi-core accelerated cpu packing is also disabled. We recommend Python >= 3.13.3t with Pytorch > 2.8 for mult-gpu quantization and multi-cpu packing with env `PYTHON_GIL=0`.
+INFO  ENV: Auto setting CUDA_DEVICE_ORDER=PCI_BUS_ID for correctness.          
+INFO  
+┌─────────────┐    ┌────────────────────────┐    ┌────────────┐    ┌─────────┐
+│ GPT-QModel  │ -> │ ▓▓▓▓▓▓▓▓▓▓▓▓ 16bit     │ -> │ ▒▒▒▒ 8bit  │ -> │ ░░ 4bit │
+└─────────────┘    └────────────────────────┘    └────────────┘    └─────────┘
+GPT-QModel   : 7.0.0
+Transformers : 5.5.0
+Torch        : 2.10.0+cu128
+Triton       : 3.6.0
+[INFO] Loading dataset from JSONL
+[INFO] Samples: 5381
+[preflight] READY (5381 samples; max id 151645 vs vocab 152064)
+[INFO] response_part='<|im_start|>assistant\n'
+[patch] fix_untrained_tokens neutralized in 2 module(s)
+🦥 Unsloth: Padding-free auto-enabled, enabling faster training.
+Unsloth: Removed 5 out of 5381 samples from train_dataset where all labels were -100 (no response found after truncation). This prevents NaN loss during training.
+Unsloth: Will smartly offload gradients to save VRAM!
+Unsloth: Double buffering enabled (parallel H2D + compute) for backward pass.
+{'train_runtime': '1.904e+04', 'train_samples_per_second': '0.282', 'train_steps_per_second': '0.141', 'train_loss': '0.3864', 'epoch': '1'}
+[INFO] Saving LoRA adapters...
+[INFO] Saved to: adapter_qwen_generator_0-35_e1_v1
