@@ -13,6 +13,9 @@
 #     F2  generated TB: Best-of-10 + repair against a spec-generated, mutation-
 #         graded testbench (one TB per problem and trial, shared by all samples)
 #     F3  official TB in the loop (the legacy oracle setting), reference RTL hidden
+#     F3 flow ablations (official TB in the loop, one REFINE component removed):
+#       F3n1 Best-of-1 (no Best-of-N; repair kept)   F3nd no Debugger SLM patches
+#       F3nt no TED (first failure ends the run)     F3ns no Sanitizer
 #   suites   : rl1 rl2 ve (default: all)
 #
 # Every arm hides verified_*.v from the loop (COMBA_BLIND_EVAL=1 + blind copy),
@@ -94,6 +97,7 @@ json.dump({"generator": delta(g0, g1), "debugger": delta(d0, d1),
            "source": "vLLM /metrics counters, delta over the arm"}, open(out, "w"), indent=2)
 EOF
 }
+export VLLM_LOG_STATS=1   # launch_dual_gpu.sh keeps vLLM stats on, so /metrics counts tokens
 if pgrep -af 'benchmark_langgraph\.py' >/dev/null; then echo "another benchmark is running"; exit 1; fi
 serve
 
@@ -107,9 +111,13 @@ feedback_env () {   # $1 = F0..F3 ; echoes env assignments
     F1) echo "COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=10 COMBA_SKIP_TB_IF_NO_GOLDEN=1" ;;
     F2) echo "COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=10 COMBA_SKIP_TB_IF_NO_GOLDEN=0 COMBA_TB_VALIDATE=1 COMBA_TS_SIMULATOR=iverilog" ;;
     F3) echo "COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=10 COMBA_SKIP_TB_IF_NO_GOLDEN=0 COMBA_TS_SIMULATOR=verilator" ;;
+    F3n1) echo "COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=1 COMBA_SKIP_TB_IF_NO_GOLDEN=0 COMBA_TS_SIMULATOR=verilator" ;;
+    F3nd) echo "COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=10 COMBA_SKIP_TB_IF_NO_GOLDEN=0 COMBA_TS_SIMULATOR=verilator COMBA_USE_DEBUGGER_SLM=0" ;;
+    F3nt) echo "COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=10 COMBA_SKIP_TB_IF_NO_GOLDEN=0 COMBA_TS_SIMULATOR=verilator COMBA_USE_TED=0" ;;
+    F3ns) echo "COMBA_SELF_CONSISTENCY=1 COMBA_MAX_SAMPLES=10 COMBA_SKIP_TB_IF_NO_GOLDEN=0 COMBA_TS_SIMULATOR=verilator COMBA_USE_SANITIZER=0" ;;
   esac
 }
-blind_mode () { [ "$1" = "F3" ] && echo tb || echo spec; }
+blind_mode () { case "$1" in F3*) echo tb ;; *) echo spec ;; esac; }
 
 run_rtllm () {   # $1 suite rl1|rl2, $2 feedback, $3 arm dir
   local suite="$1" fb="$2" arm="$3" src desc extra trials
@@ -129,9 +137,9 @@ run_rtllm () {   # $1 suite rl1|rl2, $2 feedback, $3 arm dir
 
 run_ve () {   # $1 feedback, $2 arm dir
   local fb="$1" arm="$2" sc=1 n=10 cfg=e0_t0
-  case "$fb" in F0) sc=0; n=1 ;; F0s) sc=0; n=1; cfg=e0_t8 ;; esac   # e0_t8 = 20 samples at T=0.8
+  case "$fb" in F0) sc=0; n=1 ;; F0s) sc=0; n=1; cfg=e0_t8 ;; F3n1) n=1 ;; esac   # e0_t8 = 20 samples at T=0.8
   local inloop=""
-  if [ "$fb" != F3 ]; then mkdir -p "$arm/ve_blind"; inloop="COMBA_INLOOP_DATASET_DIR=$arm/ve_blind"; fi
+  case "$fb" in F3*) ;; *) mkdir -p "$arm/ve_blind"; inloop="COMBA_INLOOP_DATASET_DIR=$arm/ve_blind" ;; esac
   env $COMMON $(feedback_env "$fb") $inloop COMBA_GENTB_CACHE_DIR="$arm/gentb_cache" \
     make VerilogEval VEVAL_CONFIGS=$cfg SC=$sc COMBA_MAX_SAMPLES=$n LANGGRAPH_JOBS="$JOBS" \
       VEVAL_BUILD_ROOT="$arm/ve_build" VEVAL_SWEEP_REPORTS="$arm/ve_reports"

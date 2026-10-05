@@ -99,7 +99,8 @@ def load_tokens(arm: Path) -> dict | None:
     parts = [d.get("generator"), d.get("debugger")]
     if any(p is None for p in parts):
         return None
-    return {"prompt": sum(p["prompt"] for p in parts), "completion": sum(p["completion"] for p in parts)}
+    tot = {"prompt": sum(p["prompt"] for p in parts), "completion": sum(p["completion"] for p in parts)}
+    return tot if tot["prompt"] + tot["completion"] > 0 else None   # 0 = vLLM ran with stats off
 
 
 def load_ve(arm: Path) -> dict | None:
@@ -327,7 +328,10 @@ def contam(ra: dict, rb: dict, leak: set) -> dict | None:
 
 # ------------------------------------------------------------------ output
 def fmt(v, nd=1):
-    return "--" if v is None else f"{v:.{nd}f}"
+    if v is None:
+        return "--"
+    s = f"{v:.{nd}f}"
+    return s.lstrip("-") if float(s) == 0 else s   # no "-0.0"
 
 
 def macro(key: str, val: str) -> str:
@@ -431,6 +435,17 @@ def main() -> None:
                 if (m, fx, suite) in arms:
                     pairs.append((f"{m}-{fx}-vs-F0sp10-{suite}",
                                   paired_metric(arms[(m, fx, suite)], s0, lambda c, n: c / n, lambda c, n: passk(n, c, 10))))
+        # fine-tuning effect on coverage: pass@10 of independent samples, model vs model
+        for ma, mb in (("full", "base"), ("gen", "base"), ("full", "scale")):
+            ra, rb = arms.get((ma, "F0s", suite)), arms.get((mb, "F0s", suite))
+            if ra and rb and all(n >= 10 for r_ in (ra, rb) for _, n in r_["tasks"].values()):
+                p10 = lambda c, n: passk(n, c, 10)
+                pairs.append((f"{ma}-vs-{mb}-F0sp10-{suite}", paired_metric(ra, rb, p10, p10)))
+        # REFINE flow ablations: each removes one component from the TB-in-the-loop setting
+        for m in models:
+            for v in ("F3n1", "F3nd", "F3nt", "F3ns"):
+                if (m, "F3", suite) in arms and (m, v, suite) in arms:
+                    pairs.append((f"{m}-F3-vs-{v}-{suite}", paired(arms[(m, "F3", suite)], arms[(m, v, suite)])))
         for m in models:
             for fa_, fb_ in (("F3", "F2"), ("F2", "F1"), ("F1", "F0"), ("F0s", "F0")):
                 if (m, fa_, suite) in arms and (m, fb_, suite) in arms:

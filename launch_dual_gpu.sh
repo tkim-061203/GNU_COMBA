@@ -140,6 +140,8 @@ start_dual() {
     mkdir -p $LOG_DIR
 
     # ── GPU 0: Base Qwen ──
+    # VLLM_LOG_STATS=1 keeps stats on so /metrics counts tokens (run_dac27.sh sets it)
+    STATS_FLAG="--disable-log-stats"; [ "${VLLM_LOG_STATS:-0}" = 1 ] && STATS_FLAG=""
     echo "🔵 Starting Generator on GPU 0 (:$PORT_GEN)..."
     CUDA_VISIBLE_DEVICES=0 VLLM_USE_V1=0 VLLM_TORCH_COMPILE_LEVEL=0 python -m vllm.entrypoints.openai.api_server \
         --model $GENERATED_MODEL \
@@ -148,7 +150,7 @@ start_dual() {
         $GEN_FLAGS \
         --seed 42 \
         --enforce-eager \
-        --disable-log-stats \
+        $STATS_FLAG \
         --max-model-len $MAX_MODEL_LEN \
         --gpu-memory-utilization $GPU_MEM \
         --port $PORT_GEN \
@@ -170,7 +172,7 @@ start_dual() {
         --port $PORT_DBG \
         --host 0.0.0.0 \
         --enforce-eager \
-        --disable-log-stats \
+        $STATS_FLAG \
         --tokenizer-mode auto \
         --trust-remote-code \
         > $LOG_DIR/vllm_gpu1_debugger.log 2>&1 &

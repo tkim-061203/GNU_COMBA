@@ -128,3 +128,28 @@ python src/dac27_analyze.py reports/dac27 --out reports/dac27_results --leaked-j
 Ghi chú (grader rl1): `tb.cpp` của RTLLM v1.1 gọi `srand(time(NULL))` nên điểm held-out thay đổi giữa các lần grade (`div_16bit`: pass@1 20–100% qua 8 lần). `heldout_grade.py` giờ grade các TB này với 5 seed cố định (`--tb-seeds 1,2,3,4,5`, mặc định), chỉ pass khi pass cả 5; TB không seed theo thời gian (RTLLM v2) vẫn chạy một lần. Mọi số rl1 grade trước thay đổi này phải grade lại: các ô `*/*/rl1` và lệnh rl1 ở mục 2.
 
 Ghi chú: trước commit này, các cấu hình VE nhiều mẫu (`e0_t8`) dùng cùng một seed cho mọi mẫu của một bài, nên các mẫu trùng nhau. `main_langgraph.py` giờ đổi seed theo mẫu; mẫu 1 giữ seed cũ nên các ô `e0_t0` đã chạy không đổi.
+
+## 7. Thí nghiệm cho bài REFINE-VerilogV2 (fine-tune + flow, theo review ASP-DAC)
+
+```bash
+git pull --ff-only     # chỉ khi không có ô nào đang chạy
+
+# a. Ablation flow REFINE với TB chính thức trong vòng lặp (giống bảng ablation của khoá luận,
+#    nhưng chấm held-out, ẩn RTL tham chiếu). Mỗi kiểu bỏ đúng một thành phần:
+#    F3n1 = Best-of-1 (vẫn sửa)  F3nd = không Debugger  F3nt = không TED  F3ns = không Sanitizer
+PHASES="full:F3n1,F3nd,F3nt,F3ns" ./utils/dac27_watcher.sh        # ~4 x 4-5 h
+#    hoặc chạy tay: ./utils/run_dac27.sh full F3n1 F3nd F3nt F3ns 2>&1 | tee -a reports/dac27_flow.log
+
+# b. Chất lượng phần cứng của thiết kế đã pass (review ASP-DAC 3b), CPU, dùng các ô đã có
+curl -sSfL -o NangateOpenCellLibrary_typical.lib \
+  https://raw.githubusercontent.com/The-OpenROAD-Project/OpenROAD-flow-scripts/master/flow/platforms/nangate45/lib/NangateOpenCellLibrary_typical.lib
+python src/dac27_ppa.py reports/dac27 --out reports/dac27_results --jobs 16 --feedback F0 F3 \
+  --liberty NangateOpenCellLibrary_typical.lib
+#    -> ppa.csv (gmean area / RTL tham chiếu mỗi ô), ppa_pairs.csv (full vs base, full vs gen cùng task),
+#       ppa_tasks.csv, ppa.tex (macro R-ppa-<model>-<F>-<suite>-gm, R-ppa-full-vs-base-<F>-<suite>-{diff,ci,n})
+#    Không có --liberty thì dùng proxy số transistor (Yosys stat -tech cmos + 24 T mỗi flip-flop).
+```
+
+`dac27_analyze.py` thêm: tương phản `R-<model>-F3-vs-<F3n1|F3nd|F3nt|F3ns>-<suite>-{diff,ci,p}` (đóng góp từng thành phần flow),
+`R-<ma>-vs-<mb>-F0sp10-<suite>-*` (fine-tune so với base ở pass@10). Token = 0 (vLLM chạy `--disable-log-stats`) được coi là không có số;
+từ commit này `run_dac27.sh` đặt `VLLM_LOG_STATS=1` để `launch_dual_gpu.sh` bật stats và `tokens.json` có số thật.
