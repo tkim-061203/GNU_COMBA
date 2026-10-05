@@ -114,7 +114,7 @@ def load_ve(arm: Path) -> dict | None:
     for sc in glob.glob(str(arm / "ve_reports" / "*" / "summary.csv")):
         for row in csv.reader(open(sc)):
             if row and row[0].startswith("Prob"):
-                canon[row[0]] = (int(row[2]), int(row[1]))
+                canon[row[0]] = (int(row[1]), int(row[2]))   # summary.csv: problem, passed, samples, rate
     for prob_dir in sorted(Path(roots[0]).iterdir()):
         c = n = 0
         for sj in sorted(prob_dir.glob("sample_*.json")):
