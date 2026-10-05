@@ -688,14 +688,46 @@ def run_pipeline_batch(
     if use_parallel:
         try:
             from multiprocess import Pool          # dill-based (matches main_langgraph)
+            from multiprocess import TimeoutError as MPTimeoutError
         except ImportError:
             from multiprocessing import Pool        # stdlib fallback
+            from multiprocessing import TimeoutError as MPTimeoutError
         nproc = min(jobs, total)
         cprint(f"[COMBA] Parallel batch: {nproc} worker process(es)")
+        # Per-result timeout instead of a bare for-loop: if a worker DIES
+        # mid-task, Pool silently replaces it but that task's result never
+        # arrives, so `for ... in imap_unordered(...)` hangs forever (dac27
+        # gen/F2/rl2 wedged ~15h on 2026-10-02; same bug main_langgraph fixed
+        # 2026-07-20). Per-module reports are already on disk, so on a stall
+        # we stop collecting and proceed with what we have.
+        wall_budget = float(os.getenv("COMBA_WALL_BUDGET", "0"))
+        stall_sec = float(os.getenv(
+            "COMBA_POOL_STALL_SEC",
+            max(wall_budget * 3, 1800) if wall_budget > 0 else 7200,
+        ))
         with Pool(processes=nproc, initializer=_batch_worker_init) as pool:
-            for module_name, report_data in pool.imap_unordered(_process_one_module, tasks):
+            result_iter = pool.imap_unordered(_process_one_module, tasks)
+            got = 0
+            while got < len(tasks):
+                try:
+                    module_name, report_data = result_iter.next(timeout=stall_sec)
+                except MPTimeoutError:
+                    missing = sorted(
+                        set(os.path.basename(t[0]) for t in tasks) - set(all_results)
+                    )
+                    cprint(
+                        f"[COMBA] [pool] no result for {stall_sec:.0f}s after "
+                        f"{got}/{len(tasks)} — a worker likely died; proceeding. "
+                        f"Uncollected: {missing}"
+                    )
+                    break
+                except StopIteration:
+                    break
+                got += 1
                 if report_data is not None:
                     all_results[module_name] = report_data
+            # Do not wait on a possibly-wedged pool.
+            pool.terminate()
     else:
         # Sequential: build the pipeline once in this process (honors an
         # explicit `llm` if provided).
