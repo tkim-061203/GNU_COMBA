@@ -64,3 +64,15 @@ CHANGELOG.md
 *.bak*
 .mcp.json
 .opencode.json
+graphify-out/.rebuild.lock
+
+# DAC27 raw run outputs (~1.8M files, single sample JSONs up to 1.4 GB). The
+# numbers the paper uses are in reports/dac27_results/ and stay tracked.
+reports/dac27/
+reports/dac27_partial/
+reports/dac27*.log
+reports/dac27_STATUS.txt
+# Unsloth writes its compiled trainer cache next to the training script
+**/unsloth_compiled_cache/
+# downloaded Nangate45 liberty for dac27_ppa.py (see runbook section 7)
+NangateOpenCellLibrary_typical.lib
