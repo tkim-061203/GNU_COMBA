@@ -45,6 +45,7 @@ SINGLE_CKPT="${SINGLE_CKPT:-}"   # optional: one adapter trained on generation+r
 SCALE_MODEL="${SCALE_MODEL:-}"   # optional: LOCAL dir of a larger untuned model, e.g. Qwen2.5-Coder-14B-Instruct
 TRIALS_F0S="${TRIALS_F0S:-10}"   # independent samples per RTLLM task for F0s
 cd "$ROOT"
+export PATH="$(dirname "$PY"):$PATH"   # launch_dual_gpu.sh runs bare `python -m vllm...`
 
 MODEL="${1:?model: base|gen|full|single|scale|clean|random}"; shift
 FEEDBACK=(); SUITES=()
