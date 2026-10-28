@@ -168,3 +168,18 @@ python training/make_retrain_data.py      # training/data/{clean,random}_s{1,2,3
 - Train: `training/run_retrain.sh <variant>` (env `llm_train_env`, Unsloth 2026.6.1), s1 LoRA mới trên base, s2/s3 nạp adapter chặng trước, rồi merge -> `~/Downloads/retrain/models/model_qwen_generator_<variant>_merged`.
 - Eval: model `clean` / `random` trong `run_dac27.sh` = Generator mới + Debugger đang serve (như `full`), F0 F0s F3 x rl1 rl2 ve.
 - `dac27_analyze.py` thêm tương phản `R-clean-vs-{full,base,random}-*`, `R-random-vs-base-*` và `R-clean-vs-*-F0sp10-*`.
+
+## 9. Bổ sung số cho bảng so sánh của bài RIVF'26 (camera-ready, Table III)
+
+```bash
+git pull --ff-only     # chỉ khi không có ô nào đang chạy
+nohup ./utils/run_compare_fill.sh > reports/compare_fill.log 2>&1 &
+tail -f reports/compare_fill.log
+```
+
+- VerilogEval theo 4 chế độ prompt của VerilogEval V2: suite mới `ve_e1t0`, `ve_e0t8`, `ve_e1t8` (`ve` = mặc định cũ).
+  Single-shot: F0 + `ve_e1t0`, F0s + `ve_e1t8` cho base/full/clean. Full pipeline: F3 + `ve_e0t8`/`ve_e1t0`/`ve_e1t8` cho full/clean.
+- Syntax pass@5 của RTLLM không cần chạy lại: `dac27_analyze.py` đọc từ `heldout.json` sẵn có
+  (thiết kế compile được với TB chính thức: `pass` hoặc `fail_ts`), cột `syn_p5` trong `arms.csv`, macro `R-<arm>-synp5`.
+- Khoảng 2 ngày GPU; hai ô F3 ở T=0.8 (20 mẫu x Best-of-10) chạy cuối, mỗi ô ~10 h.
+- Xong thì commit `reports/dac27_results/` và push.

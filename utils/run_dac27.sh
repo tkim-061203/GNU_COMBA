@@ -17,7 +17,10 @@
 #     F3 flow ablations (official TB in the loop, one REFINE component removed):
 #       F3n1 Best-of-1 (no Best-of-N; repair kept)   F3nd no Debugger SLM patches
 #       F3nt no TED (first failure ends the run)     F3ns no Sanitizer
-#   suites   : rl1 rl2 ve (default: all)
+#   suites   : rl1 rl2 ve (default: all), plus VerilogEval with a fixed prompt regime:
+#              ve_e1t0 ve_e0t8 ve_e1t8 (e = in-context examples, t8 = 20 samples at T=0.8).
+#              Use F0 + ve_e1t0, F0s + ve_e1t8, F3 + ve_e0t8/ve_e1t0/ve_e1t8 for the
+#              zero/one-shot x T=0/0.8 columns of the published comparison.
 #
 # Every arm hides verified_*.v from the loop (COMBA_BLIND_EVAL=1 + blind copy),
 # and every final design is re-graded against the official testbench by
@@ -141,9 +144,10 @@ run_rtllm () {   # $1 suite rl1|rl2, $2 feedback, $3 arm dir
     "$PY" src/heldout_grade.py --runs "$blind" --official "$src" --out-json "$arm/heldout.json" --jobs 8
 }
 
-run_ve () {   # $1 feedback, $2 arm dir
-  local fb="$1" arm="$2" sc=1 n=10 cfg=e0_t0
+run_ve () {   # $1 feedback, $2 arm dir, $3 suite (ve | ve_e1t0 | ve_e0t8 | ve_e1t8)
+  local fb="$1" arm="$2" suite="${3:-ve}" sc=1 n=10 cfg=e0_t0
   case "$fb" in F0) sc=0; n=1 ;; F0s) sc=0; n=1; cfg=e0_t8 ;; F3n1) n=1 ;; esac   # e0_t8 = 20 samples at T=0.8
+  case "$suite" in ve_e[01]t[08]) cfg="${suite:3:2}_${suite:5:2}" ;; esac         # ve_e1t8 -> e1_t8
   local inloop=""
   case "$fb" in F3*) ;; *) mkdir -p "$arm/ve_blind"; inloop="COMBA_INLOOP_DATASET_DIR=$arm/ve_blind" ;; esac
   env $COMMON $(feedback_env "$fb") $inloop COMBA_GENTB_CACHE_DIR="$arm/gentb_cache" \
@@ -159,7 +163,11 @@ for fb in "${FEEDBACK[@]}"; do
     echo "=========== $MODEL / $fb / $suite  ($(date)) ==========="
     provenance "$arm"
     t0=$(date +%s); tg0=$(vllm_tokens 8000); td0=$(vllm_tokens 8001)
-    if [ "$suite" = ve ]; then run_ve "$fb" "$arm"; else run_rtllm "$suite" "$fb" "$arm"; fi
+    case "$suite" in
+      ve|ve_e[01]t[08]) run_ve "$fb" "$arm" "$suite" ;;
+      rl1|rl2)          run_rtllm "$suite" "$fb" "$arm" ;;
+      *) echo "unknown suite $suite"; exit 1 ;;
+    esac
     echo "elapsed_s: $(( $(date +%s) - t0 ))" >> "$arm/provenance.txt"
     write_tokens "$arm" "$tg0" "$(vllm_tokens 8000)" "$td0" "$(vllm_tokens 8001)" || true
     touch "$arm/DONE"

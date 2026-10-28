@@ -41,7 +41,12 @@ from pathlib import Path
 import numpy as np
 
 B, SEED = 10_000, 0
-SUITES = ("rl1", "rl2", "ve")
+SUITES = ("rl1", "rl2", "ve", "ve_e1t0", "ve_e0t8", "ve_e1t8")   # ve_*: fixed VerilogEval prompt regime
+COMPILES = ("pass", "fail_ts")   # held-out statuses where the design compiled with the official testbench
+
+
+def is_ve(suite: str) -> bool:
+    return suite.startswith("ve")
 
 
 # ------------------------------------------------------------------ loading
@@ -51,6 +56,8 @@ def load_rtllm(arm: Path) -> dict | None:
         return None
     d = json.loads(f.read_text())
     tasks = {p["design"]: (p["c_heldout"], p["trials"]) for p in d["per_design"]}
+    syn = {p["design"]: (sum(h in COMPILES for h in (p.get("heldout") or [])), p["trials"])
+           for p in d["per_design"] if p.get("heldout")}
     agree = d.get("inloop_vs_heldout", {})
     # per (design, trial): (trial id, sample report, in-loop pass, held-out pass)
     reports = rtllm_reports(arm)
@@ -60,7 +67,8 @@ def load_rtllm(arm: Path) -> dict | None:
         held, inl = p.get("heldout") or [], p.get("inloop") or []
         if len(rs) == len(held) == len(inl):
             runs[p["design"]] = [(t, s, i == "pass", h == "pass") for (t, s), i, h in zip(rs, inl, held)]
-    return {"tasks": tasks, "agree": agree, "cost": load_cost(arm), "runs": runs, "tokens": load_tokens(arm)}
+    return {"tasks": tasks, "agree": agree, "cost": load_cost(arm), "runs": runs, "tokens": load_tokens(arm),
+            "syn": syn}
 
 
 def rtllm_reports(arm: Path) -> dict:
@@ -275,7 +283,7 @@ def judge_by_tier(arm: Path, r: dict, suite: str) -> dict | None:
     for task, rows in r["runs"].items():
         for t, _s, inl, held in rows:
             # run_dac27.sh seeds 42; RTLLM trial t -> 42 + 10000 t, VE sample t -> 42 + 10000 (t - 1)
-            seed = 42 + 10_000 * ((t - 1) if suite == "ve" else t)
+            seed = 42 + 10_000 * ((t - 1) if is_ve(suite) else t)
             tb = cache / f"gen_tb_{re.sub(r'[^A-Za-z0-9_.-]', '_', task)}_s{seed}.sv"
             if not tb.is_file():
                 tier = "no_tb"
@@ -353,7 +361,7 @@ def main() -> None:
         model, fb, suite = arm.parts[-3:]
         if suite not in SUITES:
             continue
-        r = load_ve(arm) if suite == "ve" else load_rtllm(arm)
+        r = load_ve(arm) if is_ve(suite) else load_rtllm(arm)
         if r:
             arms[(model, fb, suite)] = r
 
@@ -371,9 +379,13 @@ def main() -> None:
                ("tasks", "p1", "p1_lo", "p1_hi", "p5", "solved_any", "solved_all")},
                "false_accept_pct": fa, "tb_self_validated_pct": (100 * sv / ntb) if ntb else None,
                **{f"cost_{k}": v for k, v in r["cost"].items()}}
-        if suite in leaked:
-            sc = arm_stats(r, set(r["tasks"]) - set(leaked[suite]))
+        lk = "ve" if is_ve(suite) else suite
+        if lk in leaked:
+            sc = arm_stats(r, set(r["tasks"]) - set(leaked[lk]))
             row["p1_clean"], row["tasks_clean"] = sc.get("p1"), sc.get("tasks")
+        syn = r.get("syn")   # RTLLM: syntax pass@5 = compiles with the official testbench (unbiased for n >= 5)
+        if syn and all(n >= 5 for _, n in syn.values()):
+            row["syn_p5"] = 100 * float(np.mean([passk(n, c, 5) for c, n in syn.values()]))
         arm_dir = Path(root, model, fb, suite)
         for k in ("p10", "p10_lo", "p10_hi"):
             row[k] = s.get(k)
@@ -405,7 +417,7 @@ def main() -> None:
                          ("p1clean", row.get("p1_clean"), 1), ("iter", r["cost"].get("mean_total_iter"), 1),
                          ("p10", s.get("p10"), 1), ("p10lo", s.get("p10_lo"), 1), ("p10hi", s.get("p10_hi"), 1),
                          ("ktok", row.get("ktok_per_run"), 1), ("tbref", row.get("tb_accepts_ref_pct"), 0),
-                         ("tbmut", row.get("tb_ref_mutation_pct"), 0)):
+                         ("tbmut", row.get("tb_ref_mutation_pct"), 0), ("synp5", row.get("syn_p5"), 1)):
             if v is not None:
                 tex.append(macro(f"{key}-{m}", fmt(v, nd)))
         for c in DEC_CATS if dec else ():
